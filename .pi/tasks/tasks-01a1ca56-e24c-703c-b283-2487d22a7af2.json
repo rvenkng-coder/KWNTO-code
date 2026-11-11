@@ -1,0 +1,193 @@
+{
+  "nextId": 13,
+  "tasks": [
+    {
+      "id": "1",
+      "subject": "1A Step 1: Scaffold Vite react-ts template and move files to repo root",
+      "description": "Generate Vite react-ts template into /tmp/kwnto-scaffold, move relevant files to repo root. Set package name to kwnto, private: true. Do not hand-pin TS/ESLint versions.",
+      "status": "completed",
+      "activeForm": "Scaffolding Vite template",
+      "metadata": {},
+      "blocks": [
+        "2"
+      ],
+      "blockedBy": [],
+      "createdAt": 1794396277594,
+      "updatedAt": 1794396394685
+    },
+    {
+      "id": "2",
+      "subject": "1A Step 2: Install remaining dependencies",
+      "description": "Install: react, react-dom, tailwindcss, zustand, @xyflow/react, pocketbase, vitest, @playwright/test. Run npx playwright install firefox chromium.",
+      "status": "completed",
+      "activeForm": "Installing dependencies",
+      "metadata": {},
+      "blocks": [
+        "3"
+      ],
+      "blockedBy": [
+        "1"
+      ],
+      "createdAt": 1794396277595,
+      "updatedAt": 1794396471360
+    },
+    {
+      "id": "3",
+      "subject": "1A Step 3: Update .gitignore",
+      "description": "Add node_modules/, dist/, .env, test-results/, playwright-report/, spike/realtime/results/ to .gitignore before first commit.",
+      "status": "completed",
+      "activeForm": "Updating .gitignore",
+      "metadata": {},
+      "blocks": [
+        "4"
+      ],
+      "blockedBy": [
+        "2"
+      ],
+      "createdAt": 1794396277595,
+      "updatedAt": 1794396541305
+    },
+    {
+      "id": "4",
+      "subject": "1A Step 4: Close checkpoint 1A - verify and commit",
+      "description": "Verify npm ls --depth=0 exits 0, git status --short lists no path under node_modules/. Commit: chore: scaffold from the Vite template and install dependencies.",
+      "status": "in_progress",
+      "activeForm": "Closing checkpoint 1A",
+      "metadata": {},
+      "blocks": [
+        "5"
+      ],
+      "blockedBy": [
+        "3"
+      ],
+      "createdAt": 1794396277595,
+      "updatedAt": 1794396541306
+    },
+    {
+      "id": "5",
+      "subject": "1B Step 5: Configure tsconfig, vite.config.ts, vitest.config.ts, index.css",
+      "description": "tsconfig: strict, noUncheckedIndexedAccess, allowImportingTsExtensions. vite.config.ts: React + Tailwind plugins, proxy /api and /_ to KWNTO_PB_URL. index.css: @import tailwindcss. vitest.config.ts: 3 projects (unit, rules, container).",
+      "status": "pending",
+      "activeForm": "Configuring toolchain",
+      "metadata": {},
+      "blocks": [
+        "6"
+      ],
+      "blockedBy": [
+        "4"
+      ],
+      "createdAt": 1794396277596,
+      "updatedAt": 1794396305148
+    },
+    {
+      "id": "6",
+      "subject": "1B Step 6: Replace App.tsx with minimal h1",
+      "description": "src/App.tsx renders only h1 KWNTO. Delete template logos and demo CSS.",
+      "status": "pending",
+      "activeForm": "Replacing App.tsx",
+      "metadata": {},
+      "blocks": [
+        "7"
+      ],
+      "blockedBy": [
+        "5"
+      ],
+      "createdAt": 1794396277596,
+      "updatedAt": 1794396305148
+    },
+    {
+      "id": "7",
+      "subject": "1B Step 7: Write smoke test src/smoke.test.ts",
+      "description": "Write smoke test that proves vitest runs TypeScript: total of [1,2,3].reduce is 6.",
+      "status": "pending",
+      "activeForm": "Writing smoke test",
+      "metadata": {},
+      "blocks": [
+        "8"
+      ],
+      "blockedBy": [
+        "6"
+      ],
+      "createdAt": 1794396277596,
+      "updatedAt": 1794396305149
+    },
+    {
+      "id": "8",
+      "subject": "1B Step 8: Configure npm scripts",
+      "description": "dev: vite. build: tsc -b && vite build. typecheck: tsc -b --noEmit. test:unit: vitest run --project unit.",
+      "status": "pending",
+      "activeForm": "Configuring npm scripts",
+      "metadata": {},
+      "blocks": [
+        "9"
+      ],
+      "blockedBy": [
+        "7"
+      ],
+      "createdAt": 1794396277596,
+      "updatedAt": 1794396305149
+    },
+    {
+      "id": "9",
+      "subject": "1B Step 9: Close checkpoint 1B - verify and commit",
+      "description": "Verify npm run typecheck && npm run test:unit && npm run build passes. Commit: chore: configure TypeScript, Vite, Tailwind and Vitest.",
+      "status": "pending",
+      "activeForm": "Closing checkpoint 1B",
+      "metadata": {},
+      "blocks": [
+        "10"
+      ],
+      "blockedBy": [
+        "8"
+      ],
+      "createdAt": 1794396277597,
+      "updatedAt": 1794396305149
+    },
+    {
+      "id": "10",
+      "subject": "1C Step 10: Create .env.example",
+      "description": "Add KWNTO_ADMIN_EMAIL= and KWNTO_ADMIN_PASSWORD= with comment that password must be 10+ characters.",
+      "status": "pending",
+      "activeForm": "Creating .env.example",
+      "metadata": {},
+      "blocks": [
+        "11"
+      ],
+      "blockedBy": [
+        "9"
+      ],
+      "createdAt": 1794396277597,
+      "updatedAt": 1794396305149
+    },
+    {
+      "id": "11",
+      "subject": "1C Step 11: Write docs/decisions/0001-toolchain.md",
+      "description": "Document each dependency with installed version, license, and one-line rationale. Note single-package layout and same-origin backend URL.",
+      "status": "pending",
+      "activeForm": "Writing toolchain decision record",
+      "metadata": {},
+      "blocks": [
+        "12"
+      ],
+      "blockedBy": [
+        "10"
+      ],
+      "createdAt": 1794396277597,
+      "updatedAt": 1794396305150
+    },
+    {
+      "id": "12",
+      "subject": "1C Step 12: Close checkpoint 1C - verify and commit",
+      "description": "Verify both files exist and 0001-toolchain.md lists every dependency in package.json. Commit: docs: toolchain decision record and .env.example.",
+      "status": "pending",
+      "activeForm": "Closing checkpoint 1C",
+      "metadata": {},
+      "blocks": [],
+      "blockedBy": [
+        "11"
+      ],
+      "createdAt": 1794396277598,
+      "updatedAt": 1794396305150
+    }
+  ]
+}

@@ -83,8 +83,8 @@ test('with-pocketbase passes on the exit code and cleans up', () => {
 
 ## Checkpoint 5C: User helpers and the first rule tests
 
-- [ ] **Step 7: Implement `tests/rules/helpers/pb.ts`** to the signatures above. `createUser` creates through `asAdmin()` with password `Test-password-1234`.
-- [ ] **Step 8: Write `tests/rules/users.rules.test.ts`:**
+- [x] **Step 7: Implement `tests/rules/helpers/pb.ts`** to the signatures above. `createUser` creates through `asAdmin()` with password `Test-password-1234`.
+- [x] **Step 8: Write `tests/rules/users.rules.test.ts`:**
 
 ```ts
 // Protects docs/security.md section 1.3: emails and accounts are private to everyone but the admin.
@@ -108,10 +108,10 @@ test('an injection string in a filter returns nothing and does not error out the
 })
 ```
 
-- [ ] **Step 9: Write `tests/rules/coverage.rules.test.ts`:** fetch all collections with `asAdmin()`, list file names in `tests/rules/` ending `.rules.test.ts`, and `expect(findCoverageProblems(collections, files, PUBLIC_RULES)).toEqual([])`. Title: `every collection has a rule test and no unplanned public rule`.
-- [ ] **Step 10: Scripts.** `test:rules`: `node scripts/with-pocketbase.ts vitest run --project rules`. `test`: `npm run lint && npm run typecheck && npm run test:unit && npm run test:container && npm run test:rules` (Task 6 appends `test:e2e`).
-- [ ] **Step 11: Run** `npm run test:rules`. Expected: `4 passed`. If the `users` tests fail because PocketBase v0.40.6's default `users` rules differ from "a user sees only themself", do not loosen the tests: add a migration `backend/pb_migrations/1794355400_users_rules.js` that sets `listRule` and `viewRule` to `id = @request.auth.id`.
-- [ ] **Close checkpoint 5C.** Verify: Step 11 passed (`4 passed` for rules). Commit: `test: users rule tests and live coverage check`.
+- [x] **Step 9: Write `tests/rules/coverage.rules.test.ts`:** fetch all collections with `asAdmin()`, list file names in `tests/rules/` ending `.rules.test.ts`, and `expect(findCoverageProblems(collections, files, PUBLIC_RULES)).toEqual([])`. Title: `every collection has a rule test and no unplanned public rule`.
+- [x] **Step 10: Scripts.** `test:rules`: `node scripts/with-pocketbase.ts vitest run --project rules`. `test`: `npm run lint && npm run typecheck && npm run test:unit && npm run test:container && npm run test:rules` (Task 6 appends `test:e2e`).
+- [x] **Step 11: Run** `npm run test:rules`. Expected: `4 passed`. If the `users` tests fail because PocketBase v0.40.6's default `users` rules differ from "a user sees only themself", do not loosen the tests: add a migration `backend/pb_migrations/1794355400_users_rules.js` that sets `listRule` and `viewRule` to `id = @request.auth.id`.
+- [x] **Close checkpoint 5C.** Verify: Step 11 passed (`4 passed` for rules). Commit: `test: users rule tests and live coverage check`.
 
 ## Checkpoint 5D: Document the test layers
 

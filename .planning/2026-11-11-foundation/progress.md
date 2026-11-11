@@ -10,3 +10,10 @@
 | 2026-11-11 | 2C | compose.test up --wait healthy, /api/health 200, test:container 3 passed | 2D: docs/developer/backend.md |
 | 2026-11-11 | 2D | docs/developer/backend.md names bcrypt cost 10 with source | Task 2 review, then Task 3 |
 | 2026-11-11 | Task 2 | Developer review passed | Task 3: real-time spike |
+| 2026-11-11 | 3A | spike compose healthy; seed printed `seeded 510 nodes and 5000 lines`; 510 nodes/5000 lines confirmed | 3B: spike.spec.ts measurements A, C, D |
+| 2026-11-11 | 3B | `npm run spike:realtime` ran A, C, D in both browsers; C and D pass, **A FAILS** (chromium 4/20, firefox 16/20 rounds keep both edits; either field lost, so whole-record last-writer-wins) | 3C: add B, E, G; then 0002 decision file |
+| 2026-11-11 | 3C | all six measurements ran in both browsers; numbers copied to 0002 (A fails, B/C/D pass, E real drop via proxy, G 0 of 50 equal) | 3D: Funnel README, complete 0002 with GO/NO-GO |
+| 2026-11-11 | 3D | 0002 ends with NO-GO and states findings E and G; Funnel run pending developer | Developer decision on measurement A; Task 4 may continue |
+| 2026-11-12 | 3D | Funnel run recorded in 0002 (laptop to VM via Funnel): B/C/D pass, A fails 18 of 20 | Developer decision on measurement A |
+| 2026-11-12 | 3D | Option 2 (version guard) built in the spike: A2 100/100 both browsers x5 repeats, A 0 silent losses, `npm run spike:realtime` 16 passed; 0002 now ends GO with conditions | Developer confirms GO; Plan 2 may start; Tasks 4-8 continue |
+| 2026-11-12 | Task 3 | Developer accepted GO with option 2 (version guard) | Task 4: lint guardrails (Plan 2 may start after the Plan 1 review) |

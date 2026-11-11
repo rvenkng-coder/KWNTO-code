@@ -43,7 +43,7 @@ test('runs as a non-root user', () => {
 
 ## Checkpoint 2B: One-time admin bootstrap that survives restarts
 
-- [ ] **Step 5: Add the third failing test** to `tests/container/container.test.ts`:
+- [x] **Step 5: Add the third failing test** to `tests/container/container.test.ts`:
 
 ```ts
 // Protects design 7b: "updating a container never deletes data", and that a restart
@@ -58,8 +58,8 @@ test('a restart on the same volume keeps data and the original admin password', 
 ```
 
 `superuserSignInStatus` posts to `/api/collections/_superusers/auth-with-password` on port `8093` and returns the HTTP status. Run `npx vitest run --project container`. Expected: the new test FAILS (sign-in returns 400, no superuser exists).
-- [ ] **Step 6: Write the migration** `1794355200_initial_superuser.js`: `migrate(up, down)` where `up` creates one `_superusers` record from `$os.getenv("KWNTO_ADMIN_EMAIL")` and `$os.getenv("KWNTO_ADMIN_PASSWORD")`, and `down` deletes that record if present. Migrations run once per data folder, which is what makes the third test pass. Follow "Creating initial superuser" in the PocketBase JS migrations docs for v0.40.
-- [ ] **Close checkpoint 2B.** Verify: `npx vitest run --project container` shows `3 passed`. Commit: `feat: create the admin account once, from the environment`.
+- [x] **Step 6: Write the migration** `1794355200_initial_superuser.js`: `migrate(up, down)` where `up` creates one `_superusers` record from `$os.getenv("KWNTO_ADMIN_EMAIL")` and `$os.getenv("KWNTO_ADMIN_PASSWORD")`, and `down` deletes that record if present. Migrations run once per data folder, which is what makes the third test pass. Follow "Creating initial superuser" in the PocketBase JS migrations docs for v0.40.
+- [x] **Close checkpoint 2B.** Verify: `npx vitest run --project container` shows `3 passed`. Commit: `feat: create the admin account once, from the environment`.
 
 ## Checkpoint 2C: Compose files and scripts
 

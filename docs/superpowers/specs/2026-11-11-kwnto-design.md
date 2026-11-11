@@ -173,7 +173,7 @@ Server rules read these values at run time, so changes need no redeploy. Default
 
 ## 8. Deliverables and acceptance
 
-- Source repo with documentation.
+- Source repo with documentation, including `docs/engineering.md` (coding principles) and `docs/security.md` (security requirements), which every builder and agent follows.
 - Deployment instructions, and a user manual **[client: "preferably"]**.
 - **Documentation is part of done (dev decision):** every feature, setting and script is documented in `docs/` (user manual, admin/deployment guide, developer notes); nothing ships undocumented. The repo README and `AGENTS.md` are filled in.
 - Acceptance: the developer signs off. **[my call]** Provide a manual test checklist covering each feature in section 6, run in Firefox and Chrome.
@@ -187,7 +187,8 @@ Weighted toward where a bug would hurt most: permissions, saving, real-time edit
 3. **End-to-end tests (Playwright, Firefox and Chrome):** sign in, create and connect nodes, reload and confirm saved; go offline, edit, reconnect and confirm sync, and produce a conflict and confirm the keep-mine/keep-theirs prompt; two browsers editing the same node including the "someone else is editing" indicator; a share link opened without an account; JSON import then export.
 4. **Manual checklist:** light/dark look, Player Mode transitions, PDF/Word/JPG/PNG exports. This is also the developer's sign-off sheet (section 8).
 5. **One command** runs all automated tests locally.
-6. **GitHub (dev decision):** a workflow runs the unit, backend rule and Playwright tests on every push, starting PocketBase inside the workflow. It also runs a documentation check **[my interpretation]**: markdown links resolve, and a pull-request checklist requires docs updates for any feature, setting or script changed. The builder may add stricter checks.
+6. **Security checks (dev decision):** the cheap checks listed in `docs/security.md` section 5 are part of the MVP: an ESLint ban on `dangerouslySetInnerHTML`, an XSS payload end-to-end test, injection strings in backend rule tests, schema validation of JSON imports with unit tests, gitleaks and `npm audit` in the workflow, and a security-headers check. An automated scanner (OWASP ZAP) and a penetration test wait for the pre-public list (section 12).
+7. **GitHub (dev decision):** a workflow runs the unit, backend rule and Playwright tests on every push, starting PocketBase inside the workflow. It also runs a documentation check **[my interpretation]**: markdown links resolve, and a pull-request checklist requires docs updates for any feature, setting or script changed. The builder may add stricter checks.
 
 ## 9. Left to the builder
 
@@ -249,7 +250,7 @@ Remaining open: none. Every decision above was settled in chat on 2026-11-11.
 - PocketBase scale limits (single server, SQLite) and the option to swap the backend (section 7).
 - Tailscale Funnel bandwidth limits for large media, and the Cloudflare Tunnel fallback.
 - Full offline use (section 3), and a custom in-app admin page.
-- A fresh security review of the access rules, and a re-check of the "internal tool" assumptions made here.
+- An OWASP ZAP scan and a penetration test, plus a fresh security review of the access rules, and a re-check of the "internal tool" assumptions made here.
 
 ## 11. Build order (dev decision, MVP first)
 

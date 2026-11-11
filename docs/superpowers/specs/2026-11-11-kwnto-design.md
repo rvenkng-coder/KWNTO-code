@@ -190,6 +190,15 @@ Weighted toward where a bug would hurt most: permissions, saving, real-time edit
 6. **Security checks (dev decision):** the cheap checks listed in `docs/security.md` section 5 are part of the MVP: an ESLint ban on `dangerouslySetInnerHTML`, an XSS payload end-to-end test, injection strings in backend rule tests, schema validation of JSON imports with unit tests, gitleaks and `npm audit` in the workflow, and a security-headers check. An automated scanner (OWASP ZAP) and a penetration test wait for the pre-public list (section 12).
 7. **GitHub (dev decision):** a workflow runs the unit, backend rule and Playwright tests on every push, starting PocketBase inside the workflow. It also runs a documentation check **[my interpretation]**: markdown links resolve, and a pull-request checklist requires docs updates for any feature, setting or script changed. The builder may add stricter checks.
 
+## 8c. Agent workflow (dev decision)
+
+- **Execution:** subagent-driven. A fresh agent implements each task and a fresh reviewer checks it before the next task starts, with a whole-branch review at the end of each major step.
+- **Models:** the stronger model for performance-sensitive and security-sensitive work (PocketBase access rules and hooks, real-time per-attribute editing, offline sync and conflicts, canvas performance code, security review). Mid-tier models for ordinary feature work. A **local model** will also be used, so every task in the plan is labeled **strong**, **mid** or **local-OK**, and security-sensitive and real-time tasks are not local-OK.
+- **Task style for local-model use:** small, mechanical tasks with exact file paths, signatures and test code, so a smaller model can follow them without guessing. Every step has a checkable result.
+- **Tracking:** `planning-with-files` records progress (`progress.md`, `findings.md`, `task_plan.md` pointing at the plan). The plan document stays the single source of truth for what to build. Any model or session must be able to resume from the progress file.
+- **Where:** a separate git worktree per feature or issue. The developer reviews before anything lands on `main`; agents never merge (see `docs/engineering.md`).
+- **Later:** custom hooks, custom agent types and slash commands, once real friction shows what is worth automating.
+
 ## 9. Left to the builder
 
 Exact data model, team invite flow, zoom behavior, undo history depth, conflict handling details beyond last-write-wins, export library choices, minimap behavior, comment UI, UI component library, code layout, test tooling details beyond section 8b.

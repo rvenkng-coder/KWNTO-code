@@ -66,7 +66,7 @@ This file is the router. Each task lives in its own file and is split into check
 
 | # | Task | Tier | Depends on | Checkpoints | Status |
 |---|---|---|---|---|---|
-| 1 | [App scaffold and toolchain](task-1-scaffold.md) | local-OK | none | 1A 1B 1C | not started |
+| 1 | [App scaffold and toolchain](task-1-scaffold.md) | local-OK | none | 1A 1B 1C | done |
 | 2 | [PocketBase container with one-time admin bootstrap](task-2-pocketbase-container.md) | strong | 1 | 2A 2B 2C 2D | not started |
 | 3 | [Real-time spike and go/no-go decision](task-3-realtime-spike.md) | strong | 2 | 3A 3B 3C 3D | not started |
 | 4 | [Guardrail lint rules and the PERF comment check](task-4-lint-guardrails.md) | mid | 1 | 4A 4B | not started |

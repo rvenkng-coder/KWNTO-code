@@ -1,11 +1,4 @@
 {
   "version": 2,
-  "skills": {
-    "planning-with-files": {
-      "source": "OthmanAdi/planning-with-files",
-      "sourceType": "github",
-      "skillPath": "skills/planning-with-files/SKILL.md",
-      "computedHash": "ddbf6d1fabf8af11e6ea8f0916d5083557747eb74b5fb09cf3a858ea77245c67"
-    }
-  }
+  "skills": {}
 }

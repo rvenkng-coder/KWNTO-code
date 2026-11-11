@@ -1,0 +1,49 @@
+{
+  "nextId": 5,
+  "tasks": [
+    {
+      "id": "1",
+      "subject": "Initialize worktree and planning",
+      "description": "Create git worktree on branch feat/foundation, commit it.",
+      "status": "completed",
+      "metadata": {},
+      "blocks": [],
+      "blockedBy": [],
+      "createdAt": 1794395530367,
+      "updatedAt": 1794395605465
+    },
+    {
+      "id": "2",
+      "subject": "Checkpoint 1A: Scaffold and install",
+      "description": "Scaffold Vite react-ts template into temp folder, move files to repo root. Install dependencies. Update .gitignore. Commit.",
+      "status": "in_progress",
+      "metadata": {},
+      "blocks": [],
+      "blockedBy": [],
+      "createdAt": 1794395530368,
+      "updatedAt": 1794395605465
+    },
+    {
+      "id": "3",
+      "subject": "Checkpoint 1B: Configure and prove the toolchain",
+      "description": "Configure tsconfig, vite.config.ts, vitest.config.ts, src/index.css, src/App.tsx, src/smoke.test.ts, npm scripts. Verify typecheck, test:unit, build. Commit.",
+      "status": "pending",
+      "metadata": {},
+      "blocks": [],
+      "blockedBy": [],
+      "createdAt": 1794395530368,
+      "updatedAt": 1794395530368
+    },
+    {
+      "id": "4",
+      "subject": "Checkpoint 1C: Record the decisions",
+      "description": "Create .env.example and docs/decisions/0001-toolchain.md. Verify both files exist. Commit.",
+      "status": "pending",
+      "metadata": {},
+      "blocks": [],
+      "blockedBy": [],
+      "createdAt": 1794395530369,
+      "updatedAt": 1794395530369
+    }
+  ]
+}

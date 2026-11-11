@@ -46,9 +46,9 @@ Throwaway code. It answers one question: does PocketBase real-time hold up for p
 
 ## Checkpoint 3C: Slow measurements B, E, G
 
-- [ ] **Step 5: Add measurements B, E and G** to `spike.spec.ts` (table above), then run `npm run spike:realtime`. Expected: all six measurements run in both browsers and both result files hold numbers for each.
-- [ ] **Step 5b: Copy the numbers now** into a new `docs/decisions/0002-realtime-spike.md` as a bare results table. The result files are gitignored, so this commit is what keeps the numbers if the session ends.
-- [ ] **Close checkpoint 3C.** Verify: the decision file holds a number for every measurement and browser. Commit: `spike: latency, reconnect and timestamp measurements with raw results`.
+- [x] **Step 5: Add measurements B, E and G** to `spike.spec.ts` (table above), then run `npm run spike:realtime`. Expected: all six measurements run in both browsers and both result files hold numbers for each.
+- [x] **Step 5b: Copy the numbers now** into a new `docs/decisions/0002-realtime-spike.md` as a bare results table. The result files are gitignored, so this commit is what keeps the numbers if the session ends.
+- [x] **Close checkpoint 3C.** Verify: the decision file holds a number for every measurement and browser. Commit: `spike: latency, reconnect and timestamp measurements with raw results`.
 
 ## Checkpoint 3D: Decision record
 

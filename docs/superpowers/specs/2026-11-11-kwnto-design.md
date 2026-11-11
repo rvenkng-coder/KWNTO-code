@@ -31,6 +31,7 @@ It is an internal tool, not a public product (yet). It is used by one school coh
 - Public sign-up, payments, plans, and a custom in-app admin page. The built-in PocketBase dashboard is the admin console for now. Comment replies and a "resolved" state are later additions.
 - Migration of existing data (none exists).
 - Embedding in Google Sites/iframe. It is a standalone page.
+- **In-app project History panel and restore points (later, dev decision):** the data is recorded in the MVP (section 6.9); only the viewing and restoring come later.
 - **Full offline use (later, dev decision):** opening and using the app with no connection from a cold start (service worker / installable app), and offline upload queues for audio and video. Only connection-drop resilience (section 6.7) is in the MVP.
 
 ## 4. Anti-goals (would make it a failure even if it technically works)
@@ -110,6 +111,15 @@ Projects contain chapters shown as tabs that can be resized and closed.
 - A node's connections are hidden while the node is in the trash and return with it **[my call]**.
 - Deleting a single script line, cue, comment or connection is covered by undo/redo only **[my call]**.
 
+### 6.9 Activity and security logging (dev decision)
+
+- **Activity log (MVP, recorded now):** the server records who did what on a project in `activity_events`: created, edited, deleted or restored a node, chapter, line or cue; created or revoked a share link; imported or exported; joined or left a team. Each entry has the actor, action, the thing affected, a short summary, and for edits the **old and new values** of the changed fields (text and structure). Rapid repeat edits by one person to one thing are combined into one entry, and drag position changes are not logged item by item **[my call]**. Old values are kept so restore points can be built later.
+- **Security log (MVP):** a separate admin-only `security_events` table records sign-ins, failed attempts and lockouts, password resets, invite attempts, sign-up and verification, and admin changes. PocketBase's request logs in the dashboard add raw web requests, and the deployment can also write logs to a file **[my call]**.
+- **Viewing:** in the MVP the admin reads both logs in the PocketBase dashboard.
+- **Retention:** admin settings in `system_behavior` (defaults **[my call]**: 180 days for activity, 365 days for security).
+- **Later, not in the MVP (dev decision):** an in-app **History panel** showing team members who did what, like Google Docs, and **restore points** to go back to an earlier state, built on the recorded old and new values.
+- **[my guess]** The dev's wording was that project history in the app is future development, while recording the data starts now.
+
 ### 6.6 Look and feel
 - Reference: the prototype's layout and Apple OS / Nothing OS feel. **Not** glassmorphism; no translucent or blurred panels.
 - Layout: top bar (search, theme toggle), left (projects/chapters), center canvas with minimap, right properties panel.
@@ -133,7 +143,7 @@ Projects contain chapters shown as tabs that can be resized and closed.
 
 Anything that needs configuring is done in the **built-in PocketBase admin dashboard**, not a custom page. Settings are **separate tables by scope and by who may edit them**, with typed fields (see the ERD):
 
-- **System, admin only, one record each:** `system_access` (registration open or closed), `system_storage` (default quota 2 GB, per-file limits 200 MB video and 50 MB audio and images, allowed file types), `system_behavior` (presence timeout, analytics retention, trash retention days).
+- **System, admin only, one record each:** `system_access` (registration open or closed), `system_storage` (default quota 2 GB, per-file limits 200 MB video and 50 MB audio and images, allowed file types), `system_behavior` (presence timeout, analytics retention, trash retention days, activity and security log retention, failed sign-in limit and lockout minutes).
 - **User:** `user_preferences` (theme, minimap; edited by the user and saved to their account) and `user_limits` (quota override; admin only).
 - **Team:** `team_settings` (join code, on or off; team owner).
 - **Project:** `project_settings` (analytics on or off; team members).
@@ -212,6 +222,8 @@ PocketBase stores data in SQLite, so the model is relational. Each independently
 | path_events | Anonymous player choices: project, connection, random session id, time. Not written for signed-in team members. |
 | user_preferences, user_limits | One each per user. Preferences (theme, minimap) are edited by the user; limits (quota override) by the admin only. |
 | project_settings | One per project: analytics on or off. Team members edit. |
+| activity_events | Who did what on a project, with old and new values of changed fields (section 6.9). |
+| security_events | Admin-only security log (section 6.9). |
 | system_access, system_storage, system_behavior | One record each, admin only (section 7c). |
 
 - **Screenplay-style lines (client decision):** each line has a character name and the spoken text. A line with no character name is treated as action or narration **[my guess]**. The properties panel suggests character names already used in the project **[my call]**.

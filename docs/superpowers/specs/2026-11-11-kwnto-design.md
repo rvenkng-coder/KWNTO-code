@@ -71,6 +71,8 @@ For the selected node: line-by-line script, A/V cues, lighting notes, and upload
 - Upload only. Storage cap: 2 GB per user, counting files a user uploaded across all projects. Over the limit, uploads are refused with a clear message and nothing is deleted.
 - Per-file defaults: 200 MB for video, 50 MB for audio and images. **All limits and allowed file types are admin settings** (see section 7c).
 
+- **Strict upload checks (dev decision):** besides the extension and size limit, the server reads the file's first bytes to confirm it really is a WAV, MP3, MOV, MP4, JPEG or PNG, and rejects it otherwise. Files are served with headers that stop the browser from guessing a type or running them as pages (for example `X-Content-Type-Options: nosniff`) **[my call]**. File names are replaced by generated names on the server **[my call]**.
+
 ### 6.3 Chapters
 Projects contain chapters shown as tabs that can be resized and closed.
 

@@ -52,10 +52,10 @@ Throwaway code. It answers one question: does PocketBase real-time hold up for p
 
 ## Checkpoint 3D: Decision record
 
-- [ ] **Step 6: Funnel run (developer does this; it touches the server).** Add to `spike/realtime/README.md` the exact steps to run the same spec against a PocketBase reachable through Tailscale Funnel: `SPIKE_URL=https://<funnel-host> npx playwright test -c spike/realtime/playwright.config.ts`. Design 7b requires this before real-time is relied on. Report to the developer that this run is waiting on them, and continue with Task 4.
-- [ ] **Step 7: Complete `docs/decisions/0002-realtime-spike.md`** (started in Step 5b)**:** date, PocketBase and browser versions, the table above with measured numbers per browser, the Funnel numbers or "pending developer run", and:
+- [x] **Step 6: Funnel run (developer does this; it touches the server).** Add to `spike/realtime/README.md` the exact steps to run the same spec against a PocketBase reachable through Tailscale Funnel: `SPIKE_URL=https://<funnel-host> npx playwright test -c spike/realtime/playwright.config.ts`. Design 7b requires this before real-time is relied on. Report to the developer that this run is waiting on them, and continue with Task 4.
+- [x] **Step 7: Complete `docs/decisions/0002-realtime-spike.md`** (started in Step 5b)**:** date, PocketBase and browser versions, the table above with measured numbers per browser, the Funnel numbers or "pending developer run", and:
   - **Finding E** stated as a requirement for Plan 4: whether the client must refetch the project after a reconnect.
   - **Finding G** stated as a requirement for Plan 4: whether `updated` alone is a safe version for conflict detection (design 6.7), or a counter field is needed.
   - **GO** if A to D pass in both browsers, otherwise **NO-GO** with the failing numbers.
-- [ ] **Step 8: If NO-GO, stop and report** to the developer with the numbers and the options (for example batching writes, coarser records, a different backend). Tasks 4 to 8 do not depend on the result and may continue; Plan 2 may not start.
-- [ ] **Close checkpoint 3D.** Verify: the decision file ends with a **GO** or **NO-GO** line and states findings E and G as requirements for Plan 4. Commit: `spike: real-time decision record`.
+- [x] **Step 8: If NO-GO, stop and report** to the developer with the numbers and the options (for example batching writes, coarser records, a different backend). Tasks 4 to 8 do not depend on the result and may continue; Plan 2 may not start.
+- [x] **Close checkpoint 3D.** Verify: the decision file ends with a **GO** or **NO-GO** line and states findings E and G as requirements for Plan 4. Commit: `spike: real-time decision record`.

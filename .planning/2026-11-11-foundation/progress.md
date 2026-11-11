@@ -13,3 +13,4 @@
 | 2026-11-11 | 3A | spike compose healthy; seed printed `seeded 510 nodes and 5000 lines`; 510 nodes/5000 lines confirmed | 3B: spike.spec.ts measurements A, C, D |
 | 2026-11-11 | 3B | `npm run spike:realtime` ran A, C, D in both browsers; C and D pass, **A FAILS** (chromium 4/20, firefox 16/20 rounds keep both edits; either field lost, so whole-record last-writer-wins) | 3C: add B, E, G; then 0002 decision file |
 | 2026-11-11 | 3C | all six measurements ran in both browsers; numbers copied to 0002 (A fails, B/C/D pass, E real drop via proxy, G 0 of 50 equal) | 3D: Funnel README, complete 0002 with GO/NO-GO |
+| 2026-11-11 | 3D | 0002 ends with NO-GO and states findings E and G; Funnel run pending developer | Developer decision on measurement A; Task 4 may continue |

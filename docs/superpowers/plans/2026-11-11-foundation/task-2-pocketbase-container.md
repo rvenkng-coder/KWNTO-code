@@ -71,5 +71,5 @@ test('a restart on the same volume keeps data and the original admin password', 
 
 ## Checkpoint 2D: Document the backend
 
-- [ ] **Step 9: Confirm and record in `docs/developer/backend.md`:** how to start the dev backend, where the dashboard is (`http://127.0.0.1:8090/_/`), how the admin is created, the pinned version and how to bump it (version and checksum together), and the password hashing algorithm and cost PocketBase v0.40.6 uses (design 7c asks the builder to confirm this; cite the source file or docs page).
-- [ ] **Close checkpoint 2D.** Verify: `docs/developer/backend.md` exists and names the hashing algorithm and cost with its source. Commit: `docs: backend developer guide`.
+- [x] **Step 9: Confirm and record in `docs/developer/backend.md`:** how to start the dev backend, where the dashboard is (`http://127.0.0.1:8090/_/`), how the admin is created, the pinned version and how to bump it (version and checksum together), and the password hashing algorithm and cost PocketBase v0.40.6 uses (design 7c asks the builder to confirm this; cite the source file or docs page).
+- [x] **Close checkpoint 2D.** Verify: `docs/developer/backend.md` exists and names the hashing algorithm and cost with its source. Commit: `docs: backend developer guide`.

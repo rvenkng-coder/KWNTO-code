@@ -38,7 +38,7 @@ export function findCoverageProblems(collections: CollectionRules[], testFileNam
 
 ## Checkpoint 5A: Coverage checker (pure function)
 
-- [ ] **Step 1: Write the failing unit tests** in `coverage.unit.test.ts`:
+- [x] **Step 1: Write the failing unit tests** in `coverage.unit.test.ts`:
 
 ```ts
 // Protects docs/security.md section 2: "A test fails if any collection has no tested rule",
@@ -59,9 +59,9 @@ test('system collections are skipped; view collections (no write rules) are stil
 })
 ```
 
-- [ ] **Step 2: Run** `npm run test:unit`. Expected: 4 new tests FAIL (`findCoverageProblems` not defined).
-- [ ] **Step 3: Implement `tests/rules/helpers/coverage.ts`** to the signatures above. Run `npm run test:unit`. Expected: PASS.
-- [ ] **Close checkpoint 5A.** Verify: `npm run test:unit` passes with the 4 new tests. Commit: `test: deny-by-default coverage checker`.
+- [x] **Step 2: Run** `npm run test:unit`. Expected: 4 new tests FAIL (`findCoverageProblems` not defined).
+- [x] **Step 3: Implement `tests/rules/helpers/coverage.ts`** to the signatures above. Run `npm run test:unit`. Expected: PASS.
+- [x] **Close checkpoint 5A.** Verify: `npm run test:unit` passes with the 4 new tests. Commit: `test: deny-by-default coverage checker`.
 
 ## Checkpoint 5B: Start and stop PocketBase around a command
 

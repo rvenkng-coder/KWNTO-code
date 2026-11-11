@@ -19,3 +19,4 @@
 | 2026-11-12 | Task 3 | Developer accepted GO with option 2 (version guard) | Task 4: lint guardrails (Plan 2 may start after the Plan 1 review) |
 | 2026-11-12 | 4A | `npx eslint .` clean, `test:unit` 5 passed (any-test mutation-checked); TypeScript pinned ~6.0.3, oxlint replaced by ESLint 10 | 4B: PERF comment check |
 | 2026-11-12 | 4B | `npm run lint` clean; `test:unit` 9 passed; CLI mode checked on a bad file (exit 1, file:line printed) | Task 4 review, then Task 5 (rule-test harness) or Task 6 |
+| 2026-11-11 | 5A | test:unit 5 passed (4 coverage tests + 1 smoke) | 5B: with-pocketbase script |

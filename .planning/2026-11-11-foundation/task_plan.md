@@ -4,7 +4,7 @@
 
 | # | Task | Status |
 |---|------|--------|
-| 1 | App scaffold and toolchain | in progress (1A closed) |
+| 1 | App scaffold and toolchain | done |
 | 2 | PocketBase container with one-time admin bootstrap | pending |
 | 3 | Real-time spike and go/no-go decision | pending |
 | 4 | Guardrail lint rules and the PERF comment check | pending |

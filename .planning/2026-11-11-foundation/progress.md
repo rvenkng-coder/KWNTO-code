@@ -16,3 +16,4 @@
 | 2026-11-11 | 3D | 0002 ends with NO-GO and states findings E and G; Funnel run pending developer | Developer decision on measurement A; Task 4 may continue |
 | 2026-11-12 | 3D | Funnel run recorded in 0002 (laptop to VM via Funnel): B/C/D pass, A fails 18 of 20 | Developer decision on measurement A |
 | 2026-11-12 | 3D | Option 2 (version guard) built in the spike: A2 100/100 both browsers x5 repeats, A 0 silent losses, `npm run spike:realtime` 16 passed; 0002 now ends GO with conditions | Developer confirms GO; Plan 2 may start; Tasks 4-8 continue |
+| 2026-11-12 | Task 3 | Developer accepted GO with option 2 (version guard) | Task 4: lint guardrails (Plan 2 may start after the Plan 1 review) |

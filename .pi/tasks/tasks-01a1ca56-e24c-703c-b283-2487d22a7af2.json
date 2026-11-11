@@ -51,7 +51,7 @@
       "id": "4",
       "subject": "1A Step 4: Close checkpoint 1A - verify and commit",
       "description": "Verify npm ls --depth=0 exits 0, git status --short lists no path under node_modules/. Commit: chore: scaffold from the Vite template and install dependencies.",
-      "status": "in_progress",
+      "status": "completed",
       "activeForm": "Closing checkpoint 1A",
       "metadata": {},
       "blocks": [
@@ -61,13 +61,13 @@
         "3"
       ],
       "createdAt": 1794396277595,
-      "updatedAt": 1794396541306
+      "updatedAt": 1794396600623
     },
     {
       "id": "5",
       "subject": "1B Step 5: Configure tsconfig, vite.config.ts, vitest.config.ts, index.css",
       "description": "tsconfig: strict, noUncheckedIndexedAccess, allowImportingTsExtensions. vite.config.ts: React + Tailwind plugins, proxy /api and /_ to KWNTO_PB_URL. index.css: @import tailwindcss. vitest.config.ts: 3 projects (unit, rules, container).",
-      "status": "pending",
+      "status": "completed",
       "activeForm": "Configuring toolchain",
       "metadata": {},
       "blocks": [
@@ -77,13 +77,13 @@
         "4"
       ],
       "createdAt": 1794396277596,
-      "updatedAt": 1794396305148
+      "updatedAt": 1794396923557
     },
     {
       "id": "6",
       "subject": "1B Step 6: Replace App.tsx with minimal h1",
       "description": "src/App.tsx renders only h1 KWNTO. Delete template logos and demo CSS.",
-      "status": "pending",
+      "status": "completed",
       "activeForm": "Replacing App.tsx",
       "metadata": {},
       "blocks": [
@@ -93,13 +93,13 @@
         "5"
       ],
       "createdAt": 1794396277596,
-      "updatedAt": 1794396305148
+      "updatedAt": 1794396923557
     },
     {
       "id": "7",
       "subject": "1B Step 7: Write smoke test src/smoke.test.ts",
       "description": "Write smoke test that proves vitest runs TypeScript: total of [1,2,3].reduce is 6.",
-      "status": "pending",
+      "status": "completed",
       "activeForm": "Writing smoke test",
       "metadata": {},
       "blocks": [
@@ -109,13 +109,13 @@
         "6"
       ],
       "createdAt": 1794396277596,
-      "updatedAt": 1794396305149
+      "updatedAt": 1794396923558
     },
     {
       "id": "8",
       "subject": "1B Step 8: Configure npm scripts",
       "description": "dev: vite. build: tsc -b && vite build. typecheck: tsc -b --noEmit. test:unit: vitest run --project unit.",
-      "status": "pending",
+      "status": "completed",
       "activeForm": "Configuring npm scripts",
       "metadata": {},
       "blocks": [
@@ -125,13 +125,13 @@
         "7"
       ],
       "createdAt": 1794396277596,
-      "updatedAt": 1794396305149
+      "updatedAt": 1794396923558
     },
     {
       "id": "9",
       "subject": "1B Step 9: Close checkpoint 1B - verify and commit",
       "description": "Verify npm run typecheck && npm run test:unit && npm run build passes. Commit: chore: configure TypeScript, Vite, Tailwind and Vitest.",
-      "status": "pending",
+      "status": "in_progress",
       "activeForm": "Closing checkpoint 1B",
       "metadata": {},
       "blocks": [
@@ -141,7 +141,7 @@
         "8"
       ],
       "createdAt": 1794396277597,
-      "updatedAt": 1794396305149
+      "updatedAt": 1794396923559
     },
     {
       "id": "10",

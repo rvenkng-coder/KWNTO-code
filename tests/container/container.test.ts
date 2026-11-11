@@ -82,3 +82,12 @@ test('a restart on the same volume keeps data and the original admin password', 
   expect(await superuserSignInStatus('first-admin-password-1')).toBe(200)
   expect(await superuserSignInStatus('second-admin-password-2')).toBe(400)
 })
+
+// Protects: a failing test run must fail the build, and must not leave a container behind.
+test('with-pocketbase passes on the exit code and cleans up', () => {
+  const run = spawnSync('node', ['scripts/with-pocketbase.ts', 'node', '-e', 'process.exit(3)'])
+  expect(run.status).toBe(3)
+  const left = execFileSync('docker', ['compose', '-f', 'compose.test.yaml', 'ps', '-q'], { encoding: 'utf8' }).trim()
+  expect(left).toBe('')
+})
+

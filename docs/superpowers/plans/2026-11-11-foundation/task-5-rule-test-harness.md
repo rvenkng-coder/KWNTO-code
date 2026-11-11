@@ -65,8 +65,8 @@ test('system collections are skipped; view collections (no write rules) are stil
 
 ## Checkpoint 5B: Start and stop PocketBase around a command
 
-- [ ] **Step 4: Implement `scripts/with-pocketbase.ts`:** run `docker compose -f compose.test.yaml down -v --remove-orphans` (clears a stale container from a crashed run), then `up -d --build --wait`, then the given command with inherited stdio and `KWNTO_PB_URL=http://127.0.0.1:8091`, then `down -v` in a `finally`, then exit with the command's exit code.
-- [ ] **Step 5: Add a container test** to `tests/container/container.test.ts`:
+- [x] **Step 4: Implement `scripts/with-pocketbase.ts`:** run `docker compose -f compose.test.yaml down -v --remove-orphans` (clears a stale container from a crashed run), then `up -d --build --wait`, then the given command with inherited stdio and `KWNTO_PB_URL=http://127.0.0.1:8091`, then `down -v` in a `finally`, then exit with the command's exit code.
+- [x] **Step 5: Add a container test** to `tests/container/container.test.ts`:
 
 ```ts
 // Protects: a failing test run must fail the build, and must not leave a container behind.
@@ -78,8 +78,8 @@ test('with-pocketbase passes on the exit code and cleans up', () => {
 })
 ```
 
-- [ ] **Step 6: Implement `tests/rules/global-setup.ts`:** poll `${PB_URL}/api/health` every 500 ms for up to 30 s; on timeout throw `PocketBase is not reachable at <PB_URL>. Use "npm run test:rules", which starts it.` so a run without the backend fails once, clearly.
-- [ ] **Close checkpoint 5B.** Verify: `npm run test:container` shows `4 passed`. Commit: `test: with-pocketbase runner and reachability check`.
+- [x] **Step 6: Implement `tests/rules/global-setup.ts`:** poll `${PB_URL}/api/health` every 500 ms for up to 30 s; on timeout throw `PocketBase is not reachable at <PB_URL>. Use "npm run test:rules", which starts it.` so a run without the backend fails once, clearly.
+- [x] **Close checkpoint 5B.** Verify: `npm run test:container` shows `4 passed`. Commit: `test: with-pocketbase runner and reachability check`.
 
 ## Checkpoint 5C: User helpers and the first rule tests
 

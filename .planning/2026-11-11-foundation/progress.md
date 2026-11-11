@@ -20,3 +20,4 @@
 | 2026-11-12 | 4A | `npx eslint .` clean, `test:unit` 5 passed (any-test mutation-checked); TypeScript pinned ~6.0.3, oxlint replaced by ESLint 10 | 4B: PERF comment check |
 | 2026-11-12 | 4B | `npm run lint` clean; `test:unit` 9 passed; CLI mode checked on a bad file (exit 1, file:line printed) | Task 4 review, then Task 5 (rule-test harness) or Task 6 |
 | 2026-11-11 | 5A | test:unit 5 passed (4 coverage tests + 1 smoke) | 5B: with-pocketbase script |
+| 2026-11-11 | 5B | with-pocketbase.ts, container.test.ts, global-setup.ts implemented | 5C: rule test helpers and tests |

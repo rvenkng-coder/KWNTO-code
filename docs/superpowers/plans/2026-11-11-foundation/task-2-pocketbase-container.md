@@ -19,7 +19,7 @@ Part of the [Foundation and Real-Time Spike plan](README.md). **Read the router 
 
 ## Checkpoint 2A: An image that refuses to start without credentials (needs network)
 
-- [ ] **Step 1: Write the first two failing tests** in `tests/container/container.test.ts`, driving Docker with `execFileSync`. Each test builds on image `kwnto-pocketbase:dev` (build it in `beforeAll`) and removes its own containers and volume `kwnto-container-test` in `afterAll`.
+- [x] **Step 1: Write the first two failing tests** in `tests/container/container.test.ts`, driving Docker with `execFileSync`. Each test builds on image `kwnto-pocketbase:dev` (build it in `beforeAll`) and removes its own containers and volume `kwnto-container-test` in `afterAll`.
 
 ```ts
 // Protects design 7c: "there is no default password". A start without credentials must stop.
@@ -36,10 +36,10 @@ test('runs as a non-root user', () => {
 })
 ```
 
-- [ ] **Step 2: Run** `npx vitest run --project container`. Expected: FAIL (image does not build; no Dockerfile).
-- [ ] **Step 3: Write `backend/Dockerfile`.** `FROM alpine:<current stable, pinned by digest>`. Build args `PB_VERSION=0.40.6` and `PB_SHA256=<value for pocketbase_0.40.6_linux_amd64.zip from the release's checksums.txt>`; download the zip from the GitHub release, verify with `sha256sum -c`, unzip to `/pb/`. Create user `pocketbase` with uid `10001`, own `/pb`, `USER 10001`. Copy `pb_migrations/`, `pb_hooks/` and `entrypoint.sh`. `EXPOSE 8090`. `HEALTHCHECK` with `wget -qO- http://127.0.0.1:8090/api/health`.
-- [ ] **Step 4: Write `backend/entrypoint.sh`** (POSIX `sh`, `set -eu`): if either `KWNTO_ADMIN_EMAIL` or `KWNTO_ADMIN_PASSWORD` is empty, print `KWNTO_ADMIN_EMAIL and KWNTO_ADMIN_PASSWORD must be set` to stderr and `exit 64`. If the password is shorter than 10 characters, print `KWNTO_ADMIN_PASSWORD must be at least 10 characters` and `exit 64`. Otherwise `exec /pb/pocketbase serve --http=0.0.0.0:8090 --dir=/pb/pb_data --migrationsDir=/pb/pb_migrations --hooksDir=/pb/pb_hooks`.
-- [ ] **Close checkpoint 2A.** Verify: `npx vitest run --project container` shows `2 passed`. Commit: `feat: PocketBase image that refuses to start without admin credentials`.
+- [x] **Step 2: Run** `npx vitest run --project container`. Expected: FAIL (image does not build; no Dockerfile).
+- [x] **Step 3: Write `backend/Dockerfile`.** `FROM alpine:<current stable, pinned by digest>`. Build args `PB_VERSION=0.40.6` and `PB_SHA256=<value for pocketbase_0.40.6_linux_amd64.zip from the release's checksums.txt>`; download the zip from the GitHub release, verify with `sha256sum -c`, unzip to `/pb/`. Create user `pocketbase` with uid `10001`, own `/pb`, `USER 10001`. Copy `pb_migrations/`, `pb_hooks/` and `entrypoint.sh`. `EXPOSE 8090`. `HEALTHCHECK` with `wget -qO- http://127.0.0.1:8090/api/health`.
+- [x] **Step 4: Write `backend/entrypoint.sh`** (POSIX `sh`, `set -eu`): if either `KWNTO_ADMIN_EMAIL` or `KWNTO_ADMIN_PASSWORD` is empty, print `KWNTO_ADMIN_EMAIL and KWNTO_ADMIN_PASSWORD must be set` to stderr and `exit 64`. If the password is shorter than 10 characters, print `KWNTO_ADMIN_PASSWORD must be at least 10 characters` and `exit 64`. Otherwise `exec /pb/pocketbase serve --http=0.0.0.0:8090 --dir=/pb/pb_data --migrationsDir=/pb/pb_migrations --hooksDir=/pb/pb_hooks`.
+- [x] **Close checkpoint 2A.** Verify: `npx vitest run --project container` shows `2 passed`. Commit: `feat: PocketBase image that refuses to start without admin credentials`.
 
 ## Checkpoint 2B: One-time admin bootstrap that survives restarts
 

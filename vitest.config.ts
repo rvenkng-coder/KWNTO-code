@@ -29,4 +29,8 @@ export const containerConfig = mergeConfig(base, defineConfig({
   },
 }))
 
-export default unitConfig
+export default defineConfig({
+  test: {
+    projects: [unitConfig, rulesConfig, containerConfig],
+  },
+})

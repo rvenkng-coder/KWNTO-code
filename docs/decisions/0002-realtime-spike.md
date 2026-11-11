@@ -20,7 +20,21 @@ Raw numbers from `npm run spike:realtime` (one run; A varies between runs, see b
 
 Across four runs, A kept both edits in 4 to 7 of 20 rounds in Chromium and 16 to 18 of 20 in Firefox. It never reached 20.
 
-Funnel run (design 7b): **pending developer run.** Steps are in [spike/realtime/README.md](../../spike/realtime/README.md).
+## Funnel run (design 7b)
+
+Run from the developer's laptop against a spike PocketBase on a VM, reached through Tailscale Funnel (`https://<host>.ts.net`). One run; steps in [spike/realtime/README.md](../../spike/realtime/README.md).
+
+| # | Measurement | Threshold | Chromium | Firefox |
+|---|---|---|---|---|
+| A | Rounds where both edits are kept (of 20) | 20 of 20 | **18** (2 title edits lost) | **18** (2 title edits lost) |
+| B | Events received / p50 / p95 / max latency | p95 < 500 ms | 1800 / 7 / 9 / 11 ms | 1800 / 9 / 34 / 173 ms |
+| B | Lost events / failed writes | 0 / 0 | 0 / 0 | 0 / 0 |
+| C | Initial load of 500 nodes and 5,000 lines | < 3 s | 167 ms | 301 ms |
+| D | Events from project `other` reaching `big` subscribers | 0 | 0 (control edit arrived) | 0 (control edit arrived) |
+| E | Reconnect | record only | not measured (needs an `http://` backend) | not measured |
+| G | Pairs of back-to-back writes sharing one `updated` | record only | 0 of 50 | 0 of 50 |
+
+The tunnel changes nothing about the verdict: real-time delivery through Funnel stayed fast (Firefox p95 34 ms, up from 7 ms on loopback), lost nothing and kept projects isolated. A fails here too. The reconnect behaviour (finding E) was measured locally only; the tunnel could behave differently, so Plan 4 should confirm it once against Funnel. The VM is a single hop on the same tailnet owner, so this is not a measurement from a distant network.
 
 ## What the numbers mean
 

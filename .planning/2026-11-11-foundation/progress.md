@@ -22,3 +22,4 @@
 | 2026-11-11 | 5A | test:unit 5 passed (4 coverage tests + 1 smoke) | 5B: with-pocketbase script |
 | 2026-11-11 | 5B | with-pocketbase.ts, container.test.ts, global-setup.ts implemented | 5C: rule test helpers and tests |
 | 2026-11-11 | 5C | pb helpers, users & coverage rules tests, package scripts, migration 1794355400 | 5D: docs/developer/testing.md |
+| 2026-11-11 | 5D | docs/developer/testing.md names all test layers and commands | Task 5 complete; awaiting review |

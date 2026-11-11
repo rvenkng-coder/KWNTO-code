@@ -115,5 +115,5 @@ test('an injection string in a filter returns nothing and does not error out the
 
 ## Checkpoint 5D: Document the test layers
 
-- [ ] **Step 12: Write `docs/developer/testing.md`:** the test layers, the command for each, how to add a rule test for a new collection, what `PUBLIC_RULES` is and that adding to it needs a design reference in a comment.
-- [ ] **Close checkpoint 5D.** Verify: `docs/developer/testing.md` names a command for every layer that exists. Commit: `docs: testing guide`.
+- [x] **Step 12: Write `docs/developer/testing.md`:** the test layers, the command for each, how to add a rule test for a new collection, what `PUBLIC_RULES` is and that adding to it needs a design reference in a comment.
+- [x] **Close checkpoint 5D.** Verify: `docs/developer/testing.md` names a command for every layer that exists. Commit: `docs: testing guide`.

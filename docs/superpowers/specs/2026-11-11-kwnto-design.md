@@ -99,6 +99,15 @@ Projects contain chapters shown as tabs that can be resized and closed.
 - Media uploads wait for the connection; they are not queued offline.
 - Offline queueing and conflict handling are the highest-risk part of the editor, and need their own tests (section 8b).
 
+### 6.8 Trash and recovery (dev decision)
+
+- Deleting a **project, chapter or node** moves it to a trash instead of erasing it. Its contents (lines, cues, media, comments, connections) are hidden with it and come back with it.
+- Items stay in the trash for **30 days**, then are deleted for good by a scheduled job, including their media files. The period is an admin setting (`trash_retention_days`, default 30).
+- Any team member can restore from the trash while it lasts **[my call]**. After the 30 days, the only recovery is restoring from a backup, done by the admin.
+- Trashed media still counts toward the uploader's quota until it is purged **[my call]**.
+- A node's connections are hidden while the node is in the trash and return with it **[my call]**.
+- Deleting a single script line, cue, comment or connection is covered by undo/redo only **[my call]**.
+
 ### 6.6 Look and feel
 - Reference: the prototype's layout and Apple OS / Nothing OS feel. **Not** glassmorphism; no translucent or blurred panels.
 - Layout: top bar (search, theme toggle), left (projects/chapters), center canvas with minimap, right properties panel.
@@ -122,7 +131,7 @@ Projects contain chapters shown as tabs that can be resized and closed.
 
 Anything that needs configuring is done in the **built-in PocketBase admin dashboard**, not a custom page. Settings are **separate tables by scope and by who may edit them**, with typed fields (see the ERD):
 
-- **System, admin only, one record each:** `system_access` (registration open or closed), `system_storage` (default quota 2 GB, per-file limits 200 MB video and 50 MB audio and images, allowed file types), `system_behavior` (presence timeout, analytics retention).
+- **System, admin only, one record each:** `system_access` (registration open or closed), `system_storage` (default quota 2 GB, per-file limits 200 MB video and 50 MB audio and images, allowed file types), `system_behavior` (presence timeout, analytics retention, trash retention days).
 - **User:** `user_preferences` (theme, minimap; edited by the user and saved to their account) and `user_limits` (quota override; admin only).
 - **Team:** `team_settings` (join code, on or off; team owner).
 - **Project:** `project_settings` (analytics on or off; team members).
@@ -180,9 +189,9 @@ PocketBase stores data in SQLite, so the model is relational. Each independently
 | users | Built in: email and password. |
 | teams, team_members | Team with an owner; members link a user to a team (role: owner or member). |
 | team_settings | One per team: join code, code on or off. Owner edits. |
-| projects | Belongs to a team: name, created date, start node. |
-| chapters | Belongs to a project: title, tab order. |
-| nodes | Belongs to a chapter: title, color, x and y position, height. |
+| projects | Belongs to a team: name, created date, start node, `deleted_at` (trash). |
+| chapters | Belongs to a project: title, tab order, `deleted_at`. |
+| nodes | Belongs to a chapter: title, color, x and y position, height, `deleted_at`. |
 | script_lines | Belongs to a node: **character name (optional) and line text**, sort order. One record per line. |
 | cues | Belongs to a node: type (audio, lighting, other), text, sort order. |
 | media | Belongs to a node: file, type, size, uploader (drives the 2 GB quota). |
@@ -214,7 +223,7 @@ Remaining open: none. Every decision above was settled in chat on 2026-11-11.
 ## 11. Build order (dev decision, MVP first)
 
 1. **The editor itself and reliable saving** (canvas, nodes, connections including cross-chapter links, properties panel, chapters, search, undo/redo, copy/paste, multi-select, minimap, light/dark mode, sign-in, teams, media upload, offline resilience per section 6.7). This alone is the MVP. It begins with the small throwaway real-time test in section 9c.
-2. **Access for other users:** share links (view, comment, edit), opening shared projects, JSON project import and export, comments, real-time collaboration with presence.
+2. **Access for other users and data safety:** trash and restore (section 6.8), share links (view, comment, edit), opening shared projects, JSON project import and export, comments, real-time collaboration with presence.
 3. **Export** (PDF, Word, JPG, PNG).
 4. **Player Mode.**
 5. **Path analytics,** last.

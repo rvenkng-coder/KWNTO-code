@@ -1,0 +1,20 @@
+services:
+  pocketbase:
+    build: ./backend
+    image: kwnto-pocketbase:dev
+    ports:
+      - "127.0.0.1:8091:8090"
+    environment:
+      # Test-only credentials; the data is discarded with the container.
+      KWNTO_ADMIN_EMAIL: admin@example.test
+      KWNTO_ADMIN_PASSWORD: test-admin-password-1
+    tmpfs:
+      - /pb/pb_data:uid=10001,gid=10001
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8090/api/health"]
+      interval: 2s
+      timeout: 3s
+      retries: 30

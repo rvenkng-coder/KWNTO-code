@@ -67,7 +67,7 @@ This file is the router. Each task lives in its own file and is split into check
 | # | Task | Tier | Depends on | Checkpoints | Status |
 |---|---|---|---|---|---|
 | 1 | [App scaffold and toolchain](task-1-scaffold.md) | local-OK | none | 1A 1B 1C | done |
-| 2 | [PocketBase container with one-time admin bootstrap](task-2-pocketbase-container.md) | strong | 1 | 2A 2B 2C 2D | in progress (2B closed) |
+| 2 | [PocketBase container with one-time admin bootstrap](task-2-pocketbase-container.md) | strong | 1 | 2A 2B 2C 2D | in progress (2C closed) |
 | 3 | [Real-time spike and go/no-go decision](task-3-realtime-spike.md) | strong | 2 | 3A 3B 3C 3D | not started |
 | 4 | [Guardrail lint rules and the PERF comment check](task-4-lint-guardrails.md) | mid | 1 | 4A 4B | not started |
 | 5 | [Backend rule-test harness and deny-by-default check](task-5-rule-test-harness.md) | strong | 2 | 5A 5B 5C 5D | not started |
@@ -75,7 +75,7 @@ This file is the router. Each task lives in its own file and is split into check
 | 7 | [Docs check, secret scan and the GitHub workflow](task-7-ci-docs-secrets.md) | mid | 4, 6 | 7A 7B 7C | not started |
 | 8 | [AGENTS.md, README and developer guide](task-8-agents-readme.md) | local-OK | 7 | 8A 8B | not started |
 
-**Status values:** `not started`, `in progress (2B closed)`, `awaiting review` (all checkpoints closed, reviewer has not passed it), `done` (reviewer passed it).
+**Status values:** `not started`, `in progress (2C closed)`, `awaiting review` (all checkpoints closed, reviewer has not passed it), `done` (reviewer passed it).
 
 Names and signatures shared between tasks are in each task file's **Interfaces** block. If a task needs something from another task that its Interfaces block does not list, stop and report it; do not open the other task file and guess.
 
@@ -89,7 +89,7 @@ A session can end at any moment: the internet drops, usage runs out, or the cont
 2. **Closing a checkpoint is one commit** that holds all four of these together, so they can never disagree:
    - the code and docs the checkpoint produced;
    - the ticked step boxes (`- [x]`) in the task file;
-   - this router's Status cell, for example `in progress (2B closed)`;
+   - this router's Status cell, for example `in progress (2C closed)`;
    - one new line in `.planning/<date>-foundation/progress.md`: date, checkpoint, the verification output in a few words, and the next action.
 3. **A checkpoint closes only when its verification passes.** Tick a step's box when the step is done, but commit only at the close.
 4. **Never start a checkpoint with uncommitted changes** from the one before.

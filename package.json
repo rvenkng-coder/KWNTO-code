@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --noEmit",
     "preview": "vite preview",
-    "test:unit": "vitest run --project unit"
+    "test:unit": "vitest run --project unit",
+    "dev:backend": "docker compose -f compose.dev.yaml up --build",
+    "test:container": "vitest run --project container"
   },
   "dependencies": {
     "@xyflow/react": "^12.12.1",

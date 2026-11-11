@@ -63,11 +63,11 @@ test('a restart on the same volume keeps data and the original admin password', 
 
 ## Checkpoint 2C: Compose files and scripts
 
-- [ ] **Step 7: Write the compose files.**
+- [x] **Step 7: Write the compose files.**
   - `compose.test.yaml`: service `pocketbase`, `build: ./backend`, `image: kwnto-pocketbase:dev`, ports `127.0.0.1:8091:8090`, the test admin credentials above inline (comment: test-only, data is discarded), `tmpfs: /pb/pb_data:uid=10001,gid=10001`, `read_only: true`, `cap_drop: [ALL]`, `security_opt: [no-new-privileges:true]`, and the healthcheck so `up --wait` works.
   - `compose.dev.yaml`: same service on `127.0.0.1:8090:8090`, `env_file: .env`, named volume `kwnto-dev-data:/pb/pb_data`, bind mounts of `backend/pb_migrations` and `backend/pb_hooks` so edits apply without a rebuild, same hardening options except `read_only`.
-- [ ] **Step 8: Scripts.** `dev:backend`: `docker compose -f compose.dev.yaml up --build`. `test:container`: `vitest run --project container`.
-- [ ] **Close checkpoint 2C.** Verify: `docker compose -f compose.test.yaml up -d --build --wait` exits 0 and `curl -s http://127.0.0.1:8091/api/health` returns code 200; then `docker compose -f compose.test.yaml down -v`. `npm run test:container` shows `3 passed`. Commit: `feat: dev and test compose files for PocketBase`.
+- [x] **Step 8: Scripts.** `dev:backend`: `docker compose -f compose.dev.yaml up --build`. `test:container`: `vitest run --project container`.
+- [x] **Close checkpoint 2C.** Verify: `docker compose -f compose.test.yaml up -d --build --wait` exits 0 and `curl -s http://127.0.0.1:8091/api/health` returns code 200; then `docker compose -f compose.test.yaml down -v`. `npm run test:container` shows `3 passed`. Commit: `feat: dev and test compose files for PocketBase`.
 
 ## Checkpoint 2D: Document the backend
 

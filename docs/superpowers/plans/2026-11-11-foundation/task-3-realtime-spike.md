@@ -30,7 +30,7 @@ Throwaway code. It answers one question: does PocketBase real-time hold up for p
 
 ## Checkpoint 3B: Quick measurements A, C, D
 
-- [ ] **Step 3: `spike.spec.ts`.** Write measurements A, C and D in this checkpoint, and B, E and G in checkpoint 3C. Chromium and Firefox. Three browser contexts, each opening `${SPIKE_URL}/api/health` (default `http://127.0.0.1:8092`), loading the SDK with `page.addScriptTag({ path: 'node_modules/pocketbase/dist/pocketbase.umd.js' })`, signing in as a different user and subscribing to both collections with filter `project = "big"`. One test per measurement; each writes its numbers to `spike/realtime/results/<browser>.json`.
+- [x] **Step 3: `spike.spec.ts`.** Write measurements A, C and D in this checkpoint, and B, E and G in checkpoint 3C. Chromium and Firefox. Three browser contexts, each opening `${SPIKE_URL}/api/health` (default `http://127.0.0.1:8092`), loading the SDK with `page.addScriptTag({ path: 'node_modules/pocketbase/dist/pocketbase.umd.js' })`, signing in as a different user and subscribing to both collections with filter `project = "big"`. One test per measurement; each writes its numbers to `spike/realtime/results/<browser>.json`.
 
 | # | Measurement | Method | Pass threshold (my call) |
 |---|---|---|---|
@@ -41,8 +41,8 @@ Throwaway code. It answers one question: does PocketBase real-time hold up for p
 | E | Reconnect | Client 2 goes offline (`context.setOffline(true)`) for 10 s while client 1 makes 5 edits, then returns | Record only: how many of the 5 arrive after reconnect, and how long until new events flow again |
 | G | `updated` resolution | 50 pairs of back-to-back PATCHes to one record | Record only: how many pairs share the same `updated` value |
 
-- [ ] **Step 4: Script** `spike:realtime`: run `docker compose -f spike/realtime/compose.yaml down -v` first, start the spike compose with `--wait`, run `seed.ts`, run Playwright with `spike/realtime/playwright.config.ts`, then `docker compose down -v`.
-- [ ] **Close checkpoint 3B.** Verify: `npm run spike:realtime` runs A, C and D in both browsers and writes two result files. A failing threshold is a finding, not a reason to stop: record it and go on. Commit: `spike: merge, load and filter measurements`.
+- [x] **Step 4: Script** `spike:realtime`: run `docker compose -f spike/realtime/compose.yaml down -v` first, start the spike compose with `--wait`, run `seed.ts`, run Playwright with `spike/realtime/playwright.config.ts`, then `docker compose down -v`.
+- [x] **Close checkpoint 3B.** Verify: `npm run spike:realtime` runs A, C and D in both browsers and writes two result files. A failing threshold is a finding, not a reason to stop: record it and go on. Commit: `spike: merge, load and filter measurements`.
 
 ## Checkpoint 3C: Slow measurements B, E, G
 

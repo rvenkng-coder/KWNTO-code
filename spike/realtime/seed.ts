@@ -2,7 +2,7 @@
 import PocketBase from 'pocketbase'
 
 const ADMIN = { email: 'admin@example.test', password: 'spike-admin-password-1' }
-const USERS = [1, 2, 3].map((n) => ({ email: `spike${n}@example.test`, password: `spike-user-password-${n}` }))
+export const USERS = [1, 2, 3].map((n) => ({ email: `spike${n}@example.test`, password: `spike-user-password-${n}` }))
 
 export async function seed(url: string): Promise<{ users: { email: string; password: string }[] }> {
   const pb = new PocketBase(url)

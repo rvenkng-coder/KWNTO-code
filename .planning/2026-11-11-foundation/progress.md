@@ -11,3 +11,4 @@
 | 2026-11-11 | 2D | docs/developer/backend.md names bcrypt cost 10 with source | Task 2 review, then Task 3 |
 | 2026-11-11 | Task 2 | Developer review passed | Task 3: real-time spike |
 | 2026-11-11 | 3A | spike compose healthy; seed printed `seeded 510 nodes and 5000 lines`; 510 nodes/5000 lines confirmed | 3B: spike.spec.ts measurements A, C, D |
+| 2026-11-11 | 3B | `npm run spike:realtime` ran A, C, D in both browsers; C and D pass, **A FAILS** (chromium 4/20, firefox 16/20 rounds keep both edits; either field lost, so whole-record last-writer-wins) | 3C: add B, E, G; then 0002 decision file |

@@ -9,3 +9,4 @@
 | 2026-11-11 | 2B | `vitest --project container` 3 passed (restart keeps first password) | 2C: compose files and scripts |
 | 2026-11-11 | 2C | compose.test up --wait healthy, /api/health 200, test:container 3 passed | 2D: docs/developer/backend.md |
 | 2026-11-11 | 2D | docs/developer/backend.md names bcrypt cost 10 with source | Task 2 review, then Task 3 |
+| 2026-11-11 | Task 2 | Developer review passed | Task 3: real-time spike |

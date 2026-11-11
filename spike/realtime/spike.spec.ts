@@ -5,28 +5,35 @@ import { ADMIN } from './seed.ts'
 import { bigNodeIds, closeAll, events, openClients, SPIKE_URL, startProxy, writeResult } from './helpers.ts'
 
 // A. Protects ERD "per-attribute editing": two people editing different fields of one node
-// at the same moment must both keep their change.
-test('A: per-attribute merge keeps both edits', async ({ browser, browserName }) => {
+// at the same moment. Clients here send no version (the unguarded baseline). Against the plain
+// backend one edit was often lost silently (decision 0002: 7 and 18 of 20 kept). With the
+// version hook (spike/realtime/pb_hooks) the server must reject the loser with 409 instead:
+// a write the server accepted may never disappear. spike-version.spec.ts covers the retry.
+test('A: an accepted concurrent edit is never lost silently', async ({ browser, browserName }) => {
   const [c1, c2, c3] = await openClients(browser)
   const ids = await bigNodeIds(c1, 20)
-  let kept = 0
-  const lost = { title: 0, color: 0 }
+  const run = Date.now() // unique values, so a value left by an earlier run cannot pass for this run's
+  let bothKept = 0
+  let rejected = 0
+  let silentlyLost = 0
   for (let round = 0; round < 20; round++) {
     const id = ids[round]
-    const title = `t-${round}`
-    const color = `#00${round.toString(16).padStart(4, '0')}`
-    await Promise.all([
-      c1.page.evaluate(([i, v]) => (window as any).__pb.collection('spike_nodes').update(i, { title: v }), [id, title]), // eslint-disable-line
-      c2.page.evaluate(([i, v]) => (window as any).__pb.collection('spike_nodes').update(i, { color: v }), [id, color]), // eslint-disable-line
-    ])
+    const title = `t-${run}-${round}`
+    const color = `c-${run}-${round}`
+    const send = (c: typeof c1, field: string, v: string) => c.page.evaluate(
+      ([i, f, val]) => (window as any).__pb.collection('spike_nodes').update(i, { [f]: val }).then(() => 200, (e: { status: number }) => e.status), // eslint-disable-line
+      [id, field, v])
+    const [s1, s2] = await Promise.all([send(c1, 'title', title), send(c2, 'color', color)])
     const rec = await c3.page.evaluate((i) => (window as any).__pb.collection('spike_nodes').getOne(i), id) // eslint-disable-line
-    if (rec.title === title && rec.color === color) kept++
-    if (rec.title !== title) lost.title++
-    if (rec.color !== color) lost.color++
+    if (s1 === 409) rejected++
+    if (s2 === 409) rejected++
+    if (s1 === 200 && rec.title !== title) silentlyLost++
+    if (s2 === 200 && rec.color !== color) silentlyLost++
+    if (rec.title === title && rec.color === color) bothKept++
   }
-  writeResult(browserName, 'A', { roundsBothKept: kept, rounds: 20, lostEdits: lost })
+  writeResult(browserName, 'A', { rounds: 20, bothKept, rejectedWith409: rejected, silentlyLost })
   await closeAll([c1, c2, c3])
-  expect(kept).toBe(20)
+  expect(silentlyLost).toBe(0)
 })
 
 // C. Protects the "open a large project" experience: initial load of 500 nodes and 5,000 lines.

@@ -3,7 +3,7 @@ import { defineConfig } from '@playwright/test'
 
 export default defineConfig({
   testDir: '.',
-  testMatch: 'spike.spec.ts',
+  testMatch: 'spike*.spec.ts',
   // One test at a time: the measurements share one backend and must not disturb each other.
   workers: 1,
   fullyParallel: false,

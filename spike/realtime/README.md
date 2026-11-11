@@ -10,7 +10,7 @@ Needs Docker running and the `kwnto-pocketbase:dev` image (`npm run test:contain
 npm run spike:realtime
 ```
 
-It clears any leftover spike container, starts PocketBase on `127.0.0.1:8092`, seeds 510 nodes and 5,000 lines, runs measurements A to G in Chromium and Firefox, and tears everything down. Numbers land in the gitignored `spike/realtime/results/<browser>.json`. A failing threshold fails that test but never stops the run.
+It clears any leftover spike container, starts PocketBase on `127.0.0.1:8092`, seeds 510 nodes and 5,000 lines, runs measurements A to G and the version-guard checks in Chromium and Firefox, and tears everything down. Numbers land in the gitignored `spike/realtime/results/<browser>.json`. A failing threshold fails that test but never stops the run.
 
 | File | Purpose |
 |---|---|
@@ -19,6 +19,8 @@ It clears any leftover spike container, starts PocketBase on `127.0.0.1:8092`, s
 | `seed.ts` | Users `spike1`..`spike3@example.test`, project `big` and `other` |
 | `helpers.ts` | Clients, result files, and a cuttable TCP proxy used by measurement E |
 | `spike.spec.ts` | The six measurements |
+| `spike-version.spec.ts` | Follow-up to A: version guard, 409 and the client retry rule |
+| `pb_hooks/version.pb.js`, `pb_migrations/1794355400_spike_version.js` | The version counter and the guarded write (option 2) |
 
 ## Funnel run (the developer does this; it touches the server)
 

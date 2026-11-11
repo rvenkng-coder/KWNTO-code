@@ -68,7 +68,7 @@ This file is the router. Each task lives in its own file and is split into check
 |---|---|---|---|---|---|
 | 1 | [App scaffold and toolchain](task-1-scaffold.md) | local-OK | none | 1A 1B 1C | done |
 | 2 | [PocketBase container with one-time admin bootstrap](task-2-pocketbase-container.md) | strong | 1 | 2A 2B 2C 2D | done |
-| 3 | [Real-time spike and go/no-go decision](task-3-realtime-spike.md) | strong | 2 | 3A 3B 3C 3D | awaiting review (decision: NO-GO) |
+| 3 | [Real-time spike and go/no-go decision](task-3-realtime-spike.md) | strong | 2 | 3A 3B 3C 3D | awaiting review (decision: GO with version guard) |
 | 4 | [Guardrail lint rules and the PERF comment check](task-4-lint-guardrails.md) | mid | 1 | 4A 4B | not started |
 | 5 | [Backend rule-test harness and deny-by-default check](task-5-rule-test-harness.md) | strong | 2 | 5A 5B 5C 5D | not started |
 | 6 | [The backend door and the end-to-end harness](task-6-backend-door-e2e.md) | mid | 1, 5 | 6A 6B | not started |

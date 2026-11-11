@@ -15,3 +15,4 @@
 | 2026-11-11 | 3C | all six measurements ran in both browsers; numbers copied to 0002 (A fails, B/C/D pass, E real drop via proxy, G 0 of 50 equal) | 3D: Funnel README, complete 0002 with GO/NO-GO |
 | 2026-11-11 | 3D | 0002 ends with NO-GO and states findings E and G; Funnel run pending developer | Developer decision on measurement A; Task 4 may continue |
 | 2026-11-12 | 3D | Funnel run recorded in 0002 (laptop to VM via Funnel): B/C/D pass, A fails 18 of 20 | Developer decision on measurement A |
+| 2026-11-12 | 3D | Option 2 (version guard) built in the spike: A2 100/100 both browsers x5 repeats, A 0 silent losses, `npm run spike:realtime` 16 passed; 0002 now ends GO with conditions | Developer confirms GO; Plan 2 may start; Tasks 4-8 continue |

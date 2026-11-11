@@ -12,6 +12,8 @@ services:
     volumes:
       - ../../backend/pb_migrations/1794355200_initial_superuser.js:/pb/pb_migrations/1794355200_initial_superuser.js:ro
       - ./pb_migrations/1794355300_spike_collections.js:/pb/pb_migrations/1794355300_spike_collections.js:ro
+      - ./pb_migrations/1794355400_spike_version.js:/pb/pb_migrations/1794355400_spike_version.js:ro
+      - ./pb_hooks/version.pb.js:/pb/pb_hooks/version.pb.js:ro
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
     healthcheck:

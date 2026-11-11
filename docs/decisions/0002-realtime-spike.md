@@ -47,17 +47,47 @@ The tunnel changes nothing about the verdict: real-time delivery through Funnel 
 - **Finding E (requirement):** events missed while a client is disconnected are **not replayed**: 0 of 5 arrived in both browsers. The SDK reconnects by itself and events flow again about 270 ms after the link returns. Plan 4 **must refetch the project (or everything changed since the last `updated` it saw) after every reconnect**, and must not assume the event stream is complete.
 - **Finding G (requirement):** across 50 sequential pairs of writes, `updated` never repeated, so on loopback it separates writes made one after the other. That does not make it a safe version for conflict detection (design 6.7): the sequential test cannot show whether two concurrent writes can share a value, and A shows concurrent writes already lose edits silently. Plan 4 **must not use `updated` alone as the version**. It needs a counter field that the server increments and checks, so a stale write is rejected, or a field-level merge on the server.
 
-## Options
+## Options considered
 
-Options for the developer, none tried yet:
+Options put to the developer after the first result:
 
 1. **Server-side field merge.** A PocketBase hook that re-reads the record inside the write transaction and applies only the fields the request sent. Keeps the ERD; needs a test that A reaches 20 of 20, plus finding G's counter.
 2. **Version counter with rejection.** Every write carries the version it was based on; the server rejects stale ones and the client re-applies its own field. Fits design 6.7 and finding G; costs a retry path in the client.
 3. **Coarser records.** One record per independently edited attribute (for example separate `title` and `color` records). Removes the problem but multiplies records and rules.
 4. **A different backend** with field-level writes.
 
-Option 1 or 2 is the cheapest to test next: re-run A against it.
+The developer chose **option 2** (version counter with rejection). Results are below.
+
+## Follow-up: option 2, version counter with rejection
+
+Date: 2026-11-12. Same environment as above. Code: `spike/realtime/pb_hooks/version.pb.js`, `pb_migrations/1794355400_spike_version.js`, `spike-version.spec.ts`.
+
+**How it works.** `spike_nodes` gets a number field `version`. A client sends the `version` it last read together with the fields it changed. In one transaction the server runs `UPDATE ... SET version = version + 1 WHERE id = ? AND version = <sent>`; if no row matched, the save is refused with **409**. Otherwise it writes the changed fields onto the current record. The client's rule on 409: re-read the record, re-apply only its own field, send again.
+
+| Check | Chromium | Firefox |
+|---|---|---|
+| A2: guarded concurrent edits of different fields keep both values (100 rounds) | 100 of 100 | 100 of 100 |
+| A2: version rose by exactly 2 in every round | 100 of 100 | 100 of 100 |
+| A2: conflict retries needed | 100 (one per round, the loser) | 100 |
+| A (no version sent): accepted edits lost silently, 20 rounds | 0 | 0 |
+| A (no version sent): losing writes refused with 409 | 19 | 18 |
+| Write with an already used version is refused with 409 | yes | yes |
+| B, C, D, E, G with the hook installed | same as the table above (B: 1800 events, 0 lost; p95 5 and 8 ms) | |
+
+A2 and A were repeated 5 times in both browsers with values unique to each run: 30 of 30 passed.
+
+**What it took to get here (the traps for Plans 3 and 4):**
+1. A version check in the model hooks (`onRecordUpdate`, `onRecordUpdateExecute`) as a read followed by a write lost edits: 19 and 91 of 100 rounds kept both. Two saves read the same version before either wrote.
+2. Making the check one SQL `UPDATE ... WHERE version = sent` inside those hooks still lost up to 3 of 20 accepted edits. Those hooks run **outside** the save transaction: a bump followed by a thrown error left the version bumped (probe: version 1, no data change). A second writer was then admitted on the new version before the first writer's data landed, and wrote a stale copy of the record.
+3. What works is a hook on the update **request** that runs the bump and the write in one explicit transaction and writes the changed fields onto the freshly read record.
+
+**Requirements for Plans 3 and 4:**
+- Every collection whose records are edited concurrently (nodes, lines, connections, project settings) needs a `version` field and this guarded write. A plain PATCH without it must not be used for those collections.
+- The client must handle 409 as normal flow, not as an error: re-read, re-apply the user's own field, retry. Bound the retries (the test used 20) and show a message if they run out.
+- Writes queued while offline (Plan 4) carry the version they were based on; on replay a 409 means "someone changed it meanwhile" and follows the same retry rule, or the conflict dialog from design 6.7 if the same field was changed.
+- The hook replaces the default save, so it must be checked in Task 5's rule tests: an unauthenticated or not-permitted update must still be refused, and responses must still respect field rules. The spike only tested signed-in users with the open spike rule.
+- Not measured: the guard over Funnel (the Funnel run above was before the hook), and more than two simultaneous writers on one record.
 
 ## Decision
 
-**NO-GO.** Measurement A failed in both browsers (Chromium 7 of 20, Firefox 18 of 20, needed 20 of 20). The other thresholds passed. Plans 2 and later do not start until the developer decides what changes.
+**GO, with option 2 as a required change.** Delivery, load and isolation passed in both browsers, locally and through Funnel. The original per-attribute merge failed (A), and the version-guarded write fixes it: no accepted edit is lost and no edit is rejected without a retry path (A2: 100 of 100, both browsers, repeated). Plans 2 and later may start on the condition that the version guard and the 409 retry rule above are part of Plans 3 and 4. The developer chose this option; if the guard cannot be kept on every concurrently edited collection, this decision goes back to **NO-GO**.

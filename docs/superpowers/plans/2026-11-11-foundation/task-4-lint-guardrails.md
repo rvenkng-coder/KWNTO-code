@@ -17,7 +17,7 @@ Part of the [Foundation and Real-Time Spike plan](README.md). **Read the router 
 
 ## Checkpoint 4A: ESLint guardrails
 
-- [ ] **Step 1: Write the failing lint tests** in `tests/lint/guardrails.test.ts`. Helper: `ruleIds(code: string, filePath: string): Promise<string[]>` using `new ESLint().lintText(code, { filePath })`.
+- [x] **Step 1: Write the failing lint tests** in `tests/lint/guardrails.test.ts`. Helper: `ruleIds(code: string, filePath: string): Promise<string[]>` using `new ESLint().lintText(code, { filePath })`.
 
 ```ts
 // Each test protects one rule in docs/engineering.md section 2 or docs/security.md section 5.
@@ -38,9 +38,9 @@ test('files over 300 lines are rejected, 300 is allowed', async () => {
 })
 ```
 
-- [ ] **Step 2: Run** `npm run test:unit`. Expected: the four new tests FAIL.
-- [ ] **Step 3: Edit `eslint.config.js`.** Add, for `src/**`: `max-lines: ['error', { max: 300, skipBlankLines: true, skipComments: true }]`; `@typescript-eslint/no-explicit-any: 'error'`; `no-restricted-imports` on path `pocketbase` with message `Only src/backend/ may import pocketbase (docs/engineering.md section 2).`; `no-restricted-syntax` with selector `JSXAttribute[name.name='dangerouslySetInnerHTML']` and message `Plain text only (docs/security.md section 5).`. Turn `no-restricted-imports` off for `src/backend/**`, `tests/rules/**` and `e2e/**`. Ignore `dist/`, `spike/`, `.agents/`, `.claude/`, `branching_narrative_tool.tsx`.
-- [ ] **Close checkpoint 4A.** Verify: `npx eslint . && npm run test:unit` is clean and shows `5 passed`. Also remove "(planned)" from the `max-lines`, `no-restricted-imports` and strict TypeScript lines in `docs/engineering.md`. Commit: `chore: guardrail lint rules`.
+- [x] **Step 2: Run** `npm run test:unit`. Expected: the four new tests FAIL.
+- [x] **Step 3: Edit `eslint.config.js`.** Add, for `src/**`: `max-lines: ['error', { max: 300, skipBlankLines: true, skipComments: true }]`; `@typescript-eslint/no-explicit-any: 'error'`; `no-restricted-imports` on path `pocketbase` with message `Only src/backend/ may import pocketbase (docs/engineering.md section 2).`; `no-restricted-syntax` with selector `JSXAttribute[name.name='dangerouslySetInnerHTML']` and message `Plain text only (docs/security.md section 5).`. Turn `no-restricted-imports` off for `src/backend/**`, `tests/rules/**` and `e2e/**`. Ignore `dist/`, `spike/`, `.agents/`, `.claude/`, `branching_narrative_tool.tsx`.
+- [x] **Close checkpoint 4A.** Verify: `npx eslint . && npm run test:unit` is clean and shows `5 passed`. Also remove "(planned)" from the `max-lines`, `no-restricted-imports` and strict TypeScript lines in `docs/engineering.md`. Commit: `chore: guardrail lint rules`.
 
 ## Checkpoint 4B: PERF comment check
 

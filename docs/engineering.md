@@ -19,9 +19,9 @@ These principles were set by the developer on 2026-11-11. Items marked **(planne
 - **One function does one thing.** If you need "and" to describe it, split it.
 - **One module owns one feature.** Group files by feature, not by technical layer.
 - **Data flow is easy to track.** A reader should be able to follow where a value comes from and where it goes. Prefer passing values in and returning values out over hidden shared state.
-- **Small files.** Split modules into small components and files. Target 300 lines or fewer per file. **(planned: ESLint `max-lines` rule)**
-- **One door to the backend.** Only the backend module talks to PocketBase. Nothing else imports it. This also keeps the backend swappable (see design section 7). **(planned: ESLint `no-restricted-imports`)**
-- **Strict TypeScript.** No `any` without a comment explaining why. **(planned: `tsc --strict` and an ESLint rule)**
+- **Small files.** Split modules into small components and files. Target 300 lines or fewer per file. Enforced by ESLint `max-lines` (blank lines and comments do not count).
+- **One door to the backend.** Only the backend module talks to PocketBase. Nothing else imports it. This also keeps the backend swappable (see design section 7). Enforced by ESLint `no-restricted-imports`.
+- **Strict TypeScript.** No `any` without a comment explaining why. Enforced by `tsc --strict` (`npm run typecheck`) and the ESLint rule `@typescript-eslint/no-explicit-any`.
 - Comments explain **why**, not what. If a comment explains what the code does, the code should be clearer instead (except for `PERF:` comments above).
 
 ## 3. Change only what the task needs

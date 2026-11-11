@@ -42,7 +42,7 @@ It is an internal tool, not a public product (yet). It is used by one school coh
 ## 5. Users and access
 
 - **Users:** students, plus the developer. Real sign-in by email and password, hashed/encrypted credentials, HTTPS.
-- **Teams:** projects belong to a team (not an individual). Team members can edit the team's projects. A user can belong to several teams. The team creator is its owner. Members can create projects, edit every project in the team, upload media, comment, and **create share links** (dev decision). Only the owner removes members, regenerates or disables the join code, deletes projects and deletes the team. Joining is by join code, because sending invite emails needs an email service that is not free **[my call]**.
+- **Teams:** projects belong to a team (not an individual). Team members can edit the team's projects. A user can belong to several teams. The team creator is its owner. Members can create projects, edit every project in the team, upload media, comment, and **create share links** (dev decision). Only the owner removes members, regenerates or disables the join code, deletes projects and deletes the team. There are two ways to join: a **join code** (quick, for a whole class), and an **invite by email** (dev decision): the owner types an email and, if an account exists, an invite appears in that person's account the next time they sign in; they must **accept** before joining. No email is sent, so no email service is needed. If no account exists the owner sees "that user doesn't exist". Emails are private to everyone except the admin; an owner never sees an invitee's email list, only the name of someone who has accepted. The "doesn't exist" message lets a signed-in owner discover which emails are registered; this is a known, accepted risk, limited by a rate limit on invite attempts and a log of each attempt, and it is on the pre-public list (section 12).
 - **Share links**, three permission levels: **view only**, **comment**, **edit**. Each link is one of two kinds:
   - **Live:** shows the current state of the project.
   - **Snapshot:** a frozen copy as of the moment it was published. The owner can **update** it (re-publish current state) and **revoke** it.
@@ -187,6 +187,7 @@ PocketBase stores data in SQLite, so the model is relational. Each independently
 | Collection | Holds |
 |---|---|
 | users | Built in: email and password. |
+| team_invites | Pending invite: team, invited user, invited by, status (pending, accepted, declined), time. |
 | teams, team_members | Team with an owner; members link a user to a team (role: owner or member). |
 | team_settings | One per team: join code, code on or off. Owner edits. |
 | projects | Belongs to a team: name, created date, start node, `deleted_at` (trash). |
@@ -219,6 +220,15 @@ Resolved by the developer and client:
 - **Load testing:** large-scale load testing is deferred until there is time. A small throwaway real-time test (two or three browsers editing the same node) is still the first step of the plan, because the data model depends on it **[my call]**.
 
 Remaining open: none. Every decision above was settled in chat on 2026-11-11.
+
+## 12. Before going public (dev decision: revisit when the tool is opened to the public)
+
+- Account enumeration through the invite-by-email message (section 5).
+- Open sign-up on a public address, and the disk-abuse risk of 2 GB per account.
+- PocketBase scale limits (single server, SQLite) and the option to swap the backend (section 7).
+- Tailscale Funnel bandwidth limits for large media, and the Cloudflare Tunnel fallback.
+- Full offline use (section 3), and a custom in-app admin page.
+- A fresh security review of the access rules, and a re-check of the "internal tool" assumptions made here.
 
 ## 11. Build order (dev decision, MVP first)
 

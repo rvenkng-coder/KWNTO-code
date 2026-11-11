@@ -10,3 +10,4 @@
 | 2026-11-11 | 2C | compose.test up --wait healthy, /api/health 200, test:container 3 passed | 2D: docs/developer/backend.md |
 | 2026-11-11 | 2D | docs/developer/backend.md names bcrypt cost 10 with source | Task 2 review, then Task 3 |
 | 2026-11-11 | Task 2 | Developer review passed | Task 3: real-time spike |
+| 2026-11-11 | 3A | spike compose healthy; seed printed `seeded 510 nodes and 5000 lines`; 510 nodes/5000 lines confirmed | 3B: spike.spec.ts measurements A, C, D |

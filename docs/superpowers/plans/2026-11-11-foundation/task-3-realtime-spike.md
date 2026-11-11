@@ -22,11 +22,11 @@ Throwaway code. It answers one question: does PocketBase real-time hold up for p
 
 ## Checkpoint 3A: Spike backend and seed data
 
-- [ ] **Step 1: Spike backend.** `spike/realtime/compose.yaml` runs the image on `127.0.0.1:8092:8090` with tmpfs data and both the Task 2 migration and the spike migration mounted. The spike migration creates two base collections, every rule `@request.auth.id != ""`:
+- [x] **Step 1: Spike backend.** `spike/realtime/compose.yaml` runs the image on `127.0.0.1:8092:8090` with tmpfs data and both the Task 2 migration and the spike migration mounted. The spike migration creates two base collections, every rule `@request.auth.id != ""`:
   - `spike_nodes`: `project` (text), `title` (text), `color` (text), `x` (number), `y` (number), `updated` (autodate, on create and update).
   - `spike_lines`: `project` (text), `node` (relation to `spike_nodes`), `text` (text), `sort_order` (number), `updated` (autodate).
-- [ ] **Step 2: `seed.ts`** signs in as the superuser and creates three verified users (`spike1@example.test` to `spike3@example.test`), project `big` with **500 nodes and 5,000 lines** (10 per node), and project `other` with 10 nodes. Prints `seeded 510 nodes and 5000 lines` when done. Exports `seed(url: string): Promise<{ users: { email: string; password: string }[] }>`.
-- [ ] **Close checkpoint 3A.** Verify: start the spike compose with `--wait`, run `node spike/realtime/seed.ts`, and it prints `seeded 510 nodes and 5000 lines`; then `docker compose -f spike/realtime/compose.yaml down -v`. Commit: `spike: collections and seed data`.
+- [x] **Step 2: `seed.ts`** signs in as the superuser and creates three verified users (`spike1@example.test` to `spike3@example.test`), project `big` with **500 nodes and 5,000 lines** (10 per node), and project `other` with 10 nodes. Prints `seeded 510 nodes and 5000 lines` when done. Exports `seed(url: string): Promise<{ users: { email: string; password: string }[] }>`.
+- [x] **Close checkpoint 3A.** Verify: start the spike compose with `--wait`, run `node spike/realtime/seed.ts`, and it prints `seeded 510 nodes and 5000 lines`; then `docker compose -f spike/realtime/compose.yaml down -v`. Commit: `spike: collections and seed data`.
 
 ## Checkpoint 3B: Quick measurements A, C, D
 

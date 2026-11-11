@@ -1,0 +1,21 @@
+# THROWAWAY: real-time spike backend (Task 3). Nothing in the app uses this.
+services:
+  pocketbase:
+    image: kwnto-pocketbase:dev
+    ports:
+      - "127.0.0.1:8092:8090"
+    environment:
+      KWNTO_ADMIN_EMAIL: admin@example.test
+      KWNTO_ADMIN_PASSWORD: spike-admin-password-1
+    tmpfs:
+      - /pb/pb_data:uid=10001,gid=10001
+    volumes:
+      - ../../backend/pb_migrations/1794355200_initial_superuser.js:/pb/pb_migrations/1794355200_initial_superuser.js:ro
+      - ./pb_migrations/1794355300_spike_collections.js:/pb/pb_migrations/1794355300_spike_collections.js:ro
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8090/api/health"]
+      interval: 2s
+      timeout: 3s
+      retries: 30

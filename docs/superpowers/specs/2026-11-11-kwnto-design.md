@@ -31,6 +31,7 @@ It is an internal tool, not a public product (yet). It is used by one school coh
 - Public sign-up, payments, plans, and a custom in-app admin page. The built-in PocketBase dashboard is the admin console for now. Comment replies and a "resolved" state are later additions.
 - Migration of existing data (none exists).
 - Embedding in Google Sites/iframe. It is a standalone page.
+- **Full offline use (later, dev decision):** opening and using the app with no connection from a cold start (service worker / installable app), and offline upload queues for audio and video. Only connection-drop resilience (section 6.7) is in the MVP.
 
 ## 4. Anti-goals (would make it a failure even if it technically works)
 
@@ -89,6 +90,15 @@ Projects contain chapters shown as tabs that can be resized and closed.
 - Scope: the current chapter by default, with an option for the whole project (one map per chapter); large maps are scaled to fit one image **[my call]**.
 - Node labels on the map should be legible in the export.
 
+### 6.7 Offline resilience (dev decision, MVP)
+
+- Edits are written to local browser storage (IndexedDB) first and then synced to the server. If the connection drops while the app is open, or the browser is closed while offline, edits are kept and sync when the connection returns.
+- The app shows an indicator ("offline, N changes waiting") and never loses queued edits.
+- **Conflicts on sync:** each queued edit remembers the version it started from (PocketBase's `updated` time, **[my call]**). If someone else changed the same attribute in the meantime, the app warns and asks which version to keep, mine or theirs, showing both. Nothing is overwritten silently.
+- This replaces last-write-wins for edits made offline. While everyone is online, live edits still merge per attribute with the presence indicator (section 5).
+- Media uploads wait for the connection; they are not queued offline.
+- Offline queueing and conflict handling are the highest-risk part of the editor, and need their own tests (section 8b).
+
 ### 6.6 Look and feel
 - Reference: the prototype's layout and Apple OS / Nothing OS feel. **Not** glassmorphism; no translucent or blurred panels.
 - Layout: top bar (search, theme toggle), left (projects/chapters), center canvas with minimap, right properties panel.
@@ -144,9 +154,9 @@ Server rules read these values at run time, so changes need no redeploy. Default
 
 Weighted toward where a bug would hurt most: permissions, saving, real-time editing. No coverage-percentage target, and few React component tests.
 
-1. **Unit tests (Vitest):** undo/redo history, decimal sort order for script lines, building the branch-map data for export, JSON project import validation. Write the test first where logic is pure.
+1. **Unit tests (Vitest):** the offline edit queue and conflict detection, undo/redo history, decimal sort order for script lines, building the branch-map data for export, JSON project import validation. Write the test first where logic is pure.
 2. **Backend rule tests:** run against a real PocketBase in Docker, calling its API as different users. Cover team members vs outsiders, view/comment/edit share links, revoked links, live vs snapshot, the 2 GB quota, and file type/size limits. This is the most important layer.
-3. **End-to-end tests (Playwright, Firefox and Chrome):** sign in, create and connect nodes, reload and confirm saved; two browsers editing the same node including the "someone else is editing" indicator; a share link opened without an account; JSON import then export.
+3. **End-to-end tests (Playwright, Firefox and Chrome):** sign in, create and connect nodes, reload and confirm saved; go offline, edit, reconnect and confirm sync, and produce a conflict and confirm the keep-mine/keep-theirs prompt; two browsers editing the same node including the "someone else is editing" indicator; a share link opened without an account; JSON import then export.
 4. **Manual checklist:** light/dark look, Player Mode transitions, PDF/Word/JPG/PNG exports. This is also the developer's sign-off sheet (section 8).
 5. **One command** runs all automated tests locally.
 6. **GitHub (dev decision):** a workflow runs the unit, backend rule and Playwright tests on every push, starting PocketBase inside the workflow. It also runs a documentation check **[my interpretation]**: markdown links resolve, and a pull-request checklist requires docs updates for any feature, setting or script changed. The builder may add stricter checks.
@@ -203,7 +213,7 @@ Remaining open: none. Every decision above was settled in chat on 2026-11-11.
 
 ## 11. Build order (dev decision, MVP first)
 
-1. **The editor itself and reliable saving** (canvas, nodes, connections including cross-chapter links, properties panel, chapters, search, undo/redo, copy/paste, multi-select, minimap, light/dark mode, sign-in, teams, media upload). This alone is the MVP. It begins with the small throwaway real-time test in section 9c.
+1. **The editor itself and reliable saving** (canvas, nodes, connections including cross-chapter links, properties panel, chapters, search, undo/redo, copy/paste, multi-select, minimap, light/dark mode, sign-in, teams, media upload, offline resilience per section 6.7). This alone is the MVP. It begins with the small throwaway real-time test in section 9c.
 2. **Access for other users:** share links (view, comment, edit), opening shared projects, JSON project import and export, comments, real-time collaboration with presence.
 3. **Export** (PDF, Word, JPG, PNG).
 4. **Player Mode.**

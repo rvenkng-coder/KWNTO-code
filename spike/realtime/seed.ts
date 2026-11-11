@@ -1,7 +1,7 @@
 // THROWAWAY: seeds the spike backend (Task 3). Not imported by the app.
 import PocketBase from 'pocketbase'
 
-const ADMIN = { email: 'admin@example.test', password: 'spike-admin-password-1' }
+export const ADMIN = { email: 'admin@example.test', password: process.env.SPIKE_ADMIN_PASSWORD ?? 'spike-admin-password-1' }
 export const USERS = [1, 2, 3].map((n) => ({ email: `spike${n}@example.test`, password: `spike-user-password-${n}` }))
 
 export async function seed(url: string): Promise<{ users: { email: string; password: string }[] }> {

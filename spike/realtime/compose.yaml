@@ -6,7 +6,7 @@ services:
       - "127.0.0.1:8092:8090"
     environment:
       KWNTO_ADMIN_EMAIL: admin@example.test
-      KWNTO_ADMIN_PASSWORD: spike-admin-password-1
+      KWNTO_ADMIN_PASSWORD: ${SPIKE_ADMIN_PASSWORD:-spike-admin-password-1}
     tmpfs:
       - /pb/pb_data:uid=10001,gid=10001
     volumes:

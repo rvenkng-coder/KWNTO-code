@@ -1,6 +1,7 @@
 // THROWAWAY: real-time measurements A to G (Task 3). Each test writes its numbers to
 // results/<browser>.json; a failing threshold is a finding, so tests record before asserting.
 import { expect, test } from '@playwright/test'
+import { ADMIN } from './seed.ts'
 import { bigNodeIds, closeAll, events, openClients, SPIKE_URL, startProxy, writeResult } from './helpers.ts'
 
 // A. Protects ERD "per-attribute editing": two people editing different fields of one node
@@ -49,11 +50,11 @@ test('C: initial load of the big project', async ({ browser, browserName }) => {
 test('D: filter isolation between projects', async ({ browser, browserName }) => {
   const clients = await openClients(browser)
   const [c1] = clients
-  const leaked = await c1.page.evaluate(async (url) => {
+  const leaked = await c1.page.evaluate(async ([url, adm]) => {
     const PB = (window as any).PocketBase // eslint-disable-line
     const su = new PB(url)
     su.autoCancellation(false)
-    await su.collection('_superusers').authWithPassword('admin@example.test', 'spike-admin-password-1')
+    await su.collection('_superusers').authWithPassword(adm.email, adm.password)
     const others = await su.collection('spike_nodes').getList(1, 10, { filter: 'project = "other"' })
     for (let i = 0; i < 50; i++) {
       await su.collection('spike_nodes').update(others.items[i % others.items.length].id, { title: `other-${i}` })
@@ -62,7 +63,7 @@ test('D: filter isolation between projects', async ({ browser, browserName }) =>
     const big = await su.collection('spike_nodes').getList(1, 1, { filter: 'project = "big"', sort: '-id' })
     await su.collection('spike_nodes').update(big.items[0].id, { title: 'control' })
     return big.items[0].id as string
-  }, SPIKE_URL)
+  }, [SPIKE_URL, ADMIN] as const)
   await c1.page.waitForTimeout(2000)
   const result = []
   for (const c of clients) {

@@ -25,7 +25,8 @@ It clears any leftover spike container, starts PocketBase on `127.0.0.1:8092`, s
 Design 7b requires this before real-time is relied on. It runs the same spec against a PocketBase reachable through Tailscale Funnel.
 
 1. Start a spike backend on the server that Funnel exposes. Use `spike/realtime/compose.yaml` **only** on a throwaway host or with a separate port; do not use the production volume.
-2. Seed it from this machine: `SPIKE_URL=https://<funnel-host> node spike/realtime/seed.ts`. The seed signs in as `admin@example.test` with the password in `compose.yaml`, so change both together if the host is public, and remove the spike backend afterwards.
+   Set a real admin password first, in the shell that starts compose, seeds and runs the spec: `export SPIKE_ADMIN_PASSWORD=<at least 10 characters>`. Without it the committed default is used, which is fine only on loopback.
+2. Seed it: `SPIKE_URL=https://<funnel-host> node spike/realtime/seed.ts`. Remove the spike backend afterwards.
 3. Run the spec:
 
    ```sh

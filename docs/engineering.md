@@ -12,7 +12,7 @@ These principles were set by the developer on 2026-11-11. Items marked **(planne
   2. **Why:** why it is written this way (what was too slow, ideally with a measurement).
   3. **Trade-off:** what we gave up (readability, memory, flexibility).
 
-  Mark it with `PERF:` at the start of the comment so it can be found and reviewed. **(planned: a pull-request check looks for `PERF:` comments without all three parts)**
+  Mark it with `PERF:` at the start of the comment so it can be found and reviewed. Checked by `npm run lint` (see [developer/lint.md](developer/lint.md)).
 
 ## 2. Clean structure
 

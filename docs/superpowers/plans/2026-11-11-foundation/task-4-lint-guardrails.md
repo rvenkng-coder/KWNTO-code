@@ -44,7 +44,7 @@ test('files over 300 lines are rejected, 300 is allowed', async () => {
 
 ## Checkpoint 4B: PERF comment check
 
-- [ ] **Step 4: Write the failing PERF tests** in `scripts/check-perf-comments.test.ts`:
+- [x] **Step 4: Write the failing PERF tests** in `scripts/check-perf-comments.test.ts`:
 
 ```ts
 // Protects docs/engineering.md section 1: a PERF: comment must explain What, Why and Trade-off.
@@ -62,7 +62,7 @@ test('each PERF comment is judged on its own', () => {
 })
 ```
 
-- [ ] **Step 5: Implement `findBadPerfComments(source: string): number[]`** in `scripts/check-perf-comments.ts`: returns the 1-based line of each `PERF:` whose comment (one block comment, or a run of adjacent `//` lines) lacks any of `What:`, `Why:`, `Trade-off:`. When the file is run directly it checks every `src/**/*.{ts,tsx}`, prints `path:line PERF comment needs What:, Why: and Trade-off:` per problem, and exits 1 if any.
-- [ ] **Step 6: Script** `lint`: `eslint . && node scripts/check-perf-comments.ts`.
-- [ ] **Step 7: Run** `npm run lint && npm run test:unit`. Expected: lint clean; `9 passed`.
-- [ ] **Close checkpoint 4B.** Verify: Step 7 passed, and "(planned)" is removed from the `PERF:` line in `docs/engineering.md`. Commit: `chore: PERF comment check`.
+- [x] **Step 5: Implement `findBadPerfComments(source: string): number[]`** in `scripts/check-perf-comments.ts`: returns the 1-based line of each `PERF:` whose comment (one block comment, or a run of adjacent `//` lines) lacks any of `What:`, `Why:`, `Trade-off:`. When the file is run directly it checks every `src/**/*.{ts,tsx}`, prints `path:line PERF comment needs What:, Why: and Trade-off:` per problem, and exits 1 if any.
+- [x] **Step 6: Script** `lint`: `eslint . && node scripts/check-perf-comments.ts`.
+- [x] **Step 7: Run** `npm run lint && npm run test:unit`. Expected: lint clean; `9 passed`.
+- [x] **Close checkpoint 4B.** Verify: Step 7 passed, and "(planned)" is removed from the `PERF:` line in `docs/engineering.md`. Commit: `chore: PERF comment check`.

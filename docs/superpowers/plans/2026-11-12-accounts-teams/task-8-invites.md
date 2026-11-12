@@ -28,13 +28,13 @@ POST /api/kwnto/invites/{id}/decline    (the invitee only) -> 204
 
 ## Checkpoint 8A: The table and the rules
 
-- [ ] **Step 1: Write the failing rule tests** `tests/rules/team_invites.rules.test.ts`. Header comment: protects design 5 (an owner never sees an invitee's email list; the invitee sees the invite) and decision D7.
+- [x] **Step 1: Write the failing rule tests** `tests/rules/team_invites.rules.test.ts`. Header comment: protects design 5 (an owner never sees an invitee's email list; the invitee sees the invite) and decision D7.
   - an invite created by the route (use Task 8B's route, or seed with the admin API in this checkpoint) is listed and viewable by the invited user, with `team_name` and `invited_by_name`, and by **nobody else**: not the owner who sent it, not another member, not an outsider, not anonymous.
   - nobody can create, update or delete an invite through the collection API, including the invited user (changing `status` directly is refused: only the routes change it).
   - the response of the invited user's list contains no `email` field for anyone.
   - injection string in a filter returns nothing.
-- [ ] **Step 2: Run** `npm run test:rules`; expected FAIL. **Step 3: Write `1794360500_team_invites.js`** (the collection only; a uniqueness rule for pending invites cannot be an index, so the route in Step 6 checks for a pending duplicate). Run `npm run test:rules`; expected PASS for the seeded cases.
-- [ ] **Close checkpoint 8A.** Verify: Step 3 passed. Commit: `feat: team invites table`.
+- [x] **Step 2: Run** `npm run test:rules`; expected FAIL. **Step 3: Write `1794360500_team_invites.js`** (the collection only; a uniqueness rule for pending invites cannot be an index, so the route in Step 6 checks for a pending duplicate). Run `npm run test:rules`; expected PASS for the seeded cases.
+- [x] **Close checkpoint 8A.** Verify: Step 3 passed. Commit: `feat: team invites table`.
 
 ## Checkpoint 8B: The invite, accept and decline routes
 

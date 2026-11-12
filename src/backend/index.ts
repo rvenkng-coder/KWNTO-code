@@ -5,10 +5,16 @@ export { createBackend, type Backend }
 let _backend: Backend | undefined
 
 export const backend: Backend = {
+  get auth() {
+    if (!_backend) _backend = createBackend()
+    return _backend.auth
+  },
+  get teams() {
+    if (!_backend) _backend = createBackend()
+    return _backend.teams
+  },
   async health() {
-    if (!_backend) {
-      _backend = createBackend()
-    }
+    if (!_backend) _backend = createBackend()
     return _backend.health()
   },
 }

@@ -81,3 +81,45 @@ test('ensureUserRecords fills in only the missing rows', () => {
   expect(rowsFor(app, 'user_limits', 'user1')).toEqual([{ user: 'user1' }])
   expect(app.rows).toHaveLength(3)
 })
+
+// A store whose save of one table fails the way the unique index on `user` fails when
+// another request created the same row first. `competitorWins` decides whether that
+// other request's row is really there afterwards.
+class RacingApp extends FakeApp {
+  racedCollection: string
+  competitorWins: boolean
+  constructor(racedCollection: string, competitorWins: boolean) {
+    super()
+    this.racedCollection = racedCollection
+    this.competitorWins = competitorWins
+  }
+  override save(record: FakeRecord) {
+    if (record.collection.name !== this.racedCollection) return super.save(record)
+    if (this.competitorWins) {
+      const competitor = new FakeRecord({ name: this.racedCollection })
+      competitor.set('user', record.values.user)
+      this.rows.push(competitor)
+    }
+    throw new Error('UNIQUE constraint failed')
+  }
+}
+
+// Protects sign-in (Task 4): two sign-ins of the same new account at once can both find
+// a row missing and both create it; the second create hits the unique index. That is not
+// an error, because the row now exists, so the sign-in must not fail.
+test('ensureUserRecords accepts a row that another request created first', () => {
+  const app = new RacingApp('user_status', true)
+
+  expect(() => ensureUserRecords(app, 'user1')).not.toThrow()
+
+  expect(rowsFor(app, 'user_status', 'user1')).toHaveLength(1)
+  expect(app.rows).toHaveLength(3)
+})
+
+// Protects the fail-closed rule: if a create fails and the row is still missing, the
+// error is real and must reach the caller, so sign-in can refuse instead of guessing.
+test('ensureUserRecords rethrows when a create fails and the row is still missing', () => {
+  const app = new RacingApp('user_status', false)
+
+  expect(() => ensureUserRecords(app, 'user1')).toThrow('UNIQUE constraint failed')
+})

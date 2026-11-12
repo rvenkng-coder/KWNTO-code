@@ -32,7 +32,21 @@ function createRow(app, collection, userId) {
 function ensureUserRecords(app, userId) {
   for (const collection of Object.keys(DEFAULTS)) {
     if (!hasRow(app, collection, userId)) {
-      createRow(app, collection, userId)
+      createRowUnlessRaced(app, collection, userId)
+    }
+  }
+}
+
+// Changed in Task 4: sign-in now calls ensureUserRecords, and two sign-ins of the same
+// account at once can both see a row missing and both create it. The second create then
+// fails on the unique index on `user`. That is fine, the row exists, so the error is
+// swallowed; it is rethrown only if the row is still missing (a real failure).
+function createRowUnlessRaced(app, collection, userId) {
+  try {
+    createRow(app, collection, userId)
+  } catch (error) {
+    if (!hasRow(app, collection, userId)) {
+      throw error
     }
   }
 }

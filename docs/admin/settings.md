@@ -17,8 +17,8 @@ Everything an admin can tune lives in settings tables, edited in the PocketBase 
 | Field | Default | What it does | Used by |
 |---|---|---|---|
 | `registration_open` | `true` | When off, new people cannot sign up (they see "Sign-up is closed."); existing accounts still sign in, and you can still add an account in the dashboard. | Task 3 |
-| `lockdown` | `false` | When on, every app sign-in is refused. The admin dashboard keeps working. | Task 4 |
-| `lockdown_message` | empty | The message shown to people refused during a lockdown. | Task 4 |
+| `lockdown` | `false` | When on, every app sign-in is refused (status 403) with `lockdown_message`. The admin dashboard keeps working: you still sign in there to turn it off. | Task 4 |
+| `lockdown_message` | empty | The message shown to people refused during a lockdown. When empty they see "Sign-in is temporarily unavailable." PocketBase adds a full stop if the message has no closing punctuation. | Task 4 |
 
 ## `system_storage`
 
@@ -38,13 +38,13 @@ Everything an admin can tune lives in settings tables, edited in the PocketBase 
 | `analytics_retention_days` | `365` | How long play-through analytics are kept. | later |
 | `trash_retention_days` | `30` | How long deleted projects, chapters and nodes stay recoverable before they are removed for good. | later |
 | `security_retention_days` | `365` | How long security log entries are kept. | Task 1 |
-| `max_failed_logins` | `3` | Failed sign-ins (same account, same IP) before a lockout. | Task 4 |
-| `lockout_minutes` | `5` | How long a lockout lasts. | Task 4 |
+| `max_failed_logins` | `3` | Failed sign-ins of one account from one IP within `lockout_minutes` before that account is locked out from that IP. A successful sign-in resets the count. `0` turns the lockout off. | Task 4 |
+| `lockout_minutes` | `5` | The window in which failures are counted, and so how long a lockout lasts: it ends when the oldest counted failure is this many minutes old. The person is told "Try again after N minutes." `0` turns the lockout off. | Task 4 |
 | `team_attempts_per_hour` | `20` | Join-code and invite attempts one user may make per hour. | Tasks 7, 8 |
 
 ## The security log (`security_events`)
 
-The server records security-relevant events here: sign-ups and email verification, sign-ins, failed sign-ins and lockouts, password resets, invite and join attempts, and admin actions. Each entry has a `type`, the account involved (`user`, empty when there is none), the caller's `ip`, a `detail` object and the time it was `created`. Which events are written arrives with the tasks that build sign-up, sign-in, teams and invites. So far: `signup` (a visitor created an account; accounts you add in the dashboard are not logged as sign-ups), `verification` (the first time an account confirms its email) and `reset` (a password was changed through the reset link).
+The server records security-relevant events here: sign-ups and email verification, sign-ins, failed sign-ins and lockouts, password resets, invite and join attempts, and admin actions. Each entry has a `type`, the account involved (`user`, empty when there is none), the caller's `ip`, a `detail` object and the time it was `created`. Which events are written arrives with the tasks that build sign-up, sign-in, teams and invites. So far: `signup` (a visitor created an account; accounts you add in the dashboard are not logged as sign-ups), `verification` (the first time an account confirms its email), `reset` (a password was changed through the reset link), `sign-in` (a successful app sign-in), `failure` (a wrong email or password) and `lockout` (a sign-in refused because of a lockout). The last three have `detail.identity`, the email as typed, lower-cased; `failure` and `lockout` have it even when no account has that email, and then `user` is empty. To see one email's attempts, filter by `detail.identity = "someone@example.com"`. A lockdown or a block refusal is not logged.
 
 - **Who reads it:** only the admin, in the dashboard (Collections, `security_events`). Every access rule is locked, so no app user can read it, and no client can write to it: entries come only from the server.
 - **Deleting an account keeps its entries.** The `user` field is emptied; the entry stays.
@@ -75,9 +75,9 @@ The user can read and change their own row from the app (not the `user` field), 
 | Field | Default | What it does |
 |---|---|---|
 | `blocked` | `false` | When on, this account cannot sign in. |
-| `blocked_reason` | empty | The message the blocked user sees. Write it for them, not for yourself. |
+| `blocked_reason` | empty | The message the blocked user sees, after "Your account is blocked: ". Write it for them, not for yourself. Only someone who types the right password sees it. |
 | `blocked_at` | empty | When you blocked the account, for your own records. |
 
-**To block a user:** open their `user_status` row, turn on `blocked`, write `blocked_reason`, set `blocked_at` to now, and save. To unblock, turn `blocked` off. The block takes effect with Tasks 4 (sign-in refused) and 5 (existing sessions ended) of the [accounts and teams plan](../superpowers/plans/2026-11-12-accounts-teams/README.md); until then, setting it has no effect.
+**To block a user:** open their `user_status` row, turn on `blocked`, write `blocked_reason`, set `blocked_at` to now, and save. To unblock, turn `blocked` off. From the next sign-in attempt the account is refused (status 403, "Your account is blocked: <reason>"), and so is any renewal of a session it already has. Ending its existing sessions at once arrives with Task 5 of the [accounts and teams plan](../superpowers/plans/2026-11-12-accounts-teams/README.md).
 
 App users cannot see `user_limits` or `user_status` at all, so a user cannot raise their own quota or unblock themselves.

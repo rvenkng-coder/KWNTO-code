@@ -9,7 +9,7 @@ See the [design](docs/superpowers/specs/2026-11-11-kwnto-design.md) and [ERD](do
 2. [ERD](docs/superpowers/specs/2026-11-11-kwnto-erd.md)
 3. [Engineering principles](docs/engineering.md)
 4. [Security rules](docs/security.md)
-5. The current plan (see [plans/](docs/superpowers/plans/2026-11-11-foundation/README.md))
+5. The roadmap and the current plan (see [plans/](docs/superpowers/plans/README.md); the current plan is the first one not marked `done`)
 
 ## Repo layout
 

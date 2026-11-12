@@ -10,30 +10,9 @@
 // (findings.md, Task 6), so the transaction is opened here and the team's own insert
 // (e.next()) is moved into it by pointing the event at the transaction's app.
 onRecordCreate((e) => {
-  const { generateJoinCode, JOIN_CODE_ALPHABET } = require(`${__hooks}/lib/join-code.js`)
-
-  // Crypto-quality randomness: $security draws each character with crypto/rand, and one
-  // character from n distinct symbols is a uniform index in [0, n).
-  const randomIndex = (n) => {
-    if (n > JOIN_CODE_ALPHABET.length) {
-      throw new Error(`randomIndex supports at most ${JOIN_CODE_ALPHABET.length} values`)
-    }
-    const symbols = JOIN_CODE_ALPHABET.slice(0, n)
-    return symbols.indexOf($security.randomStringWithAlphabet(1, symbols))
-  }
-
-  // A clash is very unlikely (32^8 codes), but the code must be unique because joining
-  // looks the team up by it; give up after 5 tries rather than loop.
-  const unusedJoinCode = (txApp) => {
-    for (let attempt = 0; attempt < 5; attempt++) {
-      const code = generateJoinCode(randomIndex)
-      const clashes = txApp.findRecordsByFilter("team_settings", "join_code = {:code}", "", 1, 0, { code })
-      if (clashes.length === 0) {
-        return code
-      }
-    }
-    throw new Error("could not find an unused join code in 5 attempts")
-  }
+  // Shared with the regenerate route (teams-join.pb.js) since Task 7, so both pick codes
+  // the same way; the logic itself is unchanged.
+  const { unusedJoinCode } = require(`${__hooks}/lib/unused-join-code.js`)
 
   e.app.runInTransaction((txApp) => {
     e.app = txApp

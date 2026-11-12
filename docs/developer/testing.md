@@ -57,6 +57,8 @@ Rule fragments used by the team collections (in [1794360400_teams.js](../../back
 
 Test the outsider, a plain member and a removed member for every team table: a rule that works for the owner can still leak to the others.
 
+**Join by code** (`tests/rules/teams.join.rules.test.ts`, an extra file, not a collection): the custom routes are called with `rawSend` and the caller's token. For a route that must not be an oracle, compare the whole error body of every refused case with the first one, not only the status. The rate-limit tests set `team_attempts_per_hour` low and restore 20 in `afterEach`; every other test uses fresh users, so the per-user limit is never reached by accident. An `invite` attempt is seeded as an admin-created `security_events` row, since invites arrive in Task 8.
+
 ### Admin-only collections (`tests/rules/helpers/admin-only.ts`)
 Collections only the admin may touch (the `system_*` settings and `security_events`) share one set of checks:
 

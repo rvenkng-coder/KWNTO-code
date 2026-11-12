@@ -6,3 +6,4 @@
 | 2026-11-12 | Task 1, checkpoint 1A: settings tables with defaults | test:rules 19/19 (3 new files), test:container 5/5 (restart keeps edit), unit, lint, typecheck green | Checkpoint 1B: security log and retention |
 | 2026-11-12 | Task 1, checkpoint 1B: security log with retention | npm test exit 0 (unit 33, container 5, rules 26, e2e 2); check:docs clean; purge probed in a throwaway container | Review of Task 1, then Task 2: per-user records |
 | 2026-11-12 | Task 2, checkpoint 2A: per-user preferences, limits and status | npm test exit 0 (unit 36, container 5, rules 47, e2e 2); rule mutation check fails 5 tests; migration backfill probed | Review of Task 2, then Tasks 3 and 4 |
+| 2026-11-12 | Task 3, checkpoint 3A: password rules | test:unit 44/44 (8 new password-rules tests, 198-entry common list checked), lint, typecheck green | Checkpoint 3B: sign-up, verification and the password paths |

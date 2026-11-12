@@ -30,17 +30,17 @@ export function signUp(email: string, password: string, extra?: Record<string, u
 
 ## Checkpoint 3A: Password rules as a pure function
 
-- [ ] **Step 1: Write the failing unit tests** `tests/hooks/password-rules.unit.test.ts`. Header comment: protects design 7c and security.md section 3 (at least 10 characters, a letter and a number, very common passwords rejected). Cases (`checkPassword(x)` equals `null` unless stated, otherwise assert it is a non-empty string):
+- [x] **Step 1: Write the failing unit tests** `tests/hooks/password-rules.unit.test.ts`. Header comment: protects design 7c and security.md section 3 (at least 10 characters, a letter and a number, very common passwords rejected). Cases (`checkPassword(x)` equals `null` unless stated, otherwise assert it is a non-empty string):
   - `'abcdefghi1'` (10 chars) passes; `'abcdefgh1'` (9 chars) is rejected.
   - `'abcdefghijk'` (no number) is rejected; `'12345678901'` (no letter) is rejected.
   - `'Password123'` is rejected as too common (case-insensitive: `'PASSWORD123'` too); `'qwertyuiop1'` is rejected as too common.
   - A 100-character valid password passes; `''` is rejected.
   - Non-ASCII letters count as letters: `'contraseña12'` passes.
   - Whitespace is allowed inside: `'correct horse 1 battery'` passes.
-- [ ] **Step 2: Run** `npm run test:unit`. Expected: FAIL (module missing).
-- [ ] **Step 3: Implement `lib/password-rules.js`** (`checkPassword`) and **`lib/common-passwords.js`** (`module.exports` an array of lower-case strings: the commonly used passwords that are at least 10 characters long and contain a letter and a number, for example variants of `password123`, `qwertyuiop1`, `iloveyou123`, `welcome1234`; about 200 entries; shorter or letter-only ones are already refused by length and letter rules). Comparison is on the lower-cased password. Messages: `Use at least 10 characters.`, `Include at least one letter.`, `Include at least one number.`, `That password is too common.`
-- [ ] **Step 4: Run** `npm run test:unit`. Expected: PASS.
-- [ ] **Close checkpoint 3A.** Verify: Step 4 passed. Commit: `feat: password rules`.
+- [x] **Step 2: Run** `npm run test:unit`. Expected: FAIL (module missing).
+- [x] **Step 3: Implement `lib/password-rules.js`** (`checkPassword`) and **`lib/common-passwords.js`** (`module.exports` an array of lower-case strings: the commonly used passwords that are at least 10 characters long and contain a letter and a number, for example variants of `password123`, `qwertyuiop1`, `iloveyou123`, `welcome1234`; about 200 entries; shorter or letter-only ones are already refused by length and letter rules). Comparison is on the lower-cased password. Messages: `Use at least 10 characters.`, `Include at least one letter.`, `Include at least one number.`, `That password is too common.`
+- [x] **Step 4: Run** `npm run test:unit`. Expected: PASS.
+- [x] **Close checkpoint 3A.** Verify: Step 4 passed. Commit: `feat: password rules`.
 
 ## Checkpoint 3B: Sign-up, verification and the password paths
 

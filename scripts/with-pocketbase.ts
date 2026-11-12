@@ -25,7 +25,7 @@ if (up.status !== 0) {
   process.exit(up.status ?? 1)
 }
 
-let exitCode = 1
+let exitCode: number
 try {
   const [cmd, ...args] = command
   const child = spawnSync(cmd, args, {
@@ -36,7 +36,7 @@ try {
       KWNTO_PB_URL: PB_URL,
     },
   })
-  exitCode = child.status ?? (child.signal ? 1 : 0)
+  exitCode = child.status ?? 1
 } finally {
   runDockerCompose('down', '-v')
 }

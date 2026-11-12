@@ -69,11 +69,11 @@ Everything else stays inside the task you were given.
 - Work on a short-lived branch in small commits. **The developer reviews before anything lands on `main`. Agents never merge to `main` themselves.**
 - Today (deadline pressure): branch, review, then `main` in small steps, without a pull request.
 - Target: one branch per feature, merged through a pull request the developer reviews.
-- The GitHub workflow runs the tests and the documentation check on every push **(planned)**.
+- The GitHub workflow runs the tests and the documentation check on every push.
 
 ## 8. Documentation is part of done
 
-Every feature, setting and script is documented in `docs/` (user manual, admin and deployment guide, developer notes). Nothing ships undocumented. A pull-request checklist requires the docs update **(planned)**.
+Every feature, setting and script is documented in `docs/` (user manual, admin and deployment guide, developer notes). Nothing ships undocumented. A pull-request checklist requires the docs update.
 
 ## 9. Project-specific rules (from the design)
 

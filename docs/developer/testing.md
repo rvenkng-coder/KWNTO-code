@@ -60,3 +60,33 @@ export const PUBLIC_RULES: readonly string[] = ['users.createRule'] // open sign
 ```
 
 **Rule:** Adding any rule to `PUBLIC_RULES` is a recorded security decision. Every entry MUST include a code comment citing the specific design or security specification section authorizing public access.
+
+---
+
+## Pre-commit Hook: Secret Scan
+
+A `.githooks/pre-commit` hook runs [gitleaks](https://github.com/gitleaks/gitleaks) on every commit, scanning only staged changes. If a secret is detected, the commit is blocked.
+
+- **Install gitleaks:** download from <https://github.com/gitleaks/gitleaks/releases> and put it on your `PATH`.
+- **Set up the hook:** run `npm run prepare` (or `git config core.hooksPath .githooks`).
+- **Bypassing:** never use `git commit --no-verify`. If a commit is refused because gitleaks is not installed, install it — do not bypass.
+
+## Documentation Link Check
+
+`npm run check:docs` scans every git-tracked `*.md` file (outside `.agents/`, `.claude/`, `.planning/`, and `node_modules/`) for broken relative markdown links. It ignores links inside fenced code blocks, external URLs, and `mailto:` links.
+
+- **Add to lint:** `check:docs` is included in the `lint` script.
+- **Fix broken links:** resolve relative links to existing files; remove or fix external links that are no longer valid.
+
+## CI Workflow (`.github/workflows/ci.yml`)
+
+The CI workflow runs on every push and pull request. It uses Node from `.nvmrc` and pins each GitHub Action to its current major version.
+
+| Job | What it runs | Notes |
+|---|---|---|
+| `checks` | `npm run lint`, `npm run typecheck`, `npm run test:unit`, `npm audit --audit-level=high` | Runs on every push/PR |
+| `backend` | `npm run test:container`, `npm run test:rules` | Needs Docker + PocketBase service |
+| `e2e` | Playwright install (firefox + chromium), `npm run test:e2e` | Uploads `playwright-report/` on failure |
+| `secrets` | gitleaks over full history (`fetch-depth: 0`) | Runs on every push/PR |
+
+The first real CI run happens when the developer pushes the branch to GitHub.

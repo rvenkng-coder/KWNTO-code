@@ -11,7 +11,8 @@
     "test:unit": "vitest run --project unit",
     "dev:backend": "docker compose -f compose.dev.yaml up --build",
     "test:container": "vitest run --project container",
-    "spike:realtime": "rm -rf spike/realtime/results && docker compose -f spike/realtime/compose.yaml down -v && docker compose -f spike/realtime/compose.yaml up -d --wait && node spike/realtime/seed.ts && npx playwright test -c spike/realtime/playwright.config.ts; code=$?; docker compose -f spike/realtime/compose.yaml down -v; exit $code"
+    "spike:realtime": "rm -rf spike/realtime/results && docker compose -f spike/realtime/compose.yaml down -v && docker compose -f spike/realtime/compose.yaml up -d --wait && node spike/realtime/seed.ts && npx playwright test -c spike/realtime/playwright.config.ts; code=$?; docker compose -f spike/realtime/compose.yaml down -v; exit $code",
+    "lint": "eslint . && node scripts/check-perf-comments.ts"
   },
   "dependencies": {
     "@xyflow/react": "^12.12.1",
@@ -22,14 +23,19 @@
     "zustand": "^5.1.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.65.0",
     "@tailwindcss/vite": "^4.3.5",
     "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
-    "oxlint": "^1.90.0",
-    "typescript": "~7.0.2",
+    "eslint": "^10.14.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.14.0",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.2",
     "vite": "^8.3.6",
     "vitest": "^5.1.0"
   }

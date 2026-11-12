@@ -17,7 +17,7 @@ Part of the [Foundation and Real-Time Spike plan](README.md). **Read the router 
 
 ## Checkpoint 4A: ESLint guardrails
 
-- [ ] **Step 1: Write the failing lint tests** in `tests/lint/guardrails.test.ts`. Helper: `ruleIds(code: string, filePath: string): Promise<string[]>` using `new ESLint().lintText(code, { filePath })`.
+- [x] **Step 1: Write the failing lint tests** in `tests/lint/guardrails.test.ts`. Helper: `ruleIds(code: string, filePath: string): Promise<string[]>` using `new ESLint().lintText(code, { filePath })`.
 
 ```ts
 // Each test protects one rule in docs/engineering.md section 2 or docs/security.md section 5.
@@ -38,13 +38,13 @@ test('files over 300 lines are rejected, 300 is allowed', async () => {
 })
 ```
 
-- [ ] **Step 2: Run** `npm run test:unit`. Expected: the four new tests FAIL.
-- [ ] **Step 3: Edit `eslint.config.js`.** Add, for `src/**`: `max-lines: ['error', { max: 300, skipBlankLines: true, skipComments: true }]`; `@typescript-eslint/no-explicit-any: 'error'`; `no-restricted-imports` on path `pocketbase` with message `Only src/backend/ may import pocketbase (docs/engineering.md section 2).`; `no-restricted-syntax` with selector `JSXAttribute[name.name='dangerouslySetInnerHTML']` and message `Plain text only (docs/security.md section 5).`. Turn `no-restricted-imports` off for `src/backend/**`, `tests/rules/**` and `e2e/**`. Ignore `dist/`, `spike/`, `.agents/`, `.claude/`, `branching_narrative_tool.tsx`.
-- [ ] **Close checkpoint 4A.** Verify: `npx eslint . && npm run test:unit` is clean and shows `5 passed`. Also remove "(planned)" from the `max-lines`, `no-restricted-imports` and strict TypeScript lines in `docs/engineering.md`. Commit: `chore: guardrail lint rules`.
+- [x] **Step 2: Run** `npm run test:unit`. Expected: the four new tests FAIL.
+- [x] **Step 3: Edit `eslint.config.js`.** Add, for `src/**`: `max-lines: ['error', { max: 300, skipBlankLines: true, skipComments: true }]`; `@typescript-eslint/no-explicit-any: 'error'`; `no-restricted-imports` on path `pocketbase` with message `Only src/backend/ may import pocketbase (docs/engineering.md section 2).`; `no-restricted-syntax` with selector `JSXAttribute[name.name='dangerouslySetInnerHTML']` and message `Plain text only (docs/security.md section 5).`. Turn `no-restricted-imports` off for `src/backend/**`, `tests/rules/**` and `e2e/**`. Ignore `dist/`, `spike/`, `.agents/`, `.claude/`, `branching_narrative_tool.tsx`.
+- [x] **Close checkpoint 4A.** Verify: `npx eslint . && npm run test:unit` is clean and shows `5 passed`. Also remove "(planned)" from the `max-lines`, `no-restricted-imports` and strict TypeScript lines in `docs/engineering.md`. Commit: `chore: guardrail lint rules`.
 
 ## Checkpoint 4B: PERF comment check
 
-- [ ] **Step 4: Write the failing PERF tests** in `scripts/check-perf-comments.test.ts`:
+- [x] **Step 4: Write the failing PERF tests** in `scripts/check-perf-comments.test.ts`:
 
 ```ts
 // Protects docs/engineering.md section 1: a PERF: comment must explain What, Why and Trade-off.
@@ -62,7 +62,7 @@ test('each PERF comment is judged on its own', () => {
 })
 ```
 
-- [ ] **Step 5: Implement `findBadPerfComments(source: string): number[]`** in `scripts/check-perf-comments.ts`: returns the 1-based line of each `PERF:` whose comment (one block comment, or a run of adjacent `//` lines) lacks any of `What:`, `Why:`, `Trade-off:`. When the file is run directly it checks every `src/**/*.{ts,tsx}`, prints `path:line PERF comment needs What:, Why: and Trade-off:` per problem, and exits 1 if any.
-- [ ] **Step 6: Script** `lint`: `eslint . && node scripts/check-perf-comments.ts`.
-- [ ] **Step 7: Run** `npm run lint && npm run test:unit`. Expected: lint clean; `9 passed`.
-- [ ] **Close checkpoint 4B.** Verify: Step 7 passed, and "(planned)" is removed from the `PERF:` line in `docs/engineering.md`. Commit: `chore: PERF comment check`.
+- [x] **Step 5: Implement `findBadPerfComments(source: string): number[]`** in `scripts/check-perf-comments.ts`: returns the 1-based line of each `PERF:` whose comment (one block comment, or a run of adjacent `//` lines) lacks any of `What:`, `Why:`, `Trade-off:`. When the file is run directly it checks every `src/**/*.{ts,tsx}`, prints `path:line PERF comment needs What:, Why: and Trade-off:` per problem, and exits 1 if any.
+- [x] **Step 6: Script** `lint`: `eslint . && node scripts/check-perf-comments.ts`.
+- [x] **Step 7: Run** `npm run lint && npm run test:unit`. Expected: lint clean; `9 passed`.
+- [x] **Close checkpoint 4B.** Verify: Step 7 passed, and "(planned)" is removed from the `PERF:` line in `docs/engineering.md`. Commit: `chore: PERF comment check`.

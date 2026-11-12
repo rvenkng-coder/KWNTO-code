@@ -1,8 +1,10 @@
-export { createBackend, type Backend } from './client'
+import { createBackend, type Backend } from './client'
 
-let _backend: ReturnType<typeof createBackend> | undefined
+export { createBackend, type Backend }
 
-export const backend: ReturnType<typeof createBackend> = {
+let _backend: Backend | undefined
+
+export const backend: Backend = {
   async health() {
     if (!_backend) {
       _backend = createBackend()

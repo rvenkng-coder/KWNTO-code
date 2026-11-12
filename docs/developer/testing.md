@@ -60,3 +60,28 @@ export const PUBLIC_RULES: readonly string[] = ['users.createRule'] // open sign
 ```
 
 **Rule:** Adding any rule to `PUBLIC_RULES` is a recorded security decision. Every entry MUST include a code comment citing the specific design or security specification section authorizing public access.
+
+---
+
+## End-to-End Testing (`e2e/`)
+
+End-to-end tests verify the full stack: browser → Vite dev server → PocketBase proxy. They run on every commit via `npm test`.
+
+### Configuration (`playwright.config.ts`)
+- **Browsers:** Chromium and Firefox (desktop, latest).
+- **Base URL:** `http://localhost:5174` (Vite dev server started by Playwright's `webServer`).
+- **WebServer:** Starts `npm run dev -- --port 5174 --strictPort` automatically before tests.
+- **Timeout:** 60 seconds per test.
+
+### Running E2E Tests
+- **Standalone:** `npm run test:e2e` (starts PocketBase via `with-pocketbase.ts`, then Playwright).
+- **Full suite:** `npm test` (includes e2e as the last layer).
+
+### Writing E2E Tests
+1. Create a file in `e2e/` named `<feature>.spec.ts`.
+2. Import from `@playwright/test`.
+3. Use Playwright's built-in assertions (`expect`) and locators (`getByRole`, `getByTestId`, etc.).
+4. Each test should verify a complete user flow, not just a single element.
+
+### If interrupted
+A killed Playwright run can leave Vite listening on port `5174`; the next run then fails at once because of `--strictPort`. Find it with `lsof -i :5174` and stop that one process.

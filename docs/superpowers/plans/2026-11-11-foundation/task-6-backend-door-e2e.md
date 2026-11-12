@@ -40,7 +40,7 @@ test('health() resolves false when the backend is unreachable', async () => {
 
 ## Checkpoint 6B: End-to-end harness and status line
 
-- [ ] **Step 4: Write the failing end-to-end test** `e2e/smoke.spec.ts`:
+- [x] **Step 4: Write the failing end-to-end test** `e2e/smoke.spec.ts`:
 
 ```ts
 // Protects: the whole chain browser -> Vite proxy -> PocketBase, in both supported browsers.
@@ -51,9 +51,9 @@ test('the app loads and reaches the backend', async ({ page }) => {
 })
 ```
 
-- [ ] **Step 5: `playwright.config.ts`:** `testDir: 'e2e'`; projects `chromium` and `firefox`; `baseURL: 'http://127.0.0.1:5174'`; `webServer: { command: 'npm run dev -- --port 5174 --strictPort', url: 'http://127.0.0.1:5174', reuseExistingServer: false }` (it inherits `KWNTO_PB_URL` from `with-pocketbase`). Script `test:e2e`: `node scripts/with-pocketbase.ts playwright test`. Append `&& npm run test:e2e` to `test`.
-- [ ] **Step 6: Run** `npm run test:e2e`. Expected: FAIL in both browsers (no `backend-status` element).
-- [ ] **Step 7: Edit `src/App.tsx`:** on mount call `backend.health()` and render `<p data-testid="backend-status">` with `Backend: checking…`, then `Backend: connected` or `Backend: unreachable`.
-- [ ] **Step 8: Run** `npm test`. Expected: every layer passes; end-to-end shows `2 passed`. Record in `progress.md` that you also opened `npm run dev` with `npm run dev:backend` running and saw "Backend: connected" (engineering.md section 6).
-- [ ] **Step 9: Add the end-to-end layer** to `docs/developer/testing.md`.
-- [ ] **Close checkpoint 6B.** Verify: Step 8 passed (`npm test`, end-to-end `2 passed`). Commit: `feat: end-to-end harness and backend status line`.
+- [x] **Step 5: `playwright.config.ts`:** `testDir: 'e2e'`; projects `chromium` and `firefox`; `baseURL: 'http://localhost:5174'`; `webServer: { command: 'npm run dev -- --port 5174 --strictPort', url: 'http://localhost:5174', reuseExistingServer: false }` (it inherits `KWNTO_PB_URL` from `with-pocketbase`). Script `test:e2e`: `node scripts/with-pocketbase.ts playwright test`. Append `&& npm run test:e2e` to `test`.
+- [x] **Step 6: Run** `npm run test:e2e`. Expected: FAIL in both browsers (no `backend-status` element).
+- [x] **Step 7: Edit `src/App.tsx`:** on mount call `backend.health()` and render `<p data-testid="backend-status">` with `Backend: checking…`, then `Backend: connected` or `Backend: unreachable`.
+- [x] **Step 8: Run** `npm test`. Expected: every layer passes; end-to-end shows `2 passed`. Record in `progress.md` that you also opened `npm run dev` with `npm run dev:backend` running and saw "Backend: connected" (engineering.md section 6).
+- [x] **Step 9: Add the end-to-end layer** to `docs/developer/testing.md`.
+- [x] **Close checkpoint 6B.** Verify: Step 8 passed (`npm test`, end-to-end `2 passed`). Commit: `feat: end-to-end harness and backend status line`.

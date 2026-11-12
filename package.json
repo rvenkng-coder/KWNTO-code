@@ -14,7 +14,8 @@
     "spike:realtime": "rm -rf spike/realtime/results && docker compose -f spike/realtime/compose.yaml down -v && docker compose -f spike/realtime/compose.yaml up -d --wait && node spike/realtime/seed.ts && npx playwright test -c spike/realtime/playwright.config.ts; code=$?; docker compose -f spike/realtime/compose.yaml down -v; exit $code",
     "lint": "eslint . && node scripts/check-perf-comments.ts",
     "test:rules": "node scripts/with-pocketbase.ts vitest run --project rules",
-    "test": "npm run lint && npm run typecheck && npm run test:unit && npm run test:container && npm run test:rules"
+    "test:e2e": "node scripts/with-pocketbase.ts playwright test",
+    "test": "npm run lint && npm run typecheck && npm run test:unit && npm run test:container && npm run test:rules && npm run test:e2e"
   },
   "dependencies": {
     "@xyflow/react": "^12.12.1",

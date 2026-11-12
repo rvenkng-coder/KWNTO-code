@@ -119,7 +119,7 @@ A strong model reviews **about one local task in three**, plus a whole-branch re
 4. Two extra columns in `progress.md` and an escape-rate measure.
 5. A plan check script that rejects task files without a tier, interfaces and test plan.
 6. Starting without a mutation-testing library (hand-listed breaks only).
-7. Applying the new standard from the next plan onward; Plan 2's Tasks 9 and 10 are re-tiered to local-OK and get a Test plan block, and the tooling they need (a minimal `check:task` and the Test plan format) lands on `main` before they start. The strategy documents can follow.
+7. **Sequencing (decided by the developer, 2026-11-13): Plan 2 is finished first, then this tooling is built.** The new standard applies from the plan after Plan 2 onward. Plan 2's Tasks 9 and 10 therefore go to the local model **without** `check:task`, graded by hand with the checklist in local-model-notes.md, as Plan 2 already says.
 8. Probes run on every task, in a folder the prompt does not mention (section 6.3).
 9. Breaks in the first version apply only to code Vitest can reach (section 6.3).
 10. New quality limits apply to changed files only; no clean-up checkpoint (section 6.4).

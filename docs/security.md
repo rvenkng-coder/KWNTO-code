@@ -26,7 +26,7 @@ KWNTO is an **internal tool** for now. Some risks are knowingly accepted for tha
 - **Hashing:** a deliberately slow hash. PocketBase uses bcrypt, to my knowledge **(confirm algorithm and cost)**. Do not swap it unless the check finds a weak setting.
 - **Failed sign-ins:** after 3 failures, "try again after 5 minutes". Count per account and IP together where possible. Both numbers are admin settings.
 - Password resets and verification go out by a free SMTP account (for example Gmail with an app password), set in the PocketBase dashboard. The mail credentials are secrets (see section 6). The step-by-step SMTP guide arrives with the deployment plan; until mail is set up, verification and reset mails are not sent.
-- Emails are private to everyone except the admin. Team owners can invite by email and learn only whether an account exists; the invitee must accept. **Accepted risk:** this lets a signed-in owner discover which emails are registered. Limited by a rate limit on invites and a log entry per attempt.
+- Emails are private to everyone except the admin. An app user cannot make their own email public: the sign-up hook keeps each account's `emailVisibility` false at sign-up and on every edit (only the admin can change it). Team owners can invite by email and learn only whether an account exists; the invitee must accept. **Accepted risk:** this lets a signed-in owner discover which emails are registered. Limited by a rate limit on invites and a log entry per attempt.
 
 ## 4. Uploads
 

@@ -2,8 +2,8 @@
 // Sign-up, the verified flag and the password rules (design 7c, docs/security.md
 // section 3). The password rules run on every request that sets a password: sign-up,
 // password change and password reset. The admin (superuser) is exempt from the
-// registration switch and the verified flag, so the admin can always add an account,
-// but not from the password rules.
+// registration switch, the verified flag and the private-email flag, so the admin can
+// always add an account, but not from the password rules.
 //
 // Each handler logs after e.next() has succeeded, so a refused request leaves no entry.
 // It logs with e.app, not $app: inside a batch or transaction, $app would wait on the
@@ -23,6 +23,9 @@ onRecordCreateRequest((e) => {
     // A visitor must prove the email address; never trust a verified flag they send.
     // (PocketBase 0.40.6 already refuses one; this keeps it so if that ever changes.)
     e.record.setVerified(false)
+    // Emails are private to everyone but the admin; teammates can see each other's
+    // user records, so a visitor may not publish their email there.
+    e.record.setEmailVisibility(false)
   }
 
   const body = e.requestInfo().body
@@ -41,8 +44,15 @@ onRecordCreateRequest((e) => {
 onRecordUpdateRequest((e) => {
   const { checkPassword } = require(`${__hooks}/lib/password-rules.js`)
 
-  // Only a request that sets a new password; a name or preference change sends none.
   const body = e.requestInfo().body
+
+  // Emails stay private (see the create hook). Reset rather than refuse, so a form
+  // that sends the flag along with a name change still saves the name.
+  if (!e.hasSuperuserAuth() && body.emailVisibility !== undefined) {
+    e.record.setEmailVisibility(false)
+  }
+
+  // Only a request that sets a new password; a name or preference change sends none.
   if (body.password !== undefined) {
     const problem = checkPassword(String(body.password))
     if (problem !== null) {

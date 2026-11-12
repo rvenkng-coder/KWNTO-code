@@ -25,3 +25,4 @@
 | 2026-11-11 | 5D | docs/developer/testing.md names all test layers and commands | Task 5 complete; awaiting review |
 | 2026-11-12 | Task 4 | Review passed | Task 6 |
 | 2026-11-12 | Task 5 | Review passed; rebased onto main, full `npm test` green (13 unit, 4 container, 4 rules) | Task 6: backend door and e2e harness |
+| 2026-11-12 | 6A | `npm run test:unit` 14 passed (new backend health test), `npm run lint` clean | 6B: end-to-end harness and status line |

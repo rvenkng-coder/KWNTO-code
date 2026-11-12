@@ -25,7 +25,7 @@ export const backend: Backend
 
 ## Checkpoint 6A: The backend module
 
-- [ ] **Step 1: Write the failing unit test** `src/backend/client.test.ts`:
+- [x] **Step 1: Write the failing unit test** `src/backend/client.test.ts`:
 
 ```ts
 // Protects design 6.7: an unreachable backend is a normal state the UI reports, never a crash.
@@ -34,9 +34,9 @@ test('health() resolves false when the backend is unreachable', async () => {
 })
 ```
 
-- [ ] **Step 2: Run** `npm run test:unit`. Expected: FAIL (`createBackend` not defined).
-- [ ] **Step 3: Implement** `src/backend/client.ts` (wraps one `PocketBase` instance; `health()` uses the SDK's health check and returns `false` on any error) and `src/backend/index.ts` (re-exports). Run `npm run test:unit`. Expected: PASS.
-- [ ] **Close checkpoint 6A.** Verify: `npm run test:unit` passes with the new test and `npm run lint` is clean. Commit: `feat: backend module with health check`.
+- [x] **Step 2: Run** `npm run test:unit`. Expected: FAIL (`createBackend` not defined).
+- [x] **Step 3: Implement** `src/backend/client.ts` (wraps one `PocketBase` instance; `health()` uses the SDK's health check and returns `false` on any error) and `src/backend/index.ts` (re-exports). Run `npm run test:unit`. Expected: PASS.
+- [x] **Close checkpoint 6A.** Verify: `npm run test:unit` passes with the new test and `npm run lint` is clean. Commit: `feat: backend module with health check`.
 
 ## Checkpoint 6B: End-to-end harness and status line
 

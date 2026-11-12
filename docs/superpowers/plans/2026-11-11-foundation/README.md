@@ -71,7 +71,7 @@ This file is the router. Each task lives in its own file and is split into check
 | 3 | [Real-time spike and go/no-go decision](task-3-realtime-spike.md) | strong | 2 | 3A 3B 3C 3D | done (decision: GO with version guard, accepted by developer 2026-11-12) |
 | 4 | [Guardrail lint rules and the PERF comment check](task-4-lint-guardrails.md) | mid | 1 | 4A 4B | done |
 | 5 | [Backend rule-test harness and deny-by-default check](task-5-rule-test-harness.md) | strong | 2 | 5A 5B 5C 5D | done |
-| 6 | [The backend door and the end-to-end harness](task-6-backend-door-e2e.md) | mid | 1, 5 | 6A 6B | not started |
+| 6 | [The backend door and the end-to-end harness](task-6-backend-door-e2e.md) | mid | 1, 5 | 6A 6B | done |
 | 7 | [Docs check, secret scan and the GitHub workflow](task-7-ci-docs-secrets.md) | mid | 4, 6 | 7A 7B 7C | not started |
 | 8 | [AGENTS.md, README and developer guide](task-8-agents-readme.md) | local-OK | 7 | 8A 8B | not started |
 

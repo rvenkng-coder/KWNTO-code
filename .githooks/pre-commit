@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Pre-commit hook: runs gitleaks on staged changes and blocks on a finding.
+# If gitleaks is not installed, prints the install link and exits 1.
+
+set -euo pipefail
+
+# Ensure common local bin dirs are in PATH for gitleaks
+export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
+
+GITLEAKS_CMD="$(command -v gitleaks 2>/dev/null || true)"
+
+if [ -z "$GITLEAKS_CMD" ]; then
+  echo "ERROR: gitleaks is not installed."
+  echo "Install it from https://github.com/gitleaks/gitleaks"
+  exit 1
+fi
+
+if ! $GITLEAKS_CMD protect --staged --source . 2>&1; then
+  echo ""
+  echo "Secret(s) detected in staged changes. Commit blocked."
+  exit 1
+fi

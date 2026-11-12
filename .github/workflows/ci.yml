@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main, '**']
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:unit
+      - run: npm audit --audit-level=high
+
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      docker:
+        container:
+          securityOpt: [seccomp:unconfined]
+        options: --privileged
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+      - run: npm ci
+      - run: docker compose -f compose.test.yaml up -d --wait
+        timeout-minutes: 5
+      - run: npm run test:container
+      - run: npm run test:rules
+      - run: docker compose -f compose.test.yaml down -v
+
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      docker:
+        container:
+          securityOpt: [seccomp:unconfined]
+        options: --privileged
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+      - run: npm ci
+      - run: npx playwright install --with-deps firefox chromium
+      - run: docker compose -f compose.test.yaml up -d --wait
+        timeout-minutes: 5
+      - run: npm run test:e2e
+      - run: docker compose -f compose.test.yaml down -v
+      - uses: actions/upload-artifact@v5
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

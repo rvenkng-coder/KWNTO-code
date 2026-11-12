@@ -73,7 +73,7 @@ These are my calls where the spec is silent. Say so if any is wrong; each is che
 
 | # | Task | Tier | Depends on | Checkpoints | Status |
 |---|---|---|---|---|---|
-| 1 | [System settings tables and the security log](task-1-settings-and-log.md) | strong | none | 1A 1B | in progress |
+| 1 | [System settings tables and the security log](task-1-settings-and-log.md) | strong | none | 1A 1B | awaiting review |
 | 2 | [Per-user records](task-2-user-records.md) | strong | 1 | 2A | not started |
 | 3 | [Sign-up, verification and password rules](task-3-signup-passwords.md) | strong | 1, 2 | 3A 3B | not started |
 | 4 | [Sign-in protection: lockout, block, lockdown](task-4-signin-protection.md) | strong | 1, 2 | 4A 4B | not started |

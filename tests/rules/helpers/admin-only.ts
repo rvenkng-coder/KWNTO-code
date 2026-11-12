@@ -30,7 +30,12 @@ async function onlyRecordId(collection: string): Promise<string> {
 // Registers the tests every admin-only collection needs: signed-out visitors and
 // signed-in users can do nothing with it, and an injection string stays data.
 // `change` is a real field edit, so an update that slipped through would be visible.
-export function adminOnlyTests(collection: string, change: Record<string, unknown>): void {
+// `targetId` gives an existing record to aim view, update and delete at.
+export function adminOnlyTests(
+  collection: string,
+  change: Record<string, unknown>,
+  targetId: () => Promise<string> = () => onlyRecordId(collection),
+): void {
   const callers: [string, () => Promise<PocketBase>][] = [
     ['a signed-out visitor', async () => asAnonymous()],
     ['a signed-in user', async () => asUser(await createUser())],
@@ -38,7 +43,7 @@ export function adminOnlyTests(collection: string, change: Record<string, unknow
 
   for (const [who, connect] of callers) {
     test(`${collection}: ${who} cannot list, view, create, update or delete`, async () => {
-      const id = await onlyRecordId(collection)
+      const id = await targetId()
       const pb = await connect()
       await expectNoRows(pb, collection)
       await expectRefused(pb.collection(collection).getOne(id))

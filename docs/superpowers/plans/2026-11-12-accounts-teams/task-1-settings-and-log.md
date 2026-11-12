@@ -53,17 +53,17 @@ logEvent(app, type, userId /* string, "" if none */, ip /* string */, detail /* 
 
 ## Checkpoint 1B: Security log and its retention
 
-- [ ] **Step 10: Write the failing unit test** `tests/hooks/retention.unit.test.ts` (load the module with `createRequire(import.meta.url)`):
+- [x] **Step 10: Write the failing unit test** `tests/hooks/retention.unit.test.ts` (load the module with `createRequire(import.meta.url)`):
   - `cutoffIso(Date.UTC(2026, 10, 12, 8, 30, 0), 365)` equals `'2025-11-12 08:30:00.000Z'`.
   - `cutoffIso(Date.UTC(2026, 2, 1, 0, 0, 0), 1)` equals `'2026-02-28 00:00:00.000Z'` (month boundary).
   - `cutoffIso(Date.UTC(2026, 0, 1, 0, 0, 0), 0)` equals `'2026-01-01 00:00:00.000Z'`.
   Header comment: protects design 6.9, retention is a setting and the cut-off must be exact.
-- [ ] **Step 11: Run** `npm run test:unit`. Expected: FAIL (module missing).
-- [ ] **Step 12: Implement `lib/retention.js`** `cutoffIso(nowMs, days)`. Run `npm run test:unit`; expected: PASS.
-- [ ] **Step 13: Write the failing rule test** `tests/rules/security_events.rules.test.ts`: anonymous and user cannot list, view, create, update or delete; admin can list; an event written by the app is visible to the admin only. Add one assertion that **creating an event through the public API as a user is refused** (events come from hooks, never from clients).
-- [ ] **Step 14: Write `1794360100_security_events.js`:** base collection `security_events` with `type` (select, the nine values in `logEvent`'s comment), `user` (relation to `users`, optional, **no** cascade delete so a deleted user does not erase the log), `ip` (text), `detail` (json), `created` (autodate); all rules `null`; an index on `(type, created)`. Run `npm run test:rules`; expected: PASS.
-- [ ] **Step 15: Write `lib/security-log.js`** `logEvent`: creates the record with `app.save`; wraps everything in try/catch and writes to `console.error` on failure, because a logging failure must never block a sign-in or a join.
-- [ ] **Step 16: Write `retention.pb.js`:** `cronAdd("purge_security_events", "0 3 * * *", ...)` that deletes `security_events` older than `cutoffIso(Date.now(), getSystemBehavior($app).securityRetentionDays)`. Write a rule test in `security_events.rules.test.ts` that the admin API `GET /api/crons` lists a job with id `purge_security_events` (via `asAdmin()` and `pb.crons.getFullList()` or `pb.send('/api/crons')`).
-- [ ] **Step 17: Run** `npm test`. Expected: every layer passes.
-- [ ] **Step 18: Document** in `docs/admin/settings.md` (the log, who reads it, retention) and `docs/developer/backend.md` (hooks layout, the isolated-scope rule with `require(`${__hooks}/lib/...`)`, `lib/` is pure CommonJS tested in `tests/hooks/`). Add the new test folder to `docs/developer/testing.md`.
-- [ ] **Close checkpoint 1B.** Verify: Step 17 passed and `npm run check:docs` is clean. Commit: `feat: security log with retention`.
+- [x] **Step 11: Run** `npm run test:unit`. Expected: FAIL (module missing).
+- [x] **Step 12: Implement `lib/retention.js`** `cutoffIso(nowMs, days)`. Run `npm run test:unit`; expected: PASS.
+- [x] **Step 13: Write the failing rule test** `tests/rules/security_events.rules.test.ts`: anonymous and user cannot list, view, create, update or delete; admin can list; an event written by the app is visible to the admin only. Add one assertion that **creating an event through the public API as a user is refused** (events come from hooks, never from clients).
+- [x] **Step 14: Write `1794360100_security_events.js`:** base collection `security_events` with `type` (select, the nine values in `logEvent`'s comment), `user` (relation to `users`, optional, **no** cascade delete so a deleted user does not erase the log), `ip` (text), `detail` (json), `created` (autodate); all rules `null`; an index on `(type, created)`. Run `npm run test:rules`; expected: PASS.
+- [x] **Step 15: Write `lib/security-log.js`** `logEvent`: creates the record with `app.save`; wraps everything in try/catch and writes to `console.error` on failure, because a logging failure must never block a sign-in or a join.
+- [x] **Step 16: Write `retention.pb.js`:** `cronAdd("purge_security_events", "0 3 * * *", ...)` that deletes `security_events` older than `cutoffIso(Date.now(), getSystemBehavior($app).securityRetentionDays)`. Write a rule test in `security_events.rules.test.ts` that the admin API `GET /api/crons` lists a job with id `purge_security_events` (via `asAdmin()` and `pb.crons.getFullList()` or `pb.send('/api/crons')`).
+- [x] **Step 17: Run** `npm test`. Expected: every layer passes.
+- [x] **Step 18: Document** in `docs/admin/settings.md` (the log, who reads it, retention) and `docs/developer/backend.md` (hooks layout, the isolated-scope rule with `require(`${__hooks}/lib/...`)`, `lib/` is pure CommonJS tested in `tests/hooks/`). Add the new test folder to `docs/developer/testing.md`.
+- [x] **Close checkpoint 1B.** Verify: Step 17 passed and `npm run check:docs` is clean. Commit: `feat: security log with retention`.

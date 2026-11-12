@@ -4,3 +4,4 @@
 |------|------------|--------------|-------------|
 | 2026-11-12 | plan written | plan and roadmap committed; no code yet | Task 1: settings tables and security log |
 | 2026-11-12 | Task 1, checkpoint 1A: settings tables with defaults | test:rules 19/19 (3 new files), test:container 5/5 (restart keeps edit), unit, lint, typecheck green | Checkpoint 1B: security log and retention |
+| 2026-11-12 | Task 1, checkpoint 1B: security log with retention | npm test exit 0 (unit 33, container 5, rules 26, e2e 2); check:docs clean; purge probed in a throwaway container | Review of Task 1, then Task 2: per-user records |

@@ -16,6 +16,23 @@ The migration [1794355200_initial_superuser.js](../../backend/pb_migrations/1794
 
 To reset a lost password, use `docker compose -f compose.dev.yaml exec pocketbase /pb/pocketbase superuser upsert EMAIL PASSWORD --dir=/pb/pb_data`.
 
+## Hooks and their helpers
+
+Behaviour that access rules cannot express lives in JavaScript hooks in `backend/pb_hooks/`. PocketBase loads every `*.pb.js` file there; files in `lib/` are only loaded when a hook requires them.
+
+| Path | What goes there |
+|---|---|
+| `backend/pb_hooks/*.pb.js` | Thin hooks, routes and scheduled jobs, for example [retention.pb.js](../../backend/pb_hooks/retention.pb.js) (the daily `purge_security_events` job). |
+| `backend/pb_hooks/lib/*.js` | Shared helpers: [settings.js](../../backend/pb_hooks/lib/settings.js) reads the system settings, [security-log.js](../../backend/pb_hooks/lib/security-log.js) writes the security log, [retention.js](../../backend/pb_hooks/lib/retention.js) computes purge cut-offs. |
+
+Rules for this code:
+
+- **Hook handlers run in isolated scopes.** A handler cannot see variables or functions declared outside it in the same file. Load shared code inside the handler: `const { getSystemBehavior } = require(`${__hooks}/lib/settings.js`)`. (Migrations are different: a migration's top-level helpers are visible inside `migrate()`.)
+- **`lib/` is CommonJS** (`module.exports`), so the same file runs in PocketBase and in Vitest. [backend/pb_hooks/package.json](../../backend/pb_hooks/package.json) says `"type": "commonjs"` because the project root is an ES module package; without it, Node refuses `module.exports` in these files.
+- **Keep decisions pure and test them** in `tests/hooks/<name>.unit.test.ts` (part of `npm run test:unit`). Tests load a helper with `createRequire(import.meta.url)`. Where a helper needs a PocketBase global such as `Record`, the test provides a small fake (see `tests/hooks/security-log.unit.test.ts`).
+- Settings are read at run time with `getSystemAccess($app)` and `getSystemBehavior($app)`, never copied into code. They throw if a settings record is missing, because that is a broken install. The tables and their defaults are described in [docs/admin/settings.md](../admin/settings.md).
+- Write security events with `logEvent($app, type, userId, ip, detail)`. It never throws, so it is safe on a sign-in path.
+
 ## Tests and the test backend
 
 - `npm run test:container` builds the image and tests it with real containers (port `8093`, volume `kwnto-container-test`). It removes its own left-overs first, so it is safe to run again after a killed run.

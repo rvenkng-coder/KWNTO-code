@@ -8,7 +8,7 @@ KWNTO uses distinct test projects managed by Vitest and custom test harnesses:
 
 | Layer | Command | Description | Environment |
 |---|---|---|---|
-| **Unit** | `npm run test:unit` | Pure functions, fast logic, utility tests, script tests | Node.js (Vitest) |
+| **Unit** | `npm run test:unit` | Pure functions, fast logic, utility tests, script tests, and the hook helpers in `backend/pb_hooks/lib/` (`tests/hooks/`) | Node.js (Vitest) |
 | **Container** | `npm run test:container` | Container hardening, non-root user verification, bootstrap & volume recovery | Docker |
 | **Rules** | `npm run test:rules` | PocketBase access rule verification for each collection | PocketBase container via `with-pocketbase.ts` |
 | **End-to-end** | `npm run test:e2e` | Full browser flows (Playwright across Chromium & Firefox) | Web app + PocketBase |
@@ -32,6 +32,14 @@ The test harness provides authenticated and anonymous PocketBase clients:
 - `asAdmin()`: Returns a superuser-authenticated PocketBase instance (credentials from `compose.test.yaml`).
 - `createUser(options?: { verified?: boolean })`: Creates a test user with a random UUID email (`user-<uuid>@example.test`) and default password `Test-password-1234`. Returns `{ id, email, password }`.
 - `asUser(user: TestUser)`: Returns a PocketBase instance authenticated as the given test user.
+
+### Admin-only collections (`tests/rules/helpers/admin-only.ts`)
+Collections only the admin may touch (the `system_*` settings and `security_events`) share one set of checks:
+
+- `adminOnlyTests(collection, change, targetId?)`: a signed-out visitor and a signed-in user cannot list, view, create, update or delete, and an injection string in a filter returns nothing. `change` is a real field edit; `targetId` gives an existing record (by default the collection's only record).
+- `singleRecordTest(collection)`: the admin sees exactly one record (settings tables).
+- `readOnlyRecord(collection)`: the single record, read as the admin, for checking defaults.
+- `expectRefused(request)` and `expectNoRows(pb, collection, filter?)`: a refusal is a 403 or 404; a refused list is a 403 or no rows.
 
 ### How to Add a Rule Test for a New Collection
 
@@ -60,6 +68,12 @@ export const PUBLIC_RULES: readonly string[] = ['users.createRule'] // open sign
 ```
 
 **Rule:** Adding any rule to `PUBLIC_RULES` is a recorded security decision. Every entry MUST include a code comment citing the specific design or security specification section authorizing public access.
+
+---
+
+## Hook Helper Tests (`tests/hooks/`)
+
+The pure helpers that PocketBase hooks load from `backend/pb_hooks/lib/` are tested here, one file per helper, named `<helper>.unit.test.ts`. They run in the unit project (`npm run test:unit`), without PocketBase. Load the helper with `createRequire(import.meta.url)`, because it is CommonJS. See [backend.md](backend.md#hooks-and-their-helpers) for the rules these helpers follow.
 
 ---
 

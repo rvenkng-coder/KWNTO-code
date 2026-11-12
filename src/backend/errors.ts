@@ -2,6 +2,10 @@ import { ClientResponseError } from 'pocketbase'
 
 export type BackendErrorKind = 'invalid' | 'locked' | 'forbidden' | 'not-found' | 'conflict' | 'unreachable' | 'unknown'
 
+export function createBackendError(kind: BackendErrorKind, message: string): BackendError {
+  return new BackendError(kind, 0, {}, message)
+}
+
 export class BackendError extends Error {
   kind: BackendErrorKind
   status: number

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSession } from '../auth/useSession'
+import { backend } from '../../backend'
 import { useTeams } from './useTeams'
 import { TeamDetail } from './TeamDetail'
 import { JoinByCodeForm } from './JoinByCodeForm'
@@ -8,7 +9,7 @@ export function TeamsScreen() {
   const { user, signOut } = useSession()
   const { teams, error, list } = useTeams()
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null)
-  const [joinCode, setJoinCode] = useState('')
+
 
   useEffect(() => {
     list()
@@ -37,7 +38,7 @@ export function TeamsScreen() {
         onClick={() => {
           if (user.verified) {
             const name = prompt('Team name:')
-            if (name) useTeams.getState().create(name)
+            if (name) backend.teams.create(name).then(() => list())
           }
         }}
         disabled={!user.verified}

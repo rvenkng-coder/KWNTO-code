@@ -1,7 +1,16 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Protects: sign-up and verification gate — a new account is unverified;
 // the verification gate blocks team creation until the account is verified.
 import { test, expect } from '@playwright/test'
 import { verifyByEmail, uniqueEmail } from './helpers/admin'
+
+declare global {
+  interface Window {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    backend: any
+    __xss?: number
+  }
+}
 
 // Protects: XSS as text (security.md section 5) — team names are rendered as text, not HTML.
 test('XSS as text', async ({ page }) => {
@@ -19,11 +28,11 @@ test('XSS as text', async ({ page }) => {
   await page.getByRole('button', { name: 'Sign in' }).click()
   const xssName = '<script>window.__xss=1</script>'
   await page.evaluate((name) => {
-    (window as any).backend.teams.create(name)
+    window.backend.teams.create(name)
   }, xssName)
   await page.waitForTimeout(500)
   await expect(page.getByText(xssName)).toBeVisible()
-  await expect(page.evaluate(() => (window as any).__xss)).resolves.toBeUndefined()
+  await expect(page.evaluate(() => window.__xss)).resolves.toBeUndefined()
 })
 
 // Protects: join by code — owner enables code, member joins, names shown not emails.
@@ -44,7 +53,7 @@ test('join by code', async ({ page, browser }) => {
   await page.getByRole('button', { name: 'Sign in' }).click()
   // Create team
   await page.evaluate(() => {
-    (window as any).backend.teams.create('Crew')
+    window.backend.teams.create('Crew')
   })
   await page.waitForTimeout(500)
   // Member signs up in second browser
@@ -75,7 +84,7 @@ test('join by code', async ({ page, browser }) => {
 })
 
 // Protects: wrong code and regenerate — wrong code fails, regenerate invalidates old code.
-test('wrong code and regenerate', async ({ page, browser }) => {
+test('wrong code and regenerate', async ({ page }) => {
   const ownerEmail = uniqueEmail()
   await page.goto('/')
   await page.getByRole('link', { name: 'Sign up' }).click()

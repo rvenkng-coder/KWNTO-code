@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { backend } from '../../backend'
 
 interface InviteFormProps {
   teamId: string
@@ -12,7 +13,7 @@ export function InviteForm({ teamId }: InviteFormProps) {
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await (window as any).backend.teams.invite(teamId, email)
+      await backend.teams.invite(teamId, email)
       setSent(true)
       setEmail('')
     } catch (err: unknown) {

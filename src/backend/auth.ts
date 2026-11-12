@@ -19,7 +19,7 @@ export function createAuth(pb: PocketBase) {
     return cached
   }
 
-  pb.authStore.onChange((token, record) => {
+  pb.authStore.onChange((_token, record) => {
     if (!record) {
       cached = null
       listener?.(null)

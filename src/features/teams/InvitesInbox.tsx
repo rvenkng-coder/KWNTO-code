@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { backend } from '../../backend'
 
 interface Invite {
   id: string
@@ -13,7 +14,7 @@ export function InvitesInbox() {
   useEffect(() => {
     async function load() {
       try {
-        const invitesList = await (window as any).backend.teams.invites()
+        const invitesList = await backend.teams.invites()
         setInvites(invitesList)
       } catch (err: unknown) {
         const e = err as { message?: string }
@@ -25,7 +26,7 @@ export function InvitesInbox() {
 
   const handleAccept = async (inviteId: string) => {
     try {
-      await (window as any).backend.teams.acceptInvite(inviteId)
+      await backend.teams.acceptInvite(inviteId)
       setInvites((prev) => prev.filter((i) => i.id !== inviteId))
     } catch (err: unknown) {
       const e = err as { message?: string }
@@ -35,7 +36,7 @@ export function InvitesInbox() {
 
   const handleDecline = async (inviteId: string) => {
     try {
-      await (window as any).backend.teams.declineInvite(inviteId)
+      await backend.teams.declineInvite(inviteId)
       setInvites((prev) => prev.filter((i) => i.id !== inviteId))
     } catch (err: unknown) {
       const e = err as { message?: string }

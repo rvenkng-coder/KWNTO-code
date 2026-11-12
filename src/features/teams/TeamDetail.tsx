@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useTeams } from './useTeams'
+import { backend } from '../../backend'
 import { InviteForm } from './InviteForm'
 import { InvitesInbox } from './InvitesInbox'
 
@@ -17,12 +17,12 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
   useEffect(() => {
     async function load() {
       try {
-        const membersList = await (window as any).backend.teams.members(teamId)
+        const membersList = await backend.teams.members(teamId)
         setMembers(membersList)
-        const settingsData = await (window as any).backend.teams.settings(teamId)
+        const settingsData = await backend.teams.settings(teamId)
         setSettings(settingsData)
-        const teams = await (window as any).backend.teams.list()
-        const team = teams.find((t: any) => t.id === teamId)
+        const teams = await backend.teams.list()
+        const team = teams.find((t: { id: string }) => t.id === teamId)
         setIsOwner(team?.isOwner ?? false)
       } catch (err: unknown) {
         const e = err as { message?: string }
@@ -34,8 +34,8 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
 
   const handleRemoveMember = async (memberId: string) => {
     try {
-      await (window as any).backend.teams.removeMember(memberId)
-      const membersList = await (window as any).backend.teams.members(teamId)
+      await backend.teams.removeMember(memberId)
+      const membersList = await backend.teams.members(teamId)
       setMembers(membersList)
     } catch (err: unknown) {
       const e = err as { message?: string }
@@ -45,7 +45,7 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
 
   const handleRegenerateCode = async () => {
     try {
-      const newCode = await (window as any).backend.teams.regenerateJoinCode(teamId)
+      const newCode = await backend.teams.regenerateJoinCode(teamId)
       setSettings((s) => (s ? { ...s, joinCode: newCode } : null))
     } catch (err: unknown) {
       const e = err as { message?: string }
@@ -56,7 +56,7 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
   const handleDeleteTeam = async () => {
     if (confirm('Delete this team?')) {
       try {
-        await (window as any).backend.teams.remove(teamId)
+        await backend.teams.remove(teamId)
         onBack()
       } catch (err: unknown) {
         const e = err as { message?: string }

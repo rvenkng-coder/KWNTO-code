@@ -1,6 +1,6 @@
 import type PocketBase from 'pocketbase'
 import type { Team, TeamMember, TeamSettings, Invite } from './types'
-import { toBackendError } from './errors'
+import { toBackendError, createBackendError } from './errors'
 import { toTeam, toTeamMember, toInvite } from './mappers'
 
 function toPlain(record: { get: (key: string) => unknown }): Record<string, unknown> {
@@ -42,6 +42,8 @@ export function createTeams(pb: PocketBase) {
       return wrapped(async () => {
         const userId = pb.authStore.record?.id
         if (!userId) throw toBackendError(new Error('Not signed in'))
+        const user = await pb.collection('users').getOne(userId)
+        if (!user.verified) throw createBackendError('forbidden', 'Verify your email to create or join a team.')
         const team = await pb.collection('teams').create({ name, owner: userId })
         return toTeam(team as Record<string, unknown>, userId)
       })
@@ -58,7 +60,7 @@ export function createTeams(pb: PocketBase) {
         const rows = await pb
           .collection('team_members')
           .getFullList({ filter: pb.filter('team = {:team}', { team: teamId }), perPage: 100 })
-        return rows.map(r => toTeamMember(toPlain(r as { get: (key: string) => unknown })))
+        return rows.map(r => toTeamMember(toPlain(r as unknown as { get: (key: string) => unknown })))
       })
     },
 
@@ -73,7 +75,7 @@ export function createTeams(pb: PocketBase) {
         const settings = await pb
           .collection('team_settings')
           .getFirstListItem(pb.filter('team = {:team}', { team: teamId }))
-        const plain = toPlain(settings as { get: (key: string) => unknown })
+        const plain = toPlain(settings as unknown as { get: (key: string) => unknown })
         return {
           joinCode: plain.join_code as string,
           joinCodeEnabled: plain.join_code_enabled === true,
@@ -121,7 +123,7 @@ export function createTeams(pb: PocketBase) {
         const rows = await pb
           .collection('team_invites')
           .getFullList({ filter: pb.filter('invitee = {:user}', { user: pb.authStore.record?.id ?? '' }), perPage: 100 })
-        return rows.map(r => toInvite(toPlain(r as { get: (key: string) => unknown })))
+        return rows.map(r => toInvite(toPlain(r as unknown as { get: (key: string) => unknown })))
       })
     },
 

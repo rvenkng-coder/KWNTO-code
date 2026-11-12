@@ -42,6 +42,21 @@ Some paths cannot be driven automatically because their token arrives by mail: c
 - `rawSend(token, path, init?)`: a plain HTTP call to the test backend with the given token, or with none when `token` is `undefined` (a signed-out caller). `init` is `{ method?, body? }`; a body is sent as JSON. Use it for custom routes and to try an old session token after it was ended (`admin-controls.rules.test.ts`).
 - `adminSend(path, init?)`: the same call as the admin.
 
+### Teams (`tests/rules/helpers/pb.ts`, `tests/rules/helpers/teams.ts`)
+- `createTeam(owner, name?)`: creates a team through the owner's own session (so the create rule and the teams hook apply), then reads the join code as the admin. Returns `{ id, joinCode }`. The owner must be verified (the `createUser()` default).
+- `addMember(teamId, user)`: adds a plain member as the admin (joining by code and by invite come in later tasks). Returns the `team_members` row id.
+- `teamRows(collection, teamId)` and `memberRow(teamId, userId)`: rows read as the admin.
+- `expectCreateRefused(request)`: a refused create is 400 (a create rule that does not match: PocketBase answers "Failed to create record.") or 403 (a locked, `null`, rule).
+- `expectNoEmail(response)` and `expectNoEmailOf(response, ...others)`: no `@` anywhere in a team response; or, where a response expands user records (the caller may see their own), none of the given other people's emails.
+
+Rule fragments used by the team collections (in [1794360400_teams.js](../../backend/pb_migrations/1794360400_teams.js)):
+- **Verified only:** `@request.auth.verified = true` (teams create, as in Task 3).
+- **Caller is a member:** `team_members_via_team.user ?= @request.auth.id` on `teams`, and `team.team_members_via_team.user ?= @request.auth.id` on a table that links to a team. `?=` is "any row matches"; a plain `=` would require every member row to be the caller, and the member tests fail with it.
+- **Caller owns the team:** `team.owner = @request.auth.id`.
+- **Field may not be written:** `@request.body.<field>:isset = false` (the team's `owner`, the settings' `join_code` and `team`).
+
+Test the outsider, a plain member and a removed member for every team table: a rule that works for the owner can still leak to the others.
+
 ### Admin-only collections (`tests/rules/helpers/admin-only.ts`)
 Collections only the admin may touch (the `system_*` settings and `security_events`) share one set of checks:
 

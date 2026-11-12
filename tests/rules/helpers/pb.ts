@@ -73,3 +73,13 @@ export async function asUser(user: TestUser): Promise<PocketBase> {
   await pb.collection('users').authWithPassword(user.email, user.password)
   return pb
 }
+
+// Creates a team through the owner's own session (the create rule and the teams hook
+// apply, so the owner row and the settings row are made too), then reads the join code
+// as the admin: the code is in team_settings, which only the owner and admin can read.
+export async function createTeam(owner: TestUser, name = 'Test team'): Promise<{ id: string; joinCode: string }> {
+  const team = await (await asUser(owner)).collection('teams').create({ name, owner: owner.id })
+  const admin = await asAdmin()
+  const settings = await admin.collection('team_settings').getFirstListItem(admin.filter('team = {:team}', { team: team.id }))
+  return { id: team.id, joinCode: String(settings.join_code) }
+}

@@ -105,13 +105,13 @@ A `.githooks/pre-commit` hook runs [gitleaks](https://github.com/gitleaks/gitlea
 
 ## CI Workflow (`.github/workflows/ci.yml`)
 
-The CI workflow runs on every push and pull request. It uses Node from `.nvmrc` and pins each GitHub Action to its current major version.
+The CI workflow runs on pushes to `main` and on every pull request (so a branch with an open PR runs once, not twice). It uses Node from `.nvmrc` and pins each GitHub Action to its current major version.
 
 | Job | What it runs | Notes |
 |---|---|---|
-| `checks` | `npm run lint`, `npm run typecheck`, `npm run test:unit`, `npm audit --audit-level=high` | Runs on every push/PR |
-| `backend` | `npm run test:container`, `npm run test:rules` | Needs Docker + PocketBase service |
-| `e2e` | Playwright install (firefox + chromium), `npm run test:e2e` | Uploads `playwright-report/` on failure |
-| `secrets` | gitleaks over full history (`fetch-depth: 0`) | Runs on every push/PR |
+| `checks` | `npm run lint`, `npm run typecheck`, `npm run test:unit`, `npm audit --audit-level=high` | Runs on every run |
+| `backend` | `npm run test:container`, `npm run test:rules` | Uses the runner's Docker; `with-pocketbase.ts` starts and stops PocketBase itself |
+| `e2e` | Playwright install (firefox + chromium), `npm run test:e2e` | Uses the runner's Docker via `with-pocketbase.ts`; uploads `playwright-report/` on failure |
+| `secrets` | gitleaks over full history (`fetch-depth: 0`) | Runs on every run |
 
 The first real CI run happens when the developer pushes the branch to GitHub.

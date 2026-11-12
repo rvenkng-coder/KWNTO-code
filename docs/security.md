@@ -31,8 +31,8 @@ KWNTO is an **internal tool** for now. Some risks are knowingly accepted for tha
   - **Known gap:** an attacker with many IPs gets `max_failed_logins` guesses per IP per window and can keep guessing. The password rules above keep that slow to pay off; the security log shows it (many `failure` entries for one email from many IPs).
   - **Known gap: parallel guesses.** The hook reads the pair's failures before PocketBase checks the password, and records a new failure only after the slow password hash returns. Attempts sent at the same moment are all checked before any of them is recorded, so more than `max_failed_logins` guesses can land in one window. Measured on the test backend (2026-11-12): 20 wrong attempts for one account sent at once gave 18 evaluated guesses (18 × 400, 18 `failure` entries) and only 2 × 429. **Mitigation:** turn on PocketBase's built-in rate limiter (dashboard Settings, Application, Rate limiting; the `rateLimits.enabled` setting, off by default in 0.40.6). Its default rule `*:auth` allows 2 auth requests per IP per 3 seconds; with it on, the same 20 parallel attempts gave 2 evaluated guesses and 18 × 429. The deployment plan enables it. Until then the password rules above (10+ characters, letter and number, no common password) and bcrypt's cost keep each guess expensive and unlikely to succeed.
   - **Known gap until the proxy is configured:** the IP is PocketBase's `realIP()`, which trusts no forwarding header by default. Behind the reverse proxy (deployment plan) every request would come from the proxy's IP, which turns the pair into "per account" (anyone could then lock an account for everyone) unless PocketBase is told to trust the proxy's `X-Forwarded-For` header (the `trustedProxy` setting: dashboard Settings, Application, user IP proxy headers). The deployment guide must do this.
-- **Blocking an account:** when the admin sets `user_status.blocked`, a sign-in **with the right password** is refused with 403 "Your account is blocked: <reason>". A wrong password gets the ordinary failure, so the reason is shown only to someone who knows the password. Token refreshes are refused too. Ending the sessions a blocked account already has is Task 5.
-- **Lockdown:** when the admin sets `system_access.lockdown`, every app sign-in is refused with 403 and `lockdown_message` (or "Sign-in is temporarily unavailable." when it is empty). The admin (superuser) still signs in to the dashboard.
+- **Blocking an account:** when the admin sets `user_status.blocked`, a sign-in **with the right password** is refused with 403 "Your account is blocked: <reason>". A wrong password gets the ordinary failure, so the reason is shown only to someone who knows the password. Token refreshes are refused too, and the block ends the sessions the account already has at once ([admin-controls.pb.js](../backend/pb_hooks/admin-controls.pb.js), which renews the account's token key).
+- **Lockdown:** when the admin sets `system_access.lockdown`, every app sign-in is refused with 403 and `lockdown_message` (or "Sign-in is temporarily unavailable." when it is empty). The admin (superuser) still signs in to the dashboard. A lockdown does not end sessions that already exist (they can still be renewed); signing everyone out (section 9, control 2) does.
 - Sign-ins, failures and lockouts are written to the security log (section 8) with the email as typed and the IP.
 - Password resets and verification go out by a free SMTP account (for example Gmail with an app password), set in the PocketBase dashboard. The mail credentials are secrets (see section 6). The step-by-step SMTP guide arrives with the deployment plan; until mail is set up, verification and reset mails are not sent.
 - Emails are private to everyone except the admin. An app user cannot make their own email public: the sign-up hook keeps each account's `emailVisibility` false at sign-up and on every edit (only the admin can change it). Team owners can invite by email and learn only whether an account exists; the invitee must accept. **Accepted risk:** this lets a signed-in owner discover which emails are registered. Limited by a rate limit on invites and a log entry per attempt.
@@ -77,20 +77,105 @@ KWNTO is an **internal tool** for now. Some risks are knowingly accepted for tha
 - **Security log (`security_events`, admin only):** sign-ins, failed attempts and lockouts, password resets, invite attempts, sign-up and verification, admin changes. PocketBase's request logs in the dashboard add raw web requests; logs can also go to a file. Retention is an admin setting (default 365 days).
 - **Not in the MVP:** a log of who did what on projects, with old and new values, and the History panel and restore points built on it. Until then, edits are not recorded.
 
-## 9. If you suspect a compromise
+## 9. If you suspect a compromise: the incident runbook
 
-The admin has these controls (design section 7c). The builder documents each as a step-by-step runbook here **(planned)**:
+The admin's controls (design section 7c), one step-by-step entry each. Dashboard steps happen in the PocketBase dashboard (`/_/` on the backend's private address, signed in as the admin). Every change you make through these controls is written to the security log as an `admin` entry (section 8), so the log also shows what you did and when.
 
-1. **Sign one account out** of all sessions (likely rotating that user's token key **(confirm)**).
-2. **Sign everyone out** (likely rotating the collection's signing secret **(confirm)**).
-3. **Block an account** from signing in, with a message explaining why (`user_status`).
-4. **Lockdown:** refuse all sign-ins with a message (`system_access.lockdown`); the admin dashboard keeps working.
-5. **Close sign-up** (`registration_open`).
-6. **Revoke all share links.**
-7. **Reset a password by hand.**
-8. **Restore from a backup.**
+**Which control when:**
 
-Then read the security log and PocketBase request logs to find out what happened.
+| Situation | Do |
+|---|---|
+| One account is in the wrong hands | 3 (block) at once; then 7 (new password) and unblock once the owner is reached. 1 alone is not enough: whoever has the password signs in again. |
+| You want one person to sign in again (lost laptop, shared computer) | 1 |
+| Many accounts or the server itself may be affected | 4 (lockdown), then 2 (everyone out); investigate; undo 4 |
+| Spam or unwanted sign-ups | 5 |
+| Password guessing (many `failure` entries for one email, often from many IPs) | Turn on PocketBase's rate limiter (section 3, "parallel guesses"), check the trusted proxy setting (section 3), and if one account is targeted, 3 until it is safe |
+| A share link leaked | 6 |
+| Data lost or damaged | 8 |
+
+### Before you start: the admin token (for controls 1 and 2)
+
+Controls 1 and 2 are server routes under `/api/kwnto/admin/`, which only the admin may call (anyone else gets 401 or 403). Call them from a terminal that reaches the backend's private address. First get an admin token; the password is read without echo and kept out of the shell history:
+
+```sh
+PB=http://127.0.0.1:8090   # the backend's private address (local dev: this one)
+read -r -p 'Admin email: ' ADMIN_EMAIL
+read -r -s -p 'Admin password: ' ADMIN_PASSWORD; echo
+TOKEN=$(curl -s -X POST "$PB/api/collections/_superusers/auth-with-password" \
+  -H 'Content-Type: application/json' \
+  -d "{\"identity\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}" \
+  | sed -E 's/.*"token":"([^"]+)".*/\1/')
+unset ADMIN_PASSWORD
+echo "${TOKEN:0:3}"        # prints eyJ when the sign-in worked
+```
+
+If it prints anything other than `eyJ`, the email or password was wrong (or the password contains a `"`; then sign in with the dashboard to check it). The token is valid for a while; repeat these lines when a call answers 401.
+
+### 1. Sign one account out
+
+- **When:** a person's session may be open somewhere it should not be (lost device, shared computer). It ends every session of that account at once; it does not stop a new sign-in with the password.
+- **Steps:** in the dashboard open Collections, `users`, type the email in the search box (Enter), and copy the account's `id` (the first column). Then, with `$TOKEN` from above:
+
+  ```sh
+  curl -i -X POST "$PB/api/kwnto/admin/users/USER_ID/sign-out" -H "Authorization: $TOKEN"
+  ```
+
+- **Confirm:** the answer is `HTTP/1.1 204 No Content`. A 404 "No account with this id." means a wrong id; any other error means nothing was ended. In Collections, `security_events`, the newest entry is `admin` with `detail.action` `sign-out-user` and that `user`. The person's app asks them to sign in again.
+- **Undo:** nothing to undo; the person signs in again with their password.
+
+### 2. Sign everyone out
+
+- **When:** you cannot tell which accounts are affected, or after a lockdown (control 4) to end the sessions it leaves open. It ends every app session at once. Your dashboard session is not affected.
+- **Steps:** with `$TOKEN` from above:
+
+  ```sh
+  curl -i -X POST "$PB/api/kwnto/admin/sign-out-all" -H "Authorization: $TOKEN"
+  ```
+
+- **Confirm:** `HTTP/1.1 204 No Content`, and a newest `security_events` entry `admin` with `detail.action` `sign-out-all`. Your dashboard still works.
+- **Undo:** nothing to undo; people sign in again with their passwords (unless a lockdown is on).
+
+### 3. Block an account
+
+- **When:** an account is misused or in the wrong hands. A block ends the account's sessions at once and refuses every sign-in and session renewal, telling the person why after they type the right password. Their work stays visible to their teammates (design 7c).
+- **Steps:** in the dashboard open Collections, `user_status`, and type `user.email = "someone@example.com"` in the search box (Enter). Open the one row, turn on `blocked`, write `blocked_reason` (the person reads it after "Your account is blocked: "), optionally set `blocked_at` to now for your records, and press **Save changes**.
+- **Confirm:** the dashboard says "Successfully updated user_status ...". Collections, `security_events` shows an `admin` entry with `detail.action` `block` (and one with `settings` listing the changed fields). A sign-in to that account with the right password is refused with "Your account is blocked: <reason>." If saving instead shows "The account is blocked, but its sessions could not be ended", the block is in place but old sessions may still work: do control 1 for that account.
+- **Undo:** open the same row, turn `blocked` off, **Save changes**. The person can sign in again; their old sessions stay ended.
+
+### 4. Lockdown
+
+- **When:** something is wrong system-wide and nobody should use the app until you know more. Every app sign-in is refused with your message. The dashboard keeps working.
+- **Steps:** in the dashboard open Collections, `system_access`, open its only record, turn on `lockdown`, write `lockdown_message` (for example "KWNTO is closed for maintenance until 14:00"; empty shows "Sign-in is temporarily unavailable."), and press **Save changes**.
+- **A lockdown does not end existing sessions:** people already signed in keep working and can renew their session. To end them, do control 2 right after the lockdown is on (in this order, so nobody can sign back in between).
+- **Confirm:** an app sign-in is refused with your message (status 403); `security_events` has an `admin` entry with `detail.action` `settings`, `detail.collection` `system_access` and `lockdown` changed from `false` to `true`.
+- **Undo:** turn `lockdown` off and **Save changes**. People sign in again.
+
+### 5. Close sign-up
+
+- **When:** unwanted accounts are being created (spam, an open address found by strangers). Existing accounts are not affected, and you can still add accounts yourself in the dashboard.
+- **Steps:** in the dashboard open Collections, `system_access`, open its only record, turn off `registration_open`, and press **Save changes**.
+- **Confirm:** a sign-up is refused with "Sign-up is closed." (status 403); `security_events` has a `settings` entry with `registration_open` changed from `true` to `false`. Unwanted accounts already made: block them (control 3) or delete them in Collections, `users`.
+- **Undo:** turn `registration_open` back on and **Save changes**.
+
+### 6. Revoke all share links (arrives with plan 7)
+
+Share links do not exist yet (decision D9). This entry is written when the `share_links` collection is built (Roadmap plan 7).
+
+### 7. Reset a password by hand
+
+- **When:** a person cannot use the reset email (mail is not set up, or their mailbox is the problem), or their password may be known to someone else. Until mail is set up (section 3), a reset request still answers as usual but no mail goes out; the server's Logs show "Failed to send password reset email".
+- **Steps:** in the dashboard open Collections, `users`, type the email in the search box (Enter) and open the account. Turn on **change password**, type the new password in both fields, and press **Save changes**. The password rules (section 3) apply to you too: at least 10 characters, a letter and a number, not a common password; a weak one is refused with the rule and nothing changes. Give the person the new password by a channel other than that account's email, and ask them to change it.
+- **Confirm:** the dashboard says "Successfully updated users ...", and the person signs in with the new password. Changing the password also ends the account's existing sessions. This change is not in the security log; the dashboard's Logs show the request.
+- **Undo:** set another password the same way.
+- **Not for app accounts:** the `pocketbase superuser upsert` command in [backend.md](developer/backend.md#how-the-admin-is-created) resets an **admin** (dashboard) password only; it does not touch app accounts.
+
+### 8. Restore from a backup (arrives with the deployment plan)
+
+Scheduled backups and the restore procedure are built and tested by the deployment plan (section 7). This entry is written then.
+
+### Afterwards
+
+Read the security log (Collections, `security_events`, newest first; filter for example `detail.identity = "someone@example.com"` or `type = "failure"`) and PocketBase's request logs (Logs) to find out what happened. Write down what you did and why.
 
 ## 10. Accepted risks and what to revisit before going public
 

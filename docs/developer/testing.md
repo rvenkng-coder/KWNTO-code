@@ -39,6 +39,8 @@ Every rule test request comes from one IP (PocketBase sees the Docker gateway), 
 
 Some paths cannot be driven automatically because their token arrives by mail: confirming an email address and confirming a password reset. They are checked by hand (Task 5 runbook walk); see `.planning/2026-11-12-accounts-teams/findings.md` for the probe that checked them.
 - `asUser(user: TestUser)`: Returns a PocketBase instance authenticated as the given test user.
+- `rawSend(token, path, init?)`: a plain HTTP call to the test backend with the given token, or with none when `token` is `undefined` (a signed-out caller). `init` is `{ method?, body? }`; a body is sent as JSON. Use it for custom routes and to try an old session token after it was ended (`admin-controls.rules.test.ts`).
+- `adminSend(path, init?)`: the same call as the admin.
 
 ### Admin-only collections (`tests/rules/helpers/admin-only.ts`)
 Collections only the admin may touch (the `system_*` settings and `security_events`) share one set of checks:

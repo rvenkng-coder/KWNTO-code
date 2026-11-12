@@ -15,7 +15,8 @@
     "check:docs": "node scripts/check-doc-links.ts",
     "lint": "eslint . && node scripts/check-perf-comments.ts && npm run check:docs",
     "test:rules": "node scripts/with-pocketbase.ts vitest run --project rules",
-    "test": "npm run lint && npm run typecheck && npm run test:unit && npm run test:container && npm run test:rules"
+    "test": "npm run lint && npm run typecheck && npm run test:unit && npm run test:container && npm run test:rules",
+    "prepare": "git config core.hooksPath .githooks"
   },
   "dependencies": {
     "@xyflow/react": "^12.12.1",

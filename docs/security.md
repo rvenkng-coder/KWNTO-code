@@ -95,21 +95,23 @@ The admin's controls (design section 7c), one step-by-step entry each. Dashboard
 
 ### Before you start: the admin token (for controls 1 and 2)
 
-Controls 1 and 2 are server routes under `/api/kwnto/admin/`, which only the admin may call (anyone else gets 401 or 403). Call them from a terminal that reaches the backend's private address. First get an admin token; the password is read without echo and kept out of the shell history:
+Controls 1 and 2 are server routes under `/api/kwnto/admin/`, which only the admin may call (anyone else gets 401 or 403). Call them from a bash terminal that reaches the backend's private address. First get an admin token:
 
 ```sh
 PB=http://127.0.0.1:8090   # the backend's private address (local dev: this one)
 read -r -p 'Admin email: ' ADMIN_EMAIL
 read -r -s -p 'Admin password: ' ADMIN_PASSWORD; echo
-TOKEN=$(curl -s -X POST "$PB/api/collections/_superusers/auth-with-password" \
-  -H 'Content-Type: application/json' \
-  -d "{\"identity\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}" \
+TOKEN=$(printf '{"identity":"%s","password":"%s"}' "$ADMIN_EMAIL" "$ADMIN_PASSWORD" \
+  | curl -s -X POST "$PB/api/collections/_superusers/auth-with-password" \
+      -H 'Content-Type: application/json' --data-binary @- \
   | sed -E 's/.*"token":"([^"]+)".*/\1/')
 unset ADMIN_PASSWORD
 echo "${TOKEN:0:3}"        # prints eyJ when the sign-in worked
 ```
 
-If it prints anything other than `eyJ`, the email or password was wrong (or the password contains a `"`; then sign in with the dashboard to check it). The token is valid for a while; repeat these lines when a call answers 401.
+If it prints anything other than `eyJ`, the email or password was wrong. **A password containing `"` or `\`:** the lines above put it into JSON as typed, so at the prompt type a `\` before each `"` and each `\` (for `pa"ss\1` type `pa\"ss\\1`). The token is valid for a while; repeat these lines when a call answers 401.
+
+**What these commands protect:** the password and the token reach `curl` on its standard input (through `printf`, a shell builtin), never as command arguments, so other users of the same machine cannot read them in the process list (`ps`). They do not protect against someone with access to your shell session: the token stays in the `TOKEN` variable (close the terminal or `unset TOKEN` when done), and anything printed stays in the terminal's scrollback.
 
 ### 1. Sign one account out
 
@@ -117,7 +119,8 @@ If it prints anything other than `eyJ`, the email or password was wrong (or the 
 - **Steps:** in the dashboard open Collections, `users`, type the email in the search box (Enter), and copy the account's `id` (the first column). Then, with `$TOKEN` from above:
 
   ```sh
-  curl -i -X POST "$PB/api/kwnto/admin/users/USER_ID/sign-out" -H "Authorization: $TOKEN"
+  printf 'header = "Authorization: %s"\n' "$TOKEN" \
+    | curl -s -i -X POST "$PB/api/kwnto/admin/users/USER_ID/sign-out" --config -
   ```
 
 - **Confirm:** the answer is `HTTP/1.1 204 No Content`. A 404 "No account with this id." means a wrong id; any other error means nothing was ended. In Collections, `security_events`, the newest entry is `admin` with `detail.action` `sign-out-user` and that `user`. The person's app asks them to sign in again.
@@ -129,7 +132,8 @@ If it prints anything other than `eyJ`, the email or password was wrong (or the 
 - **Steps:** with `$TOKEN` from above:
 
   ```sh
-  curl -i -X POST "$PB/api/kwnto/admin/sign-out-all" -H "Authorization: $TOKEN"
+  printf 'header = "Authorization: %s"\n' "$TOKEN" \
+    | curl -s -i -X POST "$PB/api/kwnto/admin/sign-out-all" --config -
   ```
 
 - **Confirm:** `HTTP/1.1 204 No Content`, and a newest `security_events` entry `admin` with `detail.action` `sign-out-all`. Your dashboard still works.

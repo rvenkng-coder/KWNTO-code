@@ -19,3 +19,4 @@
 | 2026-11-13 | Task 5 | Reviewer passed (after one fix round: runbook secrets out of curl argv); status set to done | Task 6: teams, members and team settings |
 | 2026-11-13 | Task 6, checkpoint 6A: join code generator | test:unit 61/61 (5 new join-code tests; RED was "cannot find module"), lint, typecheck green | Checkpoint 6B: teams, members and team settings |
 | 2026-11-13 | Task 6, checkpoint 6B: teams, members and team settings | 27 new rule tests failed first (no collections); npm test exit 0 (unit 61, container 5, rules 102, e2e 2); 10 rule/hook mutations each caught; forced-failure rollback probed (details in findings.md, Task 6) | Review of Task 6 |
+| 2026-11-13 | Task 6 | Reviewer passed (no fix round); status set to done | Task 7: join by code |

@@ -31,13 +31,13 @@ generateJoinCode(randomIndex /* (n: number) => number */) // -> string of 8 char
 
 ## Checkpoint 6A: Join code generation
 
-- [ ] **Step 1: Write the failing unit test** `tests/hooks/join-code.unit.test.ts`. Header comment: protects design 5 (join code) and decision D1 (8 characters, no look-alike letters).
+- [x] **Step 1: Write the failing unit test** `tests/hooks/join-code.unit.test.ts`. Header comment: protects design 5 (join code) and decision D1 (8 characters, no look-alike letters).
   - with `randomIndex = () => 0` the code is `'AAAAAAAA'`; with `n => n - 1` it is `'99999999'` (the alphabet ends in `9`).
   - the code always has length 8 and only characters from the alphabet, over 1,000 calls with a pseudo-random `randomIndex`.
   - the alphabet has 32 distinct characters and contains none of `0`, `O`, `1`, `I`.
   - `randomIndex` is called with `32` each time.
-- [ ] **Step 2: Run** `npm run test:unit`. Expected: FAIL. **Step 3: Implement `lib/join-code.js`.** Run again; expected: PASS.
-- [ ] **Close checkpoint 6A.** Verify: Step 3 passed. Commit: `feat: join code generator`.
+- [x] **Step 2: Run** `npm run test:unit`. Expected: FAIL. **Step 3: Implement `lib/join-code.js`.** Run again; expected: PASS.
+- [x] **Close checkpoint 6A.** Verify: Step 3 passed. Commit: `feat: join code generator`.
 
 ## Checkpoint 6B: The three collections and their rules
 

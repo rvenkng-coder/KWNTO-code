@@ -19,6 +19,10 @@ export const rulesConfig = mergeConfig(base, defineConfig({
     include: ['tests/rules/**/*.test.ts'],
     exclude: ['tests/rules/**/*.unit.test.ts'],
     globalSetup: 'tests/rules/global-setup.ts',
+    // Rule tests change global settings (registration_open, retention, later lockdown
+    // and rate limits) and restore them afterwards; that is only safe when one file
+    // runs at a time against the shared test backend.
+    fileParallelism: false,
   },
 }))
 

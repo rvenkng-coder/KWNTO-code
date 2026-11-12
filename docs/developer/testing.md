@@ -30,7 +30,12 @@ The test harness provides authenticated and anonymous PocketBase clients:
 - `PB_URL`: Target PocketBase URL (`process.env.KWNTO_PB_URL ?? 'http://127.0.0.1:8091'`).
 - `asAnonymous()`: Returns an unauthenticated PocketBase instance.
 - `asAdmin()`: Returns a superuser-authenticated PocketBase instance (credentials from `compose.test.yaml`).
-- `createUser(options?: { verified?: boolean })`: Creates a test user with a random UUID email (`user-<uuid>@example.test`) and default password `Test-password-1234`. Returns `{ id, email, password }`.
+- `createUser(options?: { verified?: boolean })`: Creates a test user with a random UUID email (`user-<uuid>@example.test`) and default password `Test-password-1234`. Returns `{ id, email, password }`. It uses the admin API, so the user is **verified by default** and the sign-up rules (closed registration, forced `verified: false`) do not apply. Use it whenever a test needs a ready account, including a verified one.
+- `signUp(email, password, extra?)`: Creates a user through the public sign-up, the same door a visitor uses, so the sign-up hook applies: the account is **not verified**, and a closed registration or a weak password refuses it. Returns `{ id }`. Use it only to test sign-up itself.
+
+Rule test files run **one at a time** (`fileParallelism: false` in `vitest.config.ts`), because some tests change global settings (`registration_open`, `security_retention_days`) and restore them in `afterEach`. Tests inside a file also run in order. A test that changes a setting must restore it.
+
+Some paths cannot be driven automatically because their token arrives by mail: confirming an email address and confirming a password reset. They are checked by hand (Task 5 runbook walk); see `.planning/2026-11-12-accounts-teams/findings.md` for the probe that checked them.
 - `asUser(user: TestUser)`: Returns a PocketBase instance authenticated as the given test user.
 
 ### Admin-only collections (`tests/rules/helpers/admin-only.ts`)

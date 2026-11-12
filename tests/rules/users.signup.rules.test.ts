@@ -1,0 +1,142 @@
+import crypto from 'node:crypto'
+import type PocketBase from 'pocketbase'
+import { afterEach, expect, test } from 'vitest'
+import { asAdmin, asAnonymous, asUser, createUser, signUp } from './helpers/pb.ts'
+
+// Sign-up, the verified flag and the password rules (design 7c, docs/security.md
+// section 3). An extra file next to users.rules.test.ts: the coverage check needs only
+// that one, these pin the users-signup hook and the 1794360300 password migration.
+// Rule files run one at a time (vitest.config.ts), so changing registration_open here
+// cannot disturb another file.
+
+const GOOD_PASSWORD = 'Signup-password-2468'
+
+type Failure = { status: number; message: string; data: Record<string, { code?: string; message?: string }> }
+
+function newEmail(): string {
+  return `signup-${crypto.randomUUID()}@example.test`
+}
+
+// The PocketBase error of a refused request, or a test failure if it was allowed.
+async function failureOf(request: Promise<unknown>): Promise<Failure> {
+  const error: unknown = await request.then(() => null, (e: unknown) => e)
+  expect(error, 'the request was allowed').not.toBeNull()
+  const { status, response } = error as { status: number; response: { message: string; data: Failure['data'] } }
+  return { status, message: response.message, data: response.data }
+}
+
+async function setRegistrationOpen(open: boolean): Promise<void> {
+  const admin = await asAdmin()
+  const record = await admin.collection('system_access').getFirstListItem('')
+  await admin.collection('system_access').update(record.id, { registration_open: open })
+}
+
+async function signupEvents(admin: PocketBase, userId?: string): Promise<number> {
+  const filter = userId
+    ? admin.filter('type = "signup" && user = {:user}', { user: userId })
+    : 'type = "signup"'
+  return (await admin.collection('security_events').getList(1, 1, { filter })).totalItems
+}
+
+afterEach(async () => {
+  await setRegistrationOpen(true)
+})
+
+// Protects design 7c: anyone may sign up, and a new account starts unverified, so the
+// verified-only actions (teams, uploads, sign-in share links) wait for the email check.
+test('sign-up with a good password succeeds and the account is not verified', async () => {
+  const { id } = await signUp(newEmail(), GOOD_PASSWORD)
+  const stored = await (await asAdmin()).collection('users').getOne(id)
+  expect(stored.verified).toBe(false)
+})
+
+// Protects Review Focus 1: a visitor who sends `verified: true` must not skip the email
+// check. Refusing the request and storing `false` are both safe; the stored value is
+// what matters, read as the admin.
+test('a sign-up that sends verified: true does not get a verified account', async () => {
+  const email = newEmail()
+  const outcome = await signUp(email, GOOD_PASSWORD, { verified: true }).catch((e: unknown) => e)
+  const admin = await asAdmin()
+  if (outcome instanceof Error) {
+    expect([400, 403]).toContain((outcome as { status?: number }).status)
+    const made = await admin.collection('users').getList(1, 1, { filter: admin.filter('email = {:email}', { email }) })
+    expect(made.totalItems).toBe(0)
+    return
+  }
+  expect((await admin.collection('users').getOne(outcome.id)).verified).toBe(false)
+})
+
+// Protects docs/security.md section 3 on sign-up: the hook's rules, with its message,
+// not only PocketBase's own length check.
+test('sign-up with a short or common password is refused with the rule message', async () => {
+  const short = await failureOf(signUp(newEmail(), 'short1'))
+  expect(short.status).toBe(400)
+  expect(short.message).toBe('Use at least 10 characters.')
+  expect(short.data.password?.message).toBe('Use at least 10 characters.')
+
+  const common = await failureOf(signUp(newEmail(), 'Password123'))
+  expect(common.status).toBe(400)
+  expect(common.message).toBe('That password is too common.')
+})
+
+// Protects Review Focus 2: the password rules hold when a signed-in user changes their
+// password, not only at sign-up.
+test('a password change must follow the password rules', async () => {
+  const user = await createUser()
+  const pb = await asUser(user)
+  const change = (password: string) => pb.collection('users').update(user.id, {
+    oldPassword: user.password,
+    password,
+    passwordConfirm: password,
+  })
+
+  const short = await failureOf(change('short1'))
+  expect(short.status).toBe(400)
+  expect(short.message).toBe('Use at least 10 characters.')
+
+  const common = await failureOf(change('Password123'))
+  expect(common.status).toBe(400)
+  expect(common.message).toBe('That password is too common.')
+
+  await change(GOOD_PASSWORD)
+  await asUser({ ...user, password: GOOD_PASSWORD })
+})
+
+// Protects design 7c and docs/security.md section 9 step 5: the admin can close sign-up;
+// people who already have an account keep signing in, and the admin can still add one.
+test('with registration closed, sign-up is refused but existing users still sign in', async () => {
+  const existing = await createUser()
+  await setRegistrationOpen(false)
+
+  const refused = await failureOf(signUp(newEmail(), GOOD_PASSWORD))
+  expect(refused.status).toBe(403)
+  expect(refused.message).toBe('Sign-up is closed.')
+
+  await asUser(existing)
+  await asUser(await createUser())
+})
+
+// Protects docs/security.md section 8: every sign-up is in the security log, and a
+// refused attempt does not leave an entry that looks like an account was made.
+test('a successful sign-up writes one signup event; a refused one writes none', async () => {
+  const admin = await asAdmin()
+  const { id } = await signUp(newEmail(), GOOD_PASSWORD)
+  expect(await signupEvents(admin, id)).toBe(1)
+
+  const before = await signupEvents(admin)
+  await failureOf(signUp(newEmail(), 'short1'))
+  await setRegistrationOpen(false)
+  await failureOf(signUp(newEmail(), GOOD_PASSWORD))
+  expect(await signupEvents(admin)).toBe(before)
+})
+
+// Protects deny by default: the only public rule on users is still the open create
+// (also checked by coverage.rules.test.ts), so a signed-out visitor cannot read accounts.
+test('users.createRule is the only public users rule', async () => {
+  const users = await (await asAdmin()).collections.getOne('users')
+  expect(users.createRule).toBe('')
+  for (const rule of [users.listRule, users.viewRule, users.updateRule, users.deleteRule]) {
+    expect(rule).not.toBe('')
+  }
+  expect((await asAnonymous().collection('users').getList(1, 1)).totalItems).toBe(0)
+})

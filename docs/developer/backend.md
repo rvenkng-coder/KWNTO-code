@@ -22,8 +22,8 @@ Behaviour that access rules cannot express lives in JavaScript hooks in `backend
 
 | Path | What goes there |
 |---|---|
-| `backend/pb_hooks/*.pb.js` | Thin hooks, routes and scheduled jobs, for example [retention.pb.js](../../backend/pb_hooks/retention.pb.js) (the daily `purge_security_events` job) and [users-defaults.pb.js](../../backend/pb_hooks/users-defaults.pb.js) (gives each new account its per-user rows). |
-| `backend/pb_hooks/lib/*.js` | Shared helpers: [settings.js](../../backend/pb_hooks/lib/settings.js) reads the system settings, [security-log.js](../../backend/pb_hooks/lib/security-log.js) writes the security log, [retention.js](../../backend/pb_hooks/lib/retention.js) computes purge cut-offs, [user-records.js](../../backend/pb_hooks/lib/user-records.js) creates an account's missing per-user rows (`ensureUserRecords`). |
+| `backend/pb_hooks/*.pb.js` | Thin hooks, routes and scheduled jobs, for example [retention.pb.js](../../backend/pb_hooks/retention.pb.js) (the daily `purge_security_events` job), [users-defaults.pb.js](../../backend/pb_hooks/users-defaults.pb.js) (gives each new account its per-user rows) and [users-signup.pb.js](../../backend/pb_hooks/users-signup.pb.js) (closed registration, the verified flag at sign-up, the password rules on sign-up, change and reset, and the `signup`, `verification` and `reset` log entries). |
+| `backend/pb_hooks/lib/*.js` | Shared helpers: [settings.js](../../backend/pb_hooks/lib/settings.js) reads the system settings, [security-log.js](../../backend/pb_hooks/lib/security-log.js) writes the security log, [retention.js](../../backend/pb_hooks/lib/retention.js) computes purge cut-offs, [user-records.js](../../backend/pb_hooks/lib/user-records.js) creates an account's missing per-user rows (`ensureUserRecords`), [password-rules.js](../../backend/pb_hooks/lib/password-rules.js) checks a new password (`checkPassword`) against the list in [common-passwords.js](../../backend/pb_hooks/lib/common-passwords.js). |
 
 Rules for this code:
 
@@ -31,7 +31,7 @@ Rules for this code:
 - **`lib/` is CommonJS** (`module.exports`), so the same file runs in PocketBase and in Vitest. [backend/pb_hooks/package.json](../../backend/pb_hooks/package.json) says `"type": "commonjs"` because the project root is an ES module package; without it, Node refuses `module.exports` in these files.
 - **Keep decisions pure and test them** in `tests/hooks/<name>.unit.test.ts` (part of `npm run test:unit`). Tests load a helper with `createRequire(import.meta.url)`. Where a helper needs a PocketBase global such as `Record`, the test provides a small fake (see `tests/hooks/security-log.unit.test.ts`).
 - Settings are read at run time with `getSystemAccess($app)` and `getSystemBehavior($app)`, never copied into code. They throw if a settings record is missing, because that is a broken install. The tables and their defaults are described in [docs/admin/settings.md](../admin/settings.md).
-- Write security events with `logEvent($app, type, userId, ip, detail)`. It never throws, so it is safe on a sign-in path.
+- Write security events with `logEvent($app, type, userId, ip, detail)`. It never throws, so it is safe on a sign-in path. Inside a hook handler, pass the event's app (`logEvent(e.app, ...)`), not the global `$app`: the handler may run inside a transaction, and a write through `$app` would wait on the transaction's database lock until SQLite's busy timeout.
 
 ## Tests and the test backend
 

@@ -21,11 +21,11 @@ KWNTO is an **internal tool** for now. Some risks are knowingly accepted for tha
 
 ## 3. Accounts and sign-in
 
-- Email and password. Anyone can sign up; **email verification is required** before creating or joining teams, uploading media, or using sign-in share links.
-- **Password rules (proposal, planned):** at least 10 characters with a letter and a number; very common passwords rejected.
+- Email and password. Anyone can sign up while `registration_open` is on (otherwise sign-up is refused with "Sign-up is closed."; the admin can still add accounts). A new account is **not verified**, even if the sign-up request says `verified: true`. **Email verification is required** before creating or joining teams, uploading media, or using sign-in share links: the access rules for those actions check `@request.auth.verified = true` (built with teams, uploads and share links).
+- **Password rules:** at least 10 characters, at least one letter and one number (any alphabet), and not one of about 200 very common passwords (compared ignoring case; the list is [common-passwords.js](../backend/pb_hooks/lib/common-passwords.js)). Spaces are allowed. The rules are [checkPassword](../backend/pb_hooks/lib/password-rules.js), applied by [users-signup.pb.js](../backend/pb_hooks/users-signup.pb.js) on every request that sets a password: sign-up, password change and password reset, also when the admin sets one. The `users` password field's own minimum is 10 as well ([1794360300_users_password_policy.js](../backend/pb_migrations/1794360300_users_password_policy.js)), so PocketBase keeps the length rule even without the hook. Sign-up and change are pinned by rule tests; reset is checked by hand (its token arrives by mail).
 - **Hashing:** a deliberately slow hash. PocketBase uses bcrypt, to my knowledge **(confirm algorithm and cost)**. Do not swap it unless the check finds a weak setting.
 - **Failed sign-ins:** after 3 failures, "try again after 5 minutes". Count per account and IP together where possible. Both numbers are admin settings.
-- Password resets and verification go out by a free SMTP account (for example Gmail with an app password), set in the PocketBase dashboard. The mail credentials are secrets (see section 6).
+- Password resets and verification go out by a free SMTP account (for example Gmail with an app password), set in the PocketBase dashboard. The mail credentials are secrets (see section 6). The step-by-step SMTP guide arrives with the deployment plan; until mail is set up, verification and reset mails are not sent.
 - Emails are private to everyone except the admin. Team owners can invite by email and learn only whether an account exists; the invitee must accept. **Accepted risk:** this lets a signed-in owner discover which emails are registered. Limited by a rate limit on invites and a log entry per attempt.
 
 ## 4. Uploads

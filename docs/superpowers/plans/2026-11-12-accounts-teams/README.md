@@ -75,7 +75,7 @@ These are my calls where the spec is silent. Say so if any is wrong; each is che
 |---|---|---|---|---|---|
 | 1 | [System settings tables and the security log](task-1-settings-and-log.md) | strong | none | 1A 1B | awaiting review |
 | 2 | [Per-user records](task-2-user-records.md) | strong | 1 | 2A | awaiting review |
-| 3 | [Sign-up, verification and password rules](task-3-signup-passwords.md) | strong | 1, 2 | 3A 3B | in progress |
+| 3 | [Sign-up, verification and password rules](task-3-signup-passwords.md) | strong | 1, 2 | 3A 3B | awaiting review |
 | 4 | [Sign-in protection: lockout, block, lockdown](task-4-signin-protection.md) | strong | 1, 2 | 4A 4B | not started |
 | 5 | [Incident controls and the runbook](task-5-incident-controls.md) | strong | 4 | 5A 5B | not started |
 | 6 | [Teams, members and team settings](task-6-teams.md) | strong | 3 | 6A 6B | not started |

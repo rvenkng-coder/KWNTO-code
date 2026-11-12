@@ -16,7 +16,7 @@ Everything an admin can tune lives in settings tables, edited in the PocketBase 
 
 | Field | Default | What it does | Used by |
 |---|---|---|---|
-| `registration_open` | `true` | When off, new people cannot sign up; existing accounts still sign in. | Task 3 |
+| `registration_open` | `true` | When off, new people cannot sign up (they see "Sign-up is closed."); existing accounts still sign in, and you can still add an account in the dashboard. | Task 3 |
 | `lockdown` | `false` | When on, every app sign-in is refused. The admin dashboard keeps working. | Task 4 |
 | `lockdown_message` | empty | The message shown to people refused during a lockdown. | Task 4 |
 
@@ -44,11 +44,11 @@ Everything an admin can tune lives in settings tables, edited in the PocketBase 
 
 ## The security log (`security_events`)
 
-The server records security-relevant events here: sign-ups and email verification, sign-ins, failed sign-ins and lockouts, password resets, invite and join attempts, and admin actions. Each entry has a `type`, the account involved (`user`, empty when there is none), the caller's `ip`, a `detail` object and the time it was `created`. Which events are written arrives with the tasks that build sign-up, sign-in, teams and invites.
+The server records security-relevant events here: sign-ups and email verification, sign-ins, failed sign-ins and lockouts, password resets, invite and join attempts, and admin actions. Each entry has a `type`, the account involved (`user`, empty when there is none), the caller's `ip`, a `detail` object and the time it was `created`. Which events are written arrives with the tasks that build sign-up, sign-in, teams and invites. So far: `signup` (a visitor created an account; accounts you add in the dashboard are not logged as sign-ups), `verification` (the first time an account confirms its email) and `reset` (a password was changed through the reset link).
 
 - **Who reads it:** only the admin, in the dashboard (Collections, `security_events`). Every access rule is locked, so no app user can read it, and no client can write to it: entries come only from the server.
 - **Deleting an account keeps its entries.** The `user` field is emptied; the entry stays.
-- **Retention:** a job named `purge_security_events` runs every day at 03:00 UTC and removes entries older than `security_retention_days` (default 365). Change that setting to keep entries for longer or shorter; the next run uses the new value. To purge at once, run the job from the dashboard (Settings, Crons).
+- **Retention:** a job named `purge_security_events` runs every day at 03:00 UTC and removes entries older than `security_retention_days` (default 365). Change that setting to keep entries for longer or shorter; the next run uses the new value. Setting it to `0` erases the whole log at the next 03:00 run. To purge at once, run the job from the dashboard (Settings, Crons).
 - A failure to write an entry never blocks the sign-in or join it describes; it is reported in the server output (`docker logs`) as `security log: could not record ...`.
 
 ## Per-user records

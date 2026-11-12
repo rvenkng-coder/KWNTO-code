@@ -27,3 +27,8 @@
 | 2026-11-12 | Task 5 | Review passed; rebased onto main, full `npm test` green (13 unit, 4 container, 4 rules) | Task 6: backend door and e2e harness |
 | 2026-11-12 | 6A | `npm run test:unit` 14 passed (new backend health test), `npm run lint` clean | 6B: end-to-end harness and status line |
 | 2026-11-12 | 6B | `npm test` full suite green (14 unit, 4 container, 4 rules, 2 e2e); manual dev check: `npm run dev` + `npm run dev:backend` shows "Backend: connected" | Task 6 complete; awaiting review |
+| 2026-11-12 | 7A | `check:docs` added to `lint`; 5 unit tests in `scripts/check-doc-links.test.ts`; `npm run check:docs` exits 0 (re-run in review) | 7B: gitleaks pre-commit hook |
+| 2026-11-12 | 7B | `.githooks/pre-commit` and `prepare` script added; Step 5b (fake-secret block proof) not recorded at the time, still to confirm | 7C: workflow and PR template |
+| 2026-11-12 | 7C | ci.yml, PR template, docs written; review fixed gitleaks-action pin (v5 -> v3, latest is v3.0.0), invalid `services:` blocks, redundant compose steps and duplicate push+PR runs; `npm test` green (full suite, 2 e2e passed) and `npm audit --audit-level=high` exit 0 (10 moderate only); workflow's first real run happens when the developer pushes | Task 7 review |
+| 2026-11-12 | 8A | `docs/developer/getting-started.md`; every npm script appears in it; `check:docs` clean | 8B: AGENTS.md, README, docs index |
+| 2026-11-12 | 8B | AGENTS.md 64 lines, README and docs index written; `check:docs` clean | Task 8 review |

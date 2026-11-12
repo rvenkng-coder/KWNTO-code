@@ -2,9 +2,8 @@ name: CI
 
 on:
   push:
-    branches: [main, '**']
-  pull_request:
     branches: [main]
+  pull_request:
 
 permissions:
   contents: read
@@ -25,30 +24,17 @@ jobs:
 
   backend:
     runs-on: ubuntu-latest
-    services:
-      docker:
-        container:
-          securityOpt: [seccomp:unconfined]
-        options: --privileged
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
       - run: npm ci
-      - run: docker compose -f compose.test.yaml up -d --wait
-        timeout-minutes: 5
       - run: npm run test:container
       - run: npm run test:rules
-      - run: docker compose -f compose.test.yaml down -v
 
   e2e:
     runs-on: ubuntu-latest
-    services:
-      docker:
-        container:
-          securityOpt: [seccomp:unconfined]
-        options: --privileged
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -56,10 +42,7 @@ jobs:
           node-version-file: .nvmrc
       - run: npm ci
       - run: npx playwright install --with-deps firefox chromium
-      - run: docker compose -f compose.test.yaml up -d --wait
-        timeout-minutes: 5
       - run: npm run test:e2e
-      - run: docker compose -f compose.test.yaml down -v
       - uses: actions/upload-artifact@v5
         if: failure()
         with:
@@ -69,10 +52,14 @@ jobs:
 
   secrets:
     runs-on: ubuntu-latest
+    # gitleaks-action lists the pull request's commits through the API on PR runs.
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v5
+      - uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

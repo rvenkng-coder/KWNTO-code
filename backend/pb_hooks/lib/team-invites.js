@@ -4,17 +4,21 @@
 // CommonJS so hooks can load it with require(`${__hooks}/lib/team-invites.js`).
 // Uses the PocketBase app and the global Record, so it is checked by the rule tests.
 
-// The users account with this email, or null. `email` is already trimmed and
-// lower-cased (lib/invite-email.js). PocketBase 0.40.6 stores an address as it was
-// typed at sign-up and app.findAuthRecordByEmail compares case-sensitively (it missed
-// an account stored as "Mixed-...@Example.TEST"; findings.md, Task 8), so the stored
-// address is lower-cased in the filter too. The email is a bound parameter.
-function findUserByEmail(app, email) {
-  if (email === "") {
+// The users account `typed` (trimmed, case as typed; lib/invite-email.js) names, or
+// null. PocketBase 0.40.6 stores an address as it was typed at sign-up and
+// app.findAuthRecordByEmail compares case-sensitively (it missed an account stored as
+// "Mixed-...@Example.TEST"; findings.md, Task 8), so the lookup ignores case on both
+// sides. Accounts may differ only in case, so up to two matches are read and
+// chooseAccountIndex picks one by a fixed rule, or none. The email is a bound parameter.
+function findUserByEmail(app, typed) {
+  const { chooseAccountIndex } = require(`${__hooks}/lib/invite-email.js`)
+
+  if (typed === "") {
     return null
   }
-  const rows = app.findRecordsByFilter("users", "email:lower = {:email}", "", 1, 0, { email })
-  return rows.length > 0 ? rows[0] : null
+  const rows = app.findRecordsByFilter("users", "email:lower = {:email}", "", 2, 0, { email: typed.toLowerCase() })
+  const index = chooseAccountIndex(rows.map((row) => row.getString("email")), typed)
+  return index === -1 ? null : rows[index]
 }
 
 function findRecordOrNull(app, collection, id) {

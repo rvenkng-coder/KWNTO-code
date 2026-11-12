@@ -33,7 +33,7 @@ onRecordCreate((e) => {
 // limit check on is one `invite` log entry, and counts toward the limit.
 routerAdd("POST", "/api/kwnto/teams/{id}/invites", (e) => {
   const { teamAttemptLimitReached } = require(`${__hooks}/lib/team-attempts.js`)
-  const { normalisedEmail, emailDomain } = require(`${__hooks}/lib/invite-email.js`)
+  const { typedEmail, normalisedEmail, emailDomain } = require(`${__hooks}/lib/invite-email.js`)
   const { logEvent } = require(`${__hooks}/lib/security-log.js`)
   const { findUserByEmail, findRecordOrNull, isMember, createInvite } = require(`${__hooks}/lib/team-invites.js`)
 
@@ -43,10 +43,11 @@ routerAdd("POST", "/api/kwnto/teams/{id}/invites", (e) => {
   const userId = e.auth.id
   const ip = e.realIP()
   const teamId = e.request.pathValue("id")
-  const email = normalisedEmail(e.requestInfo().body.email)
+  const typed = e.requestInfo().body.email
+  const email = typedEmail(typed)
   const team = findRecordOrNull(e.app, "teams", teamId)
   // The team is logged only when it exists, so the log never holds arbitrary path text.
-  const attempt = { emailDomain: emailDomain(email), team: team === null ? "" : teamId }
+  const attempt = { emailDomain: emailDomain(normalisedEmail(typed)), team: team === null ? "" : teamId }
   const log = (outcome) => logEvent(e.app, "invite", userId, ip, Object.assign({}, outcome, attempt))
 
   if (teamAttemptLimitReached(e.app, userId)) {

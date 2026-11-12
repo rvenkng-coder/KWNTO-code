@@ -112,6 +112,41 @@ test('invite: an unknown email gives 404 "That user doesn\'t exist."; letter cas
   expect(await invitesOf({ id: stored.id, email: mixed, password: '' })).toHaveLength(1)
 })
 
+// Review fix (Task 8): PocketBase 0.40.6 allows two accounts whose emails differ only in
+// letter case, so a case-insensitive lookup can match two people. The invite must go
+// to the exact address typed, never to whichever row comes first (someone who registers
+// a case variant of a real address must not capture that person's invites); a casing
+// that matches both and neither exactly gets the same 404 as an unknown email, so the
+// ambiguity is not revealed. Both accounts are made through the admin API.
+test('invite: with two accounts differing only in case, the exact address wins; a third casing is 404', async () => {
+  const uuid = crypto.randomUUID()
+  const password = 'Test-password-1234'
+  const admin = await asAdmin()
+  const lower = `dup-${uuid}@example.test`
+  const upper = `Dup-${uuid}@Example.test`
+  // Upper first, so a lookup that takes the first row would pick the wrong account.
+  const upperUser = await admin.collection('users').create({ email: upper, password, passwordConfirm: password, verified: true })
+  const lowerUser = await admin.collection('users').create({ email: lower, password, passwordConfirm: password, verified: true })
+  const asLower: TestUser = { id: lowerUser.id, email: lower, password }
+  const asUpper: TestUser = { id: upperUser.id, email: upper, password }
+
+  const first = await ownerWithTeam()
+  expect((await invite(first.owner, first.teamId, `  ${lower} `)).status).toBe(204)
+  expect(await invitesOf(asLower)).toHaveLength(1)
+  expect(await invitesOf(asUpper)).toHaveLength(0)
+
+  const second = await ownerWithTeam()
+  expect((await invite(second.owner, second.teamId, upper)).status).toBe(204)
+  expect(await invitesOf(asUpper)).toHaveLength(1)
+  expect(await invitesOf(asLower)).toHaveLength(1)
+
+  const third = await ownerWithTeam()
+  const ambiguous = await invite(third.owner, third.teamId, `DUP-${uuid}@EXAMPLE.TEST`)
+  expect(ambiguous.status).toBe(404)
+  expect(ambiguous.body?.message).toBe(NO_USER)
+  expect(await teamRows('team_invites', third.teamId)).toHaveLength(0)
+})
+
 // A missing or malformed email, or a filter-injection string, is just an email no
 // account has: the same 404, and no invite for anyone (the lookup binds the value).
 test('invite: missing, malformed and injected emails give the same 404 and invite nobody', async () => {

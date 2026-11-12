@@ -41,3 +41,26 @@ describe('emailDomain', () => {
     expect(emailDomain('')).toBe('')
   })
 })
+
+const { chooseAccountIndex } = require('../../backend/pb_hooks/lib/invite-email.js') as {
+  chooseAccountIndex: (storedEmails: string[], typed: string) => number
+}
+
+// Review fix (Task 8): accounts may differ only in letter case, so the lookup can match
+// two. The exact address typed wins; one match is used whatever its case; two matches
+// and no exact one is refused (-1), never a guess.
+describe('chooseAccountIndex', () => {
+  test('picks the stored address equal to the one typed, wherever it is', () => {
+    expect(chooseAccountIndex(['Dup@Example.test', 'dup@example.test'], 'dup@example.test')).toBe(1)
+    expect(chooseAccountIndex(['dup@example.test', 'Dup@Example.test'], 'Dup@Example.test')).toBe(1)
+  })
+
+  test('picks the only match whatever its case', () => {
+    expect(chooseAccountIndex(['Ivy@Example.TEST'], 'ivy@example.test')).toBe(0)
+  })
+
+  test('refuses two matches with no exact one, and no match at all', () => {
+    expect(chooseAccountIndex(['Dup@Example.test', 'dup@example.test'], 'DUP@EXAMPLE.TEST')).toBe(-1)
+    expect(chooseAccountIndex([], 'ivy@example.test')).toBe(-1)
+  })
+})

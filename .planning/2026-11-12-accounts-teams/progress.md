@@ -21,3 +21,4 @@
 | 2026-11-13 | Task 6, checkpoint 6B: teams, members and team settings | 27 new rule tests failed first (no collections); npm test exit 0 (unit 61, container 5, rules 102, e2e 2); 10 rule/hook mutations each caught; forced-failure rollback probed (details in findings.md, Task 6) | Review of Task 6 |
 | 2026-11-13 | Task 6 | Reviewer passed (no fix round); status set to done | Task 7: join by code |
 | 2026-11-13 | Task 7, checkpoint 7A: join a team by code | 6 rate-limit unit tests and 11 join rule tests failed first (no module; routes 404); npm test exit 0 (unit 67, container 5, rules 113, e2e 2); 11 single mutations each caught, race combinations recorded in findings.md | Review of Task 7 |
+| 2026-11-13 | Task 7 | Reviewer passed (no fix round); status set to done | Task 8: invite by email |

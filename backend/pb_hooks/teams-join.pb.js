@@ -13,8 +13,9 @@
 
 routerAdd("POST", "/api/kwnto/teams/join", (e) => {
   // Hook handlers run in isolated scopes, so helpers are loaded inside the handler.
-  const { getSystemBehavior } = require(`${__hooks}/lib/settings.js`)
-  const { isOverLimit } = require(`${__hooks}/lib/rate-limit.js`)
+  // The attempt counting moved to lib/team-attempts.js in Task 8, unchanged, so the
+  // invite route counts the shared limit (D3) exactly the same way.
+  const { teamAttemptLimitReached } = require(`${__hooks}/lib/team-attempts.js`)
   const { logEvent } = require(`${__hooks}/lib/security-log.js`)
 
   if (!e.auth.verified()) {
@@ -23,10 +24,7 @@ routerAdd("POST", "/api/kwnto/teams/join", (e) => {
   const userId = e.auth.id
   const ip = e.realIP()
 
-  const HOUR_MS = 60 * 60 * 1000
-  const nowMs = Date.now()
-  const limit = getSystemBehavior(e.app).teamAttemptsPerHour
-  if (isOverLimit(countedAttemptTimesMs(e.app, userId, nowMs - HOUR_MS), nowMs, HOUR_MS, limit)) {
+  if (teamAttemptLimitReached(e.app, userId)) {
     // Logged so the admin sees the guessing, but marked `limited` and left out of the
     // count, so hammering the route does not extend the limit: it ends an hour after
     // the attempts that caused it (like the sign-in lockout, docs/security.md section 3).
@@ -97,26 +95,6 @@ routerAdd("POST", "/api/kwnto/teams/join", (e) => {
   function membershipExists(app, teamId, userId) {
     const rows = app.findRecordsByFilter("team_members", "team = {:team} && user = {:user}", "", 1, 0, { team: teamId, user: userId })
     return rows.length > 0
-  }
-
-  // The times (ms) of the caller's join and invite attempts since `sinceMs` that count
-  // toward the limit: refusals by the limit itself (`detail.limited`) do not.
-  function countedAttemptTimesMs(app, userId, sinceMs) {
-    const rows = app.findRecordsByFilter(
-      "security_events",
-      "user = {:user} && (type = 'join' || type = 'invite') && created > {:since} && detail.limited != true",
-      "",
-      0,
-      0,
-      { user: userId, since: storedDateTime(sinceMs) },
-    )
-    return rows.map((record) => record.getDateTime("created").time().unixMilli())
-  }
-
-  // The datetime text PocketBase stores ("2026-11-12 08:30:00.000Z"); the filter compares
-  // text, so the ISO "T" separator would sort wrongly (as in users-signin.pb.js).
-  function storedDateTime(ms) {
-    return new Date(ms).toISOString().replace("T", " ")
   }
 }, $apis.requireAuth("users"))
 

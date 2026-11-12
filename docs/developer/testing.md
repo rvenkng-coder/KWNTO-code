@@ -57,7 +57,14 @@ Rule fragments used by the team collections (in [1794360400_teams.js](../../back
 
 Test the outsider, a plain member and a removed member for every team table: a rule that works for the owner can still leak to the others.
 
-**Join by code** (`tests/rules/teams.join.rules.test.ts`, an extra file, not a collection): the custom routes are called with `rawSend` and the caller's token. For a route that must not be an oracle, compare the whole error body of every refused case with the first one, not only the status. The rate-limit tests set `team_attempts_per_hour` low and restore 20 in `afterEach`; every other test uses fresh users, so the per-user limit is never reached by accident. An `invite` attempt is seeded as an admin-created `security_events` row, since invites arrive in Task 8.
+**Join by code** (`tests/rules/teams.join.rules.test.ts`, an extra file, not a collection): the custom routes are called with `rawSend` and the caller's token. For a route that must not be an oracle, compare the whole error body of every refused case with the first one, not only the status. The rate-limit tests set `team_attempts_per_hour` low and restore 20 in `afterEach`; every other test uses fresh users, so the per-user limit is never reached by accident. An `invite` attempt is seeded there as an admin-created `security_events` row; the real shared limit, in both directions, is tested in `teams.invites-answer.rules.test.ts`.
+
+**Invites** (`tests/rules/team_invites.rules.test.ts` for the table, with invites seeded as the admin; `teams.invites.rules.test.ts` for sending and `teams.invites-answer.rules.test.ts` for accepting, declining, the shared limit and the log, both extra files). Helpers in `tests/rules/helpers/invites.ts`:
+- `invite(owner, teamId, email)`, `accept(user, inviteId)`, `decline(user, inviteId)` and `joinByCode(user, code)` call the routes with the user's token; `send(token, path, init)` is the general form. Each returns a `Reply`: `status`, the parsed `body` (`null` for an empty 204) and `raw`, the headers and body as text, to search for an email.
+- `invitesOf(user)` and `onlyInviteOf(user)` (the invites a person received, as the admin), `eventsOf(user, 'invite' | 'join')` (their log entries, oldest first).
+- `setAttemptsPerHour(n)` (restore 20 in `afterEach`), `namedUser(name)`, `setName(user, name)`, `unverifiedUser()` (public sign-up, not verified), `setVerified(user, flag)`.
+
+To prove an owner sees no trace of a pending invitee, the test lists every collection the admin knows as the owner and searches the rows for the invitee's id, email and name. `sign-in` log entries hold the email as typed (Task 4), so a check that no email is logged must look at `invite` entries only.
 
 ### Admin-only collections (`tests/rules/helpers/admin-only.ts`)
 Collections only the admin may touch (the `system_*` settings and `security_events`) share one set of checks:

@@ -33,8 +33,8 @@ logEvent(app, type, userId /* string, "" if none */, ip /* string */, detail /* 
 
 ## Checkpoint 1A: Settings tables with defaults
 
-- [ ] **Step 1: Unit project picks up hook tests.** In `vitest.config.ts` add `'tests/hooks/**/*.unit.test.ts'` to the `unit` include. Run `npm run test:unit`; expected: still green.
-- [ ] **Step 2: Write the failing rule tests**, one file per collection (`system_access`, `system_storage`, `system_behavior`). Each file, for anonymous, a signed-in user and the admin:
+- [x] **Step 1: Unit project picks up hook tests.** In `vitest.config.ts` add `'tests/hooks/**/*.unit.test.ts'` to the `unit` include. Run `npm run test:unit`; expected: still green.
+- [x] **Step 2: Write the failing rule tests**, one file per collection (`system_access`, `system_storage`, `system_behavior`). Each file, for anonymous, a signed-in user and the admin:
   - anonymous and user: list, view, create, update and delete are all refused (`list` returns 0 rows or 403; the others 403/404). Use `expect(...).rejects.toMatchObject({ status })` as in `users.rules.test.ts`.
   - admin: `getFullList()` returns **exactly 1** record.
   - injection: a filter containing `' OR 1=1 --` returns nothing for the user.
@@ -42,14 +42,14 @@ logEvent(app, type, userId /* string, "" if none */, ip /* string */, detail /* 
   - `system_storage.rules.test.ts` asserts `default_quota_bytes === 2147483648`, `max_video_mb === 200`, `max_audio_mb === 50`, `max_image_mb === 50`, `allowed_types` equals `['wav','mp3','mov','mp4','jpeg','png']`.
   - `system_behavior.rules.test.ts` asserts `presence_timeout_seconds === 30`, `analytics_retention_days === 365`, `trash_retention_days === 30`, `security_retention_days === 365`, `max_failed_logins === 3`, `lockout_minutes === 5`, `team_attempts_per_hour === 20`.
   Header comment of each: protects design 7c and security.md section 2 (admin-only settings, defaults from the spec).
-- [ ] **Step 3: Run** `npm run test:rules`. Expected: the new files FAIL (collections do not exist) and the coverage test is unaffected.
-- [ ] **Step 4: Write `1794360000_system_settings.js`.** Creates the three base collections with the typed fields of the ERD (`number` for counts and sizes, `bool` for switches, `json` for `allowed_types`, `text` for `lockdown_message`), every rule `null`, and one record each with the defaults from Step 2. Add `team_attempts_per_hour` to `system_behavior` (decision D3). Down migration deletes the three collections.
-- [ ] **Step 5: Run** `npm run test:rules`. Expected: the three new files PASS.
-- [ ] **Step 6: Write `lib/settings.js`** (`getSystemAccess`, `getSystemBehavior`): read the single record with `app.findFirstRecordByFilter(name, "id != ''")` and map snake_case fields to the camelCase result. If the record is missing it throws (a missing settings row is a broken install, not something to guess a default for).
-- [ ] **Step 7: Write the restart test** in `tests/container/container.test.ts`, next to the existing restart test: start on a volume, set `system_behavior.max_failed_logins` to `7` as admin, stop, start again on the same volume, assert it is still `7` and there is still exactly one record. Header comment: protects design 7c, "defaults never overwrite edits".
-- [ ] **Step 8: Run** `npm run test:container`. Expected: PASS.
-- [ ] **Step 9: Update the ERD** (`system_behavior` gets `team_attempts_per_hour`; defaults note). Add `docs/admin/settings.md` with a table of every field of the three tables: name, default, what it does, which task uses it (leave the "used by" cell `Task N` for the ones this plan uses, `later` for the rest).
-- [ ] **Close checkpoint 1A.** Verify: Step 5 and Step 8 passed. Commit: `feat: system settings tables with defaults`.
+- [x] **Step 3: Run** `npm run test:rules`. Expected: the new files FAIL (collections do not exist) and the coverage test is unaffected.
+- [x] **Step 4: Write `1794360000_system_settings.js`.** Creates the three base collections with the typed fields of the ERD (`number` for counts and sizes, `bool` for switches, `json` for `allowed_types`, `text` for `lockdown_message`), every rule `null`, and one record each with the defaults from Step 2. Add `team_attempts_per_hour` to `system_behavior` (decision D3). Down migration deletes the three collections.
+- [x] **Step 5: Run** `npm run test:rules`. Expected: the three new files PASS.
+- [x] **Step 6: Write `lib/settings.js`** (`getSystemAccess`, `getSystemBehavior`): read the single record with `app.findFirstRecordByFilter(name, "id != ''")` and map snake_case fields to the camelCase result. If the record is missing it throws (a missing settings row is a broken install, not something to guess a default for).
+- [x] **Step 7: Write the restart test** in `tests/container/container.test.ts`, next to the existing restart test: start on a volume, set `system_behavior.max_failed_logins` to `7` as admin, stop, start again on the same volume, assert it is still `7` and there is still exactly one record. Header comment: protects design 7c, "defaults never overwrite edits".
+- [x] **Step 8: Run** `npm run test:container`. Expected: PASS.
+- [x] **Step 9: Update the ERD** (`system_behavior` gets `team_attempts_per_hour`; defaults note). Add `docs/admin/settings.md` with a table of every field of the three tables: name, default, what it does, which task uses it (leave the "used by" cell `Task N` for the ones this plan uses, `later` for the rest).
+- [x] **Close checkpoint 1A.** Verify: Step 5 and Step 8 passed. Commit: `feat: system settings tables with defaults`.
 
 ## Checkpoint 1B: Security log and its retention
 

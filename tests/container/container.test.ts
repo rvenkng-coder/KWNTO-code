@@ -83,6 +83,49 @@ test('a restart on the same volume keeps data and the original admin password', 
   expect(await superuserSignInStatus('second-admin-password-2')).toBe(400)
 })
 
+async function adminToken(password: string): Promise<string> {
+  const res = await fetch(`http://127.0.0.1:${PORT}/api/collections/_superusers/auth-with-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ identity: EMAIL, password }),
+  })
+  expect(res.status).toBe(200)
+  return ((await res.json()) as { token: string }).token
+}
+
+type BehaviorRecord = { id: string; max_failed_logins: number }
+
+async function behaviorRecords(token: string): Promise<BehaviorRecord[]> {
+  const res = await fetch(`http://127.0.0.1:${PORT}/api/collections/system_behavior/records`, {
+    headers: { Authorization: token },
+  })
+  expect(res.status).toBe(200)
+  return ((await res.json()) as { items: BehaviorRecord[] }).items
+}
+
+// Protects design 7c: "defaults never overwrite edits". A setting the admin changed
+// must survive a restart, and the defaults migration must not add a second record.
+test('a restart on the same volume keeps an edited setting', async () => {
+  const password = 'settings-admin-password-1'
+  cleanUp() // a fresh volume, independent of the restart test above
+  await startOnVolume({ password })
+  const token = await adminToken(password)
+  const before = await behaviorRecords(token)
+  expect(before).toHaveLength(1)
+  const res = await fetch(`http://127.0.0.1:${PORT}/api/collections/system_behavior/records/${before[0]?.id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: token },
+    body: JSON.stringify({ max_failed_logins: 7 }),
+  })
+  expect(res.status).toBe(200)
+  stopContainer()
+
+  await startOnVolume({ password })
+  const after = await behaviorRecords(await adminToken(password))
+  expect(after).toHaveLength(1)
+  expect(after[0]?.max_failed_logins).toBe(7)
+})
+
 // Protects: a failing test run must fail the build, and must not leave a container behind.
 test('with-pocketbase passes on the exit code and cleans up', () => {
   const run = spawnSync('node', ['scripts/with-pocketbase.ts', 'node', '-e', 'process.exit(3)'])

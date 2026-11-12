@@ -9,7 +9,7 @@ const base = defineConfig({
 export const unitConfig = mergeConfig(base, defineConfig({
   test: {
     name: 'unit',
-    include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.ts', 'tests/lint/**/*.test.ts', 'tests/rules/**/*.unit.test.ts'],
+    include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.ts', 'tests/lint/**/*.test.ts', 'tests/rules/**/*.unit.test.ts', 'tests/hooks/**/*.unit.test.ts'],
   },
 }))
 

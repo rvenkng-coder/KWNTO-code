@@ -50,3 +50,34 @@ The server records security-relevant events here: sign-ups and email verificatio
 - **Deleting an account keeps its entries.** The `user` field is emptied; the entry stays.
 - **Retention:** a job named `purge_security_events` runs every day at 03:00 UTC and removes entries older than `security_retention_days` (default 365). Change that setting to keep entries for longer or shorter; the next run uses the new value. To purge at once, run the job from the dashboard (Settings, Crons).
 - A failure to write an entry never blocks the sign-in or join it describes; it is reported in the server output (`docker logs`) as `security log: could not record ...`.
+
+## Per-user records
+
+Every account has one row in each of three tables, linked by the `user` field. The server creates them when the account is created, and the [1794360200_user_records.js](../../backend/pb_migrations/1794360200_user_records.js) migration created them for accounts that already existed. Deleting an account deletes its three rows. Do not add a second row for a user or delete a row; edit the existing one (Collections, then the table, then filter by `user`).
+
+### `user_preferences` (the user's own)
+
+| Field | Default | What it does |
+|---|---|---|
+| `theme` | `dark` | `light` or `dark`. |
+| `minimap_visible` | `true` | Whether the minimap shows on the map. |
+
+The user can read and change their own row from the app (not the `user` field), and nobody else's. Usually the admin has no reason to edit it.
+
+### `user_limits` (admin only)
+
+| Field | Default | What it does |
+|---|---|---|
+| `quota_override_bytes` | empty (`0`) | Upload space for this user, in bytes, instead of `system_storage.default_quota_bytes`. Empty or `0` means "use the system default". Used by a later plan. |
+
+### `user_status` (admin only)
+
+| Field | Default | What it does |
+|---|---|---|
+| `blocked` | `false` | When on, this account cannot sign in. |
+| `blocked_reason` | empty | The message the blocked user sees. Write it for them, not for yourself. |
+| `blocked_at` | empty | When you blocked the account, for your own records. |
+
+**To block a user:** open their `user_status` row, turn on `blocked`, write `blocked_reason`, set `blocked_at` to now, and save. To unblock, turn `blocked` off. The block takes effect with Tasks 4 (sign-in refused) and 5 (existing sessions ended) of the [accounts and teams plan](../superpowers/plans/2026-11-12-accounts-teams/README.md); until then, setting it has no effect.
+
+App users cannot see `user_limits` or `user_status` at all, so a user cannot raise their own quota or unblock themselves.

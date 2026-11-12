@@ -41,6 +41,12 @@ Collections only the admin may touch (the `system_*` settings and `security_even
 - `readOnlyRecord(collection)`: the single record, read as the admin, for checking defaults.
 - `expectRefused(request)` and `expectNoRows(pb, collection, filter?)`: a refusal is a 403 or 404; a refused list is a 403 or no rows.
 
+### Per-user tables (`tests/rules/helpers/user-rows.ts`)
+Tables with one row per account (`user_preferences`, `user_limits`, `user_status`):
+
+- `rowsOf(collection, userId)` and `onlyRowOf(collection, userId)`: a user's rows, read as the admin; `onlyRowOf` also checks there is exactly one.
+- `adminOnlyUserRowTests(collection, change)`: for admin-only per-user tables. A new user gets exactly one row; the user it describes cannot list, view, create, update or delete it (and it is unchanged afterwards); plus `adminOnlyTests` aimed at a real user's row.
+
 ### How to Add a Rule Test for a New Collection
 
 1. Create a test file in `tests/rules/` named `<collection>.rules.test.ts` (e.g. `tests/rules/projects.rules.test.ts`).

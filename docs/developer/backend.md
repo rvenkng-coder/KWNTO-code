@@ -22,8 +22,8 @@ Behaviour that access rules cannot express lives in JavaScript hooks in `backend
 
 | Path | What goes there |
 |---|---|
-| `backend/pb_hooks/*.pb.js` | Thin hooks, routes and scheduled jobs, for example [retention.pb.js](../../backend/pb_hooks/retention.pb.js) (the daily `purge_security_events` job). |
-| `backend/pb_hooks/lib/*.js` | Shared helpers: [settings.js](../../backend/pb_hooks/lib/settings.js) reads the system settings, [security-log.js](../../backend/pb_hooks/lib/security-log.js) writes the security log, [retention.js](../../backend/pb_hooks/lib/retention.js) computes purge cut-offs. |
+| `backend/pb_hooks/*.pb.js` | Thin hooks, routes and scheduled jobs, for example [retention.pb.js](../../backend/pb_hooks/retention.pb.js) (the daily `purge_security_events` job) and [users-defaults.pb.js](../../backend/pb_hooks/users-defaults.pb.js) (gives each new account its per-user rows). |
+| `backend/pb_hooks/lib/*.js` | Shared helpers: [settings.js](../../backend/pb_hooks/lib/settings.js) reads the system settings, [security-log.js](../../backend/pb_hooks/lib/security-log.js) writes the security log, [retention.js](../../backend/pb_hooks/lib/retention.js) computes purge cut-offs, [user-records.js](../../backend/pb_hooks/lib/user-records.js) creates an account's missing per-user rows (`ensureUserRecords`). |
 
 Rules for this code:
 

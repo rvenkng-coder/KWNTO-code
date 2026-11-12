@@ -11,3 +11,4 @@
 | 2026-11-12 | Task 3 review fix: keep emailVisibility private | 2 new rule tests failed first (stored true), then rules 57/57 and npm test green; each new hook line removed fails its own test | Re-review of Task 3 |
 | 2026-11-12 | Task 4, checkpoint 4A: lockout decision | test:unit 54/54 (10 new lockout tests; RED was "cannot find module"), two mutations each fail 2 tests, lint, typecheck green | Checkpoint 4B: sign-in hooks (lockout, block, lockdown) |
 | 2026-11-12 | Task 4, checkpoint 4B: sign-in lockout, block and lockdown | npm test exit 0 (unit 56, container 5, rules 68, e2e 2); 11 new sign-in rule tests failed first; 10 hook mutations each fail at least one test; ensureUserRecords race test failed first | Review of Task 4, then Task 5 (incident controls) |
+| 2026-11-12 | Task 4 review fix: parallel-attempt gap documented | probe: 20 parallel wrong attempts gave 18 evaluated guesses, 2 with the built-in limiter on; check:docs clean | Re-review of Task 4 |

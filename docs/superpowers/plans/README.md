@@ -46,7 +46,7 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 
 ### 6. Deployment
 **Goal:** Docker Compose with PocketBase, Caddy and Tailscale Funnel; backups with a restore test; first-run guide; incident runbook finished.
-**Fixed already:** the admin dashboard and admin API paths are blocked on the public address, including `/api/kwnto/admin/` from Plan 2; non-root, no privileged mode, secrets in `.env`; data in volumes; real-time checked through Funnel; total disk-usage warning.
+**Fixed already:** the admin dashboard and admin API paths are blocked on the public address, including `/api/kwnto/admin/` from Plan 2; non-root, no privileged mode, secrets in `.env`; PocketBase's built-in rate limiter is enabled (at least the `*:auth` rule, which covers auth-with-password), because the sign-in lockout cannot stop guesses sent in parallel (see [security.md](../../security.md) section 3); data in volumes; real-time checked through Funnel; total disk-usage warning.
 **Decide first:** backup destination and default schedule; the SMTP setup guide (Gmail app password).
 **Risks:** Funnel bandwidth for video (fallback: Cloudflare Tunnel).
 

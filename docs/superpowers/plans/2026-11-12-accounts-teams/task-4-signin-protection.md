@@ -28,7 +28,7 @@ decideLockout(failureTimesMs /* number[] */, nowMs /* number */, maxFailed /* nu
 
 ## Checkpoint 4A: The lockout decision as a pure function
 
-- [ ] **Step 1: Write the failing unit tests** `tests/hooks/lockout.unit.test.ts`. Header comment: protects design 7c (3 failures, 5 minutes) and the rule that a lockout must end by itself. With `now = 1_000_000_000_000` and minutes in ms:
+- [x] **Step 1: Write the failing unit tests** `tests/hooks/lockout.unit.test.ts`. Header comment: protects design 7c (3 failures, 5 minutes) and the rule that a lockout must end by itself. With `now = 1_000_000_000_000` and minutes in ms:
   - no failures: `{ locked: false, retryAfterSeconds: 0 }`.
   - 2 failures in the window, max 3: not locked.
   - 3 failures in the last 5 minutes: locked; with the oldest of them 4 minutes ago, `retryAfterSeconds` is `60`.
@@ -36,9 +36,9 @@ decideLockout(failureTimesMs /* number[] */, nowMs /* number */, maxFailed /* nu
   - 5 failures in the window with max 3: `retryAfterSeconds` counts from the **3rd most recent** failure, not the oldest.
   - input order does not matter (shuffle the array).
   - `maxFailed` 1 locks after one failure; `lockoutMinutes` 1 uses 60-second windows.
-- [ ] **Step 2: Run** `npm run test:unit`. Expected: FAIL.
-- [ ] **Step 3: Implement `lib/lockout.js`** (`decideLockout`). Run `npm run test:unit`; expected: PASS.
-- [ ] **Close checkpoint 4A.** Verify: Step 3 passed. Commit: `feat: lockout decision`.
+- [x] **Step 2: Run** `npm run test:unit`. Expected: FAIL.
+- [x] **Step 3: Implement `lib/lockout.js`** (`decideLockout`). Run `npm run test:unit`; expected: PASS.
+- [x] **Close checkpoint 4A.** Verify: Step 3 passed. Commit: `feat: lockout decision`.
 
 ## Checkpoint 4B: The sign-in hooks
 

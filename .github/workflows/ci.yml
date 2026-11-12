@@ -52,6 +52,10 @@ jobs:
 
   secrets:
     runs-on: ubuntu-latest
+    # gitleaks-action lists the pull request's commits through the API on PR runs.
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v5
         with:

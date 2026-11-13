@@ -154,6 +154,13 @@ describe('prompt and printed block', () => {
     expect(prompt.match(/tests\/probes/g)).toHaveLength(1)
   })
 
+  // Protects: a task file path with a space is quoted in the prompt's check command and in the after-run line.
+  test('a task path with a space is quoted', () => {
+    const spaced = { ...input, taskFile: 'docs/my plan/task-1-a.md' }
+    expect(buildPrompt(spaced)).toContain("--task 'docs/my plan/task-1-a.md' --base abc123")
+    expect(readyBlock('/s', '/s-run', 'abc123', spaced.taskFile).join('\n')).toContain("--task 'docs/my plan/task-1-a.md' --base")
+  })
+
   // Protects: paths with spaces or quotes survive being pasted into a shell.
   test('shellQuote', () => {
     expect(shellQuote('/tmp/a-b_c.d')).toBe('/tmp/a-b_c.d')

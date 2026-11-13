@@ -23,14 +23,24 @@ Exit codes: 0 ready, 1 a check failed (a message says which; nothing is created 
 1. **Ping** (`ping:model`'s check). Not answering stops. An idle model is a warning: the first request is slow.
 2. **Task file.** Same checks as `check:plan` on that file, plus: the chosen checkpoint's tier must be `local` (else "this task is not for the local model"), the `## Sized for the local model` block must be complete, and its "Checkpoint given" line must name the chosen checkpoint. Every problem is printed.
 3. **Checkout.** Refuses uncommitted changes to tracked files (the sandbox is built from HEAD, so the model would not see them), a task file or `.pi/skills/local-task/SKILL.md` missing from HEAD, and a missing `node_modules`. Untracked files are only a warning.
-4. **Sandbox.** `git archive HEAD | tar -x`, then `git init`, an identity in that repository's own config (global config untouched), no remote, one baseline commit, and `node_modules` symlinked from the real checkout (excluded in `.git/info/exclude`, so `git status` stays clean). The baseline sha is recorded.
+4. **Sandbox.** `git archive HEAD | tar -x`, then `git init` and, in that repository's own config before the first commit: no hooks (an empty hooks folder), `protocol.allow never` (git cannot push or fetch over any transport), an empty `credential.helper`, and a local identity. Every git and npm process run in the sandbox by this command ignores the system and global git config, so the developer's global hooks, credential helpers and URL rewrites do not apply. There is no remote. Then one baseline commit, and `node_modules` symlinked from the real checkout (excluded in `.git/info/exclude`, so `git status` stays clean). The baseline sha is recorded. Two things to know:
+   - **`node_modules` is the real one.** The link points at the real checkout's `node_modules` (which can itself be a link into another worktree), so an `npm install`, or any write the model makes under `node_modules/`, lands there, and `tsc -b` writes `node_modules/.tmp/*.tsbuildinfo` into it. The skill tells the model never to touch it; nothing enforces that.
+   - **The model sees everything tracked at HEAD**, including `.planning/` and `tests/probes/README.md`. The prompt tells it not to read `tests/probes/`; it is not hidden.
 5. **Baseline.** `npm run lint` and `npm run typecheck` in the sandbox must be clean and leave no files behind. The full test suite is not run and Docker is not started.
-6. **Prompt.** `PROMPT.md` in the run directory, from the runbook's template, filled from the task file. It starts with `First, use the local-task skill.`, copies the "May touch" and "Must not change" values, ends with the exact `check:task` command, and says not to read `tests/probes/` without naming the probe folder.
+6. **Prompt.** `PROMPT.md` in the run directory, from the runbook's template, filled from the task file. It starts with `First, use the local-task skill.`, copies the "May touch" and "Must not change" values, ends with the exact `check:task` command, and says not to read `tests/probes/`. The prompt does not name the probe folder, but the task file the model reads does (`**Probe folder:**`).
 7. **The block to copy**: sandbox, baseline sha, prompt file, the `little-coder` command, what to do after the run and the cleanup command.
 
 ## What it never does
 
-Start the model, push, add a remote, touch global git config, run Docker, or delete anything it did not create. If it fails after creating the sandbox before step 5 ends, it removes only that directory and says so; if the baseline fails (step 5) it leaves the sandbox in place and prints its path. The cleanup (`rm -rf` of the two directories) is printed for you to run.
+Start the model, push, add a remote, change global git config, run Docker, or delete anything it did not create. Removal rules, exactly:
+
+- Before anything is created, it refuses a `--out` (or `<out>-run`) where anything exists, a dangling symlink included, and a `--out` that reaches the checkout through a symlink.
+- If building the sandbox fails, it removes the sandbox directory only if its own `mkdir` made it. A directory it did not make is left alone.
+- If the baseline (step 5) fails or cannot run, the sandbox is left in place and its path is printed.
+- If writing the prompt (step 6) fails, it removes the run directory (only if it made it) and the sandbox, and says which.
+- The cleanup (`rm -rf` of the two directories) is printed for you to run.
+
+**A guard rail, not a security boundary.** Git in the sandbox has no remote, no push-capable protocol, no credential helper and no hooks, and the model could still change that config. Anything the model runs outside git (a shell command, `gh`) can reach the developer's global `gh` login. Run it with that in mind.
 
 ## Failure messages
 

@@ -28,7 +28,7 @@ You are doing ONE checkpoint of ONE task. A tool (`check:task`) checks your work
 - Never edit an existing test to make it pass. If a test fails, fix the code. If the test itself looks wrong, STOP and say so.
 - Never use `it.skip`, `test.skip`, `.only`, `.todo`, `xit` or `test.fixme`.
 - Never use `any` without a comment explaining why. Keep files under 300 lines.
-- Never add a dependency.
+- Never add a dependency. Never run `npm install` or change anything under `node_modules/`.
 - Never touch a file outside "May touch". If you need to, STOP and report instead of doing it.
 - Never import `pocketbase` outside `src/backend/`.
 - Never push, merge, delete data, or touch Docker volumes.

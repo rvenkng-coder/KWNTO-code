@@ -139,7 +139,7 @@ export function buildPrompt(input: PromptInput): string {
   ].join('\n')
 }
 
-export const checkTaskCommand = (taskFile: string, baseSha: string): string => `npm run check:task -- --task ${taskFile} --base ${baseSha}`
+export const checkTaskCommand = (taskFile: string, baseSha: string): string => `npm run check:task -- --task ${shellQuote(taskFile)} --base ${baseSha}`
 
 // A path as one shell word: left bare when it is plain, otherwise single-quoted.
 export function shellQuote(text: string): string {

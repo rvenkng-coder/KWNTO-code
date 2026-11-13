@@ -2,13 +2,14 @@
 // own message (never a stack) when anything is wrong, creates nothing before the checks pass, and on success
 // leaves a remote-less sandbox, a prompt outside its git tree and a start command it does not run.
 import { spawn } from 'node:child_process'
-import { existsSync, lstatSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs'
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync } from 'node:fs'
 import { createServer, type Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, test } from 'vitest'
 import { git, makeRepo, writeIn } from './lib/temp-repo.ts'
+import { SandboxError } from './lib/sandbox.ts'
 import { runPrepare } from './prepare-local-run.ts'
 
 const SCRIPT = join(import.meta.dirname, 'prepare-local-run.ts')
@@ -164,6 +165,77 @@ describe('prepare-local-run: refusals create nothing', () => {
     expect(result.code).toBe(1)
     expect(result.out).toContain('inside the working checkout')
     expect(existsSync(join(cwd, 'inner'))).toBe(false)
+  })
+})
+
+describe('prepare-local-run: never removes what it did not create', () => {
+  // Protects: a dangling symlink at --out (or at <out>-run) is refused and survives; it is not "a directory this run created".
+  test.each(['', '-run'])('a dangling symlink at --out%s is refused and kept', async (suffix) => {
+    const cwd = repo()
+    const out = outPath()
+    symlinkSync(join(out, '..', 'nowhere'), `${out}${suffix}`)
+    const result = await go(cwd, [], '1', out)
+    expect(result.code).toBe(1)
+    expect(result.out).toContain('already exists')
+    expect(lstatSync(`${out}${suffix}`).isSymbolicLink()).toBe(true)
+  })
+
+  // Protects: --out reached through a symlink that points into the checkout is refused, and nothing is created there.
+  test('--out through a symlink into the checkout is refused', async () => {
+    const cwd = repo()
+    const parent = mkdtempSync(join(tmpdir(), 'link parent-'))
+    cleanup.push(parent)
+    symlinkSync(cwd, join(parent, 'link'))
+    const result = await go(cwd, [], '1', join(parent, 'link', 'inner'))
+    expect(result.code).toBe(1)
+    expect(result.out).toContain('inside the working checkout')
+    expect(existsSync(join(cwd, 'inner'))).toBe(false)
+  })
+
+  const base = { ping: async () => ({ ok: true, loaded: true, detail: '' }), runCheck: () => ({ ok: true, output: '' }), now: () => 0 }
+
+  // Protects: a build failure after this run made the directory removes that directory only, and the node_modules it links to survives.
+  test('a failure after our own mkdir cleans up only our directory', async () => {
+    const cwd = repo()
+    const out = outPath()
+    const create = (root: string, sandbox: string): string => {
+      mkdirSync(sandbox)
+      symlinkSync(join(root, 'node_modules'), join(sandbox, 'node_modules'))
+      throw new SandboxError('boom', true)
+    }
+    const outcome = await runPrepare(['--cwd', cwd, PLAN, '1', '--out', out], { ...base, create })
+    expect(outcome.code).toBe(1)
+    expect(existsSync(out)).toBe(false)
+    expect(existsSync(join(cwd, 'node_modules', '.keep'))).toBe(true)
+  })
+
+  // Protects: when the directory appeared by someone else's hand (our mkdir failed), it is left alone.
+  test('a directory we did not create is not removed', async () => {
+    const cwd = repo()
+    const out = outPath()
+    const create = (_root: string, sandbox: string): string => {
+      mkdirSync(sandbox)
+      writeIn(sandbox, 'theirs.txt', 'keep')
+      throw new SandboxError('cannot create', false)
+    }
+    const outcome = await runPrepare(['--cwd', cwd, PLAN, '1', '--out', out], { ...base, create })
+    expect(outcome.code).toBe(1)
+    expect(readFileSync(join(out, 'theirs.txt'), 'utf8')).toBe('keep')
+  })
+
+  // Protects: an unexpected throw anywhere (here the baseline runner, and the ping) gives a fixed message and exit 1, never a stack.
+  test('an unexpected error prints no stack', async () => {
+    const cwd = repo()
+    const out = outPath()
+    const baseline = await runPrepare(['--cwd', cwd, PLAN, '1', '--out', out], { ...base, runCheck: () => { throw new Error('secret http://u:p@h detail') } })
+    expect(baseline.code).toBe(1)
+    expect(baseline.lines.join('\n')).toContain('could not confirm the baseline')
+    expect(baseline.lines.join('\n')).toContain(out)
+    expect(baseline.lines.join('\n')).not.toMatch(/secret|u:p@/)
+    const pinged = await runPrepare(['--cwd', cwd, PLAN, '1'], { ...base, ping: async () => { throw new Error('secret http://u:p@h detail') } })
+    expect(pinged.code).toBe(1)
+    expect(pinged.lines.join('\n')).toContain('unexpected error')
+    expect(pinged.lines.join('\n')).not.toMatch(/secret|u:p@/)
   })
 })
 

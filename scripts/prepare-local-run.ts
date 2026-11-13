@@ -13,9 +13,11 @@ import {
   buildPrompt, defaultSandboxName, listCheckpoints, localRunProblems, type Options, parseArgs, readLocalBlock,
   readyBlock, selectCheckpoint, selectTaskFile, USAGE,
 } from './lib/local-run.ts'
-import { checkoutState, confirmBaseline, createSandbox, inHead, realRunCheck, type RunCheck, repoTop } from './lib/sandbox.ts'
+import {
+  checkoutState, confirmBaseline, createSandbox, inHead, pathTaken, realLocation, realRunCheck, type RunCheck, repoTop, SandboxError,
+} from './lib/sandbox.ts'
 
-export interface Deps { ping: (url: string) => Promise<PingResult>; runCheck: RunCheck; now: () => number }
+export interface Deps { ping: (url: string) => Promise<PingResult>; runCheck: RunCheck; now: () => number; create?: (root: string, sandbox: string) => string }
 export interface Outcome { code: number; lines: string[] }
 interface Task { root: string; taskRel: string; markdown: string; checkpoint: string; mayTouch: string; mustNotChange: string }
 interface Fail { fail: string[] }
@@ -96,48 +98,70 @@ function checkoutProblems(task: Task): { problems: string[]; warnings: string[] 
   return { problems, warnings }
 }
 
-// Where the sandbox and its run directory go. Neither may exist; the sandbox must be outside the checkout.
+// Where the sandbox and its run directory go. Neither may exist (a dangling symlink counts as existing), and
+// the sandbox must be outside the checkout by real path, so a symlinked --out cannot lead back into it.
 function placeFor(options: Options, task: Task, deps: Deps): { sandbox: string; runDir: string } | Fail {
-  const sandbox = options.out === null
+  const wanted = options.out === null
     ? join(tmpdir(), defaultSandboxName(options.planDir, options.task, task.checkpoint, deps.now()))
     : resolve(options.cwd, options.out)
+  const sandbox = realLocation(wanted)
   const runDir = `${sandbox}-run`
-  if (inside(task.root, sandbox) || sandbox === task.root) return { fail: [`${sandbox} is inside the working checkout: pick a directory outside it with --out`] }
-  for (const path of [sandbox, runDir]) {
-    if (existsSync(path)) return { fail: [`${path} already exists: nothing was created. Pick another --out, or remove it yourself.`] }
+  if (inside(task.root, sandbox) || sandbox === task.root) return { fail: [`${wanted} is inside the working checkout: pick a directory outside it with --out`] }
+  for (const path of [wanted, sandbox, runDir]) {
+    if (pathTaken(path)) return { fail: [`${path} already exists: nothing was created. Pick another --out, or remove it yourself.`] }
   }
   if (!existsSync(dirname(sandbox))) return { fail: [`the folder ${dirname(sandbox)} does not exist: nothing was created`] }
   return { sandbox, runDir }
 }
 
-// Steps 4 to 6 after the placing: build, confirm the baseline, write the prompt. Removes only what it made.
-function build(task: Task, place: { sandbox: string; runDir: string }, deps: Deps): Outcome & { sha?: string } {
-  const lines: string[] = []
-  let sha: string
+const reason = (error: unknown): string => (error instanceof Error ? error.message : 'unknown error')
+
+// Step 4. Removes the sandbox only when createSandbox says its own mkdir made it.
+function makeSandbox(task: Task, sandbox: string, deps: Deps): { sha: string } | Fail {
   try {
-    sha = createSandbox(task.root, place.sandbox)
+    return { sha: (deps.create ?? createSandbox)(task.root, sandbox) }
   } catch (error) {
-    rmSync(place.sandbox, { recursive: true, force: true })
-    return failed(`cannot build the sandbox: ${error instanceof Error ? error.message : 'unknown error'}`, `removed the directory it created: ${place.sandbox}`)
+    const created = error instanceof SandboxError && error.created
+    if (created) rmSync(sandbox, { recursive: true, force: true })
+    return { fail: [`cannot build the sandbox: ${reason(error)}`, created ? `removed the directory it created: ${sandbox}` : `it created nothing and removed nothing: ${sandbox}`] }
   }
-  lines.push(`sandbox built from HEAD at ${place.sandbox} (baseline ${sha}, no remote)`)
-  const baseline = confirmBaseline(place.sandbox, deps.runCheck)
-  if (baseline.length > 0) return failed(...baseline, `The sandbox was left in place for you to look at: ${place.sandbox}`, 'Nothing else was created.')
-  lines.push('baseline: npm run lint and npm run typecheck are clean in the sandbox')
+}
+
+// Step 6. The run directory is removed only if this call made it; the sandbox was made by this run.
+function writePrompt(task: Task, place: { sandbox: string; runDir: string }, sha: string): string[] | null {
+  let runCreated = false
   try {
     mkdirSync(place.runDir)
+    runCreated = true
     mkdirSync(join(place.runDir, 'session'))
     const prompt = buildPrompt({ sandbox: place.sandbox, checkpoint: task.checkpoint, taskFile: task.taskRel, mayTouch: task.mayTouch, mustNotChange: task.mustNotChange, baseSha: sha })
     writeFileSync(join(place.runDir, 'PROMPT.md'), prompt)
+    return null
   } catch (error) {
-    rmSync(place.runDir, { recursive: true, force: true })
+    if (runCreated) rmSync(place.runDir, { recursive: true, force: true })
     rmSync(place.sandbox, { recursive: true, force: true })
-    return failed(`cannot write the prompt: ${error instanceof Error ? error.message : 'unknown error'}`, `removed the two directories it created: ${place.sandbox} and ${place.runDir}`)
+    return [`cannot write the prompt: ${reason(error)}`, `removed what this run created: ${place.sandbox}${runCreated ? ` and ${place.runDir}` : ''}`]
   }
-  return { code: 0, lines, sha }
 }
 
-export async function runPrepare(argv: string[], deps: Deps = realDeps): Promise<Outcome> {
+// Steps 4 to 6 after the placing: build, confirm the baseline, write the prompt.
+function build(task: Task, place: { sandbox: string; runDir: string }, deps: Deps): Outcome & { sha?: string } {
+  const made = makeSandbox(task, place.sandbox, deps)
+  if (isFail(made)) return failed(...made.fail)
+  const lines = [`sandbox built from HEAD at ${place.sandbox} (baseline ${made.sha}, no remote)`]
+  let baseline: string[]
+  try {
+    baseline = confirmBaseline(place.sandbox, deps.runCheck)
+  } catch {
+    baseline = ['could not confirm the baseline (a check could not run)']
+  }
+  if (baseline.length > 0) return failed(...baseline, `The sandbox was left in place for you to look at: ${place.sandbox}`, 'Nothing else was created.')
+  lines.push('baseline: npm run lint and npm run typecheck are clean in the sandbox')
+  const problem = writePrompt(task, place, made.sha)
+  return problem ? failed(...problem) : { code: 0, lines, sha: made.sha }
+}
+
+async function prepare(argv: string[], deps: Deps): Promise<Outcome> {
   const options = parseArgs(argv)
   if ('error' in options) return { code: 2, lines: [options.error, USAGE] }
   const ping = await pingStep(options, deps)
@@ -156,6 +180,15 @@ export async function runPrepare(argv: string[], deps: Deps = realDeps): Promise
   const built = build(task, place, deps)
   if (built.code !== 0 || built.sha === undefined) return failed(...lines, ...built.lines)
   return { code: 0, lines: [...lines, ...built.lines, '', ...readyBlock(place.sandbox, place.runDir, built.sha, task.taskRel)] }
+}
+
+// Whatever goes wrong, the developer gets one fixed line and an exit code, never a stack or a URL.
+export async function runPrepare(argv: string[], deps: Deps = realDeps): Promise<Outcome> {
+  try {
+    return await prepare(argv, deps)
+  } catch {
+    return failed('prepare-local-run: stopped by an unexpected error (details are not printed). Look for a sandbox or run directory it may have left, and remove it yourself if it is yours.')
+  }
 }
 
 if (isMain(import.meta.filename)) {

@@ -38,8 +38,8 @@ Rules (**[my call]** where the design leaves detail): **header:** every *added* 
 
 ## Checkpoint 3A: changed files
 
-- [ ] **Step 1: Write failing tests** `scripts/lib/changed-files.test.ts`: `parseNameStatus reads A M D and R100 lines`; `a rename keeps oldPath`; `paths with spaces are kept` (the repo path itself contains spaces; use tab-separated `-z` output or tab splitting, not whitespace splitting); `empty output gives no changes`; and against a real throwaway repo in a temp dir (`git init`, commits): `changedFiles sees a committed change, a staged change, an unstaged change and an untracked file`; `a deleted file is reported as deleted`; `addedLines gives the line numbers of added lines only`; `fileAtBase returns null for a file that is new`.
-- [ ] **Step 2: Run** `npx vitest run --project unit scripts/lib/changed-files.test.ts`; FAIL. **Step 3: Implement** with `spawnSync('git', [...])` (no shell), `-M` for renames, `git ls-files --others --exclude-standard` for untracked, `git diff -U0` for added lines. **Step 4: Run**; PASS. **Step 5: Close checkpoint 3A** (commit `feat: changed-files helper`).
+- [x] **Step 1: Write failing tests** `scripts/lib/changed-files.test.ts`: `parseNameStatus reads A M D and R100 lines`; `a rename keeps oldPath`; `paths with spaces are kept` (the repo path itself contains spaces; use tab-separated `-z` output or tab splitting, not whitespace splitting); `empty output gives no changes`; and against a real throwaway repo in a temp dir (`git init`, commits): `changedFiles sees a committed change, a staged change, an unstaged change and an untracked file`; `a deleted file is reported as deleted`; `addedLines gives the line numbers of added lines only`; `fileAtBase returns null for a file that is new`.
+- [x] **Step 2: Run** `npx vitest run --project unit scripts/lib/changed-files.test.ts`; FAIL. **Step 3: Implement** with `spawnSync('git', [...])` (no shell), `-M` for renames, `git ls-files --others --exclude-standard` for untracked, `git diff -U0` for added lines. **Step 4: Run**; PASS. **Step 5: Close checkpoint 3A** (commit `feat: changed-files helper`).
 
 ## Checkpoint 3B: the hygiene check
 

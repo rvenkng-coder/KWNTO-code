@@ -42,7 +42,7 @@ The input classes most likely to bite a person using these checks, most likely f
 | 2 | [Test plan block, plan parser and `check:plan`](task-2-plan-check.md) | mid | 1 | 2A 2B | done |
 | 3 | [Test hygiene check](task-3-test-hygiene.md) | mid | none | 3A 3B | done |
 | 4 | [Code quality limits on changed files](task-4-quality-limits.md) | mid | none | 4A 4B | done |
-| 5 | [Deliberate breaks runner](task-5-breaks-runner.md) | strong | 2 | 5A 5B | not started |
+| 5 | [Deliberate breaks runner](task-5-breaks-runner.md) | strong | 2 | 5A 5B | done |
 | 6 | [Probe runner](task-6-probe-runner.md) | mid | 2 | 6A 6B | not started |
 | 7 | [Review sampling and escape rate](task-7-review-sampling.md) | mid | none | 7A 7B | not started |
 | 8 | [`check:task`, the self-check command](task-8-check-task.md) | strong | 2, 3, 4, 5, 6, 7 | 8A 8B | not started |

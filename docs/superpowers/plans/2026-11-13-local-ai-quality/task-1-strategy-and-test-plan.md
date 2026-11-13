@@ -19,7 +19,7 @@ These are documents, not code: the tests are the link check (`npm run check:docs
 
 ## Checkpoint 1A: the strategy
 
-- [ ] **Step 1: Write `docs/testing-strategy.md`** with these sections, each short and concrete (a table or list, not prose):
+- [x] **Step 1: Write `docs/testing-strategy.md`** with these sections, each short and concrete (a table or list, not prose):
   1. **Purpose and who reads it** (every model and person; stable; changes only when a lesson is learned).
   2. **The layers and when each is required:** a table with columns layer, tests what, lives in, command, required when. Rows: `unit` (pure logic; `src/**`, `scripts/**`, `tests/hooks/**`; `npm run test:unit`; any function with a decision in it), `rules` (access rules, hooks, routes against a live PocketBase; `tests/rules/**`; `npm run test:rules`; any collection, rule, hook or route change), `e2e` (a person's flow in a browser; `e2e/**`; `npm run test:e2e`; any screen or flow), `container` (image hardening), `manual` (what no test can show: look and feel, real mail, exports). State the rule "a rule change needs a rule test that fails when the rule is opened".
   3. **Conventions:** where files live, names (`<feature>.rules.test.ts`, `<name>.unit.test.ts`, `<feature>.spec.ts`), shared helpers (`tests/rules/helpers/`, `e2e/helpers/`), the header comment `// Protects: <requirement or risk>` before every test, tests never edited to pass (if a test fails for a reason you did not expect, stop and explain), fresh users per test, restore global settings in `afterEach`.
@@ -29,9 +29,9 @@ These are documents, not code: the tests are the link check (`npm run check:docs
   7. **Learning loop:** every miss a review or the developer finds is added to the catalogue (and to the self-check if a tool could have caught it) in the same pull request that fixes it.
   8. **Writing a probe:** the file name `tests/probes/<plan>/<task>/<row>.probe.test.ts`, the title form `[<row id>] <kind>: <description>`, and the rule that a probe never reads the code under test's own tests and the task prompt never names the folder.
 
-- [ ] **Step 2: Test-plan block pointer.** In section 5 or a short section 9, say the per-task Test plan block is described in `docs/developer/test-plan-format.md` (written in Task 2); do not link a file that does not exist yet (the link check fails). Name it in backticks only.
+- [x] **Step 2: Test-plan block pointer.** In section 5 or a short section 9, say the per-task Test plan block is described in `docs/developer/test-plan-format.md` (written in Task 2); do not link a file that does not exist yet (the link check fails). Name it in backticks only.
 
-- [ ] **Step 3: The catalogue.** Table with columns `kind` (slug), `what to try`, `seen in`. Seed with these kinds and the real cases that showed them (cite the plan or finding in words, not a link):
+- [x] **Step 3: The catalogue.** Table with columns `kind` (slug), `what to try`, `seen in`. Seed with these kinds and the real cases that showed them (cite the plan or finding in words, not a link):
   - `relative-of-fixed-case`: after fixing a stated case, try its relatives (a comment after code, then a block comment after code). Seen: Plan 1 PERF check.
   - `second-bad-item`: a good first item hides a bad second one. Seen: Plan 1 PERF notes in one run.
   - `two-bad-items`: two bad items in one input are judged separately.
@@ -50,9 +50,9 @@ These are documents, not code: the tests are the link check (`npm run check:docs
   - `helper-hides-bug`: a test helper or mapper that "fixes" what the code under test gets wrong. Seen: Plan 2 `toPlain` and the `user_id` mapper test.
   - `test-asserts-the-mock`: a test whose only assertion is a value it set itself.
 
-- [ ] **Step 4: Verify.** Run `npm run check:docs`; expected: no broken links. Commit: `docs: test strategy for every model`.
+- [x] **Step 4: Verify.** Run `npm run check:docs`; expected: no broken links. Commit: `docs: test strategy for every model`.
 
-- [ ] **Step 5: Close checkpoint 1A** (tick the boxes above, progress line, one commit if anything changed).
+- [x] **Step 5: Close checkpoint 1A** (tick the boxes above, progress line, one commit if anything changed).
 
 ## Checkpoint 1B: the project test plan
 

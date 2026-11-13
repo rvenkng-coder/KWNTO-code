@@ -24,6 +24,7 @@ const fail = (name: string, lines: string[]): StepResult => ({ name, ok: false, 
 // `summary` keeps the last line of a passing run (run-breaks and run-probes end with a count).
 async function command(name: string, cmd: string[], root: string, ctx: CheckContext, summary = false): Promise<StepResult> {
   const result = await runCommand(cmd[0], cmd.slice(1), { cwd: root, deadlineMs: ctx.deadlineMs })
+  if (result.notStarted) return fail(name, [result.output])
   if (result.timedOut) return fail(name, [KILLED, ...lastLines(result.output, TAIL)])
   if (result.code === 0) return pass(name, summary ? lastLines(result.output, 1) : [])
   return fail(name, [`exit code ${String(result.code)}`, ...lastLines(result.output, TAIL)])

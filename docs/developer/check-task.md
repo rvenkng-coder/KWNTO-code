@@ -42,7 +42,9 @@ Commands run without a shell, with their output captured. A failing command keep
 
 ## The 10-minute budget
 
-The whole command has 10 minutes (600000 ms). A step that has not started when the time is used up fails with `not run: time budget used`; it is never silently skipped. A command still running at the deadline is stopped with its whole process group (SIGTERM, then SIGKILL after 5 seconds) and its step fails with `killed: time budget used`; check:task waits until no process of that group is left before it goes on or exits, so no command and no deliberate break outlives the run.
+The whole command has 10 minutes (600000 ms). A step that has not started when the time is used up fails with `not run: time budget used`; it is never silently skipped. A command still running at the deadline is stopped with its whole process group (SIGTERM, then SIGKILL after 5 seconds) and its step fails with `killed: time budget used`; check:task waits until no process of that group is left before it goes on or exits. Once the deadline has passed, or a stop has begun, no new command is started (a step that would start one fails with `not run: time budget used` or `not run: check:task is stopping`), so no command and no deliberate break outlives the run.
+
+**Known residual:** a process that stays in its group even after SIGKILL (a zombie whose parent does not reap it) can delay the end of the run by up to 60 seconds, the longest check:task waits for a group to empty.
 
 **The limit:** `hygiene`, `quality` and `coverage` run inside the command. The ESLint run of `quality` gets the remaining budget as its timeout (running out fails the step with `ESLint did not finish within the time budget`), but the git calls of `hygiene` and `quality` and the file reads of `coverage` are synchronous and cannot be stopped mid-step. They take seconds; if one of these steps does finish after the deadline, it fails with `overran: time budget used`, never passes.
 
@@ -79,7 +81,7 @@ The implementer pastes the full output of `npm run check:task` into its report. 
 
 ## After an interrupted run
 
-Ctrl-C (SIGINT) or SIGTERM stops every command `check:task` started (SIGTERM, then SIGKILL after 5 seconds; the break runner puts its file back when it gets the SIGTERM), waits until they are gone, and exits 130 or 143 with a reminder. If the run was killed hard (SIGKILL, power loss) while a break was applied, a deliberate break can be left in a source file:
+Ctrl-C (SIGINT) or SIGTERM stops every command `check:task` started (SIGTERM, then SIGKILL after 5 seconds; the break runner puts its file back when it gets the SIGTERM), starts no further step or command, waits until they are all gone, and exits 130 or 143 with a reminder instead of the report. If the run was killed hard (SIGKILL, power loss) while a break was applied, a deliberate break can be left in a source file:
 
 1. Run `git status`.
 2. A file under `src/`, `scripts/` or `backend/pb_hooks/lib/` that you did not edit is a left-over break: `git checkout -- <file>` puts it back. Do this only for files you did not edit.

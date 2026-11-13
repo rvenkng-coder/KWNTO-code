@@ -8,7 +8,7 @@ import { basename } from 'node:path'
 import { changedFiles, repoRoot, resolveBase } from './lib/changed-files.ts'
 import { defaultSteps } from './lib/check-steps.ts'
 import { isMain } from './lib/is-main.ts'
-import { stopAll } from './lib/run-command.ts'
+import { isClosing, openRun, stopAll } from './lib/run-command.ts'
 import { parseTestPlan, type TestPlan } from './lib/test-plan.ts'
 
 export { defaultSteps } from './lib/check-steps.ts'
@@ -22,9 +22,10 @@ const USAGE = 'usage: npm run check:task -- --task <task file> [--base <sha>] [-
 
 const failed = (name: string, line: string): StepResult => ({ name, ok: false, lines: [line] })
 
-// Resolves to the step's result, or to a failure when the deadline comes first. When the deadline wins, every
-// process group a step started is stopped and gone (stopAll waits for it) before the runner moves on, so
-// check:task never returns while a command, or a deliberate break, is still live.
+// Resolves to the step's result, or to a failure when the deadline comes first. When the deadline wins, the run
+// is closed (no command starts after it) and every process group a step started is stopped and gone (stopAll
+// waits for it) before the runner moves on, so check:task never returns while a command, or a deliberate
+// break, is still live.
 function withDeadline(step: Step, ctx: CheckContext, waitMs: number): Promise<StepResult> {
   let timer: NodeJS.Timeout | undefined
   const deadline = new Promise<StepResult>((done) => {
@@ -38,6 +39,7 @@ function withDeadline(step: Step, ctx: CheckContext, waitMs: number): Promise<St
 async function runStep(step: Step, ctx: CheckContext, now: () => number): Promise<StepResult> {
   const left = ctx.deadlineMs - now()
   if (left <= 0) return failed(step.name, 'not run: time budget used')
+  if (isClosing()) return failed(step.name, 'not run: check:task is stopping')
   try {
     const result = await withDeadline(step, ctx, left)
     return { ...result, name: step.name }
@@ -64,6 +66,7 @@ export function formatReport(results: StepResult[]): { ok: boolean; report: stri
 }
 
 export async function runCheckTask(ctx: CheckContext, steps: Step[], now: () => number = Date.now): Promise<{ ok: boolean; report: string }> {
+  openRun()
   const results: StepResult[] = []
   for (const step of steps) results.push(await runStep(step, ctx, now))
   return formatReport(results)
@@ -127,14 +130,16 @@ function buildContext(args: Args, now: () => number): { ctx: CheckContext; root:
 }
 
 // SIGTERM to every command group (run-breaks restores its file on SIGTERM), SIGKILL after the grace period,
-// and exit only once the groups are gone. A second signal while stopping is ignored.
+// and exit only once the groups are gone. stopAll also closes the run, so no later step starts a command.
+// A second signal while stopping is ignored. `stopping` lets main wait for this exit instead of exiting
+// with the report's code when the runner finishes first.
+let stopping: Promise<void> | null = null
+
 function installSignalHandlers(): void {
-  let stopping = false
   for (const [signal, code] of [['SIGINT', 130], ['SIGTERM', 143]] as const) {
     process.on(signal, () => {
       if (stopping) return
-      stopping = true
-      void stopAll().then(() => {
+      stopping = stopAll().then(() => {
         console.log(`check:task: ${signal}; stopped. Run git status and put back any source file you did not edit (git checkout -- <file>).`)
         process.exit(code)
       })
@@ -152,6 +157,7 @@ export async function main(argv: string[]): Promise<number> {
     const { ctx, root } = buildContext(args, Date.now)
     installSignalHandlers()
     const { ok, report } = await runCheckTask(ctx, defaultSteps(root))
+    if (stopping) await stopping // exits 130 or 143; the steps after the signal did not run
     console.log(report)
     return ok ? 0 : 1
   } catch (error) {

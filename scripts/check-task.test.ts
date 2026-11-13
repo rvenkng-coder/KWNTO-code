@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, test } from 'vitest'
 import { type CheckContext, defaultSteps, parseArgs, runCheckTask, type Step, type StepResult, taskNumberOf } from './check-task.ts'
-import { runCommand } from './lib/run-command.ts'
+import { type CommandResult, runCommand, stopAll } from './lib/run-command.ts'
 import type { TestPlan } from './lib/test-plan.ts'
 
 // The runner is tested with fake steps and a fake clock; only the usage test starts a real process.
@@ -181,5 +181,77 @@ describe('command line', () => {
     expect(result.stdout).toContain('usage: npm run check:task -- --task <task file>')
     expect(result.stdout + result.stderr).not.toContain('    at ')
     expect(result.status).toBe(2)
+  })
+})
+
+// Fix round 2: after a stop (deadline or signal) no further command may start, so nothing outlives the run.
+describe('no command starts after a stop', () => {
+  const isAlive = (pid: number | null): boolean => {
+    if (pid === null || pid <= 0) return false // never kill(0) or kill(-1): they address groups, not a process
+    try { process.kill(pid, 0); return true } catch { return false }
+  }
+  const pidOf = (file: string): number | null => {
+    try { return Number(readFileSync(file, 'utf8')) } catch { return null }
+  }
+  // A command that writes its pid to `file` and lives `ms`.
+  const sleeper = (file: string, ms: number): string[] => ['-e', `require('node:fs').writeFileSync(${JSON.stringify(file)}, String(process.pid)); setTimeout(() => process.exit(0), ${ms})`]
+  // A command that exits at once but leaves a grandchild ignoring SIGTERM; it exits only after the grandchild has
+  // installed its handler, so its group really outlives the SIGTERM and its stop waits the whole grace period.
+  const leavesStubbornChild = (file: string): string[] => ['-e', [
+    "const c = require('node:child_process').spawn(process.execPath, ['-e', \"process.on('SIGTERM', () => {}); process.send('ready'); setTimeout(() => {}, 20000)\"], { stdio: ['ignore', 'ignore', 'ignore', 'ipc'] })",
+    `c.on('message', () => { require('node:fs').writeFileSync(${JSON.stringify(file)}, String(c.pid)); process.exit(0) })`,
+  ].join(';')]
+  const settle = (ms: number) => new Promise((done) => setTimeout(done, ms))
+
+  // Protects: a step that runs commands in sequence (like layers) cannot start its next command after the deadline.
+  test('the deadline passing during the first command: the second never spawns and nothing is left', { timeout: 30_000 }, async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'check task seq-'))
+    const [a, b] = [join(dir, 'a'), join(dir, 'b')]
+    let second: CommandResult | null = null
+    const layers: Step = {
+      name: 'layers',
+      run: async (ctx) => {
+        await runCommand(process.execPath, leavesStubbornChild(a), { cwd: dir, deadlineMs: ctx.deadlineMs, graceMs: 1_000 })
+        second = await runCommand(process.execPath, sleeper(b, 20_000), { cwd: dir, deadlineMs: ctx.deadlineMs, graceMs: 1_000 })
+        return { name: 'layers', ok: second.code === 0, lines: [second.output] }
+      },
+    }
+    try {
+      const { ok, report } = await runCheckTask(context(Date.now() + 600), [layers, fake('probes', {})])
+      await settle(500)
+      expect(second).toEqual({ code: null, timedOut: true, output: 'not run: time budget used', notStarted: true })
+      expect(pidOf(b)).toBeNull()
+      expect(isAlive(pidOf(a))).toBe(false)
+      expect(ok).toBe(false)
+      expect(report).toContain('not run: time budget used')
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  })
+
+  // Protects: after a Ctrl-C (the handler awaits stopAll) the next step's command never starts.
+  test('a signal during the first step: the second step never spawns and nothing is left', { timeout: 30_000 }, async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'check task seq-'))
+    const [a, b] = [join(dir, 'a'), join(dir, 'b')]
+    const step = (name: string, file: string): Step => ({
+      name,
+      run: async (ctx) => {
+        const result = await runCommand(process.execPath, sleeper(file, 20_000), { cwd: dir, deadlineMs: ctx.deadlineMs })
+        return { name, ok: result.code === 0, lines: [result.output] }
+      },
+    })
+    try {
+      const run = runCheckTask(context(Date.now() + 3_000), [step('lint', a), step('typecheck', b)])
+      for (let i = 0; i < 100 && pidOf(a) === null; i++) await settle(25)
+      await stopAll() // what the SIGINT/SIGTERM handler does before it exits
+      expect(isAlive(pidOf(a))).toBe(false)
+      const { ok, report } = await run
+      await settle(500)
+      expect(pidOf(b)).toBeNull()
+      expect(ok).toBe(false)
+      expect(report).toContain('FAIL typecheck')
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 })

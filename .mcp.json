@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "docs-mcp-server": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@arabold/docs-mcp-server@latest"
+      ],
+      "env": {
+        "DOCS_MCP_EMBEDDING_MODEL": "gemma",
+        "OPENAI_API_KEY": "llama",
+        "OPENAI_API_BASE": "http://127.0.0.1:9092/v1"
+      },
+      "directTools": false
+    },
+    "codebase-memory": {
+      "command": "/home/paeng/.local/bin/codebase-memory-mcp",
+      "args": [],
+      "directTools": false
+    }
+  }
+}

@@ -81,15 +81,15 @@ describe('parseTestPlan', () => {
   })
 
   // Protects design 6.3: breaks apply only to code Vitest reaches.
-  test('a break whose file is outside src/, scripts/, backend/pb_hooks/lib/ is a problem', () => {
+  test('a break whose file is outside frontend/src/, scripts/, backend/pb_hooks/lib/ is a problem', () => {
     const breaks = [...BREAKS.slice(0, 2), '| B1 | e2e/x.ts | `a` | `b` | scripts/x.test.ts |']
     expect(parseTestPlan(block({ breaks })).problems.join('\n')).toMatch(/B1.*File/)
   })
 
   // Protects design 6.3 and Task 5: the one shared rule for what a break may touch.
-  test('isBreakablePath accepts src/a.ts, scripts/x.ts, backend/pb_hooks/lib/y.js and rejects tests/x.ts, src/a.test.ts, ../x.ts, /etc/passwd, backend/pb_hooks/users-signup.pb.js (a hook is covered by rule tests, design 6.3)', () => {
-    for (const ok of ['src/a.ts', 'scripts/x.ts', 'backend/pb_hooks/lib/y.js']) expect(isBreakablePath(ok), ok).toBe(true)
-    const bad = ['tests/x.ts', 'src/a.test.ts', '../x.ts', '/etc/passwd', 'backend/pb_hooks/users-signup.pb.js', 'src/../tests/x.ts', 'src\\..\\x.ts', '']
+  test('isBreakablePath accepts frontend/src/a.ts, scripts/x.ts, backend/pb_hooks/lib/y.js and rejects tests/x.ts, frontend/src/a.test.ts, ../x.ts, /etc/passwd, backend/pb_hooks/users-signup.pb.js (a hook is covered by rule tests, design 6.3)', () => {
+    for (const ok of ['frontend/src/a.ts', 'scripts/x.ts', 'backend/pb_hooks/lib/y.js']) expect(isBreakablePath(ok), ok).toBe(true)
+    const bad = ['tests/x.ts', 'frontend/src/a.test.ts', '../x.ts', '/etc/passwd', 'backend/pb_hooks/users-signup.pb.js', 'frontend/src/../tests/x.ts', 'src\\..\\x.ts', '']
     for (const path of bad) expect(isBreakablePath(path), path).toBe(false)
   })
 

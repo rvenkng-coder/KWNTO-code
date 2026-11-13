@@ -52,7 +52,7 @@ Stop and report if you need to touch anything else.
 - Tables have the exact header above, a `|---|` separator line, at least one row and the right number of cells. A table with no rows is a problem, never "zero cases".
 - **Cases:** ID unique and not empty; Behaviour, Input and Expected not empty; Layer one of `unit`, `rules`, `e2e`, `container`, `manual`; Test written `path :: title` unless the layer is `manual`.
 - **Probes:** the line `**Probe folder:**` is present and its value starts with `tests/probes/` (or is `none`, meaning no probes).
-- **Breaks:** either a lone line `none` (any case), allowed only when no case is on the `unit` layer (otherwise a problem naming the unit rows), or a table with at least one row; a header with no rows and no `none` is a problem. Rows: ID unique; File passes `isBreakablePath` (under `src/`, `scripts/` or `backend/pb_hooks/lib/`; not a test file; no `..`; not absolute); Find not empty and different from Replace; Tests lists one or more comma-separated relative paths.
+- **Breaks:** either a lone line `none` (any case), allowed only when no case is on the `unit` layer (otherwise a problem naming the unit rows), or a table with at least one row; a header with no rows and no `none` is a problem. Rows: ID unique; File passes `isBreakablePath` (under `frontend/src/`, `scripts/` or `backend/pb_hooks/lib/`; not a test file; no `..`; not absolute); Find not empty and different from Replace; Tests lists one or more comma-separated relative paths.
 - **Flow** and **Evidence** are not empty.
 - **Local tier:** the block above is present and complete when the tier (or a checkpoint tier) is `local`.
 - Every problem names the section and the row id, and starts with the task file path.
@@ -90,7 +90,7 @@ A break is a one-line change to a decision in the code: a comparison, a boundary
 
 **The restore guarantee.** The original is written back in a `finally`, so it comes back whether the tests pass, fail or crash. Files are read and written byte for byte (CRLF, a missing final newline and non-ASCII text are kept). A SIGINT (Ctrl-C) or SIGTERM while a break is applied restores that file, stops Vitest and exits 130 or 143 with `restored <file>`. A Vitest run stopped by a signal from outside is an error, never a catch.
 
-**If the command was killed hard** (SIGKILL, power loss) while a break was applied, run `git status`: a file under `src/`, `scripts/` or `backend/pb_hooks/lib/` that you did not edit is a left-over break; `git checkout -- <file>` puts it back (only if you made no edits to it).
+**If the command was killed hard** (SIGKILL, power loss) while a break was applied, run `git status`: a file under `frontend/src/`, `scripts/` or `backend/pb_hooks/lib/` that you did not edit is a left-over break; `git checkout -- <file>` puts it back (only if you made no edits to it).
 
 ## Running the probes
 

@@ -4,6 +4,8 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  // The app lives in frontend/, but the build output stays at the repo root.
+  build: { outDir: '../dist', emptyOutDir: true },
   server: {
     proxy: {
       '/api': {

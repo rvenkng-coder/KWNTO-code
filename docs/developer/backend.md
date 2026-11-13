@@ -61,13 +61,13 @@ The Alpine base image is pinned by digest in the same file.
 
 PocketBase v0.40.6 hashes passwords with **bcrypt, cost 10**. The password field type is documented as "storing bcrypt hashed strings" and hashes with `bcrypt.GenerateFromPassword(plain, cost)`, where an unset `Cost` falls back to `bcrypt.DefaultCost` ([core/field_password.go](https://github.com/pocketbase/pocketbase/blob/v0.40.6/core/field_password.go)). The default `_superusers` and auth `password` fields set no cost, and `bcrypt.DefaultCost` is 10 ([golang.org/x/crypto v0.58.0, bcrypt/bcrypt.go](https://github.com/golang/crypto/blob/v0.58.0/bcrypt/bcrypt.go)). bcrypt uses only the first 72 bytes of a password.
 
-## The backend door (`src/backend/`)
+## The backend door (`frontend/src/backend/`)
 
-The only place that imports `pocketbase`. Screens use `import { backend } from '../../backend'` and see only plain types from [types.ts](../../src/backend/types.ts) (`AuthUser`, `Team`, `TeamMember`, `TeamSettings`, `Invite`), never SDK records. `createBackend(baseUrl?)` in [client.ts](../../src/backend/client.ts) builds one with `auth` and `teams`; `backend` in [index.ts](../../src/backend/index.ts) is the app's lazily created one. The SDK's request auto-cancel is off, because screens load twice in development (StrictMode) and a cancelled request would show as "cannot be reached".
+The only place that imports `pocketbase`. Screens use `import { backend } from '../../backend'` and see only plain types from [types.ts](../../frontend/src/backend/types.ts) (`AuthUser`, `Team`, `TeamMember`, `TeamSettings`, `Invite`), never SDK records. `createBackend(baseUrl?)` in [client.ts](../../frontend/src/backend/client.ts) builds one with `auth` and `teams`; `backend` in [index.ts](../../frontend/src/backend/index.ts) is the app's lazily created one. The SDK's request auto-cancel is off, because screens load twice in development (StrictMode) and a cancelled request would show as "cannot be reached".
 
 - **`backend.auth`:** `signUp`, `signIn`, `signOut`, `current`, `refresh`, `requestVerification`, `requestPasswordReset`, `onChange` (one listener). `refresh()` re-reads the stored session (the `verified` flag changes after the email link); it ends the session only on 401, 403 or 404, and keeps it when the server cannot be reached. The app calls it on load and when the window gets focus.
 - **`backend.teams`:** `list`, `create`, `remove`, `members`, `removeMember`, `settings` (owner only), `setJoinCodeEnabled`, `regenerateJoinCode`, `join`, `invite`, `invites` (pending only), `acceptInvite`, `declineInvite`. `create` sends the signed-in user as `owner` (the rule requires it) and refuses an unverified user before asking the server.
-- **Errors:** every method throws a `BackendError` ([errors.ts](../../src/backend/errors.ts)) with `kind`, `status`, `message` and, for `invalid`, `fields`. What the UI does for each kind:
+- **Errors:** every method throws a `BackendError` ([errors.ts](../../frontend/src/backend/errors.ts)) with `kind`, `status`, `message` and, for `invalid`, `fields`. What the UI does for each kind:
 
 | `kind` | From | UI |
 |---|---|---|

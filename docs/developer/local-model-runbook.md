@@ -63,7 +63,7 @@ About a minute after the start, look for a session file in the `--session-dir`. 
 ## When to escalate to a strong model
 
 - The check still shows a `FAIL` after **two rounds** of sending the failures back to the local model.
-- The task or checkpoint touches a security-relevant file: access rules, migrations, hooks, `src/backend/`, anything about sync, conflicts or queues. These are always reviewed ([review-sampling.md](review-sampling.md)) and should not be built locally in the first place.
+- The task or checkpoint touches a security-relevant file: access rules, migrations, hooks, `frontend/src/backend/`, anything about sync, conflicts or queues. These are always reviewed ([review-sampling.md](review-sampling.md)) and should not be built locally in the first place.
 - The work is debugging a surprising backend or judging a measurement: untested for this model.
 
 Never edit a failing test to get past a FAIL; if a test looks wrong, stop and say so.

@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev": "vite frontend",
+    "build": "tsc -b && vite build frontend",
     "typecheck": "tsc -b --noEmit",
-    "preview": "vite preview",
+    "preview": "vite preview frontend",
     "test:unit": "vitest run --project unit",
     "dev:backend": "docker compose -f compose.dev.yaml up --build",
     "test:container": "vitest run --project container",

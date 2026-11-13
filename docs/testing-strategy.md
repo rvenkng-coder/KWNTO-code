@@ -12,7 +12,7 @@ The written basis for testing in KWNTO: which layer tests what, how tests are wr
 
 | Layer | Tests what | Lives in | Command | Required when |
 |---|---|---|---|---|
-| `unit` | Pure logic: a function's decisions, without a server or browser | `src/**`, `scripts/**`, `tests/hooks/**` | `npm run test:unit` | Any function with a decision in it (a comparison, a branch, a limit, a parse) |
+| `unit` | Pure logic: a function's decisions, without a server or browser | `frontend/src/**`, `scripts/**`, `tests/hooks/**` | `npm run test:unit` | Any function with a decision in it (a comparison, a branch, a limit, a parse) |
 | `rules` | Access rules, hooks and custom routes, against a live PocketBase | `tests/rules/**` | `npm run test:rules` | Any change to a collection, rule, hook or route |
 | `e2e` | A person's flow in a browser (Firefox and Chromium) | `e2e/**` | `npm run test:e2e` | Any new or changed screen or flow |
 | `container` | Image hardening: non-root user, bootstrap, volume recovery | `tests/container/**` | `npm run test:container` | Any change to the Dockerfile, compose files or startup scripts |
@@ -26,7 +26,7 @@ The written basis for testing in KWNTO: which layer tests what, how tests are wr
 
 | Topic | Rule |
 |---|---|
-| Unit test files | `<name>.unit.test.ts` in `tests/hooks/` (one per helper in `backend/pb_hooks/lib/`); beside the module as `<name>.test.ts` in `src/` and `scripts/` (existing form, also picked up by `test:unit`) |
+| Unit test files | `<name>.unit.test.ts` in `tests/hooks/` (one per helper in `backend/pb_hooks/lib/`); beside the module as `<name>.test.ts` in `frontend/src/` and `scripts/` (existing form, also picked up by `test:unit`) |
 | Rule test files | `tests/rules/<feature>.rules.test.ts`; for a collection, `<feature>` is the exact collection name (the coverage check requires it) |
 | End-to-end files | `e2e/<feature>.spec.ts` |
 | Shared helpers | `tests/rules/helpers/` for rule tests, `e2e/helpers/` for browser tests; look there before writing a new one |
@@ -75,11 +75,11 @@ Try every kind that fits the code under test. `kind` is the slug used in probe t
 |---|---|---|
 | `plan` | `checkTaskFile` (as `check:plan`) on the task file | The task file has a tier, an Interfaces block and a complete Test plan block |
 | `lint` | `npm run lint` | ESLint guardrails, `PERF:` comments, documentation links and opted-in plans are clean |
-| `typecheck` | `npm run typecheck` | Strict TypeScript compiles for `src/` only; `scripts/`, `tests/` and `e2e/` are not typechecked (Vitest and node strip types) |
+| `typecheck` | `npm run typecheck` | Strict TypeScript compiles for `frontend/src/` only; `scripts/`, `tests/` and `e2e/` are not typechecked (Vitest and node strip types) |
 | `unit` | `npm run test:unit` | The unit layer passes |
 | `layers` | `npm run test:rules`, `test:e2e`, `test:container`, each only if the Cases name that layer | Every other layer the task's Test plan names passes; a layer not named is reported as not required |
 | `hygiene` | `check:hygiene --base <base>` | Every new test has a header comment, no test or assertion was lost against the base commit, nothing is skipped or focused |
-| `quality` | `check:quality --base <base>` | Files changed since the task's base stay within the function-length, complexity, nesting and parameter limits, with no `debugger` (and no `console` in `src/` and hooks) |
+| `quality` | `check:quality --base <base>` | Files changed since the task's base stay within the function-length, complexity, nesting and parameter limits, with no `debugger` (and no `console` in `frontend/src/` and hooks) |
 | `coverage` | `coverageProblems` | Every case row of the Test plan points at a test that exists (file and exact test title); a manual row has a Flow |
 | `breaks` | `check:breaks <task file>` | Every listed deliberate break makes at least one named test fail, and the file is restored |
 | `probes` | `check:probes <probe folder>` | The unseen probes pass; a failure names only the row and the kind; a missing or empty folder fails |

@@ -14,12 +14,12 @@ export default defineConfig([
   },
   {
     // Guardrails from docs/engineering.md section 2 and docs/security.md section 5.
-    files: ['src/**/*.{ts,tsx}'],
+    files: ['frontend/src/**/*.{ts,tsx}'],
     rules: {
       'max-lines': ['error', { max: 300, skipBlankLines: true, skipComments: true }],
       '@typescript-eslint/no-explicit-any': 'error',
       'no-restricted-imports': ['error', {
-        paths: [{ name: 'pocketbase', message: 'Only src/backend/ may import pocketbase (docs/engineering.md section 2).' }],
+        paths: [{ name: 'pocketbase', message: 'Only frontend/src/backend/ may import pocketbase (docs/engineering.md section 2).' }],
       }],
       'no-restricted-syntax': ['error', {
         selector: "JSXAttribute[name.name='dangerouslySetInnerHTML']",
@@ -29,7 +29,7 @@ export default defineConfig([
   },
   {
     // The one door to the backend, and the tests that talk to it directly.
-    files: ['src/backend/**', 'tests/rules/**', 'e2e/**'],
+    files: ['frontend/src/backend/**', 'tests/rules/**', 'e2e/**'],
     rules: { 'no-restricted-imports': 'off' },
   },
 ])

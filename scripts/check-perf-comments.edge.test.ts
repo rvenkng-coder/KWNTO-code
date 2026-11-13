@@ -67,7 +67,7 @@ function runIn(files: Record<string, string>) {
 
 // Protects: a bad note in a nested .tsx file fails the run and names file and line.
 test('CLI exits 1 and prints path:line for a bad note in a nested .tsx file', () => {
-  const result = runIn({ 'src/features/a/B.tsx': 'x()\n// PERF: fast\n' })
+  const result = runIn({ 'frontend/src/features/a/B.tsx': 'x()\n// PERF: fast\n' })
   expect(result.status).toBe(1)
   expect(result.stdout).toContain(join('src', 'features', 'a', 'B.tsx') + ':2 PERF comment needs')
 })
@@ -75,8 +75,8 @@ test('CLI exits 1 and prints path:line for a bad note in a nested .tsx file', ()
 // Protects: a clean tree (including a good note) exits 0 so lint passes.
 test('CLI exits 0 on a clean tree', () => {
   const result = runIn({
-    'src/a.ts': '// PERF: What: a. Why: b. Trade-off: c.\n',
-    'src/deep/b.tsx': 'const x = 1\n',
+    'frontend/src/a.ts': '// PERF: What: a. Why: b. Trade-off: c.\n',
+    'frontend/src/deep/b.tsx': 'const x = 1\n',
   })
   expect(result.status).toBe(0)
   expect(result.stdout).toBe('')

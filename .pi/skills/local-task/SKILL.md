@@ -30,7 +30,7 @@ You are doing ONE checkpoint of ONE task. A tool (`check:task`) checks your work
 - Never use `any` without a comment explaining why. Keep files under 300 lines.
 - Never add a dependency. Never run `npm install` or change anything under `node_modules/`.
 - Never touch a file outside "May touch". If you need to, STOP and report instead of doing it.
-- Never import `pocketbase` outside `src/backend/`.
+- Never import `pocketbase` outside `frontend/src/backend/`.
 - Never push, merge, delete data, or touch Docker volumes.
 - Never claim something passed that you did not run. If you could not run it, say that.
 

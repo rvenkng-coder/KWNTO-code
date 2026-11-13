@@ -11,7 +11,7 @@ We need a minimal, zero-cost web app scaffold for KWNTO — a branching narrativ
 
 We use a single npm package at the repo root with Vite as the build tool and dev server, React 19 as the UI library, Tailwind CSS 4 for styling, Zustand for state management, and `@xyflow/react` for the canvas editor. PocketBase v0.40.6 runs in Docker for development and tests. Testing uses Vitest for unit tests and Playwright for end-to-end tests.
 
-The backend runs on the same origin as the web app; Vite proxies `/api` and `/_` to PocketBase in development. Only files under `src/backend/` may import the PocketBase JS SDK.
+The backend runs on the same origin as the web app; Vite proxies `/api` and `/_` to PocketBase in development. Only files under `frontend/src/backend/` may import the PocketBase JS SDK.
 
 ### Dependencies
 
@@ -46,7 +46,7 @@ Date: 2026-11-12. `typescript-eslint` 8.72.2 (the latest, and its canary 8.72.3)
 ### Layout
 
 - Single npm package at the repo root
-- `src/` — React application source
+- `frontend/` — the React app (`src/`, `index.html`, `vite.config.ts`, app and node tsconfig files); `npm run dev` runs Vite with `frontend/` as its root
 - `backend/` — PocketBase Docker image and migrations
 - `tests/` — Unit, rules, and container tests
 - `e2e/` — Playwright end-to-end tests

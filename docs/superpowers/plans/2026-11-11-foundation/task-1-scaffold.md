@@ -6,7 +6,7 @@ Part of the [Foundation and Real-Time Spike plan](README.md). **Read the router 
 **Depends on:** none
 
 **Files:**
-- Create: `package.json`, `.nvmrc`, `tsconfig*.json`, `vite.config.ts`, `vitest.config.ts`, `index.html`, `src/main.tsx`, `src/App.tsx`, `src/index.css`, `src/smoke.test.ts`, `.env.example`, `docs/decisions/0001-toolchain.md`
+- Create: `package.json`, `.nvmrc`, `tsconfig*.json`, `vite.config.ts`, `vitest.config.ts`, `index.html`, `frontend/src/main.tsx`, `frontend/src/App.tsx`, `frontend/src/index.css`, `frontend/src/smoke.test.ts`, `.env.example`, `docs/decisions/0001-toolchain.md`
 - Modify: `.gitignore`
 
 **Interfaces:**
@@ -27,15 +27,15 @@ Part of the [Foundation and Real-Time Spike plan](README.md). **Read the router 
 
 ## Checkpoint 1B: Configure and prove the toolchain
 
-- [ ] **Step 4: Configure.** `tsconfig`: `"strict": true`, `"noUncheckedIndexedAccess": true`, `"allowImportingTsExtensions": true`. `vite.config.ts`: React and Tailwind plugins and the proxy above. `src/index.css`: `@import "tailwindcss";`. `vitest.config.ts`: three projects, all `environment: 'node'`:
+- [ ] **Step 4: Configure.** `tsconfig`: `"strict": true`, `"noUncheckedIndexedAccess": true`, `"allowImportingTsExtensions": true`. `vite.config.ts`: React and Tailwind plugins and the proxy above. `frontend/src/index.css`: `@import "tailwindcss";`. `vitest.config.ts`: three projects, all `environment: 'node'`:
 
 | Project | Include | Notes |
 |---|---|---|
-| `unit` | `src/**/*.test.{ts,tsx}`, `scripts/**/*.test.ts`, `tests/lint/**/*.test.ts` | |
+| `unit` | `frontend/src/**/*.test.{ts,tsx}`, `scripts/**/*.test.ts`, `tests/lint/**/*.test.ts` | |
 | `rules` | `tests/rules/**/*.test.ts` | `globalSetup: tests/rules/global-setup.ts` (Task 5) |
 | `container` | `tests/container/**/*.test.ts` | `testTimeout: 180_000`, files run in sequence |
-- [ ] **Step 5: Replace the template page.** `src/App.tsx` renders only `<h1>KWNTO</h1>`. Delete the template's logos and demo CSS.
-- [ ] **Step 6: Write the smoke test** `src/smoke.test.ts`:
+- [ ] **Step 5: Replace the template page.** `frontend/src/App.tsx` renders only `<h1>KWNTO</h1>`. Delete the template's logos and demo CSS.
+- [ ] **Step 6: Write the smoke test** `frontend/src/smoke.test.ts`:
 
 ```ts
 // Protects: the unit-test runner itself. If this fails, no other unit result can be trusted.

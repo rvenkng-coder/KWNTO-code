@@ -1,6 +1,6 @@
 # `check:task`: the self-check every task ends with
 
-`npm run check:task` runs every check a task must pass, in one command, and prints one verdict. The implementer runs it at the end of a task and pastes the **full output** into its report. It replaces the grading checklist in [local-model-notes.md](local-model-notes.md), so grading no longer depends on a person remembering each check. The layers and the order of the checks are in the [test strategy](../testing-strategy.md), section 6.
+`npm run check:task` runs every check a task must pass, in one command, and prints one verdict. The implementer runs it at the end of a task and pastes the **full output** into its report. It is meant to replace the grading checklist in [local-model-notes.md](local-model-notes.md), so grading no longer depends on a person remembering each check; that change to local-model-notes.md is planned for Task 9 of the local-AI quality plan. The layers and the order of the checks are in the [test strategy](../testing-strategy.md), section 6.
 
 ## The command
 
@@ -24,7 +24,7 @@ Every step runs, even after an earlier one failed, so the report is complete.
 
 | Step | Runs | Proves |
 |---|---|---|
-| `plan` | `checkTaskFile` from `check:plan` on the task file | The task file has a tier, an Interfaces line and a complete Test plan block ([format](test-plan-format.md)). A broken plan fails this step; the other steps still run with what could be read |
+| `plan` | `checkTaskFile` from `check:plan` on the task file | The task file has a tier, an Interfaces line and a complete Test plan block ([format](test-plan-format.md)). A Test plan with any problem fails this step; the other steps still run, and `layers`, `coverage`, `breaks` and `probes` then fail with `not run: the Test plan could not be read (see the plan step)` instead of describing a plan that was not read |
 | `lint` | `npm run lint` | ESLint, `PERF:` comments, documentation links and every opted-in plan |
 | `typecheck` | `npm run typecheck` | Strict TypeScript compiles |
 | `unit` | `npm run test:unit` | The whole unit layer passes, not only the task's tests |
@@ -42,7 +42,11 @@ Commands run without a shell, with their output captured. A failing command keep
 
 ## The 10-minute budget
 
-The whole command has 10 minutes (600000 ms). A step that has not started when the time is used up fails with `not run: time budget used`; it is never silently skipped. A command still running at the deadline is stopped with its whole process group (SIGTERM, then SIGKILL after 5 seconds) and its step fails with `killed: time budget used`. A run that hits the budget is a FAIL: make the slow step faster or split the task.
+The whole command has 10 minutes (600000 ms). A step that has not started when the time is used up fails with `not run: time budget used`; it is never silently skipped. A command still running at the deadline is stopped with its whole process group (SIGTERM, then SIGKILL after 5 seconds) and its step fails with `killed: time budget used`; check:task waits until no process of that group is left before it goes on or exits, so no command and no deliberate break outlives the run.
+
+**The limit:** `hygiene`, `quality` and `coverage` run inside the command. The ESLint run of `quality` gets the remaining budget as its timeout (running out fails the step with `ESLint did not finish within the time budget`), but the git calls of `hygiene` and `quality` and the file reads of `coverage` are synchronous and cannot be stopped mid-step. They take seconds; if one of these steps does finish after the deadline, it fails with `overran: time budget used`, never passes.
+
+A run that hits the budget is a FAIL: make the slow step faster or split the task.
 
 ## Reading the report
 
@@ -75,7 +79,7 @@ The implementer pastes the full output of `npm run check:task` into its report. 
 
 ## After an interrupted run
 
-Ctrl-C (SIGINT) or SIGTERM stops every command `check:task` started (the break runner puts its file back when it is stopped this way) and exits 130 or 143 with a reminder. If the run was killed hard (SIGKILL, power loss) while a break was applied, a deliberate break can be left in a source file:
+Ctrl-C (SIGINT) or SIGTERM stops every command `check:task` started (SIGTERM, then SIGKILL after 5 seconds; the break runner puts its file back when it gets the SIGTERM), waits until they are gone, and exits 130 or 143 with a reminder. If the run was killed hard (SIGKILL, power loss) while a break was applied, a deliberate break can be left in a source file:
 
 1. Run `git status`.
 2. A file under `src/`, `scripts/` or `backend/pb_hooks/lib/` that you did not edit is a left-over break: `git checkout -- <file>` puts it back. Do this only for files you did not edit.

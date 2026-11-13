@@ -1,7 +1,10 @@
 import { spawnSync } from 'node:child_process'
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, test } from 'vitest'
 import { type CheckContext, defaultSteps, parseArgs, runCheckTask, type Step, type StepResult, taskNumberOf } from './check-task.ts'
+import { runCommand } from './lib/run-command.ts'
 import type { TestPlan } from './lib/test-plan.ts'
 
 // The runner is tested with fake steps and a fake clock; only the usage test starts a real process.
@@ -89,6 +92,33 @@ describe('runCheckTask', () => {
     expect(ok).toBe(false)
     expect(report).toContain('FAIL layers')
     expect(report).toContain('killed: time budget used')
+  })
+
+  // Protects fix round 1: the deadline backstop and the command's own kill race; whichever wins, no process of
+  // the step (child or grandchild) may still be alive when the run returns (a break could still be applied).
+  test('a real command still running at the deadline is gone, with its children, when the run returns', { timeout: 20_000 }, async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'check task race-'))
+    const pids = join(dir, 'pids')
+    const script = `const c = require('node:child_process').spawn(process.execPath, ['-e', 'setTimeout(() => {}, 30000)'], { stdio: 'ignore' }); require('node:fs').writeFileSync(${JSON.stringify(pids)}, process.pid + ' ' + c.pid); setTimeout(() => {}, 30000)`
+    const real: Step = {
+      name: 'breaks',
+      run: async (ctx) => {
+        const result = await runCommand(process.execPath, ['-e', script], { cwd: dir, deadlineMs: ctx.deadlineMs })
+        return { name: 'breaks', ok: result.code === 0, lines: result.timedOut ? ['killed: time budget used'] : [] }
+      },
+    }
+    try {
+      const { ok, report } = await runCheckTask(context(Date.now() + 600), [real, fake('probes', {})])
+      const alive = readFileSync(pids, 'utf8').split(' ').map(Number).filter((pid) => {
+        try { process.kill(pid, 0); return true } catch { return false }
+      })
+      expect(alive).toEqual([])
+      expect(ok).toBe(false)
+      expect(report).toContain('killed: time budget used')
+      expect(report).toContain('not run: time budget used')
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 
   // Protects Review Focus 3: the runner prints a step's lines as given and adds nothing from the plan's cases.

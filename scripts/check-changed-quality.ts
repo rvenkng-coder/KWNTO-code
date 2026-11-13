@@ -59,18 +59,20 @@ function eslintCommand(): { bin: string; config: string } {
   return { bin, config: join(toolRoot, 'eslint.quality.config.js') }
 }
 
-function runEslint(extra: string[], files: string[], cwd: string) {
+// timeoutMs (optional, from check:task's budget): ESLint is killed when it runs out, and that is an error.
+function runEslint(extra: string[], files: string[], cwd: string, timeoutMs?: number) {
   const { bin, config } = eslintCommand()
-  const result = spawnSync(process.execPath, [bin, '--config', config, '--no-warn-ignored', ...extra, '--', ...files], { cwd, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 })
+  const result = spawnSync(process.execPath, [bin, '--config', config, '--no-warn-ignored', ...extra, '--', ...files], { cwd, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024, timeout: timeoutMs })
+  if ((result.error as NodeJS.ErrnoException | undefined)?.code === 'ETIMEDOUT') throw new Error(`ESLint did not finish within the time budget (${String(timeoutMs)} ms)`)
   if (result.error) throw result.error
   return result
 }
 
-export function checkChanged(base: string, startDir: string = process.cwd()): { code: number; output: string } {
+export function checkChanged(base: string, startDir: string = process.cwd(), timeoutMs?: number): { code: number; output: string } {
   const cwd = repoRoot(startDir)
   const files = filesToCheck(changedFiles(resolveBase(base, cwd), cwd))
   if (files.length === 0) return { code: 0, output: 'check:quality: no changed source files' }
-  const result = runEslint([], files, cwd)
+  const result = runEslint([], files, cwd, timeoutMs)
   const output = `${result.stdout}${result.stderr}`.trim()
   if (result.status === 0) return { code: 0, output: 'check:quality: ok' }
   return { code: result.status ?? 1, output: output || 'check:quality: ESLint failed without output' }

@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { afterEach, describe, expect, test } from 'vitest'
 import type { CheckContext } from '../check-task.ts'
 import type { TestPlan } from './test-plan.ts'
+import { makeRepo } from './temp-repo.ts'
 import { defaultSteps, escapeRateFor, reviewStep } from './check-steps.ts'
 
 // The in-process steps of check:task. The spawned ones (lint, unit, breaks, probes) are proven by the
@@ -95,5 +96,37 @@ describe('plan and probes steps', () => {
     const result = await coverage?.run(context(dir, { plan: { ...PLAN, cases } }))
     expect(result?.ok).toBe(false)
     expect(result?.lines).toEqual(['C9: test file scripts/none.test.ts does not exist or cannot be read'])
+  })
+})
+
+describe('fix round 1', () => {
+  // Protects: a Test plan that could not be read is never described (no probe folder, layer not required) as a pass.
+  test('the steps that need the Test plan fail with "not run" when it could not be read', async () => {
+    const dir = root()
+    const steps = defaultSteps(dir).filter((step) => ['layers', 'coverage', 'breaks', 'probes'].includes(step.name))
+    expect(steps).toHaveLength(4)
+    for (const step of steps) {
+      const result = await step.run(context(dir, { plan: null }))
+      expect(result).toEqual({ name: step.name, ok: false, lines: ['not run: the Test plan could not be read (see the plan step)'] })
+    }
+  })
+
+  // Protects: ESLint gets the remaining budget as a timeout; running out is an error with a clear message, never a pass.
+  test('the quality step fails when ESLint cannot finish in the remaining budget', async () => {
+    const { cwd, base } = makeRepo({ 'scripts/a.ts': 'export const a = 1\n' })
+    dirs.push(cwd)
+    writeFileSync(join(cwd, 'scripts', 'b.ts'), 'export const b = 2\n')
+    const quality = defaultSteps(cwd).find((step) => step.name === 'quality')
+    await expect(quality?.run(context(cwd, { base, deadlineMs: Date.now() + 1 }))).rejects.toThrow('ESLint did not finish within the time budget')
+  })
+
+  // Protects: an in-process step that ends after the deadline is a failure, not a pass.
+  test('an in-process step that ends after the deadline fails', async () => {
+    const { cwd, base } = makeRepo({ 'scripts/a.ts': 'export const a = 1\n' })
+    dirs.push(cwd)
+    const hygiene = defaultSteps(cwd).find((step) => step.name === 'hygiene')
+    const result = await hygiene?.run(context(cwd, { base, deadlineMs: Date.now() - 1 }))
+    expect(result?.ok).toBe(false)
+    expect(result?.lines[0]).toBe('overran: time budget used (finished after the deadline)')
   })
 })

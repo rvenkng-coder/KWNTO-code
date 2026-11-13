@@ -1,5 +1,8 @@
 import { describe, expect, test } from 'vitest'
-import { lastLines, runCommand } from './run-command.ts'
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { lastLines, runCommand, stopAll } from './run-command.ts'
 
 // check:task runs npm scripts and the break and probe runners through runCommand. These few tests start
 // real (tiny) node processes, because killing a process group cannot be faked meaningfully.
@@ -22,7 +25,7 @@ async function goneWithin(pid: number, ms: number): Promise<boolean> {
 describe('runCommand', () => {
   // Protects: output and exit code are captured, with no shell between (the argument is passed as is).
   test('captures the output and the exit code without a shell', async () => {
-    const result = await runCommand(process.execPath, ['-e', 'console.log(process.argv[1]); process.exit(3)', '$HOME; echo hi'], process.cwd(), Date.now() + 30_000)
+    const result = await runCommand(process.execPath, ['-e', 'console.log(process.argv[1]); process.exit(3)', '$HOME; echo hi'], { cwd: process.cwd(), deadlineMs: Date.now() + 30_000 })
     expect(result).toEqual({ code: 3, timedOut: false, output: '$HOME; echo hi\n' })
   })
 
@@ -30,7 +33,7 @@ describe('runCommand', () => {
   test('a command still running at the deadline is killed with its whole process group', { timeout: 20_000 }, async () => {
     const script = "const c = require('node:child_process').spawn(process.execPath, ['-e', 'setTimeout(() => {}, 30000)'], { stdio: 'ignore' }); console.log(c.pid); setTimeout(() => {}, 30000)"
     const started = Date.now()
-    const result = await runCommand(process.execPath, ['-e', script], process.cwd(), Date.now() + 500)
+    const result = await runCommand(process.execPath, ['-e', script], { cwd: process.cwd(), deadlineMs: Date.now() + 500 })
     expect(result.timedOut).toBe(true)
     expect(Date.now() - started).toBeLessThan(10_000)
     const grandchild = Number(result.output.trim())
@@ -40,9 +43,54 @@ describe('runCommand', () => {
 
   // Protects: a command that cannot start is a failed result with a message, never a hang or a throw.
   test('a command that does not exist resolves with no exit code and a message', async () => {
-    const result = await runCommand('no-such-command-check-task', [], process.cwd(), Date.now() + 30_000)
+    const result = await runCommand('no-such-command-check-task', [], { cwd: process.cwd(), deadlineMs: Date.now() + 30_000 })
     expect(result.code).toBeNull()
     expect(result.output).toContain('cannot start no-such-command-check-task: ENOENT')
+  })
+})
+
+// A child that ignores SIGTERM, with a grandchild; both pids are written to a file once they run.
+function stubborn(pidFile: string): string {
+  return `process.on('SIGTERM', () => {}); const c = require('node:child_process').spawn(process.execPath, ['-e', "process.on('SIGTERM', () => {}); setTimeout(() => {}, 30000)"], { stdio: 'ignore' }); require('node:fs').writeFileSync(${JSON.stringify(pidFile)}, process.pid + ' ' + c.pid); setTimeout(() => {}, 30000)`
+}
+async function pidsOnceWritten(pidFile: string): Promise<number[]> {
+  for (let i = 0; i < 200; i++) {
+    try {
+      const text = readFileSync(pidFile, 'utf8')
+      if (text.includes(' ')) return text.split(' ').map(Number)
+    } catch { /* not written yet */ }
+    await new Promise((done) => setTimeout(done, 25))
+  }
+  throw new Error('the child never started')
+}
+
+describe('stopping a command that ignores SIGTERM', () => {
+  // Protects fix round 1: at the deadline SIGTERM is followed by SIGKILL, and the result comes only when the group is gone.
+  test('at the deadline a child ignoring SIGTERM is killed after the grace period, before the result', { timeout: 20_000 }, async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'run command-'))
+    try {
+      const pidFile = join(dir, 'pids')
+      const result = await runCommand(process.execPath, ['-e', stubborn(pidFile)], { cwd: dir, deadlineMs: Date.now() + 800, graceMs: 300 })
+      expect(result.timedOut).toBe(true)
+      for (const pid of await pidsOnceWritten(pidFile)) expect(alive(pid)).toBe(false)
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  })
+
+  // Protects fix round 1 (signal path): stopAll escalates to SIGKILL and resolves only when every group is gone.
+  test('stopAll kills a group that ignores SIGTERM and waits for it', { timeout: 20_000 }, async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'run command-'))
+    try {
+      const pidFile = join(dir, 'pids')
+      const running = runCommand(process.execPath, ['-e', stubborn(pidFile)], { cwd: dir, deadlineMs: Date.now() + 60_000, graceMs: 300 })
+      const pids = await pidsOnceWritten(pidFile)
+      await stopAll(300)
+      for (const pid of pids) expect(alive(pid)).toBe(false)
+      expect((await running).code).toBeNull()
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 })
 

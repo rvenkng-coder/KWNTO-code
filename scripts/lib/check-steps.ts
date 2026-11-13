@@ -10,10 +10,12 @@ import { escapeRate, MISSING_TABLE, parseProgress } from '../escape-rate.ts'
 import { needsReview } from '../review-sample.ts'
 import { coverageProblems, layersNeeded } from './coverage.ts'
 import { lastLines, runCommand } from './run-command.ts'
+import type { TestPlan } from './test-plan.ts'
 
 const TAIL = 40
 const SCRIPTS = join(import.meta.dirname, '..')
 const KILLED = 'killed: time budget used'
+const NO_PLAN = 'not run: the Test plan could not be read (see the plan step)'
 
 const pass = (name: string, lines: string[] = []): StepResult => ({ name, ok: true, lines })
 const fail = (name: string, lines: string[]): StepResult => ({ name, ok: false, lines })
@@ -21,7 +23,7 @@ const fail = (name: string, lines: string[]): StepResult => ({ name, ok: false, 
 // One command; on failure the last lines of its output (a test runner's own report) are kept.
 // `summary` keeps the last line of a passing run (run-breaks and run-probes end with a count).
 async function command(name: string, cmd: string[], root: string, ctx: CheckContext, summary = false): Promise<StepResult> {
-  const result = await runCommand(cmd[0], cmd.slice(1), root, ctx.deadlineMs)
+  const result = await runCommand(cmd[0], cmd.slice(1), { cwd: root, deadlineMs: ctx.deadlineMs })
   if (result.timedOut) return fail(name, [KILLED, ...lastLines(result.output, TAIL)])
   if (result.code === 0) return pass(name, summary ? lastLines(result.output, 1) : [])
   return fail(name, [`exit code ${String(result.code)}`, ...lastLines(result.output, TAIL)])
@@ -31,6 +33,21 @@ const npmStep = (name: string, script: string, root: string): Step => ({
   name,
   run: (ctx) => command(name, ['npm', 'run', '--silent', script], root, ctx),
 })
+
+// A step that reads the Test plan says nothing about a plan that could not be read: it does not pass.
+function needsPlan(name: string, run: (ctx: CheckContext, plan: TestPlan) => Promise<StepResult>): Step {
+  return {
+    name,
+    run: (ctx) => (ctx.plan === null ? Promise.resolve(fail(name, [NO_PLAN])) : run(ctx, ctx.plan)),
+  }
+}
+
+// In-process steps cannot be interrupted (their git calls are synchronous); one that ends after the deadline
+// is a failure, never a pass.
+function inTime(name: string, ctx: CheckContext, result: StepResult): StepResult {
+  if (Date.now() <= ctx.deadlineMs) return result
+  return fail(name, ['overran: time budget used (finished after the deadline)', ...result.lines])
+}
 
 function planStep(): Step {
   return {
@@ -52,21 +69,18 @@ const TEST_LAYERS = ['rules', 'e2e', 'container'] as const
 
 // The unit layer is the `unit` step; the others run only when the Test plan names them.
 function layersStep(root: string): Step {
-  return {
-    name: 'layers',
-    run: async (ctx) => {
-      const needed = layersNeeded(ctx.plan)
-      const lines: string[] = []
-      let ok = true
-      for (const layer of TEST_LAYERS) {
-        if (!needed.has(layer)) { lines.push(`${layer}: not required by this task's test plan`); continue }
-        const result = await command(layer, ['npm', 'run', '--silent', `test:${layer}`], root, ctx)
-        ok = ok && result.ok
-        lines.push(result.ok ? `${layer}: passed` : `${layer}: FAILED`, ...(result.ok ? [] : result.lines))
-      }
-      return { name: 'layers', ok, lines }
-    },
-  }
+  return needsPlan('layers', async (ctx, plan) => {
+    const needed = layersNeeded(plan)
+    const lines: string[] = []
+    let ok = true
+    for (const layer of TEST_LAYERS) {
+      if (!needed.has(layer)) { lines.push(`${layer}: not required by this task's test plan`); continue }
+      const result = await command(layer, ['npm', 'run', '--silent', `test:${layer}`], root, ctx)
+      ok = ok && result.ok
+      lines.push(result.ok ? `${layer}: passed` : `${layer}: FAILED`, ...(result.ok ? [] : result.lines))
+    }
+    return { name: 'layers', ok, lines }
+  })
 }
 
 function hygieneStep(root: string): Step {
@@ -74,18 +88,20 @@ function hygieneStep(root: string): Step {
     name: 'hygiene',
     run: async (ctx) => {
       const problems = checkHygiene(ctx.base, root)
-      return problems.length === 0 ? pass('hygiene') : fail('hygiene', problems.map((p) => `${p.file}: ${p.rule}: ${p.detail}`))
+      const result = problems.length === 0 ? pass('hygiene') : fail('hygiene', problems.map((p) => `${p.file}: ${p.rule}: ${p.detail}`))
+      return inTime('hygiene', ctx, result)
     },
   }
 }
 
 // The task's own changed files against the task's base, never the whole branch against main.
+// ESLint gets the remaining budget as its timeout; running out is an error, so the step fails.
 function qualityStep(root: string): Step {
   return {
     name: 'quality',
     run: async (ctx) => {
-      const { code, output } = checkChanged(ctx.base, root)
-      return code === 0 ? pass('quality', [output]) : fail('quality', lastLines(output, TAIL))
+      const { code, output } = checkChanged(ctx.base, root, Math.max(1, ctx.deadlineMs - Date.now()))
+      return inTime('quality', ctx, code === 0 ? pass('quality', [output]) : fail('quality', lastLines(output, TAIL)))
     },
   }
 }
@@ -98,31 +114,23 @@ function coverageStep(root: string): Step {
       return null
     }
   }
-  return {
-    name: 'coverage',
-    run: async (ctx) => {
-      const problems = coverageProblems(ctx.plan, readFile)
-      return problems.length === 0 ? pass('coverage', [`${ctx.plan.cases.length} cases point at tests that exist`]) : fail('coverage', problems)
-    },
-  }
+  return needsPlan('coverage', async (ctx, plan) => {
+    const problems = coverageProblems(plan, readFile)
+    const result = problems.length === 0 ? pass('coverage', [`${plan.cases.length} cases point at tests that exist`]) : fail('coverage', problems)
+    return inTime('coverage', ctx, result)
+  })
 }
 
 function breaksStep(root: string): Step {
-  return {
-    name: 'breaks',
-    run: (ctx) => command('breaks', [process.execPath, join(SCRIPTS, 'run-breaks.ts'), '--cwd', root, resolve(ctx.taskFile)], root, ctx, true),
-  }
+  return needsPlan('breaks', (ctx) => command('breaks', [process.execPath, join(SCRIPTS, 'run-breaks.ts'), '--cwd', root, resolve(ctx.taskFile)], root, ctx, true))
 }
 
 // run-probes prints only rows and kinds, so its lines are safe to show; a missing or empty folder fails there.
 function probesStep(root: string): Step {
-  return {
-    name: 'probes',
-    run: async (ctx) => {
-      if (ctx.plan.probeFolder === null) return pass('probes', ['the Test plan names no probe folder (none)'])
-      return command('probes', [process.execPath, join(SCRIPTS, 'run-probes.ts'), '--cwd', root, ctx.plan.probeFolder], root, ctx, true)
-    },
-  }
+  return needsPlan('probes', async (ctx, plan) => {
+    if (plan.probeFolder === null) return pass('probes', ['the Test plan names no probe folder (none)'])
+    return command('probes', [process.execPath, join(SCRIPTS, 'run-probes.ts'), '--cwd', root, plan.probeFolder], root, ctx, true)
+  })
 }
 
 // Escape rate for the review line (ruling of Task 8): no file or no tracking table means 0, said so;

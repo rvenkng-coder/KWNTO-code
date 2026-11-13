@@ -14,21 +14,23 @@ import { parseTestPlan, type TestPlan } from './lib/test-plan.ts'
 export { defaultSteps } from './lib/check-steps.ts'
 
 export interface StepResult { name: string; ok: boolean; informational?: boolean; lines: string[] }
-export interface CheckContext { base: string; taskFile: string; taskNumber: number; builtBy: 'local' | 'strong'; plan: TestPlan; changed: string[]; deadlineMs: number }
+export interface CheckContext { base: string; taskFile: string; taskNumber: number; builtBy: 'local' | 'strong'; plan: TestPlan | null; changed: string[]; deadlineMs: number }
 export interface Step { name: string; run(ctx: CheckContext): Promise<StepResult> }
 
 export const BUDGET_MS = 600_000
 const USAGE = 'usage: npm run check:task -- --task <task file> [--base <sha>] [--built-by local|strong]'
-const EMPTY_PLAN: TestPlan = { cases: [], probeFolder: null, breaks: [], flow: '', evidence: '' }
 
 const failed = (name: string, line: string): StepResult => ({ name, ok: false, lines: [line] })
 
-// Resolves to the step's result, or to a failure when the deadline comes first. A step that runs a command
-// stops that command itself at the deadline (scripts/lib/run-command.ts); this is the backstop for the rest.
+// Resolves to the step's result, or to a failure when the deadline comes first. When the deadline wins, every
+// process group a step started is stopped and gone (stopAll waits for it) before the runner moves on, so
+// check:task never returns while a command, or a deliberate break, is still live.
 function withDeadline(step: Step, ctx: CheckContext, waitMs: number): Promise<StepResult> {
   let timer: NodeJS.Timeout | undefined
   const deadline = new Promise<StepResult>((done) => {
-    timer = setTimeout(() => done(failed(step.name, 'killed: time budget used')), waitMs)
+    timer = setTimeout(() => {
+      void stopAll().then(() => done(failed(step.name, 'killed: time budget used')))
+    }, waitMs)
   })
   return Promise.race([step.run(ctx), deadline]).finally(() => clearTimeout(timer))
 }
@@ -116,18 +118,26 @@ function buildContext(args: Args, now: () => number): { ctx: CheckContext; root:
   } catch {
     throw new Error(`cannot read ${args.task}`)
   }
-  const plan = parseTestPlan(markdown).plan ?? EMPTY_PLAN // a broken plan fails the plan step; the rest still runs
+  // A plan with any problem fails the plan step; the steps that need it then say it could not be read.
+  const parsed = parseTestPlan(markdown)
+  const plan = parsed.problems.length === 0 ? parsed.plan : null
   const changed = changedFiles(base, root).flatMap((change) => (change.oldPath ? [change.path, change.oldPath] : [change.path]))
   const ctx = { base, taskFile: args.task, taskNumber: args.taskNumber, builtBy: args.builtBy, plan, changed, deadlineMs: now() + BUDGET_MS }
   return { ctx, root }
 }
 
+// SIGTERM to every command group (run-breaks restores its file on SIGTERM), SIGKILL after the grace period,
+// and exit only once the groups are gone. A second signal while stopping is ignored.
 function installSignalHandlers(): void {
+  let stopping = false
   for (const [signal, code] of [['SIGINT', 130], ['SIGTERM', 143]] as const) {
     process.on(signal, () => {
-      stopAll('SIGTERM') // run-breaks restores its file on SIGTERM
-      console.log(`check:task: ${signal}; stopped. Run git status and put back any source file you did not edit (git checkout -- <file>).`)
-      process.exit(code)
+      if (stopping) return
+      stopping = true
+      void stopAll().then(() => {
+        console.log(`check:task: ${signal}; stopped. Run git status and put back any source file you did not edit (git checkout -- <file>).`)
+        process.exit(code)
+      })
     })
   }
 }

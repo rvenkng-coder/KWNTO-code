@@ -7,7 +7,7 @@ interface SessionState {
   user: AuthUser | null
   error: string | null
   signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string, name: string) => Promise<void>
+  signUp: (email: string, password: string, name: string) => Promise<boolean>
   signOut: () => void
   refresh: () => Promise<void>
 }
@@ -35,8 +35,10 @@ export const useSession = create<SessionState>((set) => {
       try {
         await backend.auth.signUp(email, password, name)
         set({ error: null })
+        return true
       } catch (err: unknown) {
         set({ error: errorMessage(err, 'Sign up failed') })
+        return false
       }
     },
     signOut() {

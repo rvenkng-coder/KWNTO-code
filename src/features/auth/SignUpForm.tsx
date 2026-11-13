@@ -13,8 +13,8 @@ export function SignUpForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await signUp(email, password, name)
-    setSignedUp(true)
+    const ok = await signUp(email, password, name)
+    if (ok) setSignedUp(true)
   }
 
   return (

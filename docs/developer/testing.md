@@ -17,7 +17,7 @@ KWNTO uses distinct test projects managed by Vitest and custom test harnesses:
 | **Full suite** | `npm test` | Runs `lint && typecheck && test:unit && test:container && test:rules` | All |
 
 ### Supporting Verification Commands
-- `npm run typecheck`: Runs `tsc -b --noEmit` to verify strict TypeScript adherence.
+- `npm run typecheck`: Runs `tsc -b --noEmit` to verify strict TypeScript compiles for `src/` only (`scripts/`, `tests/` and `e2e/` are not typechecked).
 - `npm run lint`: Runs linter guardrails.
 - `npm run check:plan`: Checks the Test plan block of every task file in plans that opt in with `**Standard:** test-plan-v1`; format in [test-plan-format.md](test-plan-format.md). Part of `lint`.
 - `npm run check:hygiene [-- --base <sha>]`: Test hygiene against the merge base with `main`, on changed test files only (shared changed-files helper: `scripts/lib/changed-files.ts`). Prints `file: rule: detail`, exit 1 on any problem. Reads test files with the TypeScript parser (`scripts/lib/test-ast.ts`, no new dependency): a declaration is a call whose chain starts at `test` or `it`, found in any expression position (conditional, `export default`, comma, template, JSX) and never in strings, comments, regex literals or JSX text. It is backed by raw-text checks (`scripts/lib/test-raw.ts`), so a parser misjudgement can only add false positives; skip and focus words are matched on raw text and a word inside a string or comment is flagged on purpose. Rules, and what each protects:

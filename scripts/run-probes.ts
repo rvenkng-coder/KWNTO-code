@@ -1,13 +1,12 @@
 // Runs a task's probes (docs/developer/test-plan-format.md, "Running the probes").
 // node scripts/run-probes.ts [--cwd <dir>] <probe folder>
 // Vitest's output is captured, never shown: only the row and kind of each failure are printed.
-import { spawn } from 'node:child_process'
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs'
-import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
-import { dirname, join, resolve } from 'node:path'
+import { join, resolve } from 'node:path'
 import { isMain } from './lib/is-main.ts'
 import { formatProbeSummary, summariseProbeRun } from './lib/probes.ts'
+import { spawnVitest } from './lib/vitest-bin.ts'
 
 const USAGE = 'usage: node scripts/run-probes.ts [--cwd <dir>] <probe folder>'
 
@@ -22,26 +21,6 @@ export function parseArgs(argv: string[]): { cwd: string; folder: string } | nul
   }
   if (rest.length !== 1 || rest[0].startsWith('-')) return null
   return { cwd, folder: rest[0] }
-}
-
-function vitestBin(): string {
-  const toolRoot = join(import.meta.dirname, '..')
-  const manifest = createRequire(join(toolRoot, 'package.json')).resolve('vitest/package.json') // "exports" hides the bin
-  return join(dirname(manifest), 'vitest.mjs')
-}
-
-// Resolves to Vitest's exit code. Its stdout and stderr are drained and dropped: they hold messages and values.
-function spawnVitest(cwd: string, args: string[]): Promise<number | null> {
-  return new Promise((done, fail) => {
-    const child = spawn(process.execPath, [vitestBin(), ...args], { cwd, stdio: ['ignore', 'pipe', 'pipe'] })
-    child.stdout.resume()
-    child.stderr.resume()
-    child.on('error', fail)
-    child.on('close', (code, signal) => {
-      if (signal !== null) fail(new Error(`vitest was stopped by ${signal}`))
-      else done(code)
-    })
-  })
 }
 
 // The probe files under the folder, as paths relative to cwd. They are passed to Vitest one by one:

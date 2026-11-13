@@ -2,14 +2,14 @@
 // node scripts/run-breaks.ts [--cwd <dir>] <task.md>
 // Each break is applied to its file, the named unit tests run, and the exact original bytes are written
 // back: in a finally, and on SIGINT or SIGTERM while a break is applied.
-import { type ChildProcess, spawn } from 'node:child_process'
+import type { ChildProcess } from 'node:child_process'
 import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
-import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
-import { dirname, join, resolve } from 'node:path'
+import { join, resolve } from 'node:path'
 import { type BreakDeps, type BreakResult, runBreaks } from './lib/breaks.ts'
 import { type BreakRow, parseTestPlan, type TestPlan } from './lib/test-plan.ts'
 import { isMain } from './lib/is-main.ts'
+import { spawnVitest } from './lib/vitest-bin.ts'
 
 const USAGE = 'usage: node scripts/run-breaks.ts [--cwd <dir>] <task.md>'
 
@@ -33,30 +33,6 @@ export function parseArgs(argv: string[]): { cwd: string; task: string } | null 
 // not valid UTF-8) is restored byte for byte. Find and Replace are turned into the same form.
 const asBytes = (text: string): string => Buffer.from(text, 'utf8').toString('latin1')
 const toFileForm = (row: BreakRow): BreakRow => ({ ...row, find: asBytes(row.find), replace: asBytes(row.replace) })
-
-function vitestBin(): string {
-  const toolRoot = join(import.meta.dirname, '..')
-  const manifest = createRequire(join(toolRoot, 'package.json')).resolve('vitest/package.json') // "exports" hides the bin
-  return join(dirname(manifest), 'vitest.mjs')
-}
-
-// Resolves to Vitest's exit code. Its output is kept in `state` for the baseline message.
-function spawnVitest(cwd: string, args: string[], state: InFlight): Promise<number | null> {
-  return new Promise((done, fail) => {
-    const child = spawn(process.execPath, [vitestBin(), ...args], { cwd, stdio: ['ignore', 'pipe', 'pipe'] })
-    state.child = child
-    state.output = ''
-    child.stdout.on('data', (chunk: Buffer) => { state.output += chunk.toString() })
-    child.stderr.on('data', (chunk: Buffer) => { state.output += chunk.toString() })
-    child.on('error', fail)
-    child.on('close', (code, signal) => {
-      state.child = null
-      // Killed from outside is not a test failure; counting it as "caught" would pass a weak test.
-      if (signal !== null) fail(new Error(`vitest was stopped by ${signal}`))
-      else done(code)
-    })
-  })
-}
 
 const realOrSame = (path: string): string => {
   try {
@@ -88,7 +64,7 @@ async function runVitest(cwd: string, paths: string[], state: InFlight): Promise
   const reportPath = join(reportDir, 'report.json')
   try {
     const args = ['run', '--project', 'unit', '--reporter=default', '--reporter=json', `--outputFile.json=${reportPath}`, ...paths]
-    const code = await spawnVitest(cwd, args, state)
+    const code = await spawnVitest(cwd, args, state) // output kept in state for the baseline message
     const ran = filesThatRan(reportPath)
     const notRun = paths.filter((path) => !ran.has(realOrSame(join(cwd, path))))
     if (notRun.length > 0) throw new Error(`named test file did not run in the unit project: ${notRun.join(', ')} (Breaks may name only unit tests)`)

@@ -25,6 +25,7 @@ See the [design](docs/superpowers/specs/2026-11-11-kwnto-design.md) and [ERD](do
 | `e2e/` | Playwright end-to-end tests |
 | `scripts/` | TypeScript utility scripts (run with `node`) |
 | `spike/` | Throwaway spikes (isolated from the app) |
+| `.pi/skills/` | Skills for the local model (`local-task`: loaded with `--skill`, see the [runbook](docs/developer/local-model-runbook.md)) |
 | `docs/` | Design, engineering, security, developer guides |
 
 ## Commands

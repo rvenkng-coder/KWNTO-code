@@ -19,6 +19,8 @@ Run one task without a person at the keyboard:
 little-coder -p --session-dir <dir> "<prompt>"
 ```
 
+For a real task, start with `--skill .pi/skills/local-task` and tell the model to use it: see the [runbook](local-model-runbook.md#starting-it) (the skill is only read when the prompt asks for it).
+
 `--session-dir` keeps the log of every tool call, which is how you check the process afterwards. Add `--no-tools --no-context-files --no-extensions --no-skills` for a quick "does it answer?" check (about 8 s when the model is loaded).
 
 ## What we ran

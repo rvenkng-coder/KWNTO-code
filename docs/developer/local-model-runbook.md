@@ -18,14 +18,15 @@ How to give one checkpoint to the local coding model (`little-coder`, model `cod
 ## Starting it
 
 ```sh
-little-coder -p --session-dir <dir> "<prompt>"
+little-coder -p --session-dir <dir> --skill .pi/skills/local-task "<prompt>"
 ```
 
-`--session-dir` keeps the log of every tool call. Use a new directory per run.
+`--session-dir` keeps the log of every tool call. Use a new directory per run. `--skill .pi/skills/local-task` loads the [local-task skill](../../.pi/skills/local-task/SKILL.md): the short rule set the model follows for one checkpoint (what to read, test-first order, what never to do, how to finish with `check:task`). **The skill is not applied by itself**: the model only reads it when the prompt tells it to, and it needs its tools to do so (a run with `--no-tools` answers from general knowledge; tested 2026-11-13). So the prompt must start with the "use the local-task skill" line below, and a run whose session log shows no read of `SKILL.md` did not follow it.
 
 Prompt template (fill in the placeholders, including the sandbox baseline commit, and paste the task file's two lines):
 
 ```
+First, use the local-task skill.
 You are working in <sandbox path>. Work only inside this folder, with relative paths.
 Do Checkpoint <checkpoint> of <task file path>. Read that file and the files it links first.
 You may touch only: <the "May touch" line>
@@ -36,6 +37,8 @@ Write the failing tests first and watch them fail for the right reason. Never ed
 Close the checkpoint with one commit. Do not push.
 At the end run `npm run check:task -- --task <task file path> --base <baseline sha>` and paste its full output in your report.
 ```
+
+The skill repeats the rules of the prompt on purpose: the prompt carries this task's values (paths, baseline commit), the skill carries the rules that never change. Edit the skill when a run shows the model breaking a rule; keep it under about 50 lines, because a small model follows a short list better than a long one.
 
 ## The one-minute check
 
@@ -51,6 +54,7 @@ About a minute after the start, look for a session file in the `--session-dir`. 
 3. Read the session log (the part of grading `check:task` cannot do):
    - Were the tests written before the code, and did the first run fail for the right reason?
    - Did it touch any path outside the sandbox, or outside "May touch"? (`git status` and `git diff --stat <base>` show it; the log shows reads.)
+   - Did it read `SKILL.md` at the start (a `read` of `.pi/skills/local-task/SKILL.md` early in the log)? If not, the skill was not applied: restart with the prompt's first line.
    - Did it read anything under `tests/probes/`? If so the probe result no longer counts: have the probes rewritten or reviewed by a person.
    - How many tool calls and minutes? (Smoke tests: about 11 to 15 minutes, 45 or more tool calls.)
 4. Run the unseen probe set a person wrote beyond the task's own probe folder (step 4 of "After it finishes" in the notes).

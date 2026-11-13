@@ -1,8 +1,10 @@
 import { create } from 'zustand'
 import { backend } from '../../backend'
+import type { AuthUser } from '../../backend/types'
+import { errorMessage } from '../errorMessage'
 
 interface SessionState {
-  user: { id: string; email: string; name: string; verified: boolean } | null
+  user: AuthUser | null
   error: string | null
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string, name: string) => Promise<void>
@@ -26,8 +28,7 @@ export const useSession = create<SessionState>((set) => {
         const user = await backend.auth.signIn(email, password)
         set({ user, error: null })
       } catch (err: unknown) {
-        const e = err as { kind?: string; message?: string }
-        set({ error: e.message ?? 'Sign in failed' })
+        set({ error: errorMessage(err, 'Sign in failed') })
       }
     },
     async signUp(email: string, password: string, name: string) {
@@ -35,8 +36,7 @@ export const useSession = create<SessionState>((set) => {
         await backend.auth.signUp(email, password, name)
         set({ error: null })
       } catch (err: unknown) {
-        const e = err as { kind?: string; message?: string }
-        set({ error: e.message ?? 'Sign up failed' })
+        set({ error: errorMessage(err, 'Sign up failed') })
       }
     },
     signOut() {

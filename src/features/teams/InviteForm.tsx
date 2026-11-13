@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { backend } from '../../backend'
+import { errorMessage } from '../errorMessage'
 
 interface InviteFormProps {
   teamId: string
@@ -17,8 +18,7 @@ export function InviteForm({ teamId }: InviteFormProps) {
       setSent(true)
       setEmail('')
     } catch (err: unknown) {
-      const e = err as { message?: string }
-      setError(e.message ?? 'Failed to send invite')
+      setError(errorMessage(err, 'Failed to send invite'))
     }
   }
 

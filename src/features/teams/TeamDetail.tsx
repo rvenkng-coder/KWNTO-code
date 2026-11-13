@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { backend } from '../../backend'
+import type { TeamMember, TeamSettings } from '../../backend/types'
 import { InviteForm } from './InviteForm'
 import { InvitesInbox } from './InvitesInbox'
+import { errorMessage } from '../errorMessage'
 
 interface TeamDetailProps {
   teamId: string
@@ -9,8 +11,8 @@ interface TeamDetailProps {
 }
 
 export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
-  const [members, setMembers] = useState<{ id: string; name: string; role: string }[]>([])
-  const [settings, setSettings] = useState<{ joinCode: string; joinCodeEnabled: boolean } | null>(null)
+  const [members, setMembers] = useState<TeamMember[]>([])
+  const [settings, setSettings] = useState<TeamSettings | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isOwner, setIsOwner] = useState(false)
 
@@ -19,14 +21,15 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
       try {
         const membersList = await backend.teams.members(teamId)
         setMembers(membersList)
-        const settingsData = await backend.teams.settings(teamId)
-        setSettings(settingsData)
         const teams = await backend.teams.list()
-        const team = teams.find((t: { id: string }) => t.id === teamId)
+        const team = teams.find((t) => t.id === teamId)
         setIsOwner(team?.isOwner ?? false)
+        if (team?.isOwner) {
+          const settingsData = await backend.teams.settings(teamId)
+          setSettings(settingsData)
+        }
       } catch (err: unknown) {
-        const e = err as { message?: string }
-        setError(e.message ?? 'Failed to load team')
+        setError(errorMessage(err, 'Failed to load team'))
       }
     }
     load()
@@ -38,8 +41,7 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
       const membersList = await backend.teams.members(teamId)
       setMembers(membersList)
     } catch (err: unknown) {
-      const e = err as { message?: string }
-      setError(e.message ?? 'Failed to remove member')
+      setError(errorMessage(err, 'Failed to remove member'))
     }
   }
 
@@ -48,8 +50,7 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
       const newCode = await backend.teams.regenerateJoinCode(teamId)
       setSettings((s) => (s ? { ...s, joinCode: newCode } : null))
     } catch (err: unknown) {
-      const e = err as { message?: string }
-      setError(e.message ?? 'Failed to regenerate code')
+      setError(errorMessage(err, 'Failed to regenerate code'))
     }
   }
 
@@ -59,9 +60,18 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
         await backend.teams.remove(teamId)
         onBack()
       } catch (err: unknown) {
-        const e = err as { message?: string }
-        setError(e.message ?? 'Failed to delete team')
+        setError(errorMessage(err, 'Failed to delete team'))
       }
+    }
+  }
+
+  const handleToggleJoinCode = async () => {
+    try {
+      const newEnabled = !settings?.joinCodeEnabled
+      await backend.teams.setJoinCodeEnabled(teamId, newEnabled)
+      setSettings((s) => (s ? { ...s, joinCodeEnabled: newEnabled } : null))
+    } catch (err: unknown) {
+      setError(errorMessage(err, 'Failed to toggle join code'))
     }
   }
 
@@ -89,9 +99,7 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
           {settings && (
             <div>
               <span data-testid="join-code">{settings.joinCode}</span>
-              <button onClick={() => {
-                // Toggle join code enabled
-              }}>
+              <button onClick={handleToggleJoinCode}>
                 {settings.joinCodeEnabled ? 'Disable' : 'Enable'}
               </button>
               <button onClick={handleRegenerateCode}>Regenerate</button>

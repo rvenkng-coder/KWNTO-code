@@ -1,11 +1,7 @@
 import { useEffect, useState } from 'react'
 import { backend } from '../../backend'
-
-interface Invite {
-  id: string
-  teamName: string
-  invitedByName: string
-}
+import type { Invite } from '../../backend/types'
+import { errorMessage } from '../errorMessage'
 
 export function InvitesInbox() {
   const [invites, setInvites] = useState<Invite[]>([])
@@ -17,8 +13,7 @@ export function InvitesInbox() {
         const invitesList = await backend.teams.invites()
         setInvites(invitesList)
       } catch (err: unknown) {
-        const e = err as { message?: string }
-        setError(e.message ?? 'Failed to load invites')
+        setError(errorMessage(err, 'Failed to load invites'))
       }
     }
     load()
@@ -29,8 +24,7 @@ export function InvitesInbox() {
       await backend.teams.acceptInvite(inviteId)
       setInvites((prev) => prev.filter((i) => i.id !== inviteId))
     } catch (err: unknown) {
-      const e = err as { message?: string }
-      setError(e.message ?? 'Failed to accept invite')
+      setError(errorMessage(err, 'Failed to accept invite'))
     }
   }
 
@@ -39,8 +33,7 @@ export function InvitesInbox() {
       await backend.teams.declineInvite(inviteId)
       setInvites((prev) => prev.filter((i) => i.id !== inviteId))
     } catch (err: unknown) {
-      const e = err as { message?: string }
-      setError(e.message ?? 'Failed to decline invite')
+      setError(errorMessage(err, 'Failed to decline invite'))
     }
   }
 

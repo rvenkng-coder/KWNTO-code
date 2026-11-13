@@ -45,8 +45,15 @@ function git(args: string[], cwd: string, allowFailure = false): string | null {
   return result.stdout
 }
 
+// git lists untracked files relative to the current directory but diffs relative to the repo root,
+// so every function here works from the root (found with rev-parse), whatever directory it is called from.
+export function repoRoot(cwd: string = process.cwd()): string {
+  return (git(['rev-parse', '--show-toplevel'], cwd) as string).replace(/\n$/, '')
+}
+
 // Committed, staged, unstaged and untracked changes of the working tree, relative to base.
-export function changedFiles(base: string, cwd: string = process.cwd()): Change[] {
+export function changedFiles(base: string, startDir: string = process.cwd()): Change[] {
+  const cwd = repoRoot(startDir)
   const diff = git(['diff', '--name-status', '-M', '-z', '--no-ext-diff', base], cwd) as string
   const changes = parseNameStatus(diff)
   const known = new Set(changes.map((change) => change.path))
@@ -57,12 +64,14 @@ export function changedFiles(base: string, cwd: string = process.cwd()): Change[
   return changes
 }
 
-export function fileAtBase(base: string, path: string, cwd: string = process.cwd()): string | null {
+export function fileAtBase(base: string, path: string, startDir: string = process.cwd()): string | null {
+  const cwd = repoRoot(startDir)
   return git(['show', `${base}:./${path}`], cwd, true)
 }
 
 // Line numbers (1-based) added in the working copy of `path`. A file new since base: every line.
-export function addedLines(base: string, path: string, cwd: string = process.cwd()): Set<number> {
+export function addedLines(base: string, path: string, startDir: string = process.cwd()): Set<number> {
+  const cwd = repoRoot(startDir)
   const lines = new Set<number>()
   if (fileAtBase(base, path, cwd) === null) {
     let text: string

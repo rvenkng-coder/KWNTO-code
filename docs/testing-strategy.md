@@ -75,7 +75,7 @@ Try every kind that fits the code under test. `kind` is the slug used in probe t
 |---|---|---|
 | `plan` | `checkTaskFile` (as `check:plan`) on the task file | The task file has a tier, an Interfaces block and a complete Test plan block |
 | `lint` | `npm run lint` | ESLint guardrails, `PERF:` comments, documentation links and opted-in plans are clean |
-| `typecheck` | `npm run typecheck` | Strict TypeScript compiles with no errors |
+| `typecheck` | `npm run typecheck` | Strict TypeScript compiles for `src/` only; `scripts/`, `tests/` and `e2e/` are not typechecked (Vitest and node strip types) |
 | `unit` | `npm run test:unit` | The unit layer passes |
 | `layers` | `npm run test:rules`, `test:e2e`, `test:container`, each only if the Cases name that layer | Every other layer the task's Test plan names passes; a layer not named is reported as not required |
 | `hygiene` | `check:hygiene --base <base>` | Every new test has a header comment, no test or assertion was lost against the base commit, nothing is skipped or focused |
@@ -94,7 +94,7 @@ Try every kind that fits the code under test. `kind` is the slug used in probe t
 
 - **File:** `tests/probes/<plan>/<task>/<row>.probe.test.ts`.
 - **Title:** `[<row id>] <kind>: <description>`, where `<kind>` is a slug from section 4 (lower case and hyphens only), for example `[C3] second-bad-item: two notes in one file`.
-- **Sealed by norm:** a probe never reads the tests of the code under test (it is written from the Test plan and the catalogue), and the task prompt never names the probe folder. Review checks the session log for reads of it.
+- **Sealed by norm:** a probe never reads the tests of the code under test (it is written from the Test plan and the catalogue), and the folder is named in the Test plan, so the model is told not to read it. Review checks the session log for reads of it.
 
 ## 9. The per-task Test plan block
 

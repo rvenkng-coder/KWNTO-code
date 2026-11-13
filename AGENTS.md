@@ -38,11 +38,11 @@ See the [design](docs/superpowers/specs/2026-11-11-kwnto-design.md) and [ERD](do
 | `npm run test:e2e` | Playwright across Firefox + Chromium |
 | `npm run lint` | ESLint + PERF comment check + docs link check + plan check |
 | `npm run check:plan` | Task files of opted-in plans have a tier, Interfaces and a valid Test plan block |
-| `npm run check:hygiene` | New tests have a header comment; nothing skipped or focused; no test or assertion lost against `main` |
+| `npm run check:hygiene [-- --base <sha>]` | New tests have a header comment; nothing skipped or focused; no test or assertion lost against `main` |
 | `npm run check:breaks -- <task.md>` | Applies each deliberate break in the task's Test plan and requires its unit tests to fail; restores the files |
 | `npm run check:probes -- <folder>` | Runs a task's probe folder (the `probes` Vitest project); prints only each failing row and kind |
 | `npm run check:task -- --task <task.md> [--base <sha>] [--built-by local\|strong]` | Every check a task ends with (plan, lint, typecheck, unit, named layers, hygiene, quality, coverage, breaks, probes, review), one verdict; paste the full output in the report. See [check-task.md](docs/developer/check-task.md) |
-| `npm run check:quality` | Function length, complexity, nesting, parameter and console limits on files changed since `main` |
+| `npm run check:quality [-- --base <sha>]` | Function length, complexity, nesting, parameter and console limits on files changed since `main` |
 | `npm run ping:model [-- <baseUrl>]` | One line: does the local model server (default `http://localhost:9092`) answer, and is the model loaded? Exit 0 if answering, 1 if not. Sends only a GET ([runbook](docs/developer/local-model-runbook.md)) |
 | `npm run report:escape-rate -- <progress.md>` | Share of local-model tasks with a problem found after close (fails on a malformed table) |
 | `npm run report:quality` | The same limits over the whole repository, counts only, exit 0 |

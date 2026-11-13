@@ -32,6 +32,9 @@ KWNTO uses distinct test projects managed by Vitest and custom test harnesses:
 - `npm run check:breaks -- <task.md>` (or `node scripts/run-breaks.ts [--cwd <dir>] <task.md>`): Runs the deliberate breaks of one task file; see [test-plan-format.md](test-plan-format.md#running-the-breaks).
 - `npm run check:task -- --task <task.md> [--base <sha>] [--built-by local|strong]`: Runs every check a task ends with and prints one verdict; the implementer pastes the full output in its report. See [check-task.md](check-task.md).
 - `npm run ping:model [-- <baseUrl>]`: Asks the local model server (llama-swap, default `http://localhost:9092`) whether it answers and whether the model is loaded; one line, exit 0 if answering, 1 if not. See [local-model-runbook.md](local-model-runbook.md).
+- `npm run check:probes -- <folder>`: Runs a task's unseen probes and prints only each failing row and kind; see [test-plan-format.md](test-plan-format.md#running-the-probes).
+- `npm run check:quality [-- --base <sha>]`: Function length, complexity, nesting, parameter and console limits on files changed since the base; see [quality-limits.md](quality-limits.md).
+- `npm run report:quality`: The same limits over the whole repository, counts only, exit 0; see [quality-limits.md](quality-limits.md).
 - `npm run report:escape-rate -- <progress.md>`: Share of local-model tasks that had a problem escape after close; exits 1 on a missing, empty or malformed table. See [review-sampling.md](review-sampling.md).
 
 ---

@@ -69,7 +69,7 @@ One row per behaviour, not per function. Cover the kinds from the catalogue in [
 
 ## Writing good Probes
 
-Probes are written from the Cases and the catalogue, not from the task's own tests, and the task prompt never names the folder. Title form: `[<row id>] <kind>: <description>`.
+Probes are written from the Cases and the catalogue, not from the task's own tests, and the folder is named in the Test plan; the model is told not to read it, and the session log is checked for reads of it. Title form: `[<row id>] <kind>: <description>`.
 
 ## Writing good Breaks
 
@@ -94,7 +94,7 @@ A break is a one-line change to a decision in the code: a comparison, a boundary
 
 ## Running the probes
 
-`npm run check:probes -- <folder>` (or `node scripts/run-probes.ts [--cwd <dir>] <folder>`) runs the probe files of a task: `vitest run --project probes --reporter=json <folder>`, using this repository's Vitest. The logic that reads the result is `scripts/lib/probes.ts`; the command is `scripts/run-probes.ts`. Probe files are `tests/probes/<plan>/<task>/<row>.probe.test.ts`, and only the `probes` project matches them: `unit`, `rules` and `container` exclude `*.probe.test.ts`.
+`npm run check:probes -- <folder>` (or `node scripts/run-probes.ts [--cwd <dir>] <folder>`) runs the probe files of a task: it finds the `*.probe.test.ts` files under the folder and passes those files to `vitest run --project probes --reporter=json`, using this repository's Vitest. The logic that reads the result is `scripts/lib/probes.ts`; the command is `scripts/run-probes.ts`. Probe files are `tests/probes/<plan>/<task>/<row>.probe.test.ts`, and only the `probes` project matches them: `unit`, `rules` and `container` exclude `*.probe.test.ts`.
 
 - Vitest's output is captured and never shown. Each failing probe prints `FAIL <row> (<kind>)`, taken from its title `[<row id>] <kind>: <description>`; the last line is `probes: N of M passed`. No assertion message, stack, expected or received value, input or source line is printed, so the implementer learns which row and kind failed and nothing else.
 - A failing probe whose title does not have the form is counted (`FAIL N probe(s) without a [row] kind: title`), and so is a probe file that cannot be loaded (`FAIL N probe file(s) could not be loaded`).

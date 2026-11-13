@@ -17,7 +17,7 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 | 9 | Player Mode | 4 | 3 | outline |
 | 10 | Path analytics | 5 | 9 | outline |
 
-**Tooling plan (not a product plan):** [Local-AI quality tooling](2026-11-13-local-ai-quality/README.md) (test strategy, project test plan, `check:task`), status `not started`; built before Plan 3 so Plan 3's tasks can carry the Test plan block.
+**Tooling plan (not a product plan):** [Local-AI quality tooling](2026-11-13-local-ai-quality/README.md) (test strategy, project test plan, `check:task`), status `done`; built before Plan 3 so Plan 3's tasks can carry the Test plan block.
 
 If time runs out, cut from the bottom (design section 11). Plans 8 to 10 are the first to go.
 
@@ -44,7 +44,22 @@ Found by the whole-branch review and the scripted walk of Task 10 (2026-11-13), 
 | Real mail | Nobody has tested a real verification or password-reset email. Set up SMTP (Gmail app password), then walk sign-up, verification and reset by hand with an address typed with capitals (a reset typed with capitals once sent no mail). |
 | Unknown-email timing | PocketBase answers an unknown email faster than a known one (it skips the password hash). Accepted while internal; add one line to `docs/security.md` section 3 and re-judge before going public. |
 
-**Before Plan 3 starts (not a plan task):** the local-AI quality tooling (design `docs/superpowers/specs/2026-11-13-local-ai-quality-design.md`, on branch `docs/local-ai-quality-design`, not merged yet) (test strategy, project test plan, `check:task`), which the developer scheduled for after Plan 2.
+**Before Plan 3 starts (not a plan task):** the local-AI quality tooling (design `docs/superpowers/specs/2026-11-13-local-ai-quality-design.md`, in this branch, merged with it) (test strategy, project test plan, `check:task`), which the developer scheduled for after Plan 2.
+
+## Carried over from the local-AI quality plan
+
+Found by the whole-branch review of the tooling plan (2026-11-13) and left out of it on purpose. They join whichever plan next touches the tooling; none blocks Plan 3.
+
+| Item | What and why | Tier |
+|---|---|---|
+| Typecheck of scripts, tests and e2e | `tsc -b` covers `src/` only, so these three folders are never typechecked. Add a tsconfig and fix the roughly 73 errors (mostly `noUncheckedIndexedAccess`). | mid |
+| Progress `Review` column | `parseProgress` in escape-rate does not validate the `Review` column (`none`, `clean` or `found N`). Validate it, so a typo cannot lower the escape rate. | mid |
+| Probe folder `none` and the bare root | `none` is allowed for any task and the bare root `tests/probes/` is accepted, but spec 6.3 says probes run on every task. Mirror the Breaks rule (no `none` for a local task or one with unit cases) and refuse the bare root. | mid |
+| Duplication in scripts | `mergeBaseWithMain` exists three times (`check-task.ts`, `check-changed-quality.ts`, `check-test-hygiene.ts`) and the `--cwd` `parseArgs` is identical in `run-breaks.ts` and `run-probes.ts`; move both to `scripts/lib/`. `lib/test-raw.ts` and `lib/vitest-bin.ts` have no tests beside them. | local |
+| Code fences in check-plan | Fence handling ignores the fence type and length: `~~~` containing a triple backtick fails open, and an unclosed fence swallows the file with a misleading message. Track the opening fence and match its close. | local |
+| Coverage rules | Coverage accepts `test.todo` and `test.skip` titles and does not check the case's layer against the file's location. Refuse both, so a row cannot be covered by a test that never runs or sits in the wrong layer. | mid |
+| Lockout window boundary | The lockout tests have no window-start boundary test (found by the Task 5 break proof: `time > windowStartMs` versus `>=` in `backend/pb_hooks/lib/lockout.js`). Add one at exactly the window start. | local |
+| check:task robustness | The git calls in `hygiene` and `quality` have no timeout, a second Ctrl-C is ignored while waiting, and after a deadline kill of `test:rules` or `e2e` the compose container stays up until the next run's `down -v`. Add timeouts, honour the second signal and stop the container on a kill. | mid |
 
 ## Outlines
 

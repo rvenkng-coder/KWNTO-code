@@ -30,7 +30,7 @@ const invalid = (id: string, detail: string): BreakResult => ({ id, status: 'inv
 
 // Reads the file and applies the break. Returns the original and broken text, or why the break cannot run.
 function prepare(row: BreakRow, deps: BreakDeps): { original: string; broken: string } | BreakResult {
-  if (!isBreakablePath(row.file)) return invalid(row.id, `${row.file} is not breakable (only src/, scripts/ or backend/pb_hooks/lib/, never a test file)`)
+  if (!isBreakablePath(row.file)) return invalid(row.id, `${row.file} is not breakable (only frontend/src/, scripts/ or backend/pb_hooks/lib/, never a test file)`)
   if (row.tests.length === 0) return invalid(row.id, 'no tests are named for this break')
   if (row.find === row.replace) return invalid(row.id, 'Replace is the same as Find')
   let original: string

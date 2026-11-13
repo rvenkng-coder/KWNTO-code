@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest'
 import { needsReview, type ReviewInput } from './review-sample.ts'
 
 function input(over: Partial<ReviewInput> = {}): ReviewInput {
-  return { changedFiles: ['src/features/a.ts'], taskNumber: 1, builtBy: 'local', escapeRate: 0, ...over }
+  return { changedFiles: ['frontend/src/features/a.ts'], taskNumber: 1, builtBy: 'local', escapeRate: 0, ...over }
 }
 
 describe('needsReview', () => {
@@ -15,33 +15,33 @@ describe('needsReview', () => {
 
   // Protects design 6.5: hooks always get a strong review and the reason names the file so the reviewer knows where to look.
   test('a local task touching backend/pb_hooks/x.js is always reviewed and the reason names the file', () => {
-    const result = needsReview(input({ changedFiles: ['src/features/a.ts', 'backend/pb_hooks/x.js'] }))
+    const result = needsReview(input({ changedFiles: ['frontend/src/features/a.ts', 'backend/pb_hooks/x.js'] }))
     expect(result.required).toBe(true)
     expect(result.reason).toContain('backend/pb_hooks/x.js')
   })
 
   // Protects design 6.5: every always-review root is covered, not only hooks.
-  test('a local task touching tests/rules/, backend/pb_migrations/, src/backend/ is always reviewed', () => {
-    for (const file of ['tests/rules/a.rules.test.ts', 'backend/pb_migrations/1_x.js', 'src/backend/client.ts']) {
+  test('a local task touching tests/rules/, backend/pb_migrations/, frontend/src/backend/ is always reviewed', () => {
+    for (const file of ['tests/rules/a.rules.test.ts', 'backend/pb_migrations/1_x.js', 'frontend/src/backend/client.ts']) {
       expect(needsReview(input({ changedFiles: [file] })).required, file).toBe(true)
     }
   })
 
   // Protects design 6.5: sync, conflict and queue logic is the riskiest code, wherever it lives.
   test('a path containing sync, conflict or queue is sensitive', () => {
-    for (const file of ['src/features/sync/a.ts', 'src/features/conflict-merge.ts', 'src/features/offlinequeue.ts']) {
+    for (const file of ['frontend/src/features/sync/a.ts', 'frontend/src/features/conflict-merge.ts', 'frontend/src/features/offlinequeue.ts']) {
       expect(needsReview(input({ changedFiles: [file] })).required, file).toBe(true)
     }
   })
 
   // Protects the path match: a capitalised folder must not slip past the sensitive list.
   test('case does not matter in that path match (Sync, QUEUE)', () => {
-    expect(needsReview(input({ changedFiles: ['src/features/Sync/a.ts'] })).required).toBe(true)
-    expect(needsReview(input({ changedFiles: ['src/features/QUEUE.ts'] })).required).toBe(true)
+    expect(needsReview(input({ changedFiles: ['frontend/src/features/Sync/a.ts'] })).required).toBe(true)
+    expect(needsReview(input({ changedFiles: ['frontend/src/features/QUEUE.ts'] })).required).toBe(true)
   })
 
   // Protects the sample rate: 1 in 3 by task number, and only then, for ordinary files.
-  test('a local task with only src/features files is reviewed when taskNumber is 3 and 6 and not 1, 2, 4', () => {
+  test('a local task with only frontend/src/features files is reviewed when taskNumber is 3 and 6 and not 1, 2, 4', () => {
     const required = (n: number) => needsReview(input({ taskNumber: n })).required
     expect([3, 6].map(required)).toEqual([true, true])
     expect([1, 2, 4].map(required)).toEqual([false, false, false])

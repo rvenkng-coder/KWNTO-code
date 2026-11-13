@@ -7,7 +7,7 @@ import { type Change, changedFiles, repoRoot, resolveBase } from './lib/changed-
 import { isMain } from './lib/is-main.ts'
 
 // Source folders that get the limits; tests (*.test.*, *.spec.*, tests/, e2e/) and dependencies never do.
-export const QUALITY_PATHS = /^(?:src|scripts|backend\/pb_hooks)\/(?!.*\.(?:test|spec)\.)(?!(?:.*\/)?node_modules\/).*\.(?:ts|tsx|js)$/
+export const QUALITY_PATHS = /^(?:frontend\/src|scripts|backend\/pb_hooks)\/(?!.*\.(?:test|spec)\.)(?!(?:.*\/)?node_modules\/).*\.(?:ts|tsx|js)$/
 
 // Added, modified and renamed (under the new path) source files. A deleted file has nothing left to check.
 export function filesToCheck(changes: Change[]): string[] {

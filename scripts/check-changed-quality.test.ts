@@ -18,30 +18,30 @@ function run(cwd: string, ...args: string[]): { code: number | null; out: string
 describe('filesToCheck', () => {
   // Protects: added, modified and renamed source files all reach the linter.
   test('filesToCheck keeps added, modified and renamed source files', () => {
-    const changes = [change('src/a.ts', 'added'), change('scripts/b.ts', 'modified'), change('backend/pb_hooks/c.pb.js', 'added'), change('src/d.tsx', 'renamed', 'src/old.tsx')]
-    expect(filesToCheck(changes)).toEqual(['src/a.ts', 'scripts/b.ts', 'backend/pb_hooks/c.pb.js', 'src/d.tsx'])
+    const changes = [change('frontend/src/a.ts', 'added'), change('scripts/b.ts', 'modified'), change('backend/pb_hooks/c.pb.js', 'added'), change('frontend/src/d.tsx', 'renamed', 'frontend/src/old.tsx')]
+    expect(filesToCheck(changes)).toEqual(['frontend/src/a.ts', 'scripts/b.ts', 'backend/pb_hooks/c.pb.js', 'frontend/src/d.tsx'])
   })
 
   // Protects: nothing is linted that is gone, is a test or is not code.
   test('deleted files and test files and docs are skipped', () => {
-    const changes = [change('src/a.ts', 'deleted'), change('src/a.test.ts', 'added'), change('src/b.spec.tsx', 'modified'), change('docs/x.md', 'added'), change('scripts/c.test.ts', 'modified')]
+    const changes = [change('frontend/src/a.ts', 'deleted'), change('frontend/src/a.test.ts', 'added'), change('frontend/src/b.spec.tsx', 'modified'), change('docs/x.md', 'added'), change('scripts/c.test.ts', 'modified')]
     expect(filesToCheck(changes)).toEqual([])
   })
 
   // Protects: a rename is checked where the file lives now, never under the old name.
   test('a renamed file is checked under its new path', () => {
-    expect(filesToCheck([change('src/new.ts', 'renamed', 'src/old.ts')])).toEqual(['src/new.ts'])
+    expect(filesToCheck([change('frontend/src/new.ts', 'renamed', 'frontend/src/old.ts')])).toEqual(['frontend/src/new.ts'])
   })
 
   // Protects: a rename out of the quality folders, or into them, is judged by the new path only.
   test('a file renamed out of the source folders is skipped and one renamed in is kept', () => {
-    expect(filesToCheck([change('docs/old.ts', 'renamed', 'src/old.ts')])).toEqual([])
-    expect(filesToCheck([change('src/in.ts', 'renamed', 'docs/in.ts')])).toEqual(['src/in.ts'])
+    expect(filesToCheck([change('docs/old.ts', 'renamed', 'frontend/src/old.ts')])).toEqual([])
+    expect(filesToCheck([change('frontend/src/in.ts', 'renamed', 'docs/in.ts')])).toEqual(['frontend/src/in.ts'])
   })
 
   // Protects: tests, e2e, vendored code and other languages never get the limits.
   test('files outside QUALITY_PATHS are skipped', () => {
-    for (const path of ['tests/lint/a.ts', 'e2e/a.ts', 'spike/a.ts', 'src/a.css', 'src/a.json', 'backend/pb_migrations/a.js', 'backend/pb_hooks/node_modules/x/a.js', 'a.ts', 'srcx/a.ts']) {
+    for (const path of ['tests/lint/a.ts', 'e2e/a.ts', 'spike/a.ts', 'frontend/src/a.css', 'frontend/src/a.json', 'backend/pb_migrations/a.js', 'backend/pb_hooks/node_modules/x/a.js', 'a.ts', 'srcx/a.ts']) {
       expect(QUALITY_PATHS.test(path), path).toBe(false)
     }
   })
@@ -53,7 +53,7 @@ describe('filesToCheck', () => {
 
   // Protects: a path listed twice is linted once.
   test('a path listed twice is returned once', () => {
-    expect(filesToCheck([change('src/a.ts', 'modified'), change('src/a.ts', 'added')])).toEqual(['src/a.ts'])
+    expect(filesToCheck([change('frontend/src/a.ts', 'modified'), change('frontend/src/a.ts', 'added')])).toEqual(['frontend/src/a.ts'])
   })
 })
 
@@ -70,16 +70,16 @@ describe('parseEslintJson and formatReport', () => {
   // Protects: counts per rule and per file add up to the findings.
   test('the report counts findings per rule and per file', () => {
     const json = JSON.stringify([
-      { filePath: '/r/src/a.ts', messages: [{ ruleId: 'complexity', line: 1 }, { ruleId: 'max-depth', line: 2 }] },
-      { filePath: '/r/src/b.ts', messages: [{ ruleId: 'complexity', line: 1 }, { ruleId: null, line: 1 }] },
-      { filePath: '/r/src/c.ts', messages: [] },
+      { filePath: '/r/frontend/src/a.ts', messages: [{ ruleId: 'complexity', line: 1 }, { ruleId: 'max-depth', line: 2 }] },
+      { filePath: '/r/frontend/src/b.ts', messages: [{ ruleId: 'complexity', line: 1 }, { ruleId: null, line: 1 }] },
+      { filePath: '/r/frontend/src/c.ts', messages: [] },
     ])
     const report = formatReport(parseEslintJson(json), '/r')
     expect(report).toContain('4 findings')
     expect(report).toContain('  2  complexity')
     expect(report).toContain('  1  parse error')
-    expect(report).toContain('  2  src/a.ts')
-    expect(report).not.toContain('src/c.ts')
+    expect(report).toContain('  2  frontend/src/a.ts')
+    expect(report).not.toContain('frontend/src/c.ts')
   })
 
   // Protects: a clean repository reports zero findings instead of failing.
@@ -91,8 +91,8 @@ describe('parseEslintJson and formatReport', () => {
 describe('in a temp git repository', () => {
   // Protects: a violation in a changed file fails the check and names the file and the rule.
   test('a changed file with a violation exits 1 and names the file and rule', () => {
-    const { cwd } = makeRepo({ 'src/ok.ts': SHORT })
-    writeIn(cwd, 'src/long file.ts', LONG)
+    const { cwd } = makeRepo({ 'frontend/src/ok.ts': SHORT })
+    writeIn(cwd, 'frontend/src/long file.ts', LONG)
     const { code, out } = run(cwd, '--base', 'HEAD')
     expect(code).toBe(1)
     expect(out).toContain('long file.ts')
@@ -101,25 +101,25 @@ describe('in a temp git repository', () => {
 
   // Protects: old code is not forced to change, but the report still counts it.
   test('a violation in an untouched file is not reported by the default run but is counted by --report', () => {
-    const { cwd } = makeRepo({ 'src/old.ts': LONG, 'src/ok.ts': SHORT })
-    writeIn(cwd, 'src/ok.ts', 'export const ok = 2\n')
+    const { cwd } = makeRepo({ 'frontend/src/old.ts': LONG, 'frontend/src/ok.ts': SHORT })
+    writeIn(cwd, 'frontend/src/ok.ts', 'export const ok = 2\n')
     const plain = run(cwd, '--base', 'HEAD')
     expect(plain.code).toBe(0)
     expect(plain.out).not.toContain('old.ts')
     const report = run(cwd, '--report')
     expect(report.out).toContain('1  max-lines-per-function')
-    expect(report.out).toContain('1  src/old.ts')
+    expect(report.out).toContain('1  frontend/src/old.ts')
   })
 
   // Protects: the report is information only, so it never blocks.
   test('--report exits 0 even with violations', () => {
-    const { cwd } = makeRepo({ 'src/old.ts': LONG })
+    const { cwd } = makeRepo({ 'frontend/src/old.ts': LONG })
     expect(run(cwd, '--report').code).toBe(0)
   })
 
   // Protects: a change with nothing to check passes and says why.
   test('no changed source files exits 0 with a message', () => {
-    const { cwd } = makeRepo({ 'src/old.ts': LONG })
+    const { cwd } = makeRepo({ 'frontend/src/old.ts': LONG })
     writeIn(cwd, 'docs/x.md', '# x\n')
     const { code, out } = run(cwd, '--base', 'HEAD')
     expect(code).toBe(0)
@@ -128,8 +128,8 @@ describe('in a temp git repository', () => {
 
   // Protects: a renamed file keeps being checked, so renaming cannot hide a violation.
   test('a renamed file with a violation is reported under its new path', () => {
-    const { cwd } = makeRepo({ 'src/old.ts': LONG })
-    git(cwd, 'mv', 'src/old.ts', 'src/new.ts')
+    const { cwd } = makeRepo({ 'frontend/src/old.ts': LONG })
+    git(cwd, 'mv', 'frontend/src/old.ts', 'frontend/src/new.ts')
     const { code, out } = run(cwd, '--base', 'HEAD')
     expect(code).toBe(1)
     expect(out).toContain('new.ts')
@@ -137,8 +137,8 @@ describe('in a temp git repository', () => {
 
   // Protects: a committed change since the base is checked as well as working-tree edits.
   test('a violation committed since the base is reported', () => {
-    const { cwd, base } = makeRepo({ 'src/ok.ts': SHORT })
-    writeIn(cwd, 'src/bad.ts', LONG)
+    const { cwd, base } = makeRepo({ 'frontend/src/ok.ts': SHORT })
+    writeIn(cwd, 'frontend/src/bad.ts', LONG)
     git(cwd, 'add', '-A')
     git(cwd, 'commit', '-q', '-m', 'bad')
     expect(run(cwd, '--base', base).code).toBe(1)
@@ -146,21 +146,21 @@ describe('in a temp git repository', () => {
 
   // Protects: a syntax error in a changed file fails the check instead of passing.
   test('a changed file that does not parse exits 1', () => {
-    const { cwd } = makeRepo({ 'src/ok.ts': SHORT })
-    writeIn(cwd, 'src/broken.ts', 'function (\n')
+    const { cwd } = makeRepo({ 'frontend/src/ok.ts': SHORT })
+    writeIn(cwd, 'frontend/src/broken.ts', 'function (\n')
     expect(run(cwd, '--base', 'HEAD').code).toBe(1)
   })
 
   // Protects: a changed test file is exempt even when it is long.
   test('a long test file is not reported', () => {
-    const { cwd } = makeRepo({ 'src/ok.ts': SHORT })
-    writeIn(cwd, 'src/long.test.ts', LONG)
+    const { cwd } = makeRepo({ 'frontend/src/ok.ts': SHORT })
+    writeIn(cwd, 'frontend/src/long.test.ts', LONG)
     expect(run(cwd, '--base', 'HEAD').code).toBe(0)
   })
 
   // Protects: a bad base or bad arguments fail with a message, never pass.
   test('an unknown base, bad arguments and a missing repository exit non-zero', () => {
-    const { cwd } = makeRepo({ 'src/ok.ts': SHORT })
+    const { cwd } = makeRepo({ 'frontend/src/ok.ts': SHORT })
     expect(run(cwd, '--base', 'nope').code).toBe(1)
     expect(run(cwd, '--base').code).toBe(2)
     expect(run(cwd, '--bogus').code).toBe(2)

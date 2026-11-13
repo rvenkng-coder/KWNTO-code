@@ -64,7 +64,7 @@ A break is a one-line change to a decision in the code: a comparison, a boundary
 
 1. The task file is parsed as above. Any problem in the Test plan block stops the run with exit 1: fix it first with `npm run check:plan`.
 2. No breaks (`none`): exit 0 with `no breaks listed` when no case is on the `unit` layer, exit 1 otherwise.
-3. **Baseline:** the union of all named test files runs once, unbroken (`vitest run --project unit <paths>`, using this repository's Vitest). If they fail, no break is applied and the command exits 1: a break proves nothing against red tests. A named test file that does not exist is exit 1 here too, since Vitest would otherwise fail with "no test files" and look like a catch.
+3. **Baseline:** the union of all named test files runs once, unbroken (`vitest run --project unit <paths>`, using this repository's Vitest). If they fail, no break is applied and the command exits 1: a break proves nothing against red tests. A named test file that does not exist, or that did not run in the `unit` project (for example a rules test; checked against Vitest's JSON report), also stops the run with exit 1, since Vitest would otherwise fail with "No test files found" and look like a catch. Every test run is checked this way, not only the baseline.
 4. **Each break**, one at a time, always starting from the original file: the file is read, Find is replaced (as literal text, exactly once), the break's own tests run, and the original bytes are written back. Output, one line per break:
    - `B1 caught`: the tests failed. This is what you want.
    - `B2 SURVIVED: the tests did not notice <file>: <find> -> <replace>`: the tests still pass with the break applied. Add the test that pins that decision.

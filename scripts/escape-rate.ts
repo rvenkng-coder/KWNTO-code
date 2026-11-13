@@ -33,7 +33,7 @@ function cellAt(row: string[], index: number): string {
 }
 
 function rowProblem(label: string, built: string, escaped: string): string | null {
-  if (built !== '' && built !== 'local' && built !== 'strong') return `${label}: "Built by" must be local or strong, got "${built}"`
+  if (built !== 'local' && built !== 'strong') return `${label}: "Built by" must be local or strong (or - for a non-task row), got "${built}"`
   if (!/^\d+$/.test(escaped)) return `${label}: "Escaped" must be a whole number (0 if none), got "${escaped}"`
   return null
 }

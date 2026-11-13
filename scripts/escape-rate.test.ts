@@ -88,6 +88,20 @@ describe('parseProgress', () => {
     expect(result.rows.map((r) => r.task)).toEqual(['T1'])
   })
 
+  // Protects fail-closed: a task row with a blank Built by and a valid Escaped must not be silently left out of the rate.
+  test('a named task row with a blank Built by is a problem', () => {
+    const result = parseProgress(HEADER + row('T3', '', 'none', '0') + row('T1', 'local', 'none', '0'))
+    expect(result.rows).toEqual([])
+    expect(result.problems.join('\n')).toMatch(/T3.*Built by/)
+  })
+
+  // Pins current behaviour: a row of single dashes outside the separator position is a non-task row (Built by is -), not counted.
+  test('a row of single dashes outside the separator position is a non-task row', () => {
+    const result = parseProgress(HEADER + row('T1', 'local', 'none', '1') + '| - | - | - | - | - | - | - |\n')
+    expect(result.problems).toEqual([])
+    expect(result.rows.map((r) => r.task)).toEqual(['T1'])
+  })
+
   // Protects the separator rule: an all-dash row that is not directly under the header is a problem.
   test('an all-dash row outside the separator position is a problem', () => {
     const result = parseProgress(HEADER + row('T1', 'local', 'none', '0') + '|---|---|---|---|---|---|---|\n')

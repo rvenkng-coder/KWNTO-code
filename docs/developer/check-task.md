@@ -11,7 +11,7 @@ npm run check:task -- --task <task file> [--base <sha>] [--built-by local|strong
 | Option | Meaning | Default |
 |---|---|---|
 | `--task` | The task file, named `task-<N>-<name>.md`. The task number `N` is read from the file name (the review sample uses it); a file name without it is a usage error | required |
-| `--base` | The commit the task started from. Hygiene, quality and the review sample look only at files changed since this commit | `git merge-base HEAD main` |
+| `--base` | The commit the task started from. Hygiene, quality and the review sample look only at files changed since this commit. **Pass it always** (the runbook makes it mandatory): if nothing changed since the base, `hygiene` and `quality` fail with `nothing changed since <base>; pass --base <the commit the task started from>`, so a run on a branch equal to `main` cannot pass on nothing | `git merge-base HEAD main` |
 | `--built-by` | Who built the task, for the review sample | `local` |
 
 Pass `--base` whenever the branch holds more than this task (a plan branch with several tasks): without it, every file changed on the branch since `main` is checked, and an older task's code can fail a newer one. A value that starts with `-`, an unknown option, an option given twice, a missing `--task` or a `--built-by` other than `local` or `strong` prints the usage and exits 2. A base that is not a commit, or a task file that cannot be read, exits 1 with a message.
@@ -26,11 +26,11 @@ Every step runs, even after an earlier one failed, so the report is complete.
 |---|---|---|
 | `plan` | `checkTaskFile` from `check:plan` on the task file | The task file has a tier, an Interfaces line and a complete Test plan block ([format](test-plan-format.md)). A Test plan with any problem fails this step; the other steps still run, and `layers`, `coverage`, `breaks` and `probes` then fail with `not run: the Test plan could not be read (see the plan step)` instead of describing a plan that was not read |
 | `lint` | `npm run lint` | ESLint, `PERF:` comments, documentation links and every opted-in plan |
-| `typecheck` | `npm run typecheck` | Strict TypeScript compiles |
+| `typecheck` | `npm run typecheck` | Strict TypeScript compiles for `src/` only (`tsc -b`); `scripts/`, `tests/` and `e2e/` are not typechecked (Vitest and node strip types) |
 | `unit` | `npm run test:unit` | The whole unit layer passes, not only the task's tests |
 | `layers` | `npm run test:rules`, `test:e2e`, `test:container`, only for the layers the Test plan's Cases name | Each named layer passes. A layer not named is printed as `not required by this task's test plan`, never as a pass |
-| `hygiene` | `checkHygiene` (as `check:hygiene --base <base>`) | New tests have a header comment, nothing is skipped or focused, no test or assertion was lost |
-| `quality` | `checkChanged` (as `check:quality --base <base>`) | Files changed since the task's base stay within the [quality limits](quality-limits.md). Older files on the branch are not checked |
+| `hygiene` | `checkHygiene` (as `check:hygiene --base <base>`) | New tests have a header comment, nothing is skipped or focused, no test or assertion was lost. An empty change set is a FAIL (see `--base`) |
+| `quality` | `checkChanged` (as `check:quality --base <base>`) | Files changed since the task's base stay within the [quality limits](quality-limits.md). Older files on the branch are not checked. An empty change set is a FAIL (see `--base`) |
 | `coverage` | `coverageProblems` | Every non-manual case row's `path :: title` names a test that exists: the file is readable, parses, and has a `test(` or `it(` (any chain, such as `test.each(...)`) with exactly that title. A title only in a comment or a loose string does not count. A `manual` row needs a Flow that is not `none`. An empty case list is a problem |
 | `breaks` | `node scripts/run-breaks.ts --cwd <repo> <task file>` | Every deliberate break is caught by its named unit tests, and each file is put back ([details](test-plan-format.md#running-the-breaks)) |
 | `probes` | `node scripts/run-probes.ts --cwd <repo> <probe folder>` | The unseen probes pass. A probe folder that is missing or has no probe file fails. A plan whose probe folder is `none` passes this step and says so |
@@ -42,7 +42,7 @@ Commands run without a shell, with their output captured. A failing command keep
 
 ## The 10-minute budget
 
-The whole command has 10 minutes (600000 ms). A step that has not started when the time is used up fails with `not run: time budget used`; it is never silently skipped. A command still running at the deadline is stopped with its whole process group (SIGTERM, then SIGKILL after 5 seconds) and its step fails with `killed: time budget used`; check:task waits until no process of that group is left before it goes on or exits. Once the deadline has passed, or a stop has begun, no new command is started (a step that would start one fails with `not run: time budget used` or `not run: check:task is stopping`), so no command and no deliberate break outlives the run.
+The whole command has 10 minutes (600000 ms). A step that has not started when the time is used up fails with `not run: time budget used`; it is never silently skipped. When the deadline falls in the middle of a step, that step fails with `killed: time budget used` instead. A command still running at the deadline is stopped with its whole process group (SIGTERM, then SIGKILL after 5 seconds) and its step fails with `killed: time budget used`; check:task waits until no process of that group is left before it goes on or exits. Once the deadline has passed, or a stop has begun, no new command is started (a step that would start one fails with `not run: time budget used` after the deadline, `killed: time budget used` if the deadline falls mid-step, or `not run: check:task is stopping`), so no command and no deliberate break outlives the run.
 
 **Known residual:** a process that stays in its group even after SIGKILL (a zombie whose parent does not reap it) can delay the end of the run by up to 60 seconds, the longest check:task waits for a group to empty.
 

@@ -84,10 +84,16 @@ function layersStep(root: string): Step {
   })
 }
 
+// Fail closed: with no changed file the hygiene and quality steps would pass on nothing.
+const nothingChanged = (name: string, ctx: CheckContext): StepResult | null =>
+  ctx.changed.length === 0 ? fail(name, [`nothing changed since ${ctx.base}; pass --base <the commit the task started from>`]) : null
+
 function hygieneStep(root: string): Step {
   return {
     name: 'hygiene',
     run: async (ctx) => {
+      const empty = nothingChanged('hygiene', ctx)
+      if (empty) return empty
       const problems = checkHygiene(ctx.base, root)
       const result = problems.length === 0 ? pass('hygiene') : fail('hygiene', problems.map((p) => `${p.file}: ${p.rule}: ${p.detail}`))
       return inTime('hygiene', ctx, result)
@@ -101,6 +107,8 @@ function qualityStep(root: string): Step {
   return {
     name: 'quality',
     run: async (ctx) => {
+      const empty = nothingChanged('quality', ctx)
+      if (empty) return empty
       const { code, output } = checkChanged(ctx.base, root, Math.max(1, ctx.deadlineMs - Date.now()))
       return inTime('quality', ctx, code === 0 ? pass('quality', [output]) : fail('quality', lastLines(output, TAIL)))
     },

@@ -129,4 +129,16 @@ describe('fix round 1', () => {
     expect(result?.ok).toBe(false)
     expect(result?.lines[0]).toBe('overran: time budget used (finished after the deadline)')
   })
+
+  // Protects fail closed: an empty change set (base equals HEAD) must not let hygiene or quality pass on nothing.
+  test('hygiene and quality fail, naming the base, when nothing changed since the base', async () => {
+    const { cwd, base } = makeRepo({ 'scripts/a.ts': 'export const a = 1\n' })
+    dirs.push(cwd)
+    for (const name of ['hygiene', 'quality']) {
+      const step = defaultSteps(cwd).find((candidate) => candidate.name === name)
+      const result = await step?.run(context(cwd, { base, changed: [] }))
+      expect(result?.ok).toBe(false)
+      expect(result?.lines[0]).toContain(`nothing changed since ${base}; pass --base <the commit the task started from>`)
+    }
+  })
 })

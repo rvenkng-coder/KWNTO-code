@@ -10,7 +10,7 @@ How to give one checkpoint to the local coding model (`little-coder`, model `cod
    - `model server: NOT answering: <reason>` (exit 1): do not start. Start or restart llama-swap first. A bad argument (not an `http(s)` URL) exits 2 with a message.
 2. **Give it a sandbox or a worktree**, not your working checkout: a fresh `git init` of the repo at a known commit with no remote (so it cannot push or touch real branches), or a worktree of the plan branch. Re-running the sandbox is described in [local-model-notes.md](local-model-notes.md#re-running-the-smoke-test).
 3. **Tell it which files it may touch.** Copy the task file's "May touch" and "Must not change" lines into the prompt, and the rule: **stop and report if you need to touch anything else.** Give paths relative to the sandbox and tell it to work only inside it.
-4. **Tell it not to read `tests/probes/`.** The probes are the unseen set; if the model reads them they stop being unseen. The prompt never names that folder otherwise.
+4. **Tell it not to read `tests/probes/`.** The probes are the unseen set; if the model reads them they stop being unseen. The folder is named in the task file's Test plan (`**Probe folder:**`); the model is told not to read it, and the session log is checked for reads of it.
 5. Give it one checkpoint, the one named under "Checkpoint given".
 
 **What the ping reads.** llama-swap's `/running` is not documented in this repository. The check was written for the shape llama-swap is known to answer, `{"running":[{"model":"coder","state":"ready"}]}` (a bare array of the same entries is accepted too), and the one answer seen on this machine, `{"running":[]}` (model idle), matches it. A model is "loaded" only when an entry has `"state":"ready"`; an entry in another state (such as `starting`) counts as idle. The model name is not checked: a `ready` entry with any name (or none) counts as loaded, so `ping:model` says the server has a ready model, not that it is `coder`. The state word is read without regard to case; a state word other than `ready`, `starting`, `stopping`, `stopped` or `shutdown` is reported as not understood. A baseUrl with a user name or password is refused (exit 2) and never printed. If llama-swap changes the shape, the line says "not understood" instead of claiming the model is loaded.
@@ -23,7 +23,7 @@ little-coder -p --session-dir <dir> "<prompt>"
 
 `--session-dir` keeps the log of every tool call. Use a new directory per run.
 
-Prompt template (fill in the two placeholders and paste the task file's two lines):
+Prompt template (fill in the placeholders, including the sandbox baseline commit, and paste the task file's two lines):
 
 ```
 You are working in <sandbox path>. Work only inside this folder, with relative paths.
@@ -34,7 +34,7 @@ If you need to touch anything else, stop and report instead.
 Do not read anything under tests/probes/.
 Write the failing tests first and watch them fail for the right reason. Never edit an existing test.
 Close the checkpoint with one commit. Do not push.
-At the end run `npm run check:task -- --task <task file path>` and paste its full output in your report.
+At the end run `npm run check:task -- --task <task file path> --base <baseline sha>` and paste its full output in your report.
 ```
 
 ## The one-minute check
@@ -46,7 +46,7 @@ About a minute after the start, look for a session file in the `--session-dir`. 
 
 ## After the run
 
-1. Run it yourself, in the sandbox or worktree: `npm run check:task -- --task <task file> [--base <sha>] [--built-by local]` (the options and the steps are in [check-task.md](check-task.md); pass `--base` when the branch holds more than this task).
+1. Run it yourself, in the sandbox or worktree: `npm run check:task -- --task <task file> --base <baseline sha> [--built-by local]` (the options and the steps are in [check-task.md](check-task.md)). **`--base` is mandatory:** you know the commit the sandbox started from; without it the default (merge base with `main`) can equal HEAD, and a check on an empty change set would otherwise pass on nothing (it now fails).
 2. **Paste the full output** in the task report. **Never grade from the model's own summary**, and not from a summary of the output either: a `FAIL` verdict means the task is not done.
 3. Read the session log (the part of grading `check:task` cannot do):
    - Were the tests written before the code, and did the first run fail for the right reason?

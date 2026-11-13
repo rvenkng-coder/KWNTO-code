@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { rmSync } from 'node:fs'
+import { chmodSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, describe, expect, test } from 'vitest'
 import { makeRepo } from './lib/temp-repo.ts'
@@ -90,6 +90,30 @@ describe('run-probes command', () => {
     expect(out).toContain('run-probes: ')
     expect(out).not.toContain(SECRET)
     expect(code).toBe(1)
+  })
+
+  // Protects Review Focus: a folder is not a substring filter; a failing sibling (t2) is never run for t.
+  test('probes of a sibling folder whose name starts the same are not run', { timeout: 60_000 }, () => {
+    const cwd = fixture({ [`${FOLDER}/a.probe.test.ts`]: PASSING, [`${FOLDER}2/b.probe.test.ts`]: LEAKY })
+    const { code, out } = run(cwd, FOLDER)
+    expect(out).toContain('probes: 1 of 1 passed')
+    expect(out).not.toContain('FAIL')
+    expect(code).toBe(0)
+  })
+
+  // Protects: an unreadable subfolder gives our short message and exit 1, not a stack (skipped as root, who can read anything).
+  test('an unreadable subfolder exits 1 with a one-line message', () => {
+    if (process.getuid?.() === 0) return // root can read any folder, so nothing can be made unreadable
+    const cwd = fixture({ [`${FOLDER}/a.probe.test.ts`]: PASSING, [`${FOLDER}/sub/b.probe.test.ts`]: PASSING })
+    chmodSync(join(cwd, FOLDER, 'sub'), 0)
+    try {
+      const { code, out } = run(cwd, FOLDER)
+      expect(out).toContain('run-probes: cannot read the probe folder (EACCES)')
+      expect(out).not.toContain('    at ')
+      expect(code).toBe(1)
+    } finally {
+      chmodSync(join(cwd, FOLDER, 'sub'), 0o755)
+    }
   })
 
   // Protects: a wrong command line prints the usage and fails.

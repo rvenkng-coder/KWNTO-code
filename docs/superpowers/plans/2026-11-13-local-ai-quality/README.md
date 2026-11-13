@@ -45,7 +45,7 @@ The input classes most likely to bite a person using these checks, most likely f
 | 5 | [Deliberate breaks runner](task-5-breaks-runner.md) | strong | 2 | 5A 5B | done |
 | 6 | [Probe runner](task-6-probe-runner.md) | mid | 2 | 6A 6B | done |
 | 7 | [Review sampling and escape rate](task-7-review-sampling.md) | mid | none | 7A 7B | done |
-| 8 | [`check:task`, the self-check command](task-8-check-task.md) | strong | 2, 3, 4, 5, 6, 7 | 8A 8B | not started |
+| 8 | [`check:task`, the self-check command](task-8-check-task.md) | strong | 2, 3, 4, 5, 6, 7 | 8A 8B | done |
 | 9 | [Local-model runbook and server ping](task-9-local-model-runbook.md) | mid | 8 | 9A 9B | not started |
 
 **Status values:** `not started`, `in progress`, `awaiting review`, `done`. Tasks 3, 4 and 7 are independent of the rest and of each other. Run tasks one at a time (implementers never run in parallel).

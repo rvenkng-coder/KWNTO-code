@@ -73,17 +73,46 @@ describe('parseProgress', () => {
     expect(parseProgress(HEADER).problems.join('\n')).toMatch(/no task rows/)
   })
 
-  // Protects rows that do not track a task (all three cells empty): they are skipped, not errors.
-  test('a row with Built by, Review and Escaped all empty is skipped', () => {
-    const result = parseProgress(HEADER + row('Plan written', '', '', '') + row('Task 1', 'local', 'none', '0'))
+  // Protects fail-closed: a named task row with Built by, Review and Escaped all empty is a problem, never skipped.
+  test('a named task row with all three cells empty is a problem', () => {
+    const result = parseProgress(HEADER + row('T3', '', '', '') + row('T1', 'local', 'none', '0'))
+    expect(result.rows).toEqual([])
+    expect(result.problems.join('\n')).toMatch(/T3/)
+  })
+
+  // Protects the explicit non-task marker: Built by "-" rows are not counted and need no other cells.
+  test('a non-task row marked with Built by - is not counted', () => {
+    const md = HEADER + row('Plan written', '-', '-', '-') + row('Plan edited', '-', '', '') + row('T1', 'local', 'none', '1')
+    const result = parseProgress(md)
     expect(result.problems).toEqual([])
-    expect(result.rows).toHaveLength(1)
+    expect(result.rows.map((r) => r.task)).toEqual(['T1'])
+  })
+
+  // Protects the separator rule: an all-dash row that is not directly under the header is a problem.
+  test('an all-dash row outside the separator position is a problem', () => {
+    const result = parseProgress(HEADER + row('T1', 'local', 'none', '0') + '|---|---|---|---|---|---|---|\n')
+    expect(result.rows).toEqual([])
+    expect(result.problems.length).toBeGreaterThan(0)
+  })
+
+  // Protects against a partial table: a blank line between rows must not drop the later rows silently.
+  test('a row after a blank line is a problem, not dropped', () => {
+    const result = parseProgress(HEADER + row('T1', 'local', 'none', '0') + '\n' + row('T2', 'local', 'none', '3'))
+    expect(result.rows).toEqual([])
+    expect(result.problems.join('\n')).toMatch(/table interrupted at line 4/)
   })
 
   // Protects a short row: a missing Escaped cell is a problem, not 0.
   test('a row shorter than the header is a problem', () => {
     const result = parseProgress(HEADER + '| 2026-11-13 | Task 5 | local |\n')
     expect(result.problems.join('\n')).toMatch(/Task 5/)
+  })
+
+  // Protects fail-closed: a row with only date and task is a problem naming the row, not skipped.
+  test('a short row with only a date and task is a problem', () => {
+    const result = parseProgress(HEADER + '| d | T2 |\n' + row('T1', 'local', 'none', '0'))
+    expect(result.rows).toEqual([])
+    expect(result.problems.join('\n')).toMatch(/T2/)
   })
 })
 
@@ -145,6 +174,14 @@ describe('the command', () => {
     const result = run(tmpdir())
     expect(result.code).toBe(1)
     expect(result.out).toMatch(/cannot read/)
+  })
+
+  // Protects fail-closed through the command: a blank line inside the table exits 1 and prints no rate.
+  test('the command exits 1 when the table is interrupted', () => {
+    const result = run(progressFile(HEADER + row('T1', 'local', 'none', '0') + '\n' + row('T2', 'local', 'none', '3')))
+    expect(result.code).toBe(1)
+    expect(result.out).toMatch(/interrupted/)
+    expect(result.out).not.toMatch(/%/)
   })
 
   // Protects the usage rule: no argument and extra arguments exit 1 with usage.

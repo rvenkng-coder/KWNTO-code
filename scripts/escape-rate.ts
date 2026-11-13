@@ -38,15 +38,32 @@ function rowProblem(label: string, built: string, escaped: string): string | nul
   return null
 }
 
+// A task row needs a valid Built by and a whole-number Escaped; only Built by `-` marks a non-task row.
 function parseRow(row: string[], columns: Columns): ProgressRow | string | null {
   const task = cellAt(row, columns.task)
   const built = cellAt(row, columns.builtBy).toLowerCase()
   const review = cellAt(row, columns.review)
   const escaped = cellAt(row, columns.escaped)
-  if (built === '' && review === '' && escaped === '') return null // a row that does not track a task
+  if (built === '-') return null // explicitly marked as a non-task row (e.g. "Plan written")
   const problem = rowProblem(task || '(no task name)', built, escaped)
   if (problem !== null) return problem
   return { task, builtBy: built as ProgressRow['builtBy'], review, escaped: Number(escaped) }
+}
+
+function readRows(lines: string[], header: { index: number; columns: Columns }): { rows: ProgressRow[]; problems: string[] } {
+  const rows: ProgressRow[] = []
+  const problems: string[] = []
+  let end = header.index + 1
+  if (end < lines.length && isSeparator(lines[end])) end++
+  while (end < lines.length && isTableLine(lines[end])) {
+    const parsed = parseRow(cells(lines[end]), header.columns)
+    if (typeof parsed === 'string') problems.push(parsed)
+    else if (parsed !== null) rows.push(parsed)
+    end++
+  }
+  const later = lines.findIndex((line, index) => index >= end && isTableLine(line))
+  if (later !== -1) problems.push(`table interrupted at line ${end + 1}; later rows (line ${later + 1}) would be ignored`)
+  return { rows, problems }
 }
 
 export function parseProgress(markdown: string): { rows: ProgressRow[]; problems: string[] } {
@@ -54,15 +71,7 @@ export function parseProgress(markdown: string): { rows: ProgressRow[]; problems
   const lines = markdown.split(/\r?\n/)
   const header = findHeader(lines)
   if (header === null) return { rows: [], problems: [MISSING_TABLE] }
-  const rows: ProgressRow[] = []
-  const problems: string[] = []
-  for (const line of lines.slice(header.index + 1)) {
-    if (!isTableLine(line)) break
-    if (isSeparator(line)) continue
-    const parsed = parseRow(cells(line), header.columns)
-    if (typeof parsed === 'string') problems.push(parsed)
-    else if (parsed !== null) rows.push(parsed)
-  }
+  const { rows, problems } = readRows(lines, header)
   if (problems.length > 0) return { rows: [], problems }
   if (rows.length === 0) return { rows: [], problems: ['the table has no task rows'] }
   return { rows, problems }

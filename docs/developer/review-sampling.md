@@ -18,9 +18,11 @@ Rows in `progress.md` for tasks built by a local model carry three columns (temp
 - **Review:** `none`, `clean` or `found N`, from a sampled or always-review at close.
 - **Escaped:** the number of problems found **after** the task was closed (by a later review, the developer or a failing later task); 0 if none.
 
+Every row is a task row and needs a valid Built by and a whole-number Escaped. A row that is not a task (for example "Plan written") must say so with Built by `-`; its Review and Escaped may then be `-` or empty, and it is not counted. A blank or short row, or any other value, is a problem naming the row.
+
 ## The escape rate
 
-`npm run report:escape-rate -- <progress.md>` prints `escape rate: 1 of 4 local tasks (25%)`: among rows built by `local`, the share with Escaped above 0. It exits 1, and does not print a percentage, when the file is missing or empty, has no table with the three columns, or has a row whose Escaped cell is not a whole number or whose Built by is neither `local` nor `strong`. A rate above 25% makes every local task reviewed (rule 2), so a bad run tightens review until it recovers.
+`npm run report:escape-rate -- <progress.md>` prints `escape rate: 1 of 4 local tasks (25%)`: among rows built by `local`, the share with Escaped above 0. It exits 1, and does not print a percentage, when the file is missing or empty, has no table with the three columns, or has a row whose Escaped cell is not a whole number or whose Built by is none of `local`, `strong` or `-`, or has a table interrupted by a blank or other line while later lines still start with `|` (the later rows would be ignored). Keep the table in one block. A rate above 25% makes every local task reviewed (rule 2), so a bad run tightens review until it recovers.
 
 ## What a reviewer checks
 

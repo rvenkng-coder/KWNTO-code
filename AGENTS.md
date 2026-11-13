@@ -69,5 +69,5 @@ See the [design](docs/superpowers/specs/2026-11-11-kwnto-design.md) and [ERD](do
 ## Tracking and resuming
 
 - Work in checkpoints. Close each with one commit.
-- Track progress in `.planning/<date>-<plan>/progress.md`. Rows for tasks built by a local model carry three columns: **Built by** (`local` or `strong`), **Review** (`none`, `clean` or `found N`) and **Escaped** (problems found after the task closed, 0 if none). See [review sampling](docs/developer/review-sampling.md); `npm run report:escape-rate -- <progress.md>` prints the rate.
+- Track progress in `.planning/<date>-<plan>/progress.md`. Rows for tasks built by a local model carry three columns: **Built by** (`local` or `strong`; `-` for a non-task row), **Review** (`none`, `clean` or `found N`) and **Escaped** (problems found after the task closed, 0 if none). See [review sampling](docs/developer/review-sampling.md); `npm run report:escape-rate -- <progress.md>` prints the rate.
 - To resume: `git worktree list`, switch to the worktree on `feat/foundation`, read `progress.md`, and continue from the last unticked step.

@@ -20,6 +20,7 @@
     "check:quality": "node scripts/check-changed-quality.ts",
     "check:task": "node scripts/check-task.ts",
     "ping:model": "node scripts/ping-local-model.ts",
+    "prepare-local-run": "node scripts/prepare-local-run.ts",
     "report:quality": "node scripts/check-changed-quality.ts --report",
     "report:escape-rate": "node scripts/escape-rate.ts",
     "lint": "eslint . && node scripts/check-perf-comments.ts && npm run check:docs && npm run check:plan",

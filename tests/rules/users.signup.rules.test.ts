@@ -151,8 +151,8 @@ test('a successful sign-up writes one signup event; a refused one writes none', 
 // Protects deny by default: the only public rule on users is still the open create
 // (also checked by coverage.rules.test.ts), so a signed-out visitor cannot read accounts.
 // Developer decision 2026-11-13: emails are not case-sensitive. They are stored
-// lower-case and trimmed, and the database refuses a case variant on every path
-// (1794360600_users_email_nocase.js), so a look-alike account cannot exist.
+// lower-case and trimmed, and the email index is COLLATE NOCASE (1794360700), so
+// PocketBase's own lookups (sign-in, password reset, verification) ignore case too.
 test('sign-up stores the email lower-case and trimmed; a case variant is refused', async () => {
   const email = newEmail()
   const created = await signUp(` ${email.toUpperCase()} `, GOOD_PASSWORD)
@@ -163,6 +163,18 @@ test('sign-up stores the email lower-case and trimmed; a case variant is refused
   expect(variant.status).toBe(400)
   const again = await failureOf(signUp(email, GOOD_PASSWORD))
   expect(again.status).toBe(400)
+})
+
+// The index itself, not only the hook: PocketBase 0.40.6 looks accounts up ignoring
+// case only when the email unique index says COLLATE NOCASE (final review, I2). Without
+// it a password reset typed with a capital sends no mail.
+test('the users email unique index is COLLATE NOCASE', async () => {
+  const admin = await asAdmin()
+  const users = await admin.collections.getOne('users')
+  const emailIndexes = users.indexes.filter((sql: string) => /idx_email_/.test(sql))
+  expect(emailIndexes).toHaveLength(1)
+  expect(emailIndexes[0]).toMatch(/COLLATE NOCASE/i)
+  expect(users.indexes.some((sql: string) => sql.includes('idx_users_email_nocase'))).toBe(false)
 })
 
 test('an account made by the admin with capitals is stored lower-case, and the email cannot be changed to a case variant', async () => {

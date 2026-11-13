@@ -25,16 +25,15 @@ onRecordAuthWithPasswordRequest((e) => {
   const identity = String(e.identity).trim().toLowerCase()
   const ip = e.realIP()
   const pair = { identity: identity, ip: ip }
-  // Stored addresses are lower-case (users-signup hook, 1794360600 migration) but
-  // PocketBase looked the account up with the email as typed, so look it up again
-  // lower-cased. The address is unique ignoring case, so at most one account matches.
+  // PocketBase's own lookup ignores case (the email index is COLLATE NOCASE,
+  // 1794360700 migration) but not stray spaces, so an address typed with spaces is
+  // looked up again trimmed. Stored addresses are lower-case and unique.
   if (!e.record && identity !== "") {
     const found = e.app.findRecordsByFilter("users", "email = {:email}", "", 1, 0, { email: identity })
     if (found.length > 0) {
       e.record = found[0]
     }
   }
-
   const userId = e.record ? e.record.id : ""
 
   const behavior = getSystemBehavior(e.app)

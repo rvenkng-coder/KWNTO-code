@@ -1,6 +1,6 @@
 # `check:task`: the self-check every task ends with
 
-`npm run check:task` runs every check a task must pass, in one command, and prints one verdict. The implementer runs it at the end of a task and pastes the **full output** into its report. It is meant to replace the grading checklist in [local-model-notes.md](local-model-notes.md), so grading no longer depends on a person remembering each check; that change to local-model-notes.md is planned for Task 9 of the local-AI quality plan. The layers and the order of the checks are in the [test strategy](../testing-strategy.md), section 6.
+`npm run check:task` runs every check a task must pass, in one command, and prints one verdict. The implementer runs it at the end of a task and pastes the **full output** into its report. It replaces steps 1, 2, 3 and 5 of the grading checklist in [local-model-notes.md](local-model-notes.md) (which says which step is which), so grading no longer depends on a person remembering each check; the steps that stay with a person (the unseen probe set beyond the task's own probes, and reading the session log) are in the [local-model runbook](local-model-runbook.md). The layers and the order of the checks are in the [test strategy](../testing-strategy.md), section 6.
 
 ## The command
 

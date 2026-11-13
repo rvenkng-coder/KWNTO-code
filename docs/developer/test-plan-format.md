@@ -9,6 +9,7 @@ Every task file in a plan written under the `test-plan-v1` standard carries a Te
 | Tier | A line `**Model tier:** strong`, `mid` or `local` | Required. A per-checkpoint line `**Checkpoint 2B tier:** local` is optional, and its value must be a tier name too |
 | Interfaces | A line or block starting `**Interfaces:**` | Required. Write `none` if there are none |
 | Test plan | The `## Test plan` block below | Required |
+| Sized for the local model | A `## Sized for the local model` block before `## Test plan` | Required when the task tier, or any checkpoint tier, is `local`; see below |
 
 ## The block
 
@@ -30,6 +31,21 @@ text, or `none`
 text of what the implementer pastes
 ```
 
+## The local-tier block
+
+A task whose `**Model tier:**` is `local`, or that has a `**Checkpoint <id> tier:** local` line, must carry a block headed `## Sized for the local model` (once, before `## Test plan`; whole-line HTML comments are ignored). It has five parts, each non-empty:
+
+```
+## Sized for the local model
+**May touch:** the files it may touch (exhaustive)
+**Must not change:** the interfaces it must not change
+Stop and report if you need to touch anything else.
+**Model server:** run `npm run ping:model` first
+**Checkpoint given:** the one checkpoint it is given
+```
+
+`check:plan` names each missing or empty part, a missing block, and a heading that appears twice. Strong and mid tasks do not carry it. Why: the local model does well on one bounded checkpoint with exact steps and badly when the edges are open ([local-model-notes.md](local-model-notes.md)). The runbook says how the block is used: [local-model-runbook.md](local-model-runbook.md).
+
 ## What `check:plan` enforces
 
 - The five `###` sections exist, once each, spelled exactly and in this order. An unknown, missing, repeated or misplaced section is a problem; so is text before the first section.
@@ -38,6 +54,7 @@ text of what the implementer pastes
 - **Probes:** the line `**Probe folder:**` is present and its value starts with `tests/probes/` (or is `none`, meaning no probes).
 - **Breaks:** either a lone line `none` (any case), allowed only when no case is on the `unit` layer (otherwise a problem naming the unit rows), or a table with at least one row; a header with no rows and no `none` is a problem. Rows: ID unique; File passes `isBreakablePath` (under `src/`, `scripts/` or `backend/pb_hooks/lib/`; not a test file; no `..`; not absolute); Find not empty and different from Replace; Tests lists one or more comma-separated relative paths.
 - **Flow** and **Evidence** are not empty.
+- **Local tier:** the block above is present and complete when the tier (or a checkpoint tier) is `local`.
 - Every problem names the section and the row id, and starts with the task file path.
 
 A line that is entirely an HTML comment (`<!-- ... -->`) inside the block is ignored, so a comment-only Flow is still empty.

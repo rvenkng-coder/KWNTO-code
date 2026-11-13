@@ -10,6 +10,33 @@ const PLANS_DIR = 'docs/superpowers/plans'
 const STANDARD_LINE = /^\*\*Standard:\*\* test-plan-v1[ \t]*$/m
 const TIERS = ['strong', 'mid', 'local']
 
+const LOCAL_HEADING = '## Sized for the local model'
+// Each part of the block: a label with text after it on the same line, or (for the stop rule) the sentence.
+const LOCAL_PARTS: { name: string; pattern: RegExp }[] = [
+  { name: 'May touch', pattern: /^\*\*May touch:\*\*[ \t]*\S/m },
+  { name: 'Must not change', pattern: /^\*\*Must not change:\*\*[ \t]*\S/m },
+  { name: 'Stop and report', pattern: /^stop and report if you need to touch anything else/im },
+  { name: 'Model server', pattern: /^\*\*Model server:\*\*[ \t]*\S/m },
+  { name: 'Checkpoint given', pattern: /^\*\*Checkpoint given:\*\*[ \t]*\S/m },
+]
+
+// A task (or a checkpoint) for the local tier must carry the "Sized for the local model" block, complete.
+function localBlockProblems(markdown: string, tier: string | null): string[] {
+  const text = markdown.replaceAll('\r\n', '\n')
+  const local = tier === 'local' || /^\*\*Checkpoint \S+ tier:\*\*[ \t]*local\b/m.test(text)
+  if (!local) return []
+  const lines = text.split('\n').filter((line) => !/^\s*<!--.*-->\s*$/.test(line))
+  const starts = lines.flatMap((line, index) => (line.trimEnd() === LOCAL_HEADING ? [index] : []))
+  const missing = `a local-tier task needs the "${LOCAL_HEADING}" block (see TASK-TEMPLATE.md)`
+  if (starts.length === 0) return [missing]
+  const rest = lines.slice(starts[0] + 1)
+  const end = rest.findIndex((line) => /^##\s/.test(line))
+  const body = (end === -1 ? rest : rest.slice(0, end)).join('\n')
+  const problems = LOCAL_PARTS.filter((part) => !part.pattern.test(body)).map((part) => `"${LOCAL_HEADING}" block: "${part.name}" is missing or empty`)
+  if (starts.length > 1) problems.push(`the "${LOCAL_HEADING}" heading appears more than once`)
+  return problems
+}
+
 export function checkTaskFile(path: string, markdown: string): string[] {
   const problems: string[] = []
   const meta = parseTaskMeta(markdown)
@@ -18,6 +45,7 @@ export function checkTaskFile(path: string, markdown: string): string[] {
   for (const match of markdown.matchAll(/^\*\*Checkpoint (\S+) tier:\*\*[ \t]*(\S*)/gm)) {
     if (!TIERS.includes(match[2])) problems.push(`"**Checkpoint ${match[1]} tier:**" must be strong, mid or local`)
   }
+  problems.push(...localBlockProblems(markdown, meta.tier))
   problems.push(...parseTestPlan(markdown).problems)
   return problems.map((problem) => `${path}: ${problem}`)
 }

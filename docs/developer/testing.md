@@ -31,6 +31,7 @@ KWNTO uses distinct test projects managed by Vitest and custom test harnesses:
   - Known limits: a test imported under another name (`import { test as t }`), built with `test.extend`, or reached by computed access (`test[mode]`) is not recognised as a declaration; a title that is not a literal is compared by its source text and by the test count; `test.describe` and similar Playwright calls are treated as declarations and need a comment. An unknown command-line argument is a usage error (exit 2). Scripts run through a symlinked path work (real paths are compared).
 - `npm run check:breaks -- <task.md>` (or `node scripts/run-breaks.ts [--cwd <dir>] <task.md>`): Runs the deliberate breaks of one task file; see [test-plan-format.md](test-plan-format.md#running-the-breaks).
 - `npm run check:task -- --task <task.md> [--base <sha>] [--built-by local|strong]`: Runs every check a task ends with and prints one verdict; the implementer pastes the full output in its report. See [check-task.md](check-task.md).
+- `npm run ping:model [-- <baseUrl>]`: Asks the local model server (llama-swap, default `http://localhost:9092`) whether it answers and whether the model is loaded; one line, exit 0 if answering, 1 if not. See [local-model-runbook.md](local-model-runbook.md).
 - `npm run report:escape-rate -- <progress.md>`: Share of local-model tasks that had a problem escape after close; exits 1 on a missing, empty or malformed table. See [review-sampling.md](review-sampling.md).
 
 ---

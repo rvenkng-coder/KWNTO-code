@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, test } from 'vitest'
@@ -22,7 +22,17 @@ const VALID_PLAN = [
   '### Evidence',
   'the check output',
 ].join('\n')
-const HEAD = '# Task\n\n**Model tier:** local\n**Interfaces:** none\n\n'
+const LOCAL_BLOCK = [
+  '## Sized for the local model',
+  '**May touch:** `scripts/x.ts`, `scripts/x.test.ts`',
+  '**Must not change:** the exported signature of `f`',
+  'Stop and report if you need to touch anything else.',
+  '**Model server:** run `npm run ping:model` first',
+  '**Checkpoint given:** 1A',
+  '',
+  '',
+].join('\n')
+const HEAD = '# Task\n\n**Model tier:** local\n**Interfaces:** none\n\n' + LOCAL_BLOCK
 const VALID_TASK = HEAD + VALID_PLAN
 const STANDARD = '# Plan\n\n**Standard:** test-plan-v1\n'
 
@@ -55,6 +65,38 @@ describe('checkTaskFile', () => {
     expect(checkTaskFile('t.md', VALID_TASK.replace('local', 'weak')).join('\n')).toMatch(/Model tier/)
     const withCheckpoint = VALID_TASK.replace('\n\n## Test plan', '\n**Checkpoint 2B tier:** wek\n\n## Test plan')
     expect(checkTaskFile('t.md', withCheckpoint).join('\n')).toMatch(/Checkpoint 2B tier/)
+  })
+
+  // Protects the local-tier rule: a local model is only given work that is sized for it and says what it may touch.
+  test('a local task without the block is a problem', () => {
+    const without = VALID_TASK.replace(LOCAL_BLOCK, '')
+    const problems = checkTaskFile('t.md', without)
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toMatch(/^t\.md: .*Sized for the local model/)
+    expect(checkTaskFile('t.md', without.replace('local', 'mid'))).toEqual([])
+  })
+
+  // Protects the local-tier rule: a checkpoint given to the local model needs the block even if the task is mid.
+  test('a local checkpoint in a mid task also needs the block', () => {
+    const mid = VALID_TASK.replace(LOCAL_BLOCK, '').replace('**Model tier:** local', '**Model tier:** mid\n**Checkpoint 1A tier:** local')
+    expect(checkTaskFile('t.md', mid).join('\n')).toMatch(/Sized for the local model/)
+    expect(checkTaskFile('t.md', mid.replace('tier:** local', 'tier:** strong'))).toEqual([])
+  })
+
+  // Protects the local-tier rule: a heading alone, or a block missing one of its parts, is named part by part.
+  test('a block with missing or empty parts names each one', () => {
+    const empty = VALID_TASK.replace(LOCAL_BLOCK, '## Sized for the local model\n\n')
+    const problems = checkTaskFile('t.md', empty).join('\n')
+    for (const part of ['May touch', 'Must not change', 'Stop and report', 'Model server', 'Checkpoint given']) expect(problems).toContain(part)
+    const noValue = VALID_TASK.replace('**May touch:** `scripts/x.ts`, `scripts/x.test.ts`', '**May touch:**')
+    expect(checkTaskFile('t.md', noValue).join('\n')).toMatch(/May touch/)
+  })
+
+  // Protects the local-tier rule: the block counts only when it is a real heading, once, and a comment is not content.
+  test('a repeated block, or one only in a comment line, is a problem', () => {
+    expect(checkTaskFile('t.md', VALID_TASK.replace(LOCAL_BLOCK, LOCAL_BLOCK + LOCAL_BLOCK)).join('\n')).toMatch(/more than once/)
+    const commented = VALID_TASK.replace(LOCAL_BLOCK, LOCAL_BLOCK.split('\n').map((line) => (line ? `<!-- ${line} -->` : line)).join('\n'))
+    expect(checkTaskFile('t.md', commented).join('\n')).toMatch(/Sized for the local model/)
   })
 
   // Protects Review Focus 4: problems inside the block reach the caller with the file path.
@@ -139,5 +181,14 @@ describe('the command', () => {
     expect(result.status).toBe(1)
     expect(result.stdout).toMatch(/cannot read.*docs\/superpowers\/plans/)
     expect(result.stderr).not.toMatch(/at /)
+  })
+})
+
+describe('the task template', () => {
+  // Protects the template: copied to a folder, it is a task file that passes check:plan, local block included.
+  test('the template itself passes check:plan when copied to a temp folder', () => {
+    const dir = tempDir()
+    copyFileSync(join(import.meta.dirname, '..', 'docs', 'superpowers', 'plans', 'TASK-TEMPLATE.md'), join(dir, 'task-1-template.md'))
+    expect(checkPlanFolder(dir)).toEqual([])
   })
 })

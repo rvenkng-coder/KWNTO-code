@@ -1,0 +1,69 @@
+# Runbook: handing a task to the local model
+
+How to give one checkpoint to the local coding model (`little-coder`, model `coder` on llama-swap, port 9092) and grade what comes back. The reasons behind each rule, and the history of the smoke tests, are in [local-model-notes.md](local-model-notes.md). Use the local model only for a task or checkpoint whose tier is `local` and whose task file carries the "Sized for the local model" block ([format](test-plan-format.md#the-local-tier-block)).
+
+## Before the run
+
+1. **Ping the server.** `npm run ping:model` (or `npm run ping:model -- http://host:port`). It asks llama-swap's `/running` with a GET, never sends a prompt, and prints one line:
+   - `model server: answering, model loaded`: go ahead.
+   - `model server: answering, model idle (loads on the first request)`: go ahead, but the first request is slow while the model loads. The model unloads after 600 s idle, which is how a run can stall without a message. A `; the /running answer was not understood` suffix means the server answered something this check does not recognise: treat it as not loaded.
+   - `model server: NOT answering: <reason>` (exit 1): do not start. Start or restart llama-swap first. A bad argument (not an `http(s)` URL) exits 2 with a message.
+2. **Give it a sandbox or a worktree**, not your working checkout: a fresh `git init` of the repo at a known commit with no remote (so it cannot push or touch real branches), or a worktree of the plan branch. Re-running the sandbox is described in [local-model-notes.md](local-model-notes.md#re-running-the-smoke-test).
+3. **Tell it which files it may touch.** Copy the task file's "May touch" and "Must not change" lines into the prompt, and the rule: **stop and report if you need to touch anything else.** Give paths relative to the sandbox and tell it to work only inside it.
+4. **Tell it not to read `tests/probes/`.** The probes are the unseen set; if the model reads them they stop being unseen. The prompt never names that folder otherwise.
+5. Give it one checkpoint, the one named under "Checkpoint given".
+
+**What the ping reads.** llama-swap's `/running` is not documented in this repository. The check was written for the shape llama-swap is known to answer, `{"running":[{"model":"coder","state":"ready"}]}` (a bare array of the same entries is accepted too), and the one answer seen on this machine, `{"running":[]}` (model idle), matches it. A model is "loaded" only when an entry has `"state":"ready"`; an entry in another state (such as `starting`) counts as idle. If llama-swap changes the shape, the line says "not understood" instead of claiming the model is loaded.
+
+## Starting it
+
+```sh
+little-coder -p --session-dir <dir> "<prompt>"
+```
+
+`--session-dir` keeps the log of every tool call. Use a new directory per run.
+
+Prompt template (fill in the two placeholders and paste the task file's two lines):
+
+```
+You are working in <sandbox path>. Work only inside this folder, with relative paths.
+Do Checkpoint <checkpoint> of <task file path>. Read that file and the files it links first.
+You may touch only: <the "May touch" line>
+You must not change: <the "Must not change" line>
+If you need to touch anything else, stop and report instead.
+Do not read anything under tests/probes/.
+Write the failing tests first and watch them fail for the right reason. Never edit an existing test.
+Close the checkpoint with one commit. Do not push.
+At the end run `npm run check:task -- --task <task file path>` and paste its full output in your report.
+```
+
+## The one-minute check
+
+About a minute after the start, look for a session file in the `--session-dir`. If there is none:
+
+- Look at the GPU (is it busy?) and at the llama-swap slots: `curl localhost:9092/upstream/coder/slots` (the command from the notes).
+- A process that is alive, with the GPU at 0% and every slot empty, is stalled (this happened in smoke test 2). **Kill the run and restart it**; run `npm run ping:model` again first.
+
+## After the run
+
+1. Run it yourself, in the sandbox or worktree: `npm run check:task -- --task <task file> [--base <sha>] [--built-by local]` (the options and the steps are in [check-task.md](check-task.md); pass `--base` when the branch holds more than this task).
+2. **Paste the full output** in the task report. **Never grade from the model's own summary**, and not from a summary of the output either: a `FAIL` verdict means the task is not done.
+3. Read the session log (the part of grading `check:task` cannot do):
+   - Were the tests written before the code, and did the first run fail for the right reason?
+   - Did it touch any path outside the sandbox, or outside "May touch"? (`git status` and `git diff --stat <base>` show it; the log shows reads.)
+   - Did it read anything under `tests/probes/`? If so the probe result no longer counts: have the probes rewritten or reviewed by a person.
+   - How many tool calls and minutes? (Smoke tests: about 11 to 15 minutes, 45 or more tool calls.)
+4. Run the unseen probe set a person wrote beyond the task's own probe folder (step 4 of "After it finishes" in the notes).
+5. Review when the rule says so: `check:task` prints `Review required: yes` or `no` ([review-sampling.md](review-sampling.md)). Record the outcome in the progress row (Built by, Review, Escaped).
+
+## When to escalate to a strong model
+
+- The check still shows a `FAIL` after **two rounds** of sending the failures back to the local model.
+- The task or checkpoint touches a security-relevant file: access rules, migrations, hooks, `src/backend/`, anything about sync, conflicts or queues. These are always reviewed ([review-sampling.md](review-sampling.md)) and should not be built locally in the first place.
+- The work is debugging a surprising backend or judging a measurement: untested for this model.
+
+Never edit a failing test to get past a FAIL; if a test looks wrong, stop and say so.
+
+## After an interrupted check
+
+If `npm run check:task` was interrupted hard, a deliberate break can be left in a source file: see [After an interrupted run](check-task.md#after-an-interrupted-run).

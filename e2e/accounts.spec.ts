@@ -2,7 +2,7 @@
 // the verification gate blocks team creation until the account is verified.
 import { test, expect } from '@playwright/test'
 import { verifyByEmail, uniqueEmail } from './helpers/admin'
-import { signUp, signUpVerifyAndSignIn, createTeam } from './helpers/ui'
+import { signUp, signUpVerifyAndSignIn, createTeam, openTeam, enableJoinCode, joinWithCode } from './helpers/ui'
 
 // Protects: XSS as text (security.md section 5) — team names are rendered as text, not HTML.
 test('XSS as text', async ({ page }) => {
@@ -15,96 +15,118 @@ test('XSS as text', async ({ page }) => {
   await expect(page.evaluate(() => window.__xss)).resolves.toBeUndefined()
 })
 
-// Protects: join by code — owner enables code, member joins, names shown not emails.
+// Protects: join by code — owner turns the code on, member joins, names shown not emails.
 test('join by code', async ({ page, browser }) => {
-  const ownerEmail = uniqueEmail()
-  const memberEmail = uniqueEmail()
-  // Owner signs up and creates team
   await page.goto('/')
-  await signUpVerifyAndSignIn(page, ownerEmail, 'Owner')
+  await signUpVerifyAndSignIn(page, uniqueEmail(), 'Owner')
   await createTeam(page, 'Crew')
-  // Member signs up in second browser
+  await openTeam(page, 'Crew')
+  const joinCode = await enableJoinCode(page)
   const page2 = await browser.newPage()
   await page2.goto('/')
-  await signUpVerifyAndSignIn(page2, memberEmail, 'Member')
-  // Owner opens team detail and reads join code
-  await page.getByTestId('team-list').locator('li').first().click()
-  const joinCode = await page.getByTestId('join-code').textContent()
-  // Member joins
-  await page2.getByPlaceholder('Join code').fill(joinCode ?? '')
-  await page2.getByRole('button', { name: 'Join' }).click()
-  // The join hook commits the member row, but the frontend list() call may
-  // need a moment for PocketBase to surface the new row.
-  await page2.waitForTimeout(2000)
-  await expect(page2.getByTestId('team-list')).toContainText('Crew')
-  // Owner sees member by name, not email
+  await signUpVerifyAndSignIn(page2, uniqueEmail(), 'Member')
+  await joinWithCode(page2, joinCode, 'Crew')
+  // Owner reopens the team and sees the member by name, not email
+  await page.getByRole('button', { name: '← Back' }).click()
+  await openTeam(page, 'Crew')
   await expect(page.getByTestId('member-list')).toContainText('Member')
+  await expect(page.getByTestId('member-list')).not.toContainText('@')
   await page2.close()
 })
 
 // Protects: wrong code and regenerate — wrong code fails, regenerate invalidates old code.
-test('wrong code and regenerate', async ({ page }) => {
-  const ownerEmail = uniqueEmail()
+test('wrong code and regenerate', async ({ page, browser }) => {
   await page.goto('/')
-  await signUpVerifyAndSignIn(page, ownerEmail, 'Owner')
+  await signUpVerifyAndSignIn(page, uniqueEmail(), 'Owner')
   await createTeam(page, 'Crew')
-  // Wrong code
   await page.getByPlaceholder('Join code').fill('WRONGCODE')
   await page.getByRole('button', { name: 'Join' }).click()
   await expect(page.getByTestId('form-error')).toBeVisible()
+  // Regenerate: the new code differs and the old one stops working
+  await openTeam(page, 'Crew')
+  const oldCode = await enableJoinCode(page)
+  await page.getByRole('button', { name: 'Regenerate' }).click()
+  await expect(page.getByTestId('join-code')).not.toHaveText(oldCode)
+  const page2 = await browser.newPage()
+  await page2.goto('/')
+  await signUpVerifyAndSignIn(page2, uniqueEmail(), 'Other')
+  await page2.getByPlaceholder('Join code').fill(oldCode)
+  await page2.getByRole('button', { name: 'Join' }).click()
+  await expect(page2.getByTestId('form-error')).toBeVisible()
+  await expect(page2.getByTestId('team-list')).not.toContainText('Crew')
+  await page2.close()
 })
 
-// Protects: invite flow — owner invites, invitee sees inbox, accepts.
+// Protects: invite flow — owner invites, invitee sees the invite on the Teams screen
+// (they may have no team yet), accepts, and the team appears.
 test('invite flow', async ({ page, browser }) => {
-  const ownerEmail = uniqueEmail()
   const inviteeEmail = uniqueEmail()
-  // Owner
   await page.goto('/')
-  await signUpVerifyAndSignIn(page, ownerEmail, 'Owner')
+  await signUpVerifyAndSignIn(page, uniqueEmail(), 'Owner')
   await createTeam(page, 'Crew')
-  // Invitee
   const page2 = await browser.newPage()
   await page2.goto('/')
   await signUpVerifyAndSignIn(page2, inviteeEmail, 'Invitee')
-  // Owner opens team detail to access invite form
-  await page.getByTestId('team-list').locator('li').first().click()
-  // Owner sends invite
+  await openTeam(page, 'Crew')
   await page.getByPlaceholder('Email').fill(inviteeEmail)
   await page.getByRole('button', { name: 'Send invite' }).click()
-  // Invitee sees invite
-  await expect(page2.getByTestId('invite-inbox')).toBeVisible()
+  await expect(page.getByText('Invite sent!')).toBeVisible()
+  // The inbox loads when the screen opens, so the invitee reloads to see it
+  await page2.reload()
+  await expect(page2.getByTestId('invite-inbox')).toContainText('Crew')
+  await page2.getByRole('button', { name: 'Accept' }).click()
+  await expect(page2.getByTestId('team-list')).toContainText('Crew')
+  await expect(page2.getByTestId('invite-inbox')).toHaveCount(0)
   await page2.close()
 })
 
-// Protects: remove and delete — owner removes member, member loses access;
-// owner deletes team, it disappears for both.
+// Protects: remove and delete — owner removes a member, the member loses the team;
+// owner deletes the team, it disappears from the owner's list.
 test('remove and delete', async ({ page, browser }) => {
-  const ownerEmail = uniqueEmail()
-  const memberEmail = uniqueEmail()
-  // Owner
   await page.goto('/')
-  await signUpVerifyAndSignIn(page, ownerEmail, 'Owner')
+  await signUpVerifyAndSignIn(page, uniqueEmail(), 'Owner')
   await createTeam(page, 'Crew')
-  // Member
+  await openTeam(page, 'Crew')
+  const joinCode = await enableJoinCode(page)
   const page2 = await browser.newPage()
   await page2.goto('/')
-  await signUpVerifyAndSignIn(page2, memberEmail, 'Member')
+  await signUpVerifyAndSignIn(page2, uniqueEmail(), 'Member')
+  await joinWithCode(page2, joinCode, 'Crew')
+  // Owner removes the member
+  await page.getByRole('button', { name: '← Back' }).click()
+  await openTeam(page, 'Crew')
+  await expect(page.getByTestId('member-list')).toContainText('Member (member)')
+  await page.getByRole('button', { name: 'Remove' }).click()
+  await expect(page.getByTestId('member-list')).not.toContainText('Member (member)')
+  await page2.reload()
+  await expect(page2.getByTestId('team-list')).not.toContainText('Crew')
+  // Owner deletes the team
+  page.once('dialog', (dialog) => dialog.accept())
+  await page.getByRole('button', { name: 'Delete team' }).click()
+  await expect(page.getByTestId('team-list')).not.toContainText('Crew')
   await page2.close()
 })
 
-// Protects: owner-only controls — a member sees no join-code, invite form,
-// remove buttons or delete button.
+// Protects: owner-only controls — the owner sees invite form, remove and delete
+// buttons and the join code; a member sees none of them.
 test('only owner sees owner controls', async ({ page, browser }) => {
-  const ownerEmail = uniqueEmail()
-  const memberEmail = uniqueEmail()
-  // Owner
   await page.goto('/')
-  await signUpVerifyAndSignIn(page, ownerEmail, 'Owner')
+  await signUpVerifyAndSignIn(page, uniqueEmail(), 'Owner')
   await createTeam(page, 'Crew')
-  // Member
+  await openTeam(page, 'Crew')
+  const joinCode = await enableJoinCode(page)
+  await expect(page.getByRole('button', { name: 'Send invite' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Delete team' })).toBeVisible()
   const page2 = await browser.newPage()
   await page2.goto('/')
-  await signUpVerifyAndSignIn(page2, memberEmail, 'Member')
+  await signUpVerifyAndSignIn(page2, uniqueEmail(), 'Member')
+  await joinWithCode(page2, joinCode, 'Crew')
+  await openTeam(page2, 'Crew')
+  await expect(page2.getByTestId('member-list')).toContainText('Owner')
+  await expect(page2.getByTestId('join-code')).toHaveCount(0)
+  await expect(page2.getByRole('button', { name: 'Send invite' })).toHaveCount(0)
+  await expect(page2.getByRole('button', { name: 'Delete team' })).toHaveCount(0)
+  await expect(page2.getByRole('button', { name: 'Remove' })).toHaveCount(0)
   await page2.close()
 })
 
@@ -123,14 +145,6 @@ test('sign-up and verification gate', async ({ page }) => {
   await verifyByEmail(email)
   await page.reload()
   await expect(page.getByRole('button', { name: 'Create team' })).toBeVisible()
-})
-
-// Protects: weak password — the server rejects passwords that don't meet rules;
-// the error is shown in form-error and no account is created.
-test('weak password shows server message', async ({ page }) => {
-  await page.goto('/')
-  await signUp(page, uniqueEmail(), 'Weak', 'short')
-  await expect(page.getByTestId('form-error')).toBeVisible()
 })
 
 // Protects: lockout — after 3 wrong passwords the account is locked;

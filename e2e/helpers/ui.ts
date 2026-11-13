@@ -52,3 +52,33 @@ export async function createTeam(page: Page, name: string): Promise<void> {
     timeout: 10_000,
   })
 }
+
+/** Opens a team from the Teams screen by its name. */
+export async function openTeam(page: Page, name: string): Promise<void> {
+  await page.getByTestId('team-list').getByText(name, { exact: true }).click()
+  await expect(page.getByTestId('member-list')).toBeVisible()
+}
+
+/**
+ * Owner on the team detail screen: turns the join code on if it is off (a new
+ * team starts with it off, decision D1) and returns the code.
+ */
+export async function enableJoinCode(page: Page): Promise<string> {
+  // The code and its button appear together once the settings have loaded.
+  await expect(page.getByTestId('join-code')).toBeVisible()
+  const enable = page.getByRole('button', { name: 'Enable' })
+  if (await enable.isVisible()) {
+    await enable.click()
+  }
+  await expect(page.getByRole('button', { name: 'Disable' })).toBeVisible()
+  const code = (await page.getByTestId('join-code').textContent()) ?? ''
+  expect(code).not.toBe('')
+  return code
+}
+
+/** Types a join code on the Teams screen and waits for the team to appear. */
+export async function joinWithCode(page: Page, code: string, teamName: string): Promise<void> {
+  await page.getByPlaceholder('Join code').fill(code)
+  await page.getByRole('button', { name: 'Join' }).click()
+  await expect(page.getByTestId('team-list')).toContainText(teamName)
+}

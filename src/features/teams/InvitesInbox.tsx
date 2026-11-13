@@ -3,7 +3,11 @@ import { backend } from '../../backend'
 import type { Invite } from '../../backend/types'
 import { errorMessage } from '../errorMessage'
 
-export function InvitesInbox() {
+interface InvitesInboxProps {
+  onAccepted?: () => void
+}
+
+export function InvitesInbox({ onAccepted }: InvitesInboxProps) {
   const [invites, setInvites] = useState<Invite[]>([])
   const [error, setError] = useState<string | null>(null)
 
@@ -23,6 +27,7 @@ export function InvitesInbox() {
     try {
       await backend.teams.acceptInvite(inviteId)
       setInvites((prev) => prev.filter((i) => i.id !== inviteId))
+      onAccepted?.()
     } catch (err: unknown) {
       setError(errorMessage(err, 'Failed to accept invite'))
     }

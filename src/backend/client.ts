@@ -10,6 +10,10 @@ export interface Backend {
 
 export function createBackend(baseUrl?: string): Backend {
   const pb = new PocketBase(baseUrl ?? '/')
+  // The SDK cancels a request when an identical one starts (same method and path).
+  // Screens load twice in development (React StrictMode) and could race on purpose,
+  // and the cancelled call would surface as "The server cannot be reached".
+  pb.autoCancellation(false)
   return {
     async health(): Promise<boolean> {
       try {

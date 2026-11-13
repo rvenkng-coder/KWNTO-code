@@ -4,6 +4,7 @@ import { backend } from '../../backend'
 import { useTeams } from './useTeams'
 import { TeamDetail } from './TeamDetail'
 import { JoinByCodeForm } from './JoinByCodeForm'
+import { InvitesInbox } from './InvitesInbox'
 
 export function TeamsScreen() {
   const { user, signOut } = useSession()
@@ -18,7 +19,13 @@ export function TeamsScreen() {
   if (!user) return null
 
   if (selectedTeam) {
-    return <TeamDetail teamId={selectedTeam} onBack={() => setSelectedTeam(null)} />
+    return <TeamDetail
+        teamId={selectedTeam}
+        onBack={() => {
+          setSelectedTeam(null)
+          list()
+        }}
+      />
   }
 
   return (
@@ -45,6 +52,7 @@ export function TeamsScreen() {
       >
         Create team
       </button>
+      <InvitesInbox onAccepted={list} />
       <JoinByCodeForm />
       <ul data-testid="team-list">
         {teams.map((team) => (

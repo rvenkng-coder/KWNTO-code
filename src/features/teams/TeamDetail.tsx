@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { backend } from '../../backend'
 import type { TeamMember, TeamSettings } from '../../backend/types'
 import { InviteForm } from './InviteForm'
-import { InvitesInbox } from './InvitesInbox'
 import { errorMessage } from '../errorMessage'
 
 interface TeamDetailProps {
@@ -109,7 +108,6 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
           <button onClick={handleDeleteTeam}>Delete team</button>
         </div>
       )}
-      <InvitesInbox />
     </div>
   )
 }

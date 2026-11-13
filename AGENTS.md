@@ -9,7 +9,9 @@ See the [design](docs/superpowers/specs/2026-11-11-kwnto-design.md) and [ERD](do
 2. [ERD](docs/superpowers/specs/2026-11-11-kwnto-erd.md)
 3. [Engineering principles](docs/engineering.md)
 4. [Security rules](docs/security.md)
-5. The roadmap and the current plan (see [plans/](docs/superpowers/plans/README.md); the current plan is the first one not marked `done`)
+5. [Test strategy](docs/testing-strategy.md)
+6. [Project test plan](docs/test-plan.md)
+7. The roadmap and the current plan (see [plans/](docs/superpowers/plans/README.md); the current plan is the first one not marked `done`)
 
 ## Repo layout
 

@@ -2,6 +2,8 @@
 
 This guide documents the test layers, commands, rule test harness, and deny-by-default coverage enforcement in KWNTO.
 
+When each layer is required, the test conventions, the catalogue of awkward cases and the definition of done are in the [test strategy](../testing-strategy.md).
+
 ## Test Layers and Commands
 
 KWNTO uses distinct test projects managed by Vitest and custom test harnesses:

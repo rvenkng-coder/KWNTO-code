@@ -6,6 +6,8 @@
 | **Spec** | [ERD](superpowers/specs/2026-11-11-kwnto-erd.md) | Entity-relationship diagram |
 | **Engineering** | [engineering.md](engineering.md) | Coding principles and conventions |
 | **Security** | [security.md](security.md) | Security rules and policies |
+| **Testing** | [testing-strategy.md](testing-strategy.md) | Test layers, conventions, awkward-case catalogue, definition of done |
+| **Testing** | [test-plan.md](test-plan.md) | Per-feature test layers and status, manual sign-off checklist |
 | **User** | [user-requirements.md](user-requirements.md) | User requirements |
 | **User** | [accounts-and-teams.md](user/accounts-and-teams.md) | Sign up, verify, sign in, teams, invites |
 | **Admin** | [settings.md](admin/settings.md) | System settings: every field, its default and what it does |

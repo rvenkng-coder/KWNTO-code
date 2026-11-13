@@ -63,6 +63,7 @@ Everything else stays inside the task you were given.
 
 - **Tests are documented.** Each test says what behavior it protects and why it exists. A passing test with no description, or "it works" with no record, is not evidence.
 - Test layers and priorities are in the design, section 8b. Write the test first where the logic is pure.
+- Which layer a change needs, the test conventions and what counts as evidence are in the [test strategy](testing-strategy.md).
 
 ## 7. Git workflow
 

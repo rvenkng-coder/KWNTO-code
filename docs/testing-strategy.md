@@ -1,6 +1,6 @@
 # KWNTO Test Strategy
 
-The written basis for testing in KWNTO: which layer tests what, how tests are written, which awkward cases to try, and what counts as done. It extends design section 8b and [engineering.md](engineering.md) section 6; it does not replace them. Per-feature status is in `docs/test-plan.md`. Commands and helpers are in [developer/testing.md](developer/testing.md).
+The written basis for testing in KWNTO: which layer tests what, how tests are written, which awkward cases to try, and what counts as done. It extends design section 8b and [engineering.md](engineering.md) section 6; it does not replace them. Per-feature status is in [test-plan.md](test-plan.md). Commands and helpers are in [developer/testing.md](developer/testing.md).
 
 ## 1. Purpose and who reads it
 
@@ -16,7 +16,7 @@ The written basis for testing in KWNTO: which layer tests what, how tests are wr
 | `rules` | Access rules, hooks and custom routes, against a live PocketBase | `tests/rules/**` | `npm run test:rules` | Any change to a collection, rule, hook or route |
 | `e2e` | A person's flow in a browser (Firefox and Chromium) | `e2e/**` | `npm run test:e2e` | Any new or changed screen or flow |
 | `container` | Image hardening: non-root user, bootstrap, volume recovery | `tests/container/**` | `npm run test:container` | Any change to the Dockerfile, compose files or startup scripts |
-| `manual` | What no test can show: look and feel, real mail, exports | the checklist in `docs/test-plan.md` | none (a person signs off) | Anything on the manual sign-off checklist, or a new item added to it |
+| `manual` | What no test can show: look and feel, real mail, exports | the checklist in [test-plan.md](test-plan.md) | none (a person signs off) | Anything on the manual sign-off checklist, or a new item added to it |
 
 - **A rule change needs a rule test that fails when the rule is opened.** Open the rule once (for example `""` or `@request.auth.id != ''`), watch the test fail, restore it, and say so in the report.
 - A hook's pure decision goes in `backend/pb_hooks/lib/` with a `unit` test; the hook itself is covered by `rules`.

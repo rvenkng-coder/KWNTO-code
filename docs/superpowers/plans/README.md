@@ -7,7 +7,7 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 | # | Plan | Design build step | Depends on | Status |
 |---|---|---|---|---|
 | 1 | [Foundation and real-time spike](2026-11-11-foundation/README.md) | 1 | none | done |
-| 2 | [Accounts and teams](2026-11-12-accounts-teams/README.md) | 1 | 1 | in progress |
+| 2 | [Accounts and teams](2026-11-12-accounts-teams/README.md) | 1 | 1 | done |
 | 3 | Editor core | 1 | 2 | outline |
 | 4 | Offline queue, sync and conflicts | 1 | 3 | outline |
 | 5 | Media upload, quota and strict file checks | 1 | 3 | outline |
@@ -42,7 +42,7 @@ Found by the whole-branch review and the scripted walk of Task 10 (2026-11-13), 
 | Real mail | Nobody has tested a real verification or password-reset email. Set up SMTP (Gmail app password), then walk sign-up, verification and reset by hand with an address typed with capitals (a reset typed with capitals once sent no mail). |
 | Unknown-email timing | PocketBase answers an unknown email faster than a known one (it skips the password hash). Accepted while internal; add one line to `docs/security.md` section 3 and re-judge before going public. |
 
-**Before Plan 3 starts (not a plan task):** the local-AI quality tooling (design `docs/superpowers/specs/2026-11-13-local-ai-quality-design.md`, on branch `docs/local-ai-quality-design`, not merged yet) (test strategy, project test plan, `check:task`), which the developer scheduled for after Plan 2, and a person's click-through of Plan 2's Task 10 (Step 8).
+**Before Plan 3 starts (not a plan task):** the local-AI quality tooling (design `docs/superpowers/specs/2026-11-13-local-ai-quality-design.md`, on branch `docs/local-ai-quality-design`, not merged yet) (test strategy, project test plan, `check:task`), which the developer scheduled for after Plan 2.
 
 ## Outlines
 

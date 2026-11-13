@@ -3,8 +3,9 @@
 // Each break is applied to its file, the named unit tests run, and the exact original bytes are written
 // back: in a finally, and on SIGINT or SIGTERM while a break is applied.
 import { type ChildProcess, spawn } from 'node:child_process'
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
+import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { type BreakDeps, type BreakResult, runBreaks } from './lib/breaks.ts'
 import { type BreakRow, parseTestPlan, type TestPlan } from './lib/test-plan.ts'
@@ -39,12 +40,10 @@ function vitestBin(): string {
   return join(dirname(manifest), 'vitest.mjs')
 }
 
-// Fails closed: a misspelled test path would make Vitest exit 1 ("no test files") and pass for a catch.
-function runVitest(cwd: string, paths: string[], state: InFlight): Promise<boolean> {
-  const missing = paths.filter((path) => path.startsWith('-') || !existsSync(join(cwd, path)))
-  if (missing.length > 0) return Promise.reject(new Error(`named test file not found: ${missing.join(', ')}`))
+// Resolves to Vitest's exit code. Its output is kept in `state` for the baseline message.
+function spawnVitest(cwd: string, args: string[], state: InFlight): Promise<number | null> {
   return new Promise((done, fail) => {
-    const child = spawn(process.execPath, [vitestBin(), 'run', '--project', 'unit', ...paths], { cwd, stdio: ['ignore', 'pipe', 'pipe'] })
+    const child = spawn(process.execPath, [vitestBin(), ...args], { cwd, stdio: ['ignore', 'pipe', 'pipe'] })
     state.child = child
     state.output = ''
     child.stdout.on('data', (chunk: Buffer) => { state.output += chunk.toString() })
@@ -54,9 +53,49 @@ function runVitest(cwd: string, paths: string[], state: InFlight): Promise<boole
       state.child = null
       // Killed from outside is not a test failure; counting it as "caught" would pass a weak test.
       if (signal !== null) fail(new Error(`vitest was stopped by ${signal}`))
-      else done(code === 0)
+      else done(code)
     })
   })
+}
+
+const realOrSame = (path: string): string => {
+  try {
+    return realpathSync(path)
+  } catch {
+    return path
+  }
+}
+
+// The test files Vitest actually ran, from its JSON report. No readable report means we cannot tell: an error.
+function filesThatRan(reportPath: string): Set<string> {
+  let results: unknown
+  try {
+    results = (JSON.parse(readFileSync(reportPath, 'utf8')) as { testResults?: unknown }).testResults
+  } catch {
+    throw new Error('vitest wrote no test report, so it cannot be told which tests ran')
+  }
+  if (!Array.isArray(results)) throw new Error('the vitest test report has no testResults')
+  const names = results.map((result: { name?: unknown }) => (typeof result.name === 'string' ? realOrSame(result.name) : ''))
+  return new Set(names)
+}
+
+// Fails closed: a test file that never ran (misspelled, or outside the `unit` project) makes Vitest exit 1
+// with "No test files found", which would otherwise pass for a caught break.
+async function runVitest(cwd: string, paths: string[], state: InFlight): Promise<boolean> {
+  const missing = paths.filter((path) => path.startsWith('-') || !existsSync(join(cwd, path)))
+  if (missing.length > 0) throw new Error(`named test file not found: ${missing.join(', ')}`)
+  const reportDir = mkdtempSync(join(tmpdir(), 'run-breaks-'))
+  const reportPath = join(reportDir, 'report.json')
+  try {
+    const args = ['run', '--project', 'unit', '--reporter=default', '--reporter=json', `--outputFile.json=${reportPath}`, ...paths]
+    const code = await spawnVitest(cwd, args, state)
+    const ran = filesThatRan(reportPath)
+    const notRun = paths.filter((path) => !ran.has(realOrSame(join(cwd, path))))
+    if (notRun.length > 0) throw new Error(`named test file did not run in the unit project: ${notRun.join(', ')} (Breaks may name only unit tests)`)
+    return code === 0
+  } finally {
+    rmSync(reportDir, { recursive: true, force: true })
+  }
 }
 
 export function makeDeps(cwd: string, state: InFlight): BreakDeps {

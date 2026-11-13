@@ -145,14 +145,35 @@ describe('run-breaks fails closed', () => {
     expect(code).toBe(1)
   })
 
-  // Protects: a missing task file, a file with no Test plan and a malformed Breaks table each exit 1.
+  // Protects: a missing task file, a file with no Test plan and a malformed Breaks table each exit 1,
+  // each with its own message (so a crash of the command, also exit 1, does not pass this test).
   test('a missing, empty or malformed task file exits 1', () => {
     const cwd = fixture({ 'empty.md': '', 'bad.md': task(`${TABLE}| B1 | tests/a.ts | x | y | src/a.test.ts |`) })
-    for (const name of ['missing.md', 'empty.md', 'bad.md']) {
-      const { code, out } = run(cwd, name)
-      expect(code, name).toBe(1)
-      expect(out, name).not.toBe('')
-    }
+    const missing = run(cwd, 'missing.md')
+    expect(missing.code).toBe(1)
+    expect(missing.out).toContain('run-breaks: cannot read missing.md')
+    const empty = run(cwd, 'empty.md')
+    expect(empty.code).toBe(1)
+    expect(empty.out).toContain('missing the "## Test plan" heading')
+    expect(empty.out).toContain('run-breaks: fix the Test plan first')
+    const bad = run(cwd, 'bad.md')
+    expect(bad.code).toBe(1)
+    expect(bad.out).toContain('Breaks B1: File "tests/a.ts" must be under src/, scripts/ or backend/pb_hooks/lib/')
+    expect(bad.out).toContain('run-breaks: fix the Test plan first')
+  })
+
+  // Protects against a fail-open: a test file outside the `unit` project exists but never runs, so Vitest
+  // fails with "No test files found"; that must be an error, never a break counted as caught.
+  test('a named test file outside the unit project is an error, never caught', { timeout: SLOW }, () => {
+    const config = "export default { test: { projects: [{ test: { name: 'unit', globals: true, include: ['src/**/*.test.ts'] } }, { test: { name: 'rules', globals: true, include: ['tests/**/*.rules.test.ts'] } }] } }\n"
+    const breaks = `${BOUNDARY}\n| B2 | src/a.ts | \`18\` | \`21\` | tests/x.rules.test.ts |`
+    const rulesTest = "import { isAdult } from '../src/a.ts'\ntest('adult', () => { expect(isAdult(30)).toBe(true) })\n"
+    const cwd = fixture({ 'vitest.config.js': config, 'src/a.test.ts': testsFor([17, 18, 19]), 'tests/x.rules.test.ts': rulesTest, 'task.md': task(breaks) })
+    const { code, out } = run(cwd, 'task.md')
+    expect(out).not.toContain('B2 caught')
+    expect(out).toContain('did not run in the unit project: tests/x.rules.test.ts')
+    expect(code).toBe(1)
+    expect(git(cwd, 'status', '--porcelain')).toBe('')
   })
 
   // Protects the usage: no task, two tasks or a dangling --cwd is an error, never a silent pass.

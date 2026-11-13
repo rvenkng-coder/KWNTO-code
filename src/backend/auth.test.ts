@@ -34,3 +34,20 @@ test.each([401, 403, 404])('refresh ends the session on %i', async (status) => {
   expect(await createAuth(pb).refresh()).toBeNull()
   expect(clear).toHaveBeenCalledOnce()
 })
+
+test('a refresh that was in flight when the user signed out does not sign them back in', async () => {
+  const clear = vi.fn()
+  const record = { id: 'u1', email: 'a@b.test', name: 'A', verified: true }
+  let answer: (value: unknown) => void = () => undefined
+  const pb = {
+    authStore: { token: 'token', record, clear, onChange: vi.fn() },
+    collection: () => ({ authRefresh: () => new Promise((resolve) => { answer = resolve }) }),
+  } as unknown as PocketBase
+  const auth = createAuth(pb)
+  const pending = auth.refresh()
+  auth.signOut()
+  clear.mockClear()
+  answer({ record })
+  expect(await pending).toBeNull()
+  expect(clear).toHaveBeenCalled()
+})

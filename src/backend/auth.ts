@@ -7,6 +7,9 @@ import { toBackendError } from './errors'
 export function createAuth(pb: PocketBase) {
   let listener: ((user: AuthUser | null) => void) | null = null
   let cached: AuthUser | null = null
+  // Bumped by every sign-out, so a refresh that was already in flight cannot sign the
+  // user back in when its answer arrives (the SDK stores the answer by itself).
+  let signOutCount = 0
 
   function current(): AuthUser | null {
     const rec = pb.authStore.record
@@ -50,6 +53,7 @@ export function createAuth(pb: PocketBase) {
     },
 
     signOut(): void {
+      signOutCount += 1
       // clear() triggers the store's onChange above, which resets `cached` and tells the listener once.
       pb.authStore.clear()
     },
@@ -58,8 +62,13 @@ export function createAuth(pb: PocketBase) {
 
     async refresh(): Promise<AuthUser | null> {
       if (!pb.authStore.token) return null
+      const startedAt = signOutCount
       try {
         const auth = await pb.collection('users').authRefresh()
+        if (signOutCount !== startedAt) {
+          pb.authStore.clear()
+          return null
+        }
         cached = toAuthUser(auth.record as Record<string, unknown>)
         listener?.(cached)
         return cached

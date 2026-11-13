@@ -16,6 +16,10 @@ onRecordCreateRequest((e) => {
   const { logEvent } = require(`${__hooks}/lib/security-log.js`)
 
   const isAdmin = e.hasSuperuserAuth()
+  // Addresses are stored lower-case and trimmed, so sign-in and invites match them
+  // whatever the case typed (the database also refuses a case variant, see
+  // 1794360600_users_email_nocase.js).
+  e.record.setEmail(String(e.record.email()).trim().toLowerCase())
   if (!isAdmin) {
     if (!getSystemAccess(e.app).registrationOpen) {
       throw new ApiError(403, "Sign-up is closed.")
@@ -45,6 +49,10 @@ onRecordUpdateRequest((e) => {
   const { checkPassword } = require(`${__hooks}/lib/password-rules.js`)
 
   const body = e.requestInfo().body
+
+  if (body.email !== undefined) {
+    e.record.setEmail(String(e.record.email()).trim().toLowerCase())
+  }
 
   // Emails stay private (see the create hook). Reset rather than refuse, so a form
   // that sends the flag along with a name change still saves the name.

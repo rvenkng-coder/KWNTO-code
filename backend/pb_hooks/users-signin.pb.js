@@ -24,8 +24,18 @@ onRecordAuthWithPasswordRequest((e) => {
   // lower-cased and trimmed so changing the case cannot start a fresh count.
   const identity = String(e.identity).trim().toLowerCase()
   const ip = e.realIP()
-  const userId = e.record ? e.record.id : ""
   const pair = { identity: identity, ip: ip }
+  // Stored addresses are lower-case (users-signup hook, 1794360600 migration) but
+  // PocketBase looked the account up with the email as typed, so look it up again
+  // lower-cased. The address is unique ignoring case, so at most one account matches.
+  if (!e.record && identity !== "") {
+    const found = e.app.findRecordsByFilter("users", "email = {:email}", "", 1, 0, { email: identity })
+    if (found.length > 0) {
+      e.record = found[0]
+    }
+  }
+
+  const userId = e.record ? e.record.id : ""
 
   const behavior = getSystemBehavior(e.app)
   const nowMs = Date.now()

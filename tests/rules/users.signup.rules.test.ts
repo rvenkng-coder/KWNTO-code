@@ -150,6 +150,38 @@ test('a successful sign-up writes one signup event; a refused one writes none', 
 
 // Protects deny by default: the only public rule on users is still the open create
 // (also checked by coverage.rules.test.ts), so a signed-out visitor cannot read accounts.
+// Developer decision 2026-11-13: emails are not case-sensitive. They are stored
+// lower-case and trimmed, and the database refuses a case variant on every path
+// (1794360600_users_email_nocase.js), so a look-alike account cannot exist.
+test('sign-up stores the email lower-case and trimmed; a case variant is refused', async () => {
+  const email = newEmail()
+  const created = await signUp(` ${email.toUpperCase()} `, GOOD_PASSWORD)
+  const admin = await asAdmin()
+  expect((await admin.collection('users').getOne(created.id)).email).toBe(email)
+
+  const variant = await failureOf(signUp(email.replace('signup-', 'Signup-'), GOOD_PASSWORD))
+  expect(variant.status).toBe(400)
+  const again = await failureOf(signUp(email, GOOD_PASSWORD))
+  expect(again.status).toBe(400)
+})
+
+test('an account made by the admin with capitals is stored lower-case, and the email cannot be changed to a case variant', async () => {
+  const admin = await asAdmin()
+  const email = newEmail()
+  const first = await admin.collection('users').create({ email: email.toUpperCase(), password: GOOD_PASSWORD, passwordConfirm: GOOD_PASSWORD })
+  expect(first.email).toBe(email)
+  const other = await createUser()
+  const clash = await failureOf(admin.collection('users').update(other.id, { email: email.toUpperCase() }))
+  expect(clash.status).toBe(400)
+})
+
+test('sign-in works whatever the case of the typed email', async () => {
+  const user = await createUser()
+  const client = asAnonymous()
+  const auth = await client.collection('users').authWithPassword(` ${user.email.toUpperCase()} `, user.password)
+  expect(auth.record.id).toBe(user.id)
+})
+
 test('users.createRule is the only public users rule', async () => {
   const users = await (await asAdmin()).collections.getOne('users')
   expect(users.createRule).toBe('')

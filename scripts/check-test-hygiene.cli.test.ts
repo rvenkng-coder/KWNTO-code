@@ -60,4 +60,10 @@ describe('command line', () => {
     expect(code).toBe(1)
     expect(out).toMatch(/^other dir\/c\.test\.ts: header: /m)
   })
+
+  // Protects fail-closed behaviour: a base that looks like a git option must never reach git (it printed ok before).
+  test('a base value starting with a dash is a usage error', () => {
+    const { cwd } = repo()
+    for (const value of ['--cached', '--base', '-R']) expect(run(cwd, '--base', value).code, value).toBe(2)
+  })
 })

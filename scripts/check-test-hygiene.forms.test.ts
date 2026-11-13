@@ -49,8 +49,8 @@ describe('declaration forms', () => {
   // Protects Review Focus 1: a test declared after other code on the line still needs a header.
   test('assigned, exported, awaited, returned and comment-prefixed declarations fail header', () => {
     for (const line of [
-      "const t = test('a', () => {})", "export const y = it.each([1])('a', () => {})", "await test('a', () => {})",
-      "return it('a', () => {})", "/* c */ test('a', () => {})",
+      w('const t = te', "st('a', () => {})"), w('export const y = i', "t.each([1])('a', () => {})"), w('await te', "st('a', () => {})"),
+      w('return i', "t('a', () => {})"), w('/* c */ te', "st('a', () => {})"),
     ]) {
       expect(rules(checkSource('a.test.ts', lines('const x = 1', line), null)), line).toEqual(['header'])
     }
@@ -58,7 +58,7 @@ describe('declaration forms', () => {
 
   // Protects Review Focus 1: removing a test declared in those forms is a lost-test.
   test('a removed assigned or exported declaration is a lost-test', () => {
-    const base = lines("const t = test('a', () => {})", "export const y = it.each([1])('b', () => {})")
+    const base = lines(w('const t = te', "st('a', () => {})"), w('export const y = i', "t.each([1])('b', () => {})"))
     expect(rules(compareWithBase('a.test.ts', base, ''))).toContain('lost-test')
     expect(compareWithBase('a.test.ts', base, '').map((p) => p.detail).join('\n')).toMatch(/"a"[\s\S]*"b"/)
   })
@@ -86,5 +86,24 @@ describe('more ways to skip or focus', () => {
   // Protects Review Focus 1: an option-object focus runs only some tests.
   test('an only option object fails focused', () => {
     expect(rules(checkSource('a.test.ts', lines('// Protects: r', w("test('a', { on", 'ly: true }, () => {})')), new Set()))).toEqual(['focused'])
+  })
+})
+
+describe('option values of any kind', () => {
+  // Protects Review Focus 1: the value does not matter, a skip, only, todo or fails option is a switch (variable, number, negation, quoted key).
+  test('skip, todo and fails options fail skipped whatever the value', () => {
+    for (const line of [
+      w("test('a', { sk", 'ip: isCI }, () => {})'), w("test('a', { sk", 'ip: 1 }, () => {})'), w("test('a', { 'sk", "ip': true }, () => {})"),
+      w("test('a', { \"sk", 'ip": true }, () => {})'), w("test('a', { to", 'do: cond }, () => {})'), w("test('a', { fa", 'ils: true }, () => {})'),
+    ]) {
+      expect(rules(checkSource('a.test.ts', lines('// Protects: r', line), new Set())), line).toEqual(['skipped'])
+    }
+  })
+
+  // Protects Review Focus 1: a focus option with any value runs only some tests.
+  test('only options fail focused whatever the value', () => {
+    for (const line of [w("test('a', { on", 'ly: !0 }, () => {})'), w("test('a', { 'on", "ly': true }, () => {})"), w("test('a', { on", 'ly: flag }, () => {})')]) {
+      expect(rules(checkSource('a.test.ts', lines('// Protects: r', line), new Set())), line).toEqual(['focused'])
+    }
   })
 })

@@ -4,13 +4,13 @@
 import { spawnSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { addedLines, changedFiles, fileAtBase, repoRoot } from './lib/changed-files.ts'
-import { countExpects, findDeclarations } from './lib/test-declarations.ts'
+import { addedLines, changedFiles, fileAtBase, repoRoot, resolveBase } from './lib/changed-files.ts'
+import { countExpects, countRawDeclarations, countRawExpects, findDeclarations, rawDeclarationLines, scanSource } from './lib/test-declarations.ts'
 
-export interface HygieneProblem { file: string; rule: 'header' | 'skipped' | 'focused' | 'lost-test' | 'lost-assertion'; detail: string }
+export interface HygieneProblem { file: string; rule: 'header' | 'scan' | 'skipped' | 'focused' | 'lost-test' | 'lost-assertion'; detail: string }
 
-const SKIPPED = /\.skip(?:If)?\b|\bxit\b|\bxtest\b|\bxdescribe\b|\.fixme\b|\.todo\b|\.runIf\b|\.fails?\b|\bskip\s*\(|\b(?:skip|todo)\s*:\s*true|\[\s*['"`](?:skip|fixme|todo)['"`]/
-const FOCUSED = /\.only\b|\bfdescribe\b|\bfit\s*\(|\bftest\s*\(|\bonly\s*:\s*true|\[\s*['"`]only['"`]/
+const SKIPPED = /\.skip(?:If)?\b|\bxit\b|\bxtest\b|\bxdescribe\b|\.fixme\b|\.todo\b|\.runIf\b|\.fails?\b|\bskip\s*\(|['"`]?\b(?:skip|todo|fails)['"`]?\s*:|\[\s*['"`](?:skip|fixme|todo)['"`]/
+const FOCUSED = /\.only\b|\bfdescribe\b|\bfit\s*\(|\bftest\s*\(|['"`]?\bonly['"`]?\s*:|\[\s*['"`]only['"`]/
 
 export function isTestFile(path: string): boolean {
   return /\.(test|spec)\.[cm]?[jt]sx?$/.test(path)
@@ -27,7 +27,12 @@ export function checkSource(path: string, source: string, added: Set<number> | n
     const focus = FOCUSED.exec(row)
     if (focus) problems.push({ file: path, rule: 'focused', detail: `line ${n}: "${focus[0].trim()}" runs only some tests` })
   })
-  for (const { line } of findDeclarations(source)) {
+  if (scanSource(source).unterminated) {
+    problems.push({ file: path, rule: 'scan', detail: 'line 1: ends inside a comment or template literal; cannot scan this file reliably' })
+  }
+  // Two views of where declarations are (scanner and raw lines); either one finding a bare test is a problem.
+  const lineSet = new Set([...findDeclarations(source).map((found) => found.line), ...rawDeclarationLines(source)])
+  for (const line of [...lineSet].sort((x, y) => x - y)) {
     if (added !== null && !added.has(line)) continue
     const above = line > 1 ? rows[line - 2].trim() : ''
     if (!(above.startsWith('//') || above.endsWith('*/'))) {
@@ -51,8 +56,11 @@ export function compareWithBase(path: string, baseSource: string, headSource: st
   const problems: HygieneProblem[] = []
   const base = declarations(baseSource)
   const head = declarations(headSource)
+  const [baseRaw, headRaw] = [countRawDeclarations(baseSource), countRawDeclarations(headSource)]
   if (head.count < base.count) {
     problems.push({ file: path, rule: 'lost-test', detail: `${base.count} tests at base, ${head.count} now` })
+  } else if (headRaw < baseRaw) {
+    problems.push({ file: path, rule: 'lost-test', detail: `${baseRaw} test-like calls at base, ${headRaw} now (raw text count)` })
   }
   for (const [title, baseCount] of base.titles) {
     if ((head.titles.get(title) ?? 0) < baseCount) {
@@ -60,12 +68,15 @@ export function compareWithBase(path: string, baseSource: string, headSource: st
     }
   }
   const [before, now] = [assertionCount(baseSource), assertionCount(headSource)]
+  const [rawBefore, rawNow] = [countRawExpects(baseSource), countRawExpects(headSource)]
   if (now < before) problems.push({ file: path, rule: 'lost-assertion', detail: `${before} expect( calls at base, ${now} now` })
+  else if (rawNow < rawBefore) problems.push({ file: path, rule: 'lost-assertion', detail: `${rawBefore} expect( calls at base, ${rawNow} now (raw text count)` })
   return problems
 }
 
-export function checkHygiene(base: string, startDir: string = process.cwd()): HygieneProblem[] {
+export function checkHygiene(baseRef: string, startDir: string = process.cwd()): HygieneProblem[] {
   const cwd = repoRoot(startDir)
+  const base = resolveBase(baseRef, cwd) // one sha, so no later git call sees the user's text
   const problems: HygieneProblem[] = []
   for (const change of changedFiles(base, cwd)) {
     const oldPath = change.oldPath ?? change.path
@@ -98,7 +109,7 @@ function declarationsAsList(source: string): string[] {
 
 if (import.meta.filename === process.argv[1]) {
   const args = process.argv.slice(2)
-  if (!(args.length === 0 || (args.length === 2 && args[0] === '--base' && args[1] !== ''))) {
+  if (!(args.length === 0 || (args.length === 2 && args[0] === '--base' && args[1] !== '' && !args[1].startsWith('-')))) {
     console.log('usage: node scripts/check-test-hygiene.ts [--base <sha>]')
     process.exit(2)
   }

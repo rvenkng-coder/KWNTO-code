@@ -26,6 +26,8 @@ KWNTO uses distinct test projects managed by Vitest and custom test harnesses:
   - `focused`: `.only`, `fdescribe`, so a run cannot quietly cover a single test.
   - `lost-test`: fewer tests than at base, or a base title now absent (a rename is reported too; the reviewer decides), or a deleted test file, so a removed test cannot hide behind an added one.
   - `lost-assertion`: fewer `expect(` calls than at base, so a test cannot be weakened while it stays green.
+  - `scan`: the file ends inside a block comment or template literal, so it cannot be read reliably (fix the file or the scanner). Lost tests and assertions are also counted on the raw text and flagged if either count drops, and a bare test line is looked for on the raw lines too, so a scanner misreading (regex, JSX text) can at worst add a false positive.
+  - `--base` must be a commit; a value starting with `-` is a usage error (exit 2) and the base is resolved once to a sha.
   - Known limits: a test imported under another name (`import { test as t }`) or built with `test.extend` is not recognised as a declaration; a title that is not a plain string literal is compared by the test count only; a skip word in a string or comment is flagged on purpose. An unknown command-line argument is a usage error (exit 2).
 
 ---

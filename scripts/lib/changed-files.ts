@@ -51,9 +51,18 @@ export function repoRoot(cwd: string = process.cwd()): string {
   return (git(['rev-parse', '--show-toplevel'], cwd) as string).replace(/\n$/, '')
 }
 
+// The commit a base names, as a full sha. Text that git could read as an option is refused, not passed on.
+export function resolveBase(base: string, cwd: string = process.cwd()): string {
+  if (base === '' || base.startsWith('-')) throw new Error(`invalid base "${base}"`)
+  const sha = git(['rev-parse', '--verify', '--end-of-options', `${base}^{commit}`], cwd, true)
+  if (sha === null) throw new Error(`base "${base}" is not a commit`)
+  return sha.trim()
+}
+
 // Committed, staged, unstaged and untracked changes of the working tree, relative to base.
 export function changedFiles(base: string, startDir: string = process.cwd()): Change[] {
   const cwd = repoRoot(startDir)
+  base = resolveBase(base, cwd)
   const diff = git(['diff', '--name-status', '-M', '-z', '--no-ext-diff', base], cwd) as string
   const changes = parseNameStatus(diff)
   const known = new Set(changes.map((change) => change.path))
@@ -66,12 +75,14 @@ export function changedFiles(base: string, startDir: string = process.cwd()): Ch
 
 export function fileAtBase(base: string, path: string, startDir: string = process.cwd()): string | null {
   const cwd = repoRoot(startDir)
+  base = resolveBase(base, cwd)
   return git(['show', `${base}:./${path}`], cwd, true)
 }
 
 // Line numbers (1-based) added in the working copy of `path`. A file new since base: every line.
 export function addedLines(base: string, path: string, startDir: string = process.cwd()): Set<number> {
   const cwd = repoRoot(startDir)
+  base = resolveBase(base, cwd)
   const lines = new Set<number>()
   if (fileAtBase(base, path, cwd) === null) {
     let text: string

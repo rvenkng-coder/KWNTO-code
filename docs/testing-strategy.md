@@ -97,4 +97,4 @@ Try every kind that fits the code under test. `kind` is the slug used in probe t
 
 ## 9. The per-task Test plan block
 
-Every task file in a plan written under this standard carries a Test plan block (case table, probes, breaks, flow, evidence). Its format is described in `docs/developer/test-plan-format.md` (written in Task 2 of the local-AI quality plan).
+Every task file in a plan written under this standard carries a Test plan block (case table, probes, breaks, flow, evidence). Its format is described in [developer/test-plan-format.md](developer/test-plan-format.md) and checked by `npm run check:plan`.

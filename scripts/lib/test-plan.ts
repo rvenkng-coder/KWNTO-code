@@ -165,7 +165,8 @@ export function parseTestPlan(markdown: string): { plan: TestPlan | null; proble
   const starts = lines.flatMap((line, index) => (line.trimEnd() === '## Test plan' ? [index] : []))
   if (starts.length === 0) return { plan: null, problems: ['Test plan: missing the "## Test plan" heading'] }
   if (starts.length > 1) problems.push('Test plan: the "## Test plan" heading appears more than once')
-  const rest = lines.slice(starts[0] + 1)
+  // Whole-line HTML comments are notes to the author (the task template uses them), not content.
+  const rest = lines.slice(starts[0] + 1).filter((line) => !/^\s*<!--.*-->\s*$/.test(line))
   const end = rest.findIndex((line) => /^##\s/.test(line))
   const sections = splitSections(end === -1 ? rest : rest.slice(0, end), problems)
   checkSectionNames(sections, problems)

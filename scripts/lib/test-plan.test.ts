@@ -131,6 +131,13 @@ describe('parseTestPlan', () => {
     expect(plan?.breaks[0].find).toBe('a || `b`')
   })
 
+  // Protects the task template: a whole-line HTML comment explains a part and is not content (a comment-only Flow is still empty).
+  test('whole-line HTML comments are ignored', () => {
+    const withComments = block().replace('### Cases', '<!-- what Cases are -->\n### Cases').replace('### Flow', '### Flow\n<!-- note -->')
+    expect(parseTestPlan(withComments)).toEqual(parseTestPlan(block()))
+    expect(parseTestPlan(block({ flow: ['<!-- only a comment -->'] })).problems.join('\n')).toMatch(/Flow.*empty/)
+  })
+
   // Protects Windows checkouts: CRLF files must give the same result as LF.
   test('Windows line endings parse the same', () => {
     expect(parseTestPlan(block().replaceAll('\n', '\r\n'))).toEqual(parseTestPlan(block()))

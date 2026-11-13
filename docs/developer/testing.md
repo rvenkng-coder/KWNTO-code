@@ -19,6 +19,7 @@ KWNTO uses distinct test projects managed by Vitest and custom test harnesses:
 ### Supporting Verification Commands
 - `npm run typecheck`: Runs `tsc -b --noEmit` to verify strict TypeScript adherence.
 - `npm run lint`: Runs linter guardrails.
+- `npm run check:plan`: Checks the Test plan block of every task file in plans that opt in with `**Standard:** test-plan-v1`; format in [test-plan-format.md](test-plan-format.md). Part of `lint`.
 
 ---
 

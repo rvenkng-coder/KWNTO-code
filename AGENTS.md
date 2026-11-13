@@ -36,7 +36,8 @@ See the [design](docs/superpowers/specs/2026-11-11-kwnto-design.md) and [ERD](do
 | `npm run test:container` | Docker container hardening |
 | `npm run test:rules` | PocketBase access rules (live instance) |
 | `npm run test:e2e` | Playwright across Firefox + Chromium |
-| `npm run lint` | ESLint + PERF comment check + docs link check |
+| `npm run lint` | ESLint + PERF comment check + docs link check + plan check |
+| `npm run check:plan` | Task files of opted-in plans have a tier, Interfaces and a valid Test plan block |
 | `npm run typecheck` | `tsc -b --noEmit` |
 | `npm run dev` | Vite dev server |
 | `npm run dev:backend` | PocketBase in Docker |

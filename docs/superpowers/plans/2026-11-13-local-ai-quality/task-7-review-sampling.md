@@ -13,7 +13,7 @@ Part of the [Local-AI Quality plan](README.md). **Read the router first:** its G
 - Produces, `scripts/review-sample.ts`:
 
 ```ts
-export const SENSITIVE: RegExp[]   // paths that always need a strong review (design 6.5): backend/pb_migrations/, backend/pb_hooks/, tests/rules/, src/backend/, and any path containing "sync", "conflict" or "queue"
+export const SENSITIVE: RegExp[]   // paths that always need a strong review (design 6.5): backend/pb_migrations/, backend/pb_hooks/, tests/rules/, frontend/src/backend/, and any path containing "sync", "conflict" or "queue"
 export interface ReviewInput { changedFiles: string[]; taskNumber: number; builtBy: 'local' | 'strong'; escapeRate: number }  // escapeRate in [0, 1]
 export function needsReview(input: ReviewInput): { required: boolean; reason: string }
 ```
@@ -35,7 +35,7 @@ export function escapeRate(rows: ProgressRow[]): { rate: number; localTasks: num
 
 ## Checkpoint 7A: `needsReview`
 
-- [ ] **Step 1: Write failing tests** `scripts/review-sample.test.ts`: `a strong-built task is not sampled`; `a local task touching backend/pb_hooks/x.js is always reviewed and the reason names the file`; `a local task touching tests/rules/, backend/pb_migrations/, src/backend/ is always reviewed`; `a path containing sync, conflict or queue is sensitive`; `case does not matter in that path match (Sync, QUEUE)`; `a local task with only src/features files is reviewed when taskNumber is 3 and 6 and not 1, 2, 4`; `taskNumber 0 and negative do not crash and are not sampled`; `escapeRate above 0.25 reviews every local task`; `escapeRate exactly 0.25 does not`; `an empty changedFiles list is handled (reason says nothing changed)`; `windows-style backslash paths are normalised before matching`.
+- [ ] **Step 1: Write failing tests** `scripts/review-sample.test.ts`: `a strong-built task is not sampled`; `a local task touching backend/pb_hooks/x.js is always reviewed and the reason names the file`; `a local task touching tests/rules/, backend/pb_migrations/, frontend/src/backend/ is always reviewed`; `a path containing sync, conflict or queue is sensitive`; `case does not matter in that path match (Sync, QUEUE)`; `a local task with only frontend/src/features files is reviewed when taskNumber is 3 and 6 and not 1, 2, 4`; `taskNumber 0 and negative do not crash and are not sampled`; `escapeRate above 0.25 reviews every local task`; `escapeRate exactly 0.25 does not`; `an empty changedFiles list is handled (reason says nothing changed)`; `windows-style backslash paths are normalised before matching`.
 - [ ] **Step 2: Run** `npx vitest run --project unit scripts/review-sample.test.ts`; FAIL. **Step 3: Implement.** **Step 4: Run**; PASS. **Step 5: Close checkpoint 7A** (commit `feat: review sampling rule`).
 
 ## Checkpoint 7B: escape rate and docs

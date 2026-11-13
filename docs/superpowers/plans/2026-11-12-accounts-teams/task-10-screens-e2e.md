@@ -6,8 +6,8 @@ Part of the [Accounts and Teams plan](README.md). **Read the router first:** its
 **Depends on:** Task 9
 
 **Files:**
-- Create: `src/features/auth/useSession.ts`, `src/features/auth/AuthScreen.tsx`, `src/features/auth/SignInForm.tsx`, `src/features/auth/SignUpForm.tsx`, `src/features/teams/useTeams.ts`, `src/features/teams/TeamsScreen.tsx`, `src/features/teams/CreateTeamForm.tsx`, `src/features/teams/JoinByCodeForm.tsx`, `src/features/teams/TeamDetail.tsx`, `src/features/teams/InviteForm.tsx`, `src/features/teams/InvitesInbox.tsx`, `e2e/helpers/admin.ts`, `e2e/accounts.spec.ts`, `docs/user/accounts-and-teams.md`
-- Modify: `src/App.tsx` (keeps the `KWNTO` heading and the `backend-status` line; adds the gate), `docs/user/` index in `docs/README.md`, `docs/developer/testing.md`
+- Create: `frontend/src/features/auth/useSession.ts`, `frontend/src/features/auth/AuthScreen.tsx`, `frontend/src/features/auth/SignInForm.tsx`, `frontend/src/features/auth/SignUpForm.tsx`, `frontend/src/features/teams/useTeams.ts`, `frontend/src/features/teams/TeamsScreen.tsx`, `frontend/src/features/teams/CreateTeamForm.tsx`, `frontend/src/features/teams/JoinByCodeForm.tsx`, `frontend/src/features/teams/TeamDetail.tsx`, `frontend/src/features/teams/InviteForm.tsx`, `frontend/src/features/teams/InvitesInbox.tsx`, `e2e/helpers/admin.ts`, `e2e/accounts.spec.ts`, `docs/user/accounts-and-teams.md`
+- Modify: `frontend/src/App.tsx` (keeps the `KWNTO` heading and the `backend-status` line; adds the gate), `docs/user/` index in `docs/README.md`, `docs/developer/testing.md`
 
 **Interfaces:**
 - Consumes: `backend.auth` and `backend.teams` from Task 9 (names and error kinds there).

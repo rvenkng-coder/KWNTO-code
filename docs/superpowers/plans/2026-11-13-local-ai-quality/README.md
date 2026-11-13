@@ -39,7 +39,7 @@ The input classes most likely to bite a person using these checks, most likely f
 | # | Task | Tier | Depends on | Checkpoints | Status |
 |---|---|---|---|---|---|
 | 1 | [Test strategy and project test plan](task-1-strategy-and-test-plan.md) | strong | none | 1A 1B | done |
-| 2 | [Test plan block, plan parser and `check:plan`](task-2-plan-check.md) | mid | 1 | 2A 2B | not started |
+| 2 | [Test plan block, plan parser and `check:plan`](task-2-plan-check.md) | mid | 1 | 2A 2B | done |
 | 3 | [Test hygiene check](task-3-test-hygiene.md) | mid | none | 3A 3B | not started |
 | 4 | [Code quality limits on changed files](task-4-quality-limits.md) | mid | none | 4A 4B | not started |
 | 5 | [Deliberate breaks runner](task-5-breaks-runner.md) | strong | 2 | 5A 5B | not started |

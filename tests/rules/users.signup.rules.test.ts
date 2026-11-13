@@ -120,7 +120,7 @@ test('a password change must follow the password rules', async () => {
   await asUser({ ...user, password: GOOD_PASSWORD })
 })
 
-// Protects design 7c and docs/security.md section 9 step 5: the admin can close sign-up;
+// Protects design 7c and docs/security.md section 9, control 5: the admin can close sign-up;
 // people who already have an account keep signing in, and the admin can still add one.
 test('with registration closed, sign-up is refused but existing users still sign in', async () => {
   const existing = await createUser()

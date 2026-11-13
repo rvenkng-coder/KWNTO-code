@@ -2,8 +2,8 @@
 // CommonJS so hooks can load it with require(`${__hooks}/lib/invite-email.js`).
 // Pure, so Vitest tests it (tests/hooks/invite-email.unit.test.ts).
 
-// The address as typed, without stray spaces; its letter case is kept, because two
-// accounts may differ only in case (chooseAccountIndex). Anything that is not a string
+// The address as typed, without stray spaces; its letter case is kept, because chooseAccountIndex
+// still compares the exact address (accounts can no longer differ only in case). Anything that is not a string
 // (a missing body, a number) matches no account.
 function typedEmail(value) {
   return typeof value === "string" ? value.trim() : ""

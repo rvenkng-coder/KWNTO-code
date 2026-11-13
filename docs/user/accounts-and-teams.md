@@ -6,7 +6,7 @@ Go to **Sign up**, enter your email, name and a password (at least 10 characters
 
 ## Verify your email
 
-An admin verifies your account. Once verified, you can create and join teams.
+Open the link in the email we send you. Once your address is verified (the page picks this up when you return to it), you can create and join teams.
 
 ## Sign in
 
@@ -33,4 +33,4 @@ The owner can invite people by email. The invitee sees the invite in their inbox
 - Remove members
 - Delete the team
 
-Members can create projects, edit, upload media, comment and create share links.
+Projects, uploads, comments and share links come in later releases.

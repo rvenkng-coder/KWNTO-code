@@ -136,6 +136,11 @@ End-to-end tests verify the full stack: browser → Vite dev server → PocketBa
 3. Use Playwright's built-in assertions (`expect`) and locators (`getByRole`, `getByTestId`, etc.).
 4. Each test should verify a complete user flow, not just a single element.
 
+### Helpers (`e2e/helpers/`)
+- `admin.ts`: `verifyByEmail(email)` (marks an account verified, standing in for the email link), `uniqueEmail()`, `userExists(email)`; they sign in as the test admin.
+- `ui.ts`: `signUp`, `signUpVerifyAndSignIn`, `createTeam` (answers the browser `prompt()`), `openTeam` (waits for `data-loaded="true"` on the member list), `enableJoinCode`, `joinWithCode`, `settled` (network idle).
+- **Never `waitForTimeout`.** Wait for something on the page. For "X is absent" first wait for a positive signal that the screen has loaded (`openTeam` does; for a list use `settled`), or the check passes before the data arrives. Use `toBeEnabled()` for a gate, not `toBeVisible()`: a disabled button is visible. Wait for each sign-in response when counting attempts (`clickAndWaitForSignIn` in `accounts.spec.ts`).
+
 ### If interrupted
 A killed Playwright run can leave Vite listening on port `5174`; the next run then fails at once because of `--strictPort`. Find it with `lsof -i :5174` and stop that one process.
 

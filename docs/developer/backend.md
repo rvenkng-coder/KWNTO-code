@@ -32,7 +32,7 @@ Rules for this code:
 - **Keep decisions pure and test them** in `tests/hooks/<name>.unit.test.ts` (part of `npm run test:unit`). Tests load a helper with `createRequire(import.meta.url)`. Where a helper needs a PocketBase global such as `Record`, the test provides a small fake (see `tests/hooks/security-log.unit.test.ts`).
 - Settings are read at run time with `getSystemAccess($app)` and `getSystemBehavior($app)`, never copied into code. They throw if a settings record is missing, because that is a broken install. The tables and their defaults are described in [docs/admin/settings.md](../admin/settings.md).
 - Write security events with `logEvent($app, type, userId, ip, detail)`. It never throws, so it is safe on a sign-in path. Inside a hook handler, pass the event's app (`logEvent(e.app, ...)`), not the global `$app`: the handler may run inside a transaction, and a write through `$app` would wait on the transaction's database lock until SQLite's busy timeout.
-- **Looking an account up by email:** emails are case-insensitive (developer decision, 2026-11-13): stored lower-case and trimmed, with a unique index on `LOWER(email)` ([1794360600_users_email_nocase.js](../../backend/pb_migrations/1794360600_users_email_nocase.js)). `app.findAuthRecordByEmail` is still case-sensitive in 0.40.6, so lower-case and trim the typed address and filter with `email = {:email}` (or `email:lower` to also match old data). At most one account matches.
+- **Looking an account up by email:** emails are case-insensitive (developer decision, 2026-11-13; final review I2). They are stored lower-case and trimmed (users-signup hook) and PocketBase's own unique email index is `COLLATE NOCASE` ([1794360700_users_email_collate_nocase.js](../../backend/pb_migrations/1794360700_users_email_collate_nocase.js)). That collation is what makes PocketBase's lookups (`findAuthRecordByEmail`, sign-in, password reset, verification) ignore case in 0.40.6: an index on `LOWER(email)` does not (a reset typed with a capital sent no mail). Only stray spaces are not ignored, so the sign-in hook looks an untrimmed address up again. Filters in hooks cannot say `COLLATE`; `email:lower = {:email}` works but scans the table (see `findUserByEmail` in [team-invites.js](../../backend/pb_hooks/lib/team-invites.js)).
 - **A record create is not a transaction.** In PocketBase 0.40.6 the API saves a record without a transaction, and `onRecordAfterCreateSuccess` runs after the record is stored, so a failure there leaves the record behind. When related rows must exist together with a record (a team, its owner row and its settings row), do the work in the `onRecordCreate` model hook inside `e.app.runInTransaction((txApp) => { e.app = txApp; e.next(); ... })`: setting `e.app` moves the record's own insert into the transaction, and any error rolls back all of it (see [teams.pb.js](../../backend/pb_hooks/teams.pb.js)).
 
 ## Custom routes and the admin prefix
@@ -60,3 +60,23 @@ The Alpine base image is pinned by digest in the same file.
 ## Password hashing
 
 PocketBase v0.40.6 hashes passwords with **bcrypt, cost 10**. The password field type is documented as "storing bcrypt hashed strings" and hashes with `bcrypt.GenerateFromPassword(plain, cost)`, where an unset `Cost` falls back to `bcrypt.DefaultCost` ([core/field_password.go](https://github.com/pocketbase/pocketbase/blob/v0.40.6/core/field_password.go)). The default `_superusers` and auth `password` fields set no cost, and `bcrypt.DefaultCost` is 10 ([golang.org/x/crypto v0.58.0, bcrypt/bcrypt.go](https://github.com/golang/crypto/blob/v0.58.0/bcrypt/bcrypt.go)). bcrypt uses only the first 72 bytes of a password.
+
+## The backend door (`src/backend/`)
+
+The only place that imports `pocketbase`. Screens use `import { backend } from '../../backend'` and see only plain types from [types.ts](../../src/backend/types.ts) (`AuthUser`, `Team`, `TeamMember`, `TeamSettings`, `Invite`), never SDK records. `createBackend(baseUrl?)` in [client.ts](../../src/backend/client.ts) builds one with `auth` and `teams`; `backend` in [index.ts](../../src/backend/index.ts) is the app's lazily created one. The SDK's request auto-cancel is off, because screens load twice in development (StrictMode) and a cancelled request would show as "cannot be reached".
+
+- **`backend.auth`:** `signUp`, `signIn`, `signOut`, `current`, `refresh`, `requestVerification`, `requestPasswordReset`, `onChange` (one listener). `refresh()` re-reads the stored session (the `verified` flag changes after the email link); it ends the session only on 401, 403 or 404, and keeps it when the server cannot be reached. The app calls it on load and when the window gets focus.
+- **`backend.teams`:** `list`, `create`, `remove`, `members`, `removeMember`, `settings` (owner only), `setJoinCodeEnabled`, `regenerateJoinCode`, `join`, `invite`, `invites` (pending only), `acceptInvite`, `declineInvite`. `create` sends the signed-in user as `owner` (the rule requires it) and refuses an unverified user before asking the server.
+- **Errors:** every method throws a `BackendError` ([errors.ts](../../src/backend/errors.ts)) with `kind`, `status`, `message` and, for `invalid`, `fields`. What the UI does for each kind:
+
+| `kind` | From | UI |
+|---|---|---|
+| `invalid` | 400 | show `message`; show `fields[name]` beside the field |
+| `locked` | 429 (lockout, rate limit) | show `message` (it says when to retry) |
+| `forbidden` | 401, 403 (not verified, blocked, lockdown, not allowed) | show `message`; for an unverified account the verify gate text |
+| `not-found` | 404 (also a wrong, disabled or unknown join code, an unknown invitee) | show `message`; never say more than the server did |
+| `conflict` | 409 (invite already answered) | show `message` and reload the list |
+| `unreachable` | no answer | "The server cannot be reached." and keep what is on screen |
+| `unknown` | anything else | show `message` |
+
+- **Tests:** unit tests beside the code (`errors.test.ts`, `mappers.test.ts`, `teams.test.ts`, `auth.test.ts`, fake `pb` objects); the chain door, routes and rules in `tests/rules/backend-door.rules.test.ts`.

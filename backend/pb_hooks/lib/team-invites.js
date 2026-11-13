@@ -8,8 +8,8 @@
 // null. PocketBase 0.40.6 stores an address as it was typed at sign-up and
 // app.findAuthRecordByEmail compares case-sensitively (it missed an account stored as
 // "Mixed-...@Example.TEST"; findings.md, Task 8), so the lookup ignores case on both
-// sides. Accounts may differ only in case, so up to two matches are read and
-// chooseAccountIndex picks one by a fixed rule, or none. The email is a bound parameter.
+// sides. Accounts can no longer differ only in case (1794360700 migration), so at most one
+// matches; chooseAccountIndex stays as a safeguard that never picks the first of several. The email is a bound parameter.
 function findUserByEmail(app, typed) {
   const { chooseAccountIndex } = require(`${__hooks}/lib/invite-email.js`)
 

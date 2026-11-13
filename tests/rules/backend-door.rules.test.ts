@@ -119,7 +119,9 @@ test('invite unknown email rejects; invite real user resolves; accept', async ()
   expect(team2.isOwner).toBe(false)
 })
 
-test('three wrong sign-ins then correct one -> locked', async () => {
+// Three wrong passwords are each refused as `invalid` (max_failed_logins is 3); the next
+// attempt is refused as `locked` (HTTP 429), even with the right password.
+test('three wrong sign-ins -> the next attempt is locked, even for the right password', async () => {
   const b = createBackend(PB_URL)
   const email = `u9a10_${Date.now()}@test.com`
   await b.auth.signUp(email, 'KwntoPass99', 'User')
@@ -128,12 +130,12 @@ test('three wrong sign-ins then correct one -> locked', async () => {
   const users = admin.collection('users')
   const r = await users.getFirstListItem(`email = '${email}'`)
   await users.update(r.id, { verified: true })
-  // First two wrong sign-ins succeed (not yet locked)
-  await b.auth.signIn(email, 'WrongPass')
-  await b.auth.signIn(email, 'WrongPass')
-  // Third wrong sign-in triggers lockout
-  const err = b.auth.signIn(email, 'WrongPass').catch(e => e)
-  expect((await err).kind).toBe('locked')
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const refused = await b.auth.signIn(email, 'WrongPass').catch(e => e)
+    expect(refused.kind).toBe('invalid')
+  }
+  const rightButLocked = await b.auth.signIn(email, 'KwntoPass99').catch(e => e)
+  expect(rightButLocked.kind).toBe('locked')
 })
 
 test('unverified user cannot create team', async () => {

@@ -44,6 +44,7 @@ See the [design](docs/superpowers/specs/2026-11-11-kwnto-design.md) and [ERD](do
 | `npm run check:probes -- <folder>` | Runs a task's probe folder (the `probes` Vitest project); prints only each failing row and kind |
 | `npm run check:task -- --task <task.md> [--base <sha>] [--built-by local\|strong]` | Every check a task ends with (plan, lint, typecheck, unit, named layers, hygiene, quality, coverage, breaks, probes, review), one verdict; paste the full output in the report. See [check-task.md](docs/developer/check-task.md) |
 | `npm run check:quality [-- --base <sha>]` | Function length, complexity, nesting, parameter and console limits on files changed since `main` |
+| `npm run prepare-local-run -- <plan folder> <task> [<checkpoint>]` | Checks the model server, task and checkout, builds the local-model sandbox and prompt, prints the start command (never starts the model). See [prepare-local-run.md](docs/developer/prepare-local-run.md) |
 | `npm run ping:model [-- <baseUrl>]` | One line: does the local model server (default `http://localhost:9092`) answer, and is the model loaded? Exit 0 if answering, 1 if not. Sends only a GET ([runbook](docs/developer/local-model-runbook.md)) |
 | `npm run report:escape-rate -- <progress.md>` | Share of local-model tasks with a problem found after close (fails on a malformed table) |
 | `npm run report:quality` | The same limits over the whole repository, counts only, exit 0 |

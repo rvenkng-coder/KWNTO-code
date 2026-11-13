@@ -78,6 +78,8 @@ The cases the model missed are in issue 4 on GitHub (cases 8 to 11) and in `docs
 
 ## Re-running the smoke test
 
+`npm run prepare-local-run` automates steps 1 and 2 and builds the prompt ([prepare-local-run.md](prepare-local-run.md)); the recipe below is what it does.
+
 1. `git archive <commit> | tar -x -C <sandbox>`, then `git init` and one baseline commit in it. Link `node_modules` from the real checkout.
 2. Confirm the baseline: checks clean, existing tests green, the target behaviour absent.
 3. Run the model with a prompt that names exactly one checkpoint or bug and the rules above.

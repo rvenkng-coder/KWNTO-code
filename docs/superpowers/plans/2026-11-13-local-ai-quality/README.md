@@ -43,7 +43,7 @@ The input classes most likely to bite a person using these checks, most likely f
 | 3 | [Test hygiene check](task-3-test-hygiene.md) | mid | none | 3A 3B | done |
 | 4 | [Code quality limits on changed files](task-4-quality-limits.md) | mid | none | 4A 4B | done |
 | 5 | [Deliberate breaks runner](task-5-breaks-runner.md) | strong | 2 | 5A 5B | done |
-| 6 | [Probe runner](task-6-probe-runner.md) | mid | 2 | 6A 6B | not started |
+| 6 | [Probe runner](task-6-probe-runner.md) | mid | 2 | 6A 6B | done |
 | 7 | [Review sampling and escape rate](task-7-review-sampling.md) | mid | none | 7A 7B | not started |
 | 8 | [`check:task`, the self-check command](task-8-check-task.md) | strong | 2, 3, 4, 5, 6, 7 | 8A 8B | not started |
 | 9 | [Local-model runbook and server ping](task-9-local-model-runbook.md) | mid | 8 | 9A 9B | not started |

@@ -16,6 +16,7 @@
     "check:plan": "node scripts/check-plan.ts",
     "check:hygiene": "node scripts/check-test-hygiene.ts",
     "check:breaks": "node scripts/run-breaks.ts",
+    "check:probes": "node scripts/run-probes.ts",
     "check:quality": "node scripts/check-changed-quality.ts",
     "report:quality": "node scripts/check-changed-quality.ts --report",
     "lint": "eslint . && node scripts/check-perf-comments.ts && npm run check:docs && npm run check:plan",

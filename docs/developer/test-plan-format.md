@@ -74,3 +74,11 @@ A break is a one-line change to a decision in the code: a comparison, a boundary
 **The restore guarantee.** The original is written back in a `finally`, so it comes back whether the tests pass, fail or crash. Files are read and written byte for byte (CRLF, a missing final newline and non-ASCII text are kept). A SIGINT (Ctrl-C) or SIGTERM while a break is applied restores that file, stops Vitest and exits 130 or 143 with `restored <file>`. A Vitest run stopped by a signal from outside is an error, never a catch.
 
 **If the command was killed hard** (SIGKILL, power loss) while a break was applied, run `git status`: a file under `src/`, `scripts/` or `backend/pb_hooks/lib/` that you did not edit is a left-over break; `git checkout -- <file>` puts it back (only if you made no edits to it).
+
+## Running the probes
+
+`npm run check:probes -- <folder>` (or `node scripts/run-probes.ts [--cwd <dir>] <folder>`) runs the probe files of a task: `vitest run --project probes --reporter=json <folder>`, using this repository's Vitest. The logic that reads the result is `scripts/lib/probes.ts`; the command is `scripts/run-probes.ts`. Probe files are `tests/probes/<plan>/<task>/<row>.probe.test.ts`, and only the `probes` project matches them: `unit`, `rules` and `container` exclude `*.probe.test.ts`.
+
+- Vitest's output is captured and never shown. Each failing probe prints `FAIL <row> (<kind>)`, taken from its title `[<row id>] <kind>: <description>`; the last line is `probes: N of M passed`. No assertion message, stack, expected or received value, input or source line is printed, so the implementer learns which row and kind failed and nothing else.
+- A failing probe whose title does not have the form is counted (`FAIL N probe(s) without a [row] kind: title`), and so is a probe file that cannot be loaded (`FAIL N probe file(s) could not be loaded`).
+- Exit 0 only when at least one probe ran and all passed. A folder that does not exist, a folder with no `*.probe.test.ts` file, an unreadable Vitest report and a Vitest stopped by a signal exit 1.

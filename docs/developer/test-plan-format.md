@@ -57,3 +57,20 @@ Probes are written from the Cases and the catalogue, not from the task's own tes
 ## Writing good Breaks
 
 A break is a one-line change to a decision in the code: a comparison, a boundary, a removed guard. Two or three per risky function. A task whose cases are only `rules`, `e2e`, `container` or `manual` has no code Vitest reaches and writes `none` under Breaks. The listed tests must fail when the change is applied. Breaks apply only to code Vitest reaches; a hook file is covered by rule tests (design 6.3), so put its pure decision in `backend/pb_hooks/lib/` and break that. Find must match exactly once in File.
+
+## Running the breaks
+
+`npm run check:breaks -- <task.md>` (or `node scripts/run-breaks.ts [--cwd <dir>] <task.md>`) proves that the tests a task names would notice its deliberate breaks. The logic is `scripts/lib/breaks.ts`; the command is `scripts/run-breaks.ts`. `--cwd` is the project the paths in the Breaks table are relative to (default: the current directory); the task path is relative to where the command is started.
+
+1. The task file is parsed as above. Any problem in the Test plan block stops the run with exit 1: fix it first with `npm run check:plan`.
+2. No breaks (`none`): exit 0 with `no breaks listed` when no case is on the `unit` layer, exit 1 otherwise.
+3. **Baseline:** the union of all named test files runs once, unbroken (`vitest run --project unit <paths>`, using this repository's Vitest). If they fail, no break is applied and the command exits 1: a break proves nothing against red tests. A named test file that does not exist is exit 1 here too, since Vitest would otherwise fail with "no test files" and look like a catch.
+4. **Each break**, one at a time, always starting from the original file: the file is read, Find is replaced (as literal text, exactly once), the break's own tests run, and the original bytes are written back. Output, one line per break:
+   - `B1 caught`: the tests failed. This is what you want.
+   - `B2 SURVIVED: the tests did not notice <file>: <find> -> <replace>`: the tests still pass with the break applied. Add the test that pins that decision.
+   - `B3 invalid: <why>`: nothing was written. Find occurs zero or several times, the file cannot be read or is not breakable, or no tests are named.
+5. Exit 0 only when every break is caught; exit 1 if the baseline failed or any break survived or was invalid.
+
+**The restore guarantee.** The original is written back in a `finally`, so it comes back whether the tests pass, fail or crash. Files are read and written byte for byte (CRLF, a missing final newline and non-ASCII text are kept). A SIGINT (Ctrl-C) or SIGTERM while a break is applied restores that file, stops Vitest and exits 130 or 143 with `restored <file>`. A Vitest run stopped by a signal from outside is an error, never a catch.
+
+**If the command was killed hard** (SIGKILL, power loss) while a break was applied, run `git status`: a file under `src/`, `scripts/` or `backend/pb_hooks/lib/` that you did not edit is a left-over break; `git checkout -- <file>` puts it back (only if you made no edits to it).

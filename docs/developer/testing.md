@@ -29,6 +29,7 @@ KWNTO uses distinct test projects managed by Vitest and custom test harnesses:
   - `scan`: the file has a syntax error (the parser's message and line are shown), so it cannot be read reliably; it is then judged by the raw-text checks alone. Lost tests and assertions are counted on the raw text as well and flagged if either count drops, and a bare test line is looked for on the raw lines too. The header must be a comment (`//`, `/* */` or JSDoc) ending on the line directly above the statement; a statement that does not start its own line (two tests on one line) is a problem.
   - `--base` must be a commit; a value starting with `-` is a usage error (exit 2) and the base is resolved once to a sha.
   - Known limits: a test imported under another name (`import { test as t }`), built with `test.extend`, or reached by computed access (`test[mode]`) is not recognised as a declaration; a title that is not a literal is compared by its source text and by the test count; `test.describe` and similar Playwright calls are treated as declarations and need a comment. An unknown command-line argument is a usage error (exit 2). Scripts run through a symlinked path work (real paths are compared).
+- `npm run check:breaks -- <task.md>` (or `node scripts/run-breaks.ts [--cwd <dir>] <task.md>`): Runs the deliberate breaks of one task file; see [test-plan-format.md](test-plan-format.md#running-the-breaks).
 
 ---
 

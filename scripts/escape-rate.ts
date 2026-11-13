@@ -6,7 +6,8 @@ import { isMain } from './lib/is-main.ts'
 export interface ProgressRow { task: string; builtBy: 'local' | 'strong' | ''; review: string; escaped: number }
 
 const NEEDED = ['built by', 'review', 'escaped']
-const MISSING_TABLE = 'no table with the columns "Built by", "Review" and "Escaped"; a progress file that does not track them cannot be measured'
+// Exported so check:task can tell "this file does not track escapes" from a malformed table.
+export const MISSING_TABLE ='no table with the columns "Built by", "Review" and "Escaped"; a progress file that does not track them cannot be measured'
 
 function cells(line: string): string[] {
   return line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((cell) => cell.trim())

@@ -138,6 +138,40 @@ describe('parseTestPlan', () => {
     expect(parseTestPlan(block({ flow: ['<!-- only a comment -->'] })).problems.join('\n')).toMatch(/Flow.*empty/)
   })
 
+  // Protects Task 5's contract: a task with no unit case may list no breaks (`none`), in any case or spacing.
+  test('Breaks none with only rules, e2e and manual cases passes', () => {
+    const cases = [...CASES.slice(0, 2), '| C1 | b | rules | i | e | tests/rules/a.rules.test.ts :: t |', '| C2 | b | manual | i | e |  |']
+    for (const none of ['none', '  None  ', 'NONE']) {
+      const { plan, problems } = parseTestPlan(block({ cases, breaks: [none] }))
+      expect(problems).toEqual([])
+      expect(plan?.breaks).toEqual([])
+    }
+  })
+
+  // Protects the breaks gate: a unit case with `none` breaks would let decision code go unbroken.
+  test('Breaks none with a unit case is a problem naming the unit row', () => {
+    const cases = [...CASES, '| C2 | b | unit | i | e | scripts/x.test.ts :: t |', '| C3 | b | e2e | i | e | e2e/a.spec.ts :: t |']
+    const problems = parseTestPlan(block({ cases, breaks: ['none'] })).problems.join('\n')
+    expect(problems).toMatch(/Breaks.*none.*C1, C2/)
+    expect(problems).not.toMatch(/C3/)
+  })
+
+  // Protects Review Focus 4: a Breaks header with no rows and no `none` is still not read as "no breaks".
+  test('an empty Breaks table without none is a problem', () => {
+    expect(parseTestPlan(block({ breaks: BREAKS.slice(0, 2) })).problems.join('\n')).toMatch(/Breaks.*no rows/)
+    expect(parseTestPlan(block({ breaks: ['none', ...BREAKS] })).problems.join('\n')).toMatch(/Breaks/)
+  })
+
+  // Protects Review Focus 4: an empty Probes section is a problem, not "no probes".
+  test('an empty Probes section is a problem', () => {
+    expect(parseTestPlan(block({ probes: [''] })).problems.join('\n')).toMatch(/Probes.*Probe folder/)
+  })
+
+  // Documents the choice: trailing spaces after a ### heading (CRLF leftovers, editors) are harmless.
+  test('a section heading with a trailing space is accepted', () => {
+    expect(parseTestPlan(block().replace('### Breaks', '### Breaks ')).problems).toEqual([])
+  })
+
   // Protects Windows checkouts: CRLF files must give the same result as LF.
   test('Windows line endings parse the same', () => {
     expect(parseTestPlan(block().replaceAll('\n', '\r\n'))).toEqual(parseTestPlan(block()))

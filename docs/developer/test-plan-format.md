@@ -36,7 +36,7 @@ text of what the implementer pastes
 - Tables have the exact header above, a `|---|` separator line, at least one row and the right number of cells. A table with no rows is a problem, never "zero cases".
 - **Cases:** ID unique and not empty; Behaviour, Input and Expected not empty; Layer one of `unit`, `rules`, `e2e`, `container`, `manual`; Test written `path :: title` unless the layer is `manual`.
 - **Probes:** the line `**Probe folder:**` is present and its value starts with `tests/probes/` (or is `none`, meaning no probes).
-- **Breaks:** ID unique; File passes `isBreakablePath` (under `src/`, `scripts/` or `backend/pb_hooks/lib/`; not a test file; no `..`; not absolute); Find not empty and different from Replace; Tests lists one or more comma-separated relative paths.
+- **Breaks:** either a lone line `none` (any case), allowed only when no case is on the `unit` layer (otherwise a problem naming the unit rows), or a table with at least one row; a header with no rows and no `none` is a problem. Rows: ID unique; File passes `isBreakablePath` (under `src/`, `scripts/` or `backend/pb_hooks/lib/`; not a test file; no `..`; not absolute); Find not empty and different from Replace; Tests lists one or more comma-separated relative paths.
 - **Flow** and **Evidence** are not empty.
 - Every problem names the section and the row id, and starts with the task file path.
 
@@ -56,4 +56,4 @@ Probes are written from the Cases and the catalogue, not from the task's own tes
 
 ## Writing good Breaks
 
-A break is a one-line change to a decision in the code: a comparison, a boundary, a removed guard. Two or three per risky function. The listed tests must fail when the change is applied. Breaks apply only to code Vitest reaches; a hook file is covered by rule tests (design 6.3), so put its pure decision in `backend/pb_hooks/lib/` and break that. Find must match exactly once in File.
+A break is a one-line change to a decision in the code: a comparison, a boundary, a removed guard. Two or three per risky function. A task whose cases are only `rules`, `e2e`, `container` or `manual` has no code Vitest reaches and writes `none` under Breaks. The listed tests must fail when the change is applied. Breaks apply only to code Vitest reaches; a hook file is covered by rule tests (design 6.3), so put its pure decision in `backend/pb_hooks/lib/` and break that. Find must match exactly once in File.

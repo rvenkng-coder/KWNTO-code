@@ -131,4 +131,13 @@ describe('the command', () => {
     expect(failed.stdout).toContain('task-1-a.md')
     expect(run(join(bad, 'missing')).status).toBe(1)
   })
+
+  // Protects the exit-code contract: an unreadable plans folder is a clear message and exit 1, not a stack trace.
+  test('the default scan with an unreadable plans folder exits 1 with a message', () => {
+    const empty = tempDir()
+    const result = spawnSync(process.execPath, [join(process.cwd(), 'scripts/check-plan.ts')], { encoding: 'utf8', cwd: empty })
+    expect(result.status).toBe(1)
+    expect(result.stdout).toMatch(/cannot read.*docs\/superpowers\/plans/)
+    expect(result.stderr).not.toMatch(/at /)
+  })
 })

@@ -40,7 +40,7 @@ Part of the [plan](README.md). **Read the router first:** its Global Constraints
 <!-- Where the unseen probes for this task live. The task prompt never names it. `none` for no probes. -->
 **Probe folder:** `tests/probes/<plan>/<task>/`
 ### Breaks
-<!-- One-line changes to a decision; the listed tests must fail. File under src/, scripts/ or backend/pb_hooks/lib/. -->
+<!-- One-line changes to a decision; the listed tests must fail. File under src/, scripts/ or backend/pb_hooks/lib/.Write only `none` (no table) if no case is on the unit layer. -->
 | ID | File | Find | Replace | Tests |
 |---|---|---|---|---|
 | B1 | scripts/example.ts | `a < b` | `a <= b` | scripts/example.test.ts |

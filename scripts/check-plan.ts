@@ -59,7 +59,13 @@ export function defaultPlanFolders(root: string = PLANS_DIR): string[] {
 
 if (import.meta.filename === process.argv[1]) {
   const requested = process.argv.slice(2)
-  const folders = requested.length > 0 ? requested : defaultPlanFolders()
+  let folders: string[]
+  try {
+    folders = requested.length > 0 ? requested : defaultPlanFolders()
+  } catch {
+    console.log(`check:plan: cannot read ${PLANS_DIR} (run from the repo root)`)
+    process.exit(1)
+  }
   const problems = folders.flatMap(checkPlanFolder)
   if (problems.length > 0) {
     console.log(problems.join('\n'))

@@ -91,7 +91,18 @@ function parseCases(body: string[], problems: string[]): CaseRow[] {
   return cases
 }
 
-function parseBreaks(body: string[], problems: string[]): BreakRow[] {
+// A lone `none` means no breaks; allowed only when no case is on the unit layer (Task 5's contract).
+function isNone(body: string[]): boolean {
+  const lines = body.filter((line) => line.trim() !== '')
+  return lines.length === 1 && lines[0].trim().toLowerCase() === 'none'
+}
+
+function parseBreaks(body: string[], cases: CaseRow[], problems: string[]): BreakRow[] {
+  if (isNone(body)) {
+    const unitIds = cases.filter((row) => row.layer === 'unit').map((row) => row.id)
+    if (unitIds.length > 0) problems.push(`Breaks: "none" is not allowed while unit cases exist (${unitIds.join(', ')}); list at least one break`)
+    return []
+  }
   const breaks: BreakRow[] = []
   const seen = new Set<string>()
   for (const [index, cells] of (readTable('Breaks', body, BREAK_COLUMNS, problems) ?? []).entries()) {
@@ -176,10 +187,11 @@ export function parseTestPlan(markdown: string): { plan: TestPlan | null; proble
   for (const name of ['Flow', 'Evidence']) {
     if (sections.some((section) => section.name === name) && text(name) === '') problems.push(`${name}: section is empty`)
   }
+  const cases = parseCases(bodyOf('Cases'), problems)
   const plan: TestPlan = {
-    cases: parseCases(bodyOf('Cases'), problems),
+    cases,
     probeFolder: parseProbeFolder(bodyOf('Probes'), problems),
-    breaks: parseBreaks(bodyOf('Breaks'), problems),
+    breaks: parseBreaks(bodyOf('Breaks'), cases, problems),
     flow: text('Flow'),
     evidence: text('Evidence'),
   }

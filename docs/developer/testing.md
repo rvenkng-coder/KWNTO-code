@@ -20,6 +20,12 @@ KWNTO uses distinct test projects managed by Vitest and custom test harnesses:
 - `npm run typecheck`: Runs `tsc -b --noEmit` to verify strict TypeScript adherence.
 - `npm run lint`: Runs linter guardrails.
 - `npm run check:plan`: Checks the Test plan block of every task file in plans that opt in with `**Standard:** test-plan-v1`; format in [test-plan-format.md](test-plan-format.md). Part of `lint`.
+- `npm run check:hygiene [-- --base <sha>]`: Test hygiene against the merge base with `main`, on changed test files only (shared changed-files helper: `scripts/lib/changed-files.ts`). Prints `file: rule: detail`, exit 1 on any problem. Line-based and conservative (a skip word inside a string or comment is still flagged). Rules, and what each protects:
+  - `header`: every added `test(`, `it(`, `test.each(`, `it.each(` has a `//` or `*/` comment on the line directly above (no blank line), so each new test names the risk it protects.
+  - `skipped`: `.skip`, `skipIf`, `xit`, `xtest`, `xdescribe`, `test.fixme`, `test.todo` anywhere in a changed test file, so a failing test cannot be switched off.
+  - `focused`: `.only`, `fdescribe`, so a run cannot quietly cover a single test.
+  - `lost-test`: fewer tests than at base, or a base title now absent (a rename is reported too; the reviewer decides), or a deleted test file, so a removed test cannot hide behind an added one.
+  - `lost-assertion`: fewer `expect(` calls than at base, so a test cannot be weakened while it stays green.
 
 ---
 

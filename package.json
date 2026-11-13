@@ -14,6 +14,7 @@
     "spike:realtime": "rm -rf spike/realtime/results && docker compose -f spike/realtime/compose.yaml down -v && docker compose -f spike/realtime/compose.yaml up -d --wait && node spike/realtime/seed.ts && npx playwright test -c spike/realtime/playwright.config.ts; code=$?; docker compose -f spike/realtime/compose.yaml down -v; exit $code",
     "check:docs": "node scripts/check-doc-links.ts",
     "check:plan": "node scripts/check-plan.ts",
+    "check:hygiene": "node scripts/check-test-hygiene.ts",
     "lint": "eslint . && node scripts/check-perf-comments.ts && npm run check:docs && npm run check:plan",
     "test:rules": "node scripts/with-pocketbase.ts vitest run --project rules",
     "test:e2e": "node scripts/with-pocketbase.ts playwright test",

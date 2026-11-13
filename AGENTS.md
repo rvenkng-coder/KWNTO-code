@@ -42,6 +42,7 @@ See the [design](docs/superpowers/specs/2026-11-11-kwnto-design.md) and [ERD](do
 | `npm run check:breaks -- <task.md>` | Applies each deliberate break in the task's Test plan and requires its unit tests to fail; restores the files |
 | `npm run check:probes -- <folder>` | Runs a task's probe folder (the `probes` Vitest project); prints only each failing row and kind |
 | `npm run check:quality` | Function length, complexity, nesting, parameter and console limits on files changed since `main` |
+| `npm run report:escape-rate -- <progress.md>` | Share of local-model tasks with a problem found after close (fails on a malformed table) |
 | `npm run report:quality` | The same limits over the whole repository, counts only, exit 0 |
 | `npm run typecheck` | `tsc -b --noEmit` |
 | `npm run dev` | Vite dev server |
@@ -68,5 +69,5 @@ See the [design](docs/superpowers/specs/2026-11-11-kwnto-design.md) and [ERD](do
 ## Tracking and resuming
 
 - Work in checkpoints. Close each with one commit.
-- Track progress in `.planning/<date>-<plan>/progress.md`.
+- Track progress in `.planning/<date>-<plan>/progress.md`. Rows for tasks built by a local model carry three columns: **Built by** (`local` or `strong`), **Review** (`none`, `clean` or `found N`) and **Escaped** (problems found after the task closed, 0 if none). See [review sampling](docs/developer/review-sampling.md); `npm run report:escape-rate -- <progress.md>` prints the rate.
 - To resume: `git worktree list`, switch to the worktree on `feat/foundation`, read `progress.md`, and continue from the last unticked step.

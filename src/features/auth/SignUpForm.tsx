@@ -51,7 +51,7 @@ export function SignUpForm() {
         />
         <small>{PASSWORD_RULES}</small>
       </div>
-      {error && <p data-testid="form-error">{error}</p>}
+      {error && <p data-testid="form-error" role="alert">{error}</p>}
       {signedUp && !error && (
         <p>Check your email for a verification link.</p>
       )}

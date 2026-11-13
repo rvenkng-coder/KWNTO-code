@@ -47,7 +47,7 @@ export function SignInForm() {
           required
         />
       </div>
-      {error && <p data-testid="form-error">{error}</p>}
+      {error && <p data-testid="form-error" role="alert">{error}</p>}
       {resetSent && (
         <p className="neutral">If that account exists, we sent a link.</p>
       )}

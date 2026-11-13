@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useSession } from '../auth/useSession'
-import { backend } from '../../backend'
 import { useTeams } from './useTeams'
 import { TeamDetail } from './TeamDetail'
 import { JoinByCodeForm } from './JoinByCodeForm'
@@ -15,6 +14,10 @@ export function TeamsScreen() {
   useEffect(() => {
     list()
   }, [list])
+
+  // Signing out unmounts this screen: forget the teams, so the next account on this
+  // browser never sees them, even briefly.
+  useEffect(() => () => useTeams.setState({ teams: [], error: null }), [])
 
   if (!user) return null
 
@@ -37,7 +40,7 @@ export function TeamsScreen() {
           <button onClick={signOut}>Sign out</button>
         </div>
       </div>
-      {error && <p data-testid="form-error">{error}</p>}
+      {error && <p data-testid="form-error" role="alert">{error}</p>}
       {!user.verified && (
         <p className="gate">Verify your email to create or join a team.</p>
       )}
@@ -45,7 +48,7 @@ export function TeamsScreen() {
         onClick={() => {
           if (user.verified) {
             const name = prompt('Team name:')
-            if (name) backend.teams.create(name).then(() => list())
+            if (name) void useTeams.getState().create(name)
           }
         }}
         disabled={!user.verified}
@@ -56,8 +59,10 @@ export function TeamsScreen() {
       <JoinByCodeForm />
       <ul data-testid="team-list">
         {teams.map((team) => (
-          <li key={team.id} onClick={() => setSelectedTeam(team.id)}>
-            {team.name}
+          <li key={team.id}>
+            <button type="button" onClick={() => setSelectedTeam(team.id)}>
+              {team.name}
+            </button>
           </li>
         ))}
       </ul>

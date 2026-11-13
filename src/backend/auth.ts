@@ -1,3 +1,4 @@
+import { ClientResponseError } from 'pocketbase'
 import type PocketBase from 'pocketbase'
 import type { AuthUser } from './types'
 import { toAuthUser } from './mappers'
@@ -49,9 +50,8 @@ export function createAuth(pb: PocketBase) {
     },
 
     signOut(): void {
+      // clear() triggers the store's onChange above, which resets `cached` and tells the listener once.
       pb.authStore.clear()
-      cached = null
-      listener?.(null)
     },
 
     current,
@@ -63,10 +63,12 @@ export function createAuth(pb: PocketBase) {
         cached = toAuthUser(auth.record as Record<string, unknown>)
         listener?.(cached)
         return cached
-      } catch {
-        cached = null
-        pb.authStore.clear()
-        listener?.(null)
+      } catch (err) {
+        // Only a refusal ends the session. An unreachable server (status 0) or a
+        // server error must not sign everyone out: keep the session we have.
+        const refused = err instanceof ClientResponseError && [401, 403, 404].includes(err.status)
+        if (!refused) return current()
+        pb.authStore.clear() // the store's onChange resets `cached` and tells the listener
         return null
       }
     },

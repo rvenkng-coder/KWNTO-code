@@ -14,6 +14,7 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
   const [settings, setSettings] = useState<TeamSettings | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isOwner, setIsOwner] = useState(false)
+  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -29,6 +30,8 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
         }
       } catch (err: unknown) {
         setError(errorMessage(err, 'Failed to load team'))
+      } finally {
+        setLoaded(true)
       }
     }
     load()
@@ -78,8 +81,8 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
     <div>
       <button onClick={onBack}>← Back</button>
       <h2>Team</h2>
-      {error && <p data-testid="form-error">{error}</p>}
-      <div data-testid="member-list">
+      {error && <p data-testid="form-error" role="alert">{error}</p>}
+      <div data-testid="member-list" data-loaded={loaded}>
         <h3>Members</h3>
         <ul>
           {members.map((m) => (

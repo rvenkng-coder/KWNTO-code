@@ -42,12 +42,14 @@ export function InvitesInbox({ onAccepted }: InvitesInboxProps) {
     }
   }
 
-  if (invites.length === 0) return null
+  if (invites.length === 0) {
+    return error ? <p data-testid="form-error" role="alert">{error}</p> : null
+  }
 
   return (
     <div data-testid="invite-inbox">
       <h3>Invites</h3>
-      {error && <p data-testid="form-error">{error}</p>}
+      {error && <p data-testid="form-error" role="alert">{error}</p>}
       <ul>
         {invites.map((invite) => (
           <li key={invite.id}>

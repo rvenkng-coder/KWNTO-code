@@ -7,9 +7,9 @@ export function JoinByCodeForm() {
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault()
-    await useTeams.getState().join(code)
-    setJoined(true)
-    setCode('')
+    const ok = await useTeams.getState().join(code)
+    setJoined(ok)
+    if (ok) setCode('')
   }
 
   return (
@@ -18,7 +18,11 @@ export function JoinByCodeForm() {
       <input
         type="text"
         value={code}
-        onChange={(e) => setCode(e.target.value)}
+        onChange={(e) => {
+          setCode(e.target.value)
+          setJoined(false)
+        }}
+        aria-label="Join code"
         placeholder="Join code"
       />
       <button type="submit">Join</button>

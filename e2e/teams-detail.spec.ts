@@ -1,20 +1,22 @@
 // Protects: sign-up confirmation only on success — a failed sign-up (e.g.
 // weak password) shows form-error and does not show the confirmation.
 import { test, expect } from '@playwright/test'
-import { uniqueEmail } from './helpers/admin'
-import { signUpVerifyAndSignIn, createTeam, openTeam, enableJoinCode, joinWithCode } from './helpers/ui'
+import { uniqueEmail, userExists } from './helpers/admin'
+import { signUpVerifyAndSignIn, createTeam, openTeam, enableJoinCode, joinWithCode, settled } from './helpers/ui'
 
 test('sign-up with weak password shows error, no confirmation', async ({
   page,
 }) => {
+  const email = uniqueEmail()
   await page.goto('/')
   await page.getByRole('link', { name: 'Sign up' }).click()
-  await page.getByLabel('Email').fill(uniqueEmail())
+  await page.getByLabel('Email').fill(email)
   await page.getByLabel('Name').fill('Shorty')
   await page.getByLabel('Password').fill('short1')
   await page.getByRole('button', { name: 'Sign up' }).click()
   await expect(page.getByTestId('form-error')).toBeVisible()
   await expect(page.getByText('Check your email')).toHaveCount(0)
+  expect(await userExists(email)).toBe(false)
 })
 
 // Protects: member view — a member opens the team and sees both names and no
@@ -47,7 +49,7 @@ test('join code toggle and wrong code rejection', async ({ page, browser }) => {
   await signUpVerifyAndSignIn(page, ownerEmail, 'Owner')
   await createTeam(page, 'Crew')
   // Owner enables join code, then disables it
-  await page.getByTestId('team-list').locator('li').first().click()
+  await openTeam(page, 'Crew')
   await page.getByRole('button', { name: 'Enable' }).click()
   await expect(page.getByRole('button', { name: 'Disable' })).toBeVisible()
   await page.getByRole('button', { name: 'Disable' }).click()
@@ -59,7 +61,9 @@ test('join code toggle and wrong code rejection', async ({ page, browser }) => {
   const oldCode = await page.getByTestId('join-code').textContent()
   await page2.getByPlaceholder('Join code').fill(oldCode ?? '')
   await page2.getByRole('button', { name: 'Join' }).click()
-  await expect(page2.getByTestId('form-error')).toBeVisible()
+  await expect(page2.getByTestId('form-error')).toHaveText('That join code is not valid.')
+  await expect(page2.getByText('Joined successfully!')).toHaveCount(0)
+  await settled(page2)
   await expect(page2.getByTestId('team-list')).not.toContainText('Crew')
   await page2.close()
 })

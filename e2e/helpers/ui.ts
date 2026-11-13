@@ -55,8 +55,10 @@ export async function createTeam(page: Page, name: string): Promise<void> {
 
 /** Opens a team from the Teams screen by its name. */
 export async function openTeam(page: Page, name: string): Promise<void> {
-  await page.getByTestId('team-list').getByText(name, { exact: true }).click()
-  await expect(page.getByTestId('member-list')).toBeVisible()
+  await page.getByTestId('team-list').getByRole('button', { name, exact: true }).click()
+  // Everything the screen loads (members, owner flag, settings) has arrived, so a
+  // check that something is absent cannot pass just because it has not loaded yet.
+  await expect(page.getByTestId('member-list')).toHaveAttribute('data-loaded', 'true')
 }
 
 /**
@@ -81,4 +83,12 @@ export async function joinWithCode(page: Page, code: string, teamName: string): 
   await page.getByPlaceholder('Join code').fill(code)
   await page.getByRole('button', { name: 'Join' }).click()
   await expect(page.getByTestId('team-list')).toContainText(teamName)
+}
+
+/**
+ * Waits until the page has stopped talking to the server, so "the team is not in the
+ * list" is checked after the list has been fetched, not before.
+ */
+export async function settled(page: Page): Promise<void> {
+  await page.waitForLoadState('networkidle')
 }

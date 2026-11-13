@@ -1,8 +1,8 @@
 // Protects: sign-up and verification gate — a new account is unverified;
 // the verification gate blocks team creation until the account is verified.
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 import { verifyByEmail, uniqueEmail } from './helpers/admin'
-import { signUp, signUpVerifyAndSignIn, createTeam, openTeam, enableJoinCode, joinWithCode } from './helpers/ui'
+import { signUp, signUpVerifyAndSignIn, createTeam, openTeam, enableJoinCode, joinWithCode, settled } from './helpers/ui'
 
 // Protects: XSS as text (security.md section 5) — team names are rendered as text, not HTML.
 test('XSS as text', async ({ page }) => {
@@ -41,7 +41,8 @@ test('wrong code and regenerate', async ({ page, browser }) => {
   await createTeam(page, 'Crew')
   await page.getByPlaceholder('Join code').fill('WRONGCODE')
   await page.getByRole('button', { name: 'Join' }).click()
-  await expect(page.getByTestId('form-error')).toBeVisible()
+  await expect(page.getByTestId('form-error')).toHaveText('That join code is not valid.')
+  await expect(page.getByText('Joined successfully!')).toHaveCount(0)
   // Regenerate: the new code differs and the old one stops working
   await openTeam(page, 'Crew')
   const oldCode = await enableJoinCode(page)
@@ -52,7 +53,9 @@ test('wrong code and regenerate', async ({ page, browser }) => {
   await signUpVerifyAndSignIn(page2, uniqueEmail(), 'Other')
   await page2.getByPlaceholder('Join code').fill(oldCode)
   await page2.getByRole('button', { name: 'Join' }).click()
-  await expect(page2.getByTestId('form-error')).toBeVisible()
+  await expect(page2.getByTestId('form-error')).toHaveText('That join code is not valid.')
+  await expect(page2.getByText('Joined successfully!')).toHaveCount(0)
+  await settled(page2)
   await expect(page2.getByTestId('team-list')).not.toContainText('Crew')
   await page2.close()
 })
@@ -99,10 +102,14 @@ test('remove and delete', async ({ page, browser }) => {
   await page.getByRole('button', { name: 'Remove' }).click()
   await expect(page.getByTestId('member-list')).not.toContainText('Member (member)')
   await page2.reload()
+  await expect(page2.getByTestId('session-user')).toBeVisible()
+  await settled(page2)
   await expect(page2.getByTestId('team-list')).not.toContainText('Crew')
   // Owner deletes the team
   page.once('dialog', (dialog) => dialog.accept())
   await page.getByRole('button', { name: 'Delete team' }).click()
+  await expect(page.getByRole('button', { name: 'Create team' })).toBeVisible()
+  await settled(page)
   await expect(page.getByTestId('team-list')).not.toContainText('Crew')
   await page2.close()
 })
@@ -141,11 +148,22 @@ test('sign-up and verification gate', async ({ page }) => {
   await page.getByLabel('Password').fill('KwntoPass99')
   await page.getByRole('button', { name: 'Sign in' }).click()
   await expect(page.getByText('Verify your email')).toBeVisible()
-  // Verify and reload
+  await expect(page.getByRole('button', { name: 'Create team' })).toBeDisabled()
+  // Verify, then reload: the stored session is refreshed, so the gate lifts (final review, I1)
   await verifyByEmail(email)
   await page.reload()
-  await expect(page.getByRole('button', { name: 'Create team' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Create team' })).toBeEnabled()
+  await expect(page.getByText('Verify your email')).toHaveCount(0)
 })
+
+// Clicks "Sign in" and waits for the server's answer, so the next attempt cannot start
+// before this one is counted (the old error text stays on screen in between).
+async function clickAndWaitForSignIn(page: Page): Promise<void> {
+  await Promise.all([
+    page.waitForResponse((response) => response.url().includes('/auth-with-password')),
+    page.getByRole('button', { name: 'Sign in' }).click(),
+  ])
+}
 
 // Protects: lockout — after 3 wrong passwords the account is locked;
 // the lockout message is shown in form-error.
@@ -159,14 +177,14 @@ test('lockout after three wrong passwords', async ({ page }) => {
   for (let i = 0; i < 3; i++) {
     await page.getByLabel('Email').fill(email)
     await page.getByLabel('Password').fill('WrongPass')
-    await page.getByRole('button', { name: 'Sign in' }).click()
+    await clickAndWaitForSignIn(page)
     await expect(page.getByTestId('form-error')).toBeVisible()
     await expect(page.getByTestId('form-error')).not.toContainText('Too many')
     await page.getByLabel('Password').clear()
   }
   // Fourth attempt with the right password — should show lockout message
   await page.getByLabel('Password').fill('KwntoPass99')
-  await page.getByRole('button', { name: 'Sign in' }).click()
+  await clickAndWaitForSignIn(page)
   await expect(page.getByTestId('form-error')).toContainText('Too many failed sign-in attempts')
 })
 
@@ -181,4 +199,7 @@ test('session survives reload; sign-out clears it', async ({ page }) => {
   await expect(page.getByTestId('session-user')).toContainText('Session')
   await page.getByRole('button', { name: 'Sign out' }).click()
   await expect(page.getByRole('link', { name: 'Sign up' })).toBeVisible()
+  await page.reload()
+  await expect(page.getByRole('link', { name: 'Sign up' })).toBeVisible()
+  await expect(page.getByTestId('session-user')).toHaveCount(0)
 })

@@ -7,9 +7,9 @@ interface TeamState {
   teams: Team[]
   error: string | null
   list: () => Promise<void>
-  create: (name: string) => Promise<void>
+  create: (name: string) => Promise<boolean>
   remove: (teamId: string) => Promise<void>
-  join: (code: string) => Promise<void>
+  join: (code: string) => Promise<boolean>
 }
 
 export const useTeams = create<TeamState>((set) => ({
@@ -27,8 +27,10 @@ export const useTeams = create<TeamState>((set) => ({
     try {
       await backend.teams.create(name)
       await useTeams.getState().list()
+      return true
     } catch (err: unknown) {
       set({ error: errorMessage(err, 'Failed to create team') })
+      return false
     }
   },
   remove: async (teamId: string) => {
@@ -43,8 +45,10 @@ export const useTeams = create<TeamState>((set) => ({
     try {
       await backend.teams.join(code)
       await useTeams.getState().list()
+      return true
     } catch (err: unknown) {
       set({ error: errorMessage(err, 'Failed to join team') })
+      return false
     }
   },
 }))

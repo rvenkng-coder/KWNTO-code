@@ -115,7 +115,7 @@ export function createTeams(pb: PocketBase) {
       return wrapped(async () => {
         const rows = await pb
           .collection('team_invites')
-          .getFullList({ filter: pb.filter('invited_user = {:user}', { user: pb.authStore.record?.id ?? '' }), perPage: 100 })
+          .getFullList({ filter: pb.filter("invited_user = {:user} && status = 'pending'", { user: pb.authStore.record?.id ?? '' }), perPage: 100 })
         return rows.map(r => toInvite(r as Record<string, unknown>))
       })
     },

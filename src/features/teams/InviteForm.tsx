@@ -13,6 +13,8 @@ export function InviteForm({ teamId }: InviteFormProps) {
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
+    setSent(false)
     try {
       await backend.teams.invite(teamId, email)
       setSent(true)
@@ -30,10 +32,11 @@ export function InviteForm({ teamId }: InviteFormProps) {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="Email"
+        aria-label="Invitee email"
       />
       <button type="submit">Send invite</button>
       {sent && <p>Invite sent!</p>}
-      {error && <p data-testid="form-error">{error}</p>}
+      {error && <p data-testid="form-error" role="alert">{error}</p>}
     </form>
   )
 }

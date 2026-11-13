@@ -60,8 +60,8 @@ test('settings as owner returns joinCode; as member rejects', async () => {
   const team = await b1.teams.create('Crew')
   const settings = await b1.teams.settings(team.id)
   expect(settings.joinCode.length).toBe(8)
-  const settings2 = b2.teams.settings(team.id).catch((e) => e)
-  expect(await settings2).toBeInstanceOf(Error)
+  const asMember = await b2.teams.settings(team.id).catch((e) => e)
+  expect(asMember.kind).toBe('not-found')
 })
 
 test('join by code, members, removeMember', async () => {
@@ -85,11 +85,10 @@ test('join by code, members, removeMember', async () => {
   const joined = await b2.teams.join(settings.joinCode)
   expect(joined.isOwner).toBe(false)
   const members = await b1.teams.members(team.id)
-  expect(members.length).toBe(2)
-  const member = members.find(m => m.name === 'Member')
-  if (member) {
-    await b1.teams.removeMember(member.id)
-  }
+  expect(members.map((m) => `${m.name}:${m.role}`).sort()).toEqual(['Member:member', 'Owner:owner'])
+  const member = members.find((m) => m.name === 'Member')
+  expect(member).toBeDefined()
+  await b1.teams.removeMember(member!.id)
   const list2 = await b2.teams.list()
   expect(list2.length).toBe(0)
 })
@@ -117,6 +116,29 @@ test('invite unknown email rejects; invite real user resolves; accept', async ()
   expect(invites.length).toBe(1)
   const team2 = await b2.teams.acceptInvite(invites[0].id)
   expect(team2.isOwner).toBe(false)
+  // Answered invites stay in the table as history but are no longer offered (final review, I4)
+  expect(await b2.teams.invites()).toHaveLength(0)
+})
+
+test('a declined invite is no longer offered', async () => {
+  const b1 = createBackend(PB_URL)
+  const b2 = createBackend(PB_URL)
+  const email1 = `u9a8d_${Date.now()}@test.com`
+  const email2 = `u9a9d_${Date.now()}@test.com`
+  await b1.auth.signUp(email1, 'KwntoPass99', 'Owner')
+  await b1.auth.signIn(email1, 'KwntoPass99')
+  await b2.auth.signUp(email2, 'KwntoPass99', 'Invitee')
+  await b2.auth.signIn(email2, 'KwntoPass99')
+  const admin = await asAdmin()
+  for (const email of [email1, email2]) {
+    const r = await admin.collection('users').getFirstListItem(`email = '${email}'`)
+    await admin.collection('users').update(r.id, { verified: true })
+  }
+  const team = await b1.teams.create('Crew')
+  await b1.teams.invite(team.id, email2)
+  const [invite] = await b2.teams.invites()
+  await b2.teams.declineInvite(invite.id)
+  expect(await b2.teams.invites()).toHaveLength(0)
 })
 
 // Three wrong passwords are each refused as `invalid` (max_failed_logins is 3); the next
@@ -138,7 +160,9 @@ test('three wrong sign-ins -> the next attempt is locked, even for the right pas
   expect(rightButLocked.kind).toBe('locked')
 })
 
-test('unverified user cannot create team', async () => {
+// The door refuses before asking the server (teams.ts); the server's own rule for
+// unverified users is pinned in teams.rules.test.ts.
+test('the door refuses team creation for an unverified user', async () => {
   const b = createBackend(PB_URL)
   const email = `u9a11_${Date.now()}@test.com`
   await b.auth.signUp(email, 'KwntoPass99', 'User')
@@ -157,12 +181,12 @@ test('signOut makes current null; onChange fires once', async () => {
   const r = await users.getFirstListItem(`email = '${email}'`)
   await users.update(r.id, { verified: true })
   expect(b.auth.current()).not.toBeNull()
-  let fired = false
+  let fired = 0
   const unsub = b.auth.onChange((user) => {
-    if (user === null) fired = true
+    if (user === null) fired += 1
   })
   b.auth.signOut()
   expect(b.auth.current()).toBeNull()
-  expect(fired).toBe(true)
+  expect(fired).toBe(1)
   unsub()
 })

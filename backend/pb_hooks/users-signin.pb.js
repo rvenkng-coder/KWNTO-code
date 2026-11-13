@@ -111,7 +111,8 @@ onRecordAuthRequest((e) => {
   }
 
   if (status[0].getBool("blocked")) {
-    throw new ApiError(403, `Your account is blocked: ${status[0].getString("blocked_reason")}`)
+    const reason = status[0].getString("blocked_reason").trim()
+    throw new ApiError(403, reason === "" ? "Your account is blocked." : `Your account is blocked: ${reason}`)
   }
 
   e.next()

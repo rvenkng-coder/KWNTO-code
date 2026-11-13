@@ -69,20 +69,21 @@ Try every kind that fits the code under test. `kind` is the slug used in probe t
 
 ## 6. The quality checks every task ends with
 
-`check:task` runs these in order (built in Task 8 of the local-AI quality plan; the exact options are filled in then).
+`npm run check:task -- --task <task file> [--base <sha>] [--built-by local|strong]` runs these in order, every one even after a failure, within a 10-minute budget. The command, the report and what to do after an interrupted run are in [developer/check-task.md](developer/check-task.md).
 
-| Check | What it proves |
-|---|---|
-| `plan` | The task file has a tier, an Interfaces block and a complete Test plan block |
-| `lint` | ESLint guardrails, `PERF:` comments and documentation links are clean |
-| `typecheck` | Strict TypeScript compiles with no errors |
-| `unit` | The unit layer passes |
-| `layers` | Every other layer the task's Test plan names passes; a layer not named is reported as not required |
-| `hygiene` | Every new test has a header comment, no test or assertion was lost against the base commit, nothing is skipped or focused |
-| `quality` | Changed files stay within the function-length and complexity limits and contain no leftover debug output |
-| `coverage` | Every case row of the Test plan points at a test that exists |
-| `breaks` | Every listed deliberate break makes at least one named test fail, and the file is restored |
-| `probes` | The unseen probes pass; a failure names only the row and the kind |
+| Check | Runs | What it proves |
+|---|---|---|
+| `plan` | `checkTaskFile` (as `check:plan`) on the task file | The task file has a tier, an Interfaces block and a complete Test plan block |
+| `lint` | `npm run lint` | ESLint guardrails, `PERF:` comments, documentation links and opted-in plans are clean |
+| `typecheck` | `npm run typecheck` | Strict TypeScript compiles with no errors |
+| `unit` | `npm run test:unit` | The unit layer passes |
+| `layers` | `npm run test:rules`, `test:e2e`, `test:container`, each only if the Cases name that layer | Every other layer the task's Test plan names passes; a layer not named is reported as not required |
+| `hygiene` | `check:hygiene --base <base>` | Every new test has a header comment, no test or assertion was lost against the base commit, nothing is skipped or focused |
+| `quality` | `check:quality --base <base>` | Files changed since the task's base stay within the function-length, complexity, nesting and parameter limits, with no `debugger` (and no `console` in `src/` and hooks) |
+| `coverage` | `coverageProblems` | Every case row of the Test plan points at a test that exists (file and exact test title); a manual row has a Flow |
+| `breaks` | `check:breaks <task file>` | Every listed deliberate break makes at least one named test fail, and the file is restored |
+| `probes` | `check:probes <probe folder>` | The unseen probes pass; a failure names only the row and the kind; a missing or empty folder fails |
+| `review` | `needsReview` with the plan's escape rate | Informational only: `Review required: yes` or `no`, with the reason |
 
 ## 7. Learning loop
 

@@ -16,6 +16,7 @@
 | **Developer** | [backend.md](developer/backend.md) | Backend development notes |
 | **Developer** | [test-plan-format.md](developer/test-plan-format.md) | The per-task Test plan block and `check:plan` |
 | **Developer** | [quality-limits.md](developer/quality-limits.md) | Function length, complexity and other limits on changed files, `check:quality` |
+| **Developer** | [check-task.md](developer/check-task.md) | `check:task`, the self-check every task ends with, and how to read its report |
 | **Developer** | [lint.md](developer/lint.md) | Lint configuration |
 | **Developer** | [local-model-notes.md](developer/local-model-notes.md) | Notes for local model usage |
 | **Decisions** | [0001-toolchain.md](decisions/0001-toolchain.md) | Toolchain decisions |

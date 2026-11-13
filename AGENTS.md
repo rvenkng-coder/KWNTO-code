@@ -41,6 +41,7 @@ See the [design](docs/superpowers/specs/2026-11-11-kwnto-design.md) and [ERD](do
 | `npm run check:hygiene` | New tests have a header comment; nothing skipped or focused; no test or assertion lost against `main` |
 | `npm run check:breaks -- <task.md>` | Applies each deliberate break in the task's Test plan and requires its unit tests to fail; restores the files |
 | `npm run check:probes -- <folder>` | Runs a task's probe folder (the `probes` Vitest project); prints only each failing row and kind |
+| `npm run check:task -- --task <task.md> [--base <sha>]` | Every check a task ends with (plan, lint, typecheck, unit, named layers, hygiene, quality, coverage, breaks, probes, review), one verdict; paste the full output in the report. See [check-task.md](docs/developer/check-task.md) |
 | `npm run check:quality` | Function length, complexity, nesting, parameter and console limits on files changed since `main` |
 | `npm run report:escape-rate -- <progress.md>` | Share of local-model tasks with a problem found after close (fails on a malformed table) |
 | `npm run report:quality` | The same limits over the whole repository, counts only, exit 0 |
@@ -58,6 +59,7 @@ See the [design](docs/superpowers/specs/2026-11-11-kwnto-design.md) and [ERD](do
 - **Ask first** before pushing, deleting data, touching Docker volumes, or force-pushing.
 - **Never merge to `main`.** Agents do not merge.
 - **Never edit a failing test.** If a test fails, stop and explain why.
+- **Evidence is the `check:task` output.** Paste the full output of `npm run check:task` in the task report; the controller refuses a task with a `FAIL` verdict or without the paste ([check-task.md](docs/developer/check-task.md)).
 - **Prototype is reference only.** Do not copy code from `branching_narrative_tool.tsx`.
 
 ## Adding a collection

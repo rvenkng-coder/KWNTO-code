@@ -18,6 +18,7 @@
     "check:breaks": "node scripts/run-breaks.ts",
     "check:probes": "node scripts/run-probes.ts",
     "check:quality": "node scripts/check-changed-quality.ts",
+    "check:task": "node scripts/check-task.ts",
     "report:quality": "node scripts/check-changed-quality.ts --report",
     "report:escape-rate": "node scripts/escape-rate.ts",
     "lint": "eslint . && node scripts/check-perf-comments.ts && npm run check:docs && npm run check:plan",

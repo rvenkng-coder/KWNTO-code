@@ -7,6 +7,8 @@
 | **Engineering** | [engineering.md](engineering.md) | Coding principles and conventions |
 | **Security** | [security.md](security.md) | Security rules and policies |
 | **User** | [user-requirements.md](user-requirements.md) | User requirements |
+| **User** | [accounts-and-teams.md](user/accounts-and-teams.md) | Sign up, verify, sign in, teams, invites |
+| **Admin** | [settings.md](admin/settings.md) | System settings: every field, its default and what it does |
 | **Developer** | [getting-started.md](developer/getting-started.md) | Setup and first run |
 | **Developer** | [testing.md](developer/testing.md) | Test layers and commands |
 | **Developer** | [backend.md](developer/backend.md) | Backend development notes |

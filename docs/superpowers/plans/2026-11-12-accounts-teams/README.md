@@ -73,14 +73,14 @@ These are my calls where the spec is silent. Say so if any is wrong; each is che
 
 | # | Task | Tier | Depends on | Checkpoints | Status |
 |---|---|---|---|---|---|
-| 1 | [System settings tables and the security log](task-1-settings-and-log.md) | strong | none | 1A 1B | not started |
-| 2 | [Per-user records](task-2-user-records.md) | strong | 1 | 2A | not started |
-| 3 | [Sign-up, verification and password rules](task-3-signup-passwords.md) | strong | 1, 2 | 3A 3B | not started |
-| 4 | [Sign-in protection: lockout, block, lockdown](task-4-signin-protection.md) | strong | 1, 2 | 4A 4B | not started |
-| 5 | [Incident controls and the runbook](task-5-incident-controls.md) | strong | 4 | 5A 5B | not started |
-| 6 | [Teams, members and team settings](task-6-teams.md) | strong | 3 | 6A 6B | not started |
-| 7 | [Join by code](task-7-join-by-code.md) | strong | 6 | 7A | not started |
-| 8 | [Invite by email](task-8-invites.md) | strong | 6 | 8A 8B | not started |
+| 1 | [System settings tables and the security log](task-1-settings-and-log.md) | strong | none | 1A 1B | done |
+| 2 | [Per-user records](task-2-user-records.md) | strong | 1 | 2A | done |
+| 3 | [Sign-up, verification and password rules](task-3-signup-passwords.md) | strong | 1, 2 | 3A 3B | done |
+| 4 | [Sign-in protection: lockout, block, lockdown](task-4-signin-protection.md) | strong | 1, 2 | 4A 4B | done |
+| 5 | [Incident controls and the runbook](task-5-incident-controls.md) | strong | 4 | 5A 5B | done |
+| 6 | [Teams, members and team settings](task-6-teams.md) | strong | 3 | 6A 6B | done |
+| 7 | [Join by code](task-7-join-by-code.md) | strong | 6 | 7A | done |
+| 8 | [Invite by email](task-8-invites.md) | strong | 6 | 8A 8B | done |
 | 9 | [The backend door for accounts and teams](task-9-backend-door.md) | mid | 3, 4, 6, 7, 8 | 9A 9B | done |
 | 10 | [Sign-in and team screens, end-to-end](task-10-screens-e2e.md) | mid | 9 | 10A 10B | done |
 

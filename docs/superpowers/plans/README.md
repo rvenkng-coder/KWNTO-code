@@ -7,7 +7,7 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 | # | Plan | Design build step | Depends on | Status |
 |---|---|---|---|---|
 | 1 | [Foundation and real-time spike](2026-11-11-foundation/README.md) | 1 | none | done |
-| 2 | [Accounts and teams](2026-11-12-accounts-teams/README.md) | 1 | 1 | planned |
+| 2 | [Accounts and teams](2026-11-12-accounts-teams/README.md) | 1 | 1 | in progress |
 | 3 | Editor core | 1 | 2 | outline |
 | 4 | Offline queue, sync and conflicts | 1 | 3 | outline |
 | 5 | Media upload, quota and strict file checks | 1 | 3 | outline |
@@ -19,6 +19,31 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 
 If time runs out, cut from the bottom (design section 11). Plans 8 to 10 are the first to go.
 
+## Carried over from Plan 2
+
+Found by the whole-branch review and the scripted walk of Task 10 (2026-11-13), and left out of Plan 2 on purpose. Each item names the plan whose task list it joins; when that plan is written, these go in as tasks, not as a separate plan. The source is `.planning/2026-11-12-accounts-teams/progress.md`.
+
+**Plan 3 (editor core), first tasks, because every later screen builds on them**
+
+| Item | What and why | Tier |
+|---|---|---|
+| App shell and styling | The app is unstyled HTML today (Tailwind is imported, no class is used). Decide the layout, spacing and theme tokens (light and dark, design 6) once, then restyle the sign-in, sign-up and teams screens with them. Includes phone width: the email field is cut off at 390 px. Needs a decision on how components share styles before any screen is restyled. | strong decides, local builds |
+| Team screen polish | After Delete team the deleted team stays in the owner's list for a moment (delete through `useTeams.remove` so the list updates before leaving the detail screen); the team detail heading says "Team" instead of the team's name, and fetches the team list again for the owner flag (pass the `Team` from the list into `TeamDetail`); "Joined successfully!" stays on screen; the sign-up form stays filled after "Check your email" (show a plain confirmation instead). | local |
+| Resend verification | A signed-in unverified user has no way to ask for another email (`backend.auth.requestVerification` exists, nothing calls it). Add the button to the gate text, and make Join and Accept show the same gate text as Create team instead of the server's wording. | local |
+| Auth store listeners | `backend.auth.onChange` holds one listener (a second silently replaces the first) and does not notice a sign-in in another tab. Make it a set of listeners and update on every store change. Unit tests with a fake `pb`. | local |
+| Keyboard and labels | Plan 2 fixed teams opening from the keyboard and the join and invite labels. Check the rest of the account screens: the "Sign up", "Sign in" and "Forgot password?" links are `<a href="#">` acting as buttons; error text uses `role="alert"` everywhere. | local |
+| e2e flake | `wrong code and regenerate` failed once on Firefox (no error within 5 s) in about 7 full runs. Repeat it under load, find the cause (slow join response? ordering of the regenerate?) and fix the test or the code. Never raise the timeout to hide it. | strong |
+
+**Plan 6 (deployment)**
+
+| Item | What and why |
+|---|---|
+| Rate limiter and trusted proxy | Enable PocketBase's built-in rate limiter (at least the `*:auth` rule) and set `trustedProxy`, so parallel wrong-password guesses cannot beat the lockout and the lockout counts per IP behind Caddy (developer decision 2026-11-13: handle it with the reverse proxy). Already listed in the outline; keep it. |
+| Real mail | Nobody has tested a real verification or password-reset email. Set up SMTP (Gmail app password), then walk sign-up, verification and reset by hand with an address typed with capitals (a reset typed with capitals once sent no mail). |
+| Unknown-email timing | PocketBase answers an unknown email faster than a known one (it skips the password hash). Accepted while internal; add one line to `docs/security.md` section 3 and re-judge before going public. |
+
+**Before Plan 3 starts (not a plan task):** the local-AI quality tooling (design `docs/superpowers/specs/2026-11-13-local-ai-quality-design.md`, on branch `docs/local-ai-quality-design`, not merged yet) (test strategy, project test plan, `check:task`), which the developer scheduled for after Plan 2, and a person's click-through of Plan 2's Task 10 (Step 8).
+
 ## Outlines
 
 Each outline lists the goal, what must be decided before the detailed plan, and the constraints already fixed elsewhere. They are not tasks.
@@ -27,6 +52,7 @@ Each outline lists the goal, what must be decided before the detailed plan, and 
 Sign-up with verification and password rules, sign-in protection (lockout, block, lockdown), the security log, incident controls, teams with join code and invites, and the sign-in and team screens. Settings tables for system, user and team scope. [Detailed plan](2026-11-12-accounts-teams/README.md).
 
 ### 3. Editor core
+**Carried in from Plan 2:** the app shell and styling, team screen polish, resend verification, auth store listeners, keyboard and labels, and the e2e flake (see [Carried over from Plan 2](#carried-over-from-plan-2)); do these first.
 **Goal:** projects, chapters, canvas, nodes, connections (including cross-chapter links), properties panel (script lines, cues), search, undo/redo, copy/paste, multi-select, minimap, light and dark themes, saving per attribute.
 **Fixed already:** every concurrently edited collection (nodes, script lines, cues, connections, project settings) gets a `version` field and the guarded write from [decision 0002](../../decisions/0002-realtime-spike.md); the client treats HTTP 409 as normal flow (re-read, re-apply own field, retry, bounded). Canvas performance code needs `PERF:` comments. Only `src/backend/` imports `pocketbase`.
 **Decide first:** how the guarded write hook is shared between collections; the decimal `sort_order` scheme for lines; undo history depth; `project_settings` (created with each project, rows made by a hook as in Plan 2).
@@ -45,6 +71,7 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 **Risks:** large uploads through Funnel; quota race when two uploads arrive together.
 
 ### 6. Deployment
+**Carried in from Plan 2:** the rate limiter and trusted proxy, a real-mail walk, and the unknown-email timing note (see [Carried over from Plan 2](#carried-over-from-plan-2)).
 **Goal:** Docker Compose with PocketBase, Caddy and Tailscale Funnel; backups with a restore test; first-run guide; incident runbook finished.
 **Fixed already:** the admin dashboard and admin API paths are blocked on the public address, including `/api/kwnto/admin/` from Plan 2; non-root, no privileged mode, secrets in `.env`; PocketBase's built-in rate limiter is enabled (at least the `*:auth` rule, which covers auth-with-password), because the sign-in lockout cannot stop guesses sent in parallel (see [security.md](../../security.md) section 3); data in volumes; real-time checked through Funnel; total disk-usage warning.
 **Decide first:** backup destination and default schedule; the SMTP setup guide (Gmail app password).

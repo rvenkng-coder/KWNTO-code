@@ -39,6 +39,8 @@ See the [design](docs/superpowers/specs/2026-11-11-kwnto-design.md) and [ERD](do
 | `npm run lint` | ESLint + PERF comment check + docs link check + plan check |
 | `npm run check:plan` | Task files of opted-in plans have a tier, Interfaces and a valid Test plan block |
 | `npm run check:hygiene` | New tests have a header comment; nothing skipped or focused; no test or assertion lost against `main` |
+| `npm run check:quality` | Function length, complexity, nesting, parameter and console limits on files changed since `main` |
+| `npm run report:quality` | The same limits over the whole repository, counts only, exit 0 |
 | `npm run typecheck` | `tsc -b --noEmit` |
 | `npm run dev` | Vite dev server |
 | `npm run dev:backend` | PocketBase in Docker |

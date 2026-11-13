@@ -3,14 +3,6 @@ import type { Team, TeamMember, TeamSettings, Invite } from './types'
 import { toBackendError, createBackendError } from './errors'
 import { toTeam, toTeamMember, toInvite } from './mappers'
 
-function toPlain(record: { get: (key: string) => unknown }): Record<string, unknown> {
-  const obj: Record<string, unknown> = {}
-  for (const key of Object.keys(record)) {
-    obj[key] = (record as Record<string, unknown>)[key]
-  }
-  return obj
-}
-
 export function createTeams(pb: PocketBase) {
   async function wrapped<T>(fn: () => Promise<T>): Promise<T> {
     try {
@@ -27,14 +19,11 @@ export function createTeams(pb: PocketBase) {
         if (!userId) return []
         const members = await pb
           .collection('team_members')
-          .getFullList({ filter: pb.filter('user = {:user}', { user: userId }), perPage: 100 })
-        const teams: Team[] = []
-        for (const m of members) {
-          const teamId = (m as Record<string, unknown>).team as string
-          const team = await pb.collection('teams').getOne(teamId, { expand: 'owner' })
-          teams.push(toTeam(team as Record<string, unknown>, userId))
-        }
-        return teams
+          .getFullList({ filter: pb.filter('user = {:user}', { user: userId }), expand: 'team', perPage: 100 })
+        return members
+          .map((m) => ((m as Record<string, unknown>).expand as Record<string, unknown> | undefined)?.team as Record<string, unknown> | undefined)
+          .filter((team): team is Record<string, unknown> => team !== undefined)
+          .map((team) => toTeam(team, userId))
       })
     },
 
@@ -60,7 +49,7 @@ export function createTeams(pb: PocketBase) {
         const rows = await pb
           .collection('team_members')
           .getFullList({ filter: pb.filter('team = {:team}', { team: teamId }), perPage: 100 })
-        return rows.map(r => toTeamMember(toPlain(r as unknown as { get: (key: string) => unknown })))
+        return rows.map(r => toTeamMember(r as Record<string, unknown>))
       })
     },
 
@@ -75,7 +64,7 @@ export function createTeams(pb: PocketBase) {
         const settings = await pb
           .collection('team_settings')
           .getFirstListItem(pb.filter('team = {:team}', { team: teamId }))
-        const plain = toPlain(settings as unknown as { get: (key: string) => unknown })
+        const plain = settings as Record<string, unknown>
         return {
           joinCode: plain.join_code as string,
           joinCodeEnabled: plain.join_code_enabled === true,
@@ -93,20 +82,24 @@ export function createTeams(pb: PocketBase) {
     },
 
     async regenerateJoinCode(teamId: string): Promise<string> {
-      const resp = await pb.send<{ join_code: string }>(
-        `/api/kwnto/teams/${encodeURIComponent(teamId)}/regenerate-code`,
-        { method: 'POST' },
-      )
-      return resp.join_code
+      return wrapped(async () => {
+        const resp = await pb.send<{ join_code: string }>(
+          `/api/kwnto/teams/${encodeURIComponent(teamId)}/regenerate-code`,
+          { method: 'POST' },
+        )
+        return resp.join_code
+      })
     },
 
     async join(code: string): Promise<Team> {
-      const resp = await pb.send<{ team: string; name: string }>(
-        '/api/kwnto/teams/join',
-        { method: 'POST', body: { code } },
-      )
-      const team = await pb.collection('teams').getOne(resp.team)
-      return toTeam(team as Record<string, unknown>, pb.authStore.record?.id ?? '')
+      return wrapped(async () => {
+        const resp = await pb.send<{ team: string; name: string }>(
+          '/api/kwnto/teams/join',
+          { method: 'POST', body: { code } },
+        )
+        const team = await pb.collection('teams').getOne(resp.team)
+        return toTeam(team as Record<string, unknown>, pb.authStore.record?.id ?? '')
+      })
     },
 
     async invite(teamId: string, email: string): Promise<void> {
@@ -122,18 +115,20 @@ export function createTeams(pb: PocketBase) {
       return wrapped(async () => {
         const rows = await pb
           .collection('team_invites')
-          .getFullList({ filter: pb.filter('invitee = {:user}', { user: pb.authStore.record?.id ?? '' }), perPage: 100 })
-        return rows.map(r => toInvite(toPlain(r as unknown as { get: (key: string) => unknown })))
+          .getFullList({ filter: pb.filter('invited_user = {:user}', { user: pb.authStore.record?.id ?? '' }), perPage: 100 })
+        return rows.map(r => toInvite(r as Record<string, unknown>))
       })
     },
 
     async acceptInvite(inviteId: string): Promise<Team> {
-      const resp = await pb.send<{ team: string; name: string }>(
-        `/api/kwnto/invites/${encodeURIComponent(inviteId)}/accept`,
-        { method: 'POST' },
-      )
-      const team = await pb.collection('teams').getOne(resp.team)
-      return toTeam(team as Record<string, unknown>, pb.authStore.record?.id ?? '')
+      return wrapped(async () => {
+        const resp = await pb.send<{ team: string; name: string }>(
+          `/api/kwnto/invites/${encodeURIComponent(inviteId)}/accept`,
+          { method: 'POST' },
+        )
+        const team = await pb.collection('teams').getOne(resp.team)
+        return toTeam(team as Record<string, unknown>, pb.authStore.record?.id ?? '')
+      })
     },
 
     async declineInvite(inviteId: string): Promise<void> {

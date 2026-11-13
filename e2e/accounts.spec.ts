@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // Protects: sign-up and verification gate — a new account is unverified;
 // the verification gate blocks team creation until the account is verified.
 import { test, expect } from '@playwright/test'
@@ -98,7 +97,7 @@ test('wrong code and regenerate', async ({ page }) => {
   await page.getByLabel('Password').fill('KwntoPass99')
   await page.getByRole('button', { name: 'Sign in' }).click()
   await page.evaluate(() => {
-    (window as any).backend.teams.create('Crew')
+    window.backend.teams.create('Crew')
   })
   await page.waitForTimeout(500)
   // Wrong code
@@ -124,7 +123,7 @@ test('invite flow', async ({ page, browser }) => {
   await page.getByLabel('Password').fill('KwntoPass99')
   await page.getByRole('button', { name: 'Sign in' }).click()
   await page.evaluate(() => {
-    (window as any).backend.teams.create('Crew')
+    window.backend.teams.create('Crew')
   })
   await page.waitForTimeout(500)
   // Invitee
@@ -167,7 +166,7 @@ test('remove and delete', async ({ page, browser }) => {
   await page.getByLabel('Password').fill('KwntoPass99')
   await page.getByRole('button', { name: 'Sign in' }).click()
   await page.evaluate(() => {
-    (window as any).backend.teams.create('Crew')
+    window.backend.teams.create('Crew')
   })
   await page.waitForTimeout(500)
   // Member
@@ -204,7 +203,7 @@ test('only owner sees owner controls', async ({ page, browser }) => {
   await page.getByLabel('Password').fill('KwntoPass99')
   await page.getByRole('button', { name: 'Sign in' }).click()
   await page.evaluate(() => {
-    (window as any).backend.teams.create('Crew')
+    window.backend.teams.create('Crew')
   })
   await page.waitForTimeout(500)
   // Member

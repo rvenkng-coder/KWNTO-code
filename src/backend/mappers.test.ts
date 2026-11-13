@@ -21,7 +21,7 @@ test('toTeam sets isOwner when owner matches userId', () => {
 })
 
 test('toTeamMember reads user_name copy', () => {
-  const record: Record<string, unknown> = { id: 'm1', user_id: 'u1', user_name: 'Alice', role: 'member' }
+  const record: Record<string, unknown> = { id: 'm1', user: 'u1', user_name: 'Alice', role: 'member' }
   const result = toTeamMember(record)
   expect(result).toEqual({ id: 'm1', userId: 'u1', name: 'Alice', role: 'member' })
 })

@@ -20,7 +20,7 @@ export function toTeam(record: Record<string, unknown>, userId: string): Team {
 export function toTeamMember(record: Record<string, unknown>): TeamMember {
   return {
     id: record.id as string,
-    userId: record.user_id as string,
+    userId: record.user as string,
     name: (record.user_name as string) ?? '',
     role: (record.role as 'owner' | 'member') ?? 'member',
   }

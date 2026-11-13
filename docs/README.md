@@ -18,6 +18,8 @@
 | **Developer** | [quality-limits.md](developer/quality-limits.md) | Function length, complexity and other limits on changed files, `check:quality` |
 | **Developer** | [check-task.md](developer/check-task.md) | `check:task`, the self-check every task ends with, and how to read its report |
 | **Developer** | [local-model-runbook.md](developer/local-model-runbook.md) | Handing a task to the local model: ping the server, start the run, check the result, when to escalate |
+| **Developer** | [prepare-local-run.md](developer/prepare-local-run.md) | `prepare-local-run`: builds the sandbox and prompt for one local-model checkpoint and prints the command to start it |
+| **Developer** | [review-sampling.md](developer/review-sampling.md) | Which local-model tasks get a person's review, and the escape rate |
 | **Developer** | [lint.md](developer/lint.md) | Lint configuration |
 | **Developer** | [local-model-notes.md](developer/local-model-notes.md) | Notes for local model usage |
 | **Decisions** | [0001-toolchain.md](decisions/0001-toolchain.md) | Toolchain decisions |

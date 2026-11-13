@@ -29,6 +29,17 @@ cd <sandbox> && little-coder -p --session-dir <run dir>/session --skill .pi/skil
 
 The skill repeats the rules of the prompt on purpose: the prompt carries this task's values (paths, baseline commit), the skill carries the rules that never change. Edit the skill when a run shows the model breaking a rule; keep it under about 50 lines, because a small model follows a short list better than a long one.
 
+## Sub-coders (`dispatch`) and the one model slot
+
+`little-coder` has a built-in `dispatch` tool that starts read-only child sessions for research. Facts, checked 2026-11-13 against this machine's server and the installed `little-coder`:
+
+- The `coder` model has **one slot**. Two requests at once do not fail; the second waits for the first (about twice the time in a test), so parallel children give no speedup.
+- Children run **one at a time by default**; `LITTLE_CODER_SUBCODER_CONCURRENCY` raises that. Leave it unset.
+- Each child is a separate process with **its own empty context**: it sees only the task text it is given, never the main session's history, the `local-task` skill, `AGENTS.md` or the probe rule. Only its final answer comes back.
+- Children are **read-only** unless `LITTLE_CODER_SUBCODER_ACCESS=write` is set. Leave it unset: all edits stay in the main session, which follows the skill and ends with `check:task`.
+- A child's reads show up in the session log only inside the one `dispatch` call, so a read of `tests/probes/` by a child is easy to miss. Tell the model not to dispatch anything about `tests/probes/`, and look inside `dispatch` calls when you read the log.
+- The extension `pi-subagents` (full-tool subagents through `pi-tasks`, `TaskExecute`) is not installed for `little-coder` here. Do not rely on it.
+
 ## The one-minute check
 
 About a minute after the start, look for a session file in the `--session-dir`. If there is none:

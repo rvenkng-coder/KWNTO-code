@@ -20,7 +20,7 @@ Part of the [plan](README.md). **Read the router first:** its Global Constraints
 
 **If interrupted:** nothing leaves state outside the working tree.
 
-<!-- Required when the tier (or any checkpoint tier) is local; delete this block for strong and mid tasks. check:plan checks the five parts. Keep it before "## Test plan". -->
+<!-- Required when the tier (or any checkpoint tier) is local; delete this block for strong and mid tasks. check:plan checks the five parts. Put it before "## Test plan". -->
 ## Sized for the local model
 **May touch:** `scripts/example.ts`, `scripts/example.test.ts` (exhaustive: no other file)
 **Must not change:** the signature of `example`, and every existing test

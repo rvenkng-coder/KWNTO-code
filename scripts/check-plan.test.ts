@@ -99,6 +99,14 @@ describe('checkTaskFile', () => {
     expect(checkTaskFile('t.md', commented).join('\n')).toMatch(/Sized for the local model/)
   })
 
+  // Protects the local-tier rule: a heading inside a code fence is an example, not the block.
+  test('a block heading only inside a code fence does not count, and the block may sit after the Test plan', () => {
+    const fenced = VALID_TASK.replace(LOCAL_BLOCK, '```\n' + LOCAL_BLOCK + '```\n\n')
+    expect(checkTaskFile('t.md', fenced).join('\n')).toMatch(/Sized for the local model/)
+    const after = VALID_TASK.replace(LOCAL_BLOCK, '') + '\n\n' + LOCAL_BLOCK
+    expect(checkTaskFile('t.md', after)).toEqual([])
+  })
+
   // Protects Review Focus 4: problems inside the block reach the caller with the file path.
   test('Test plan problems are reported with the file path', () => {
     const problems = checkTaskFile('t.md', VALID_TASK.replace('### Flow', '### Flows'))

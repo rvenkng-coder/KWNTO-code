@@ -9,7 +9,7 @@ Every task file in a plan written under the `test-plan-v1` standard carries a Te
 | Tier | A line `**Model tier:** strong`, `mid` or `local` | Required. A per-checkpoint line `**Checkpoint 2B tier:** local` is optional, and its value must be a tier name too |
 | Interfaces | A line or block starting `**Interfaces:**` | Required. Write `none` if there are none |
 | Test plan | The `## Test plan` block below | Required |
-| Sized for the local model | A `## Sized for the local model` block before `## Test plan` | Required when the task tier, or any checkpoint tier, is `local`; see below |
+| Sized for the local model | A `## Sized for the local model` block | Required when the task tier, or any checkpoint tier, is `local`; see below |
 
 ## The block
 
@@ -33,7 +33,7 @@ text of what the implementer pastes
 
 ## The local-tier block
 
-A task whose `**Model tier:**` is `local`, or that has a `**Checkpoint <id> tier:** local` line, must carry a block headed `## Sized for the local model` (once, before `## Test plan`; whole-line HTML comments are ignored). It has five parts, each non-empty:
+A task whose `**Model tier:**` is `local`, or that has a `**Checkpoint <id> tier:** local` line, must carry a block headed `## Sized for the local model` (once; its position in the file is not enforced, though the template puts it before `## Test plan`; whole-line HTML comments and anything inside a code fence are ignored, so a heading in an example does not count). It has five parts, each non-empty:
 
 ```
 ## Sized for the local model

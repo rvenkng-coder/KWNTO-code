@@ -25,7 +25,11 @@ function localBlockProblems(markdown: string, tier: string | null): string[] {
   const text = markdown.replaceAll('\r\n', '\n')
   const local = tier === 'local' || /^\*\*Checkpoint \S+ tier:\*\*[ \t]*local\b/m.test(text)
   if (!local) return []
-  const lines = text.split('\n').filter((line) => !/^\s*<!--.*-->\s*$/.test(line))
+  let fenced = false
+  const lines = text.split('\n').filter((line) => {
+    if (/^\s*(```|~~~)/.test(line)) { fenced = !fenced; return false }
+    return !fenced && !/^\s*<!--.*-->\s*$/.test(line)
+  })
   const starts = lines.flatMap((line, index) => (line.trimEnd() === LOCAL_HEADING ? [index] : []))
   const missing = `a local-tier task needs the "${LOCAL_HEADING}" block (see TASK-TEMPLATE.md)`
   if (starts.length === 0) return [missing]

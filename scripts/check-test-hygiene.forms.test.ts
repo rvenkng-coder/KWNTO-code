@@ -65,7 +65,7 @@ describe('declaration forms', () => {
 
   // Protects the header rule's scope: a commented-out test line is not a test and needs no header.
   test('a commented-out test line is not a declaration, but code after a block comment is', () => {
-    const source = lines("// test('a', () => {})", " * it('b')", "/* test('c') */", "const s = \"it('d')\"")
+    const source = lines("// test('a', () => {})", '/*', " * it('b')", ' */', "/* test('c') */", "const s = \"it('d')\"")
     expect(checkSource('a.test.ts', source, null)).toEqual([])
     expect(rules(checkSource('a.test.ts', lines("/* x */ it('e', () => {})"), null))).toEqual(['header'])
   })

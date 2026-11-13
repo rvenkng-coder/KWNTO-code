@@ -4,6 +4,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parseTaskMeta, parseTestPlan } from './lib/test-plan.ts'
+import { isMain } from './lib/is-main.ts'
 
 const PLANS_DIR = 'docs/superpowers/plans'
 const STANDARD_LINE = /^\*\*Standard:\*\* test-plan-v1[ \t]*$/m
@@ -57,7 +58,7 @@ export function defaultPlanFolders(root: string = PLANS_DIR): string[] {
     })
 }
 
-if (import.meta.filename === process.argv[1]) {
+if (isMain(import.meta.filename)) {
   const requested = process.argv.slice(2)
   let folders: string[]
   try {

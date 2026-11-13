@@ -21,7 +21,7 @@ export interface BreakDeps {
 }
 export interface BreakResult { id: string; status: 'caught' | 'survived' | 'invalid'; detail: string }
 export function applyBreak(source: string, find: string, replace: string): string | null  // null unless `find` occurs exactly once
-export function isBreakablePath(path: string): boolean  // under src/, scripts/ or backend/pb_hooks/lib/; not a test file; no ".." segment; not absolute
+export { isBreakablePath } from './test-plan.ts'   // defined and tested in Task 2; re-exported here so callers import one module
 export async function runBreaks(breaks: BreakRow[], deps: BreakDeps): Promise<{ baselinePassed: boolean; results: BreakResult[] }>
 ```
 
@@ -33,7 +33,7 @@ export async function runBreaks(breaks: BreakRow[], deps: BreakDeps): Promise<{ 
 
 ## Checkpoint 5A: the logic
 
-- [ ] **Step 1: Write failing tests** `scripts/lib/breaks.test.ts` (a fake in-memory `BreakDeps`): `applyBreak replaces a single occurrence`; `applyBreak returns null for zero and for two occurrences`; `applyBreak treats find as literal text, not a regular expression ($, ., ( are literal)`; `a replace containing $& is inserted literally`; `isBreakablePath accepts src/a.ts, scripts/x.ts, backend/pb_hooks/lib/y.js and rejects tests/x.ts, src/a.test.ts, ../x.ts, /etc/passwd, backend/pb_hooks/users-signup.pb.js (a hook is covered by rule tests, design 6.3)`; `a failing baseline applies no break and writes nothing`; `a caught break restores the file`; `a surviving break is reported and the file is restored`; `runTests throwing still restores the file and rethrows`; `an invalid break (find twice) writes nothing`; `each break runs only its own named tests`; `the restored content is byte-identical (including CRLF and no trailing newline)`; `two breaks on the same file do not compound (the second starts from the original)`.
+- [ ] **Step 1: Write failing tests** `scripts/lib/breaks.test.ts` (a fake in-memory `BreakDeps`): `applyBreak replaces a single occurrence`; `applyBreak returns null for zero and for two occurrences`; `applyBreak treats find as literal text, not a regular expression ($, ., ( are literal)`; `a replace containing $& is inserted literally`; `runBreaks marks a break on a non-breakable path (tests/x.ts, a hook such as backend/pb_hooks/users-signup.pb.js, ../x.ts) invalid and writes nothing`; `a failing baseline applies no break and writes nothing`; `a caught break restores the file`; `a surviving break is reported and the file is restored`; `runTests throwing still restores the file and rethrows`; `an invalid break (find twice) writes nothing`; `each break runs only its own named tests`; `the restored content is byte-identical (including CRLF and no trailing newline)`; `two breaks on the same file do not compound (the second starts from the original)`.
 - [ ] **Step 2: Run** `npx vitest run --project unit scripts/lib/breaks.test.ts`; FAIL. **Step 3: Implement** `scripts/lib/breaks.ts`. **Step 4: Run**; PASS. **Step 5: Close checkpoint 5A** (commit `feat: deliberate breaks logic`).
 
 ## Checkpoint 5B: the command

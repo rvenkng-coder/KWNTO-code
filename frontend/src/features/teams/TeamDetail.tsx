@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { backend } from '../../backend'
-import type { TeamMember, TeamSettings } from '../../backend/types'
+import type { TeamMember, TeamSettings, Team } from '../../backend/types'
+import { navigate } from '../shell/useRoute'
+import { useTeams } from './useTeams'
 import { InviteForm } from './InviteForm'
 import { MemberList, JoinCodeRow } from './TeamParts'
 import { errorMessage } from '../errorMessage'
@@ -10,21 +12,70 @@ interface TeamDetailProps {
   onBack: () => void
 }
 
+function OwnerPanel({
+  teamId,
+  settings,
+  onDelete,
+  onToggle,
+  onRegenerate,
+}: {
+  teamId: string
+  settings: TeamSettings | null
+  onDelete: () => void
+  onToggle: (enabled: boolean) => void
+  onRegenerate: (code: string) => void
+}) {
+  return (
+    <div className="panel flex flex-col gap-3">
+      <h3>Join Code</h3>
+      {settings && (
+        <JoinCodeRow
+          settings={settings}
+          onToggle={async () => {
+            try {
+              const newEnabled = !settings.joinCodeEnabled
+              await backend.teams.setJoinCodeEnabled(teamId, newEnabled)
+              onToggle(newEnabled)
+            } catch {
+              // server will surface the error
+            }
+          }}
+          onRegenerate={async () => {
+            try {
+              const newCode = await backend.teams.regenerateJoinCode(teamId)
+              onRegenerate(newCode)
+            } catch {
+              // server will surface the error
+            }
+          }}
+        />
+      )}
+      <InviteForm teamId={teamId} />
+      <button className="btn-danger self-start" onClick={onDelete}>Delete team</button>
+    </div>
+  )
+}
+
 export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
   const [members, setMembers] = useState<TeamMember[]>([])
   const [settings, setSettings] = useState<TeamSettings | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isOwner, setIsOwner] = useState(false)
   const [loaded, setLoaded] = useState(false)
+  const [team, setTeam] = useState<Team | null>(null)
 
   useEffect(() => {
     async function load() {
       try {
+        const teamsState = useTeams.getState()
+        if (teamsState.teams.length === 0) {
+          await teamsState.list()
+        }
+        const found = useTeams.getState().teams.find((t) => t.id === teamId)
+        setTeam(found ?? null)
+        setIsOwner(found?.isOwner ?? false)
         setMembers(await backend.teams.members(teamId))
-        const teams = await backend.teams.list()
-        const team = teams.find((t) => t.id === teamId)
-        setIsOwner(team?.isOwner ?? false)
-        if (team?.isOwner) {
+        if (found?.isOwner) {
           const settingsData = await backend.teams.settings(teamId)
           setSettings(settingsData)
         }
@@ -36,62 +87,39 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
     }
     load()
   }, [teamId])
-
   const handleRemoveMember = async (memberId: string) => {
     try {
       await backend.teams.removeMember(memberId)
-      const membersList = await backend.teams.members(teamId)
-      setMembers(membersList)
+      setMembers(await backend.teams.members(teamId))
     } catch (err: unknown) {
       setError(errorMessage(err, 'Failed to remove member'))
     }
   }
-
-  const handleRegenerateCode = async () => {
-    try {
-      const newCode = await backend.teams.regenerateJoinCode(teamId)
-      setSettings((s) => (s ? { ...s, joinCode: newCode } : null))
-    } catch (err: unknown) {
-      setError(errorMessage(err, 'Failed to regenerate code'))
-    }
-  }
-
   const handleDeleteTeam = async () => {
     if (confirm('Delete this team?')) {
       try {
-        await backend.teams.remove(teamId)
-        onBack()
+        await useTeams.getState().remove(teamId)
+        navigate({ name: 'teams' })
       } catch (err: unknown) {
         setError(errorMessage(err, 'Failed to delete team'))
       }
     }
   }
 
-  const handleToggleJoinCode = async () => {
-    try {
-      const newEnabled = !settings?.joinCodeEnabled
-      await backend.teams.setJoinCodeEnabled(teamId, newEnabled)
-      setSettings((s) => (s ? { ...s, joinCodeEnabled: newEnabled } : null))
-    } catch (err: unknown) {
-      setError(errorMessage(err, 'Failed to toggle join code'))
-    }
-  }
-
   return (
     <div className="flex flex-col gap-3">
       <button className="btn self-start" onClick={onBack}>← Back</button>
-      <h2>Team</h2>
+      <h2>{team?.name ?? 'Team'}</h2>
       {error && <p data-testid="form-error" role="alert">{error}</p>}
       <MemberList members={members} isOwner={isOwner} loaded={loaded} onRemove={handleRemoveMember} />
       {isOwner && (
-        <div className="panel flex flex-col gap-3">
-          <h3>Join Code</h3>
-          {settings && (
-            <JoinCodeRow settings={settings} onToggle={handleToggleJoinCode} onRegenerate={handleRegenerateCode} />
-          )}
-          <InviteForm teamId={teamId} />
-          <button className="btn-danger self-start" onClick={handleDeleteTeam}>Delete team</button>
-        </div>
+        <OwnerPanel
+          teamId={teamId}
+          settings={settings}
+          onDelete={handleDeleteTeam}
+          onToggle={(enabled) => setSettings((s) => (s ? { ...s, joinCodeEnabled: enabled } : null))}
+          onRegenerate={(code) => setSettings((s) => (s ? { ...s, joinCode: code } : null))}
+        />
       )}
     </div>
   )

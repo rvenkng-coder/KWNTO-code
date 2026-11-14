@@ -3,12 +3,11 @@ import { useTeams } from './useTeams'
 
 export function JoinByCodeForm() {
   const [code, setCode] = useState('')
-  const [joined, setJoined] = useState(false)
+  const notice = useTeams((s) => s.notice)
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault()
     const ok = await useTeams.getState().join(code)
-    setJoined(ok)
     if (ok) setCode('')
   }
 
@@ -19,15 +18,12 @@ export function JoinByCodeForm() {
         className="field"
         type="text"
         value={code}
-        onChange={(e) => {
-          setCode(e.target.value)
-          setJoined(false)
-        }}
+        onChange={(e) => setCode(e.target.value)}
         aria-label="Join code"
         placeholder="Join code"
       />
       <button type="submit" className="btn">Join</button>
-      {joined && <p>Joined successfully!</p>}
+      {notice && <p>{notice}</p>}
     </form>
   )
 }

@@ -1,24 +1,43 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useSession } from './useSession'
 
 const PASSWORD_RULES =
   'At least 10 characters, with a letter and a number. Very common passwords are rejected.'
 
-export function SignUpForm() {
+interface SignUpFormProps {
+  onSignIn: () => void
+}
+
+export function SignUpForm({ onSignIn }: SignUpFormProps) {
   const { signUp, error } = useSession()
-  const [email, setEmail] = useState('')
-  const [name, setName] = useState('')
-  const [password, setPassword] = useState('')
   const [signedUp, setSignedUp] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const ok = await signUp(email, password, name)
+    const form = formRef.current!
+    const ok = await signUp(
+      (form.elements.namedItem('email') as HTMLInputElement).value,
+      (form.elements.namedItem('password') as HTMLInputElement).value,
+      (form.elements.namedItem('name') as HTMLInputElement).value,
+    )
     if (ok) setSignedUp(true)
   }
 
+  if (signedUp) {
+    return (
+      <div className="panel flex w-full max-w-sm flex-col gap-2">
+        <h2>Sign up</h2>
+        <p>Check your email to verify your account, then sign in.</p>
+        <button type="button" className="btn-primary" onClick={onSignIn}>
+          Sign in
+        </button>
+      </div>
+    )
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="panel flex w-full max-w-sm flex-col gap-2">
+    <form ref={formRef} onSubmit={handleSubmit} className="panel flex w-full max-w-sm flex-col gap-2">
       <h2>Sign up</h2>
       <div>
         <label htmlFor="signup-email">Email</label>
@@ -26,8 +45,7 @@ export function SignUpForm() {
           className="field"
           id="signup-email"
           type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          name="email"
           required
         />
       </div>
@@ -37,8 +55,7 @@ export function SignUpForm() {
           className="field"
           id="signup-name"
           type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          name="name"
           required
         />
       </div>
@@ -48,16 +65,12 @@ export function SignUpForm() {
           className="field"
           id="signup-password"
           type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          name="password"
           required
         />
         <small>{PASSWORD_RULES}</small>
       </div>
       {error && <p data-testid="form-error" role="alert">{error}</p>}
-      {signedUp && !error && (
-        <p>Check your email for a verification link.</p>
-      )}
       <button type="submit" className="btn-primary">Sign up</button>
     </form>
   )

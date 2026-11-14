@@ -27,7 +27,7 @@ export function AuthScreen() {
         </>
       ) : (
         <>
-          <SignUpForm />
+          <SignUpForm onSignIn={() => setView('signin')} />
           <p>
             Already have an account?{' '}
             <a href="#" onClick={(e) => { e.preventDefault(); setView('signin') }}>

@@ -4,7 +4,7 @@
 
 **Goal:** Stand up the KWNTO repo (web app shell, PocketBase container, three test layers, guardrail checks, CI) and run the throwaway real-time test that the data model depends on.
 
-**Architecture:** One npm package at the repo root holds the React app (`src/`), the PocketBase image and migrations (`backend/`), and the tests (`tests/`, `e2e/`). PocketBase runs in Docker for development and tests; the web app reaches it on the same origin (Vite proxies `/api` in development), and only `src/backend/` may import the PocketBase SDK. The real-time spike lives in `spike/realtime/`, isolated from the app, and ends in a written go/no-go decision.
+**Architecture:** One npm package at the repo root holds the React app (`frontend/src/`), the PocketBase image and migrations (`backend/`), and the tests (`tests/`, `e2e/`). PocketBase runs in Docker for development and tests; the web app reaches it on the same origin (Vite proxies `/api` in development), and only `frontend/src/backend/` may import the PocketBase SDK. The real-time spike lives in `spike/realtime/`, isolated from the app, and ends in a written go/no-go decision.
 
 **Tech Stack:** React, TypeScript (strict), Vite, Tailwind CSS, Zustand, `@xyflow/react`, PocketBase v0.40.6 (Docker), `pocketbase` JS SDK, Vitest, Playwright (Firefox and Chromium), ESLint, GitHub Actions, gitleaks.
 
@@ -33,8 +33,8 @@ The design covers several subsystems, so it is split into one plan per subsystem
 - **Tracking:** before Task 1, create `.planning/<date>-foundation/` with `task_plan.md` pointing at this router, `progress.md` and `findings.md`, and commit it. These files are committed with every checkpoint (see "Surviving interruptions").
 - **Browsers:** desktop Firefox and Chrome, current versions.
 - **Strict TypeScript.** No `any`; a justified exception uses `// eslint-disable-next-line @typescript-eslint/no-explicit-any -- <reason>`.
-- **Files are 300 lines or fewer.** Group files by feature under `src/features/<feature>/`.
-- **One door to the backend:** only files under `src/backend/` import `pocketbase`.
+- **Files are 300 lines or fewer.** Group files by feature under `frontend/src/features/<feature>/`.
+- **One door to the backend:** only files under `frontend/src/backend/` import `pocketbase`.
 - **Deny by default:** a PocketBase rule of `null` (superusers only) is the default; `""` (public) is allowed only when named in `PUBLIC_RULES` (Task 5).
 - **Tests are documented:** each test has a comment or title saying what behavior it protects and why. Never edit a failing test to make it pass.
 - **The prototype `branching_narrative_tool.tsx` is reference only.** Copy no code from it.

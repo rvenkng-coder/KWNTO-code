@@ -1,7 +1,8 @@
 // Checks docs/engineering.md section 1: every PERF: comment must hold What:, Why: and Trade-off:.
-// Run directly (node scripts/check-perf-comments.ts) it checks every .ts/.tsx file under src/.
+// Run directly (node scripts/check-perf-comments.ts) it checks every .ts/.tsx file under frontend/src/.
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { isMain } from './lib/is-main.ts'
 
 const REQUIRED_PARTS = ['What:', 'Why:', 'Trade-off:']
 
@@ -60,9 +61,9 @@ function sourceFiles(dir: string): string[] {
     .map((file) => join(dir, file))
 }
 
-if (import.meta.filename === process.argv[1]) {
+if (isMain(import.meta.filename)) {
   let problems = 0
-  for (const file of sourceFiles('src')) {
+  for (const file of sourceFiles('frontend/src')) {
     for (const line of findBadPerfComments(readFileSync(file, 'utf8'))) {
       console.log(`${file}:${line} PERF comment needs What:, Why: and Trade-off:`)
       problems++

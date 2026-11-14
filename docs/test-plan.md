@@ -1,0 +1,58 @@
+# KWNTO Project Test Plan
+
+Which test layers must cover each feature, and how far each feature is. The layers and their names are defined in [testing-strategy.md](testing-strategy.md) section 2.
+
+## How to read it and who updates it
+
+- **One row per feature**, at feature level. Detailed cases do not belong here (they go stale); they go in each task's Test plan block.
+- **`layers required`** names the layers from the strategy (`unit`, `rules`, `e2e`, `container`, `manual`). For a `covered` row it lists the layers that have tests today.
+- **`status`:** `not started`, `in progress` (a plan is building it) or `covered` (every required layer has a passing test, or a signed-off manual item).
+- **Who updates it:** each plan updates its own rows, and adds rows for features it finds, in the commit that lands the plan. A row says `covered` only when the tests exist.
+- **`design`** is the section of the [design](superpowers/specs/2026-11-11-kwnto-design.md); **`plan`** is the plan number from the [roadmap](superpowers/plans/README.md).
+
+## Feature table
+
+| feature | design | layers required | status | plan |
+|---|---|---|---|---|
+| Sign-up and verification (verified flag forced off, verification gate) | 5, 7c | rules, e2e | covered | 2 |
+| Password rules (sign-up and change; reset by the admin was walked by hand in Plan 2, a reset by mail is M11) | 7c | unit, rules, e2e | covered | 2 |
+| Sign-in and sessions (refresh, reload, sign-out) | 5 | unit, rules, e2e | covered | 2 |
+| Lockout after failed sign-ins | 7c | unit, rules, e2e | covered | 2 |
+| Block and lockdown | 7c | rules | covered | 2 |
+| Incident controls (sign out one or all, runbook) | 7c | rules, manual (runbook walked in Plan 2) | covered | 2 |
+| Teams and members (create, remove, delete, owner-only controls) | 5 | unit, rules, e2e | covered | 2 |
+| Join code (on and off, regenerate, guess limit) | 5 | unit, rules, e2e | covered | 2 |
+| Invites (send, accept, decline, no email leak, shared limit) | 5 | unit, rules, e2e | covered | 2 |
+| Security log and its retention | 6.9 | unit, rules | covered | 2 |
+| Per-user and system settings | 7c | unit, rules | covered | 2 |
+| Canvas and nodes (connections, cross-chapter links, start node, end and unreachable markers, undo/redo, copy/paste, multi-select, minimap, search) | 6.1 | unit, rules, e2e | not started | 3 |
+| Properties panel: script lines, cues, lighting notes | 6.2 | unit, rules, e2e | not started | 3 |
+| Properties panel: media upload, quota, strict file checks | 6.2 | unit, rules, e2e | not started | 5 |
+| Chapters | 6.3 | rules, e2e | not started | 3 |
+| Player Mode | 6.4 | unit, e2e, manual | not started | 9 |
+| Path analytics (anonymous per-choice counts) | 6.4 | unit, rules, e2e | not started | 10 |
+| Export (PDF, Word, JPG, PNG) | 6.5 | unit, manual | not started | 8 |
+| Look and feel (light and dark, theme toggle, layout) | 6.6 | e2e, manual | not started | 3 |
+| Offline queue, sync and conflicts | 6.7 | unit, rules, e2e | not started | 4 |
+| Trash and recovery (30 days, restore, purge) | 6.8 | unit, rules, e2e | not started | 7 |
+| Share links (view, comment, edit; live, snapshot; revoke) | 5, 6.9 | rules, e2e | not started | 7 |
+| Project JSON import and export | 8b | unit, e2e | not started | 7 |
+| Project activity history | 6.9 | to be decided | not started | later (no plan) |
+
+## Manual sign-off checklist
+
+Design sections 8 and 8b make this the developer's sign-off sheet. A person runs each item and marks it `done` with the date; until then it is `open`.
+
+| # | Item | Source | Status |
+|---|---|---|---|
+| M1 | Light mode looks as designed (white panels, soft shadows, dot grid, one blue accent) | 6.6, 8b | open |
+| M2 | Dark mode looks as designed (flat solid panels, thin borders, dot grid, one blue accent) | 6.6, 8b | open |
+| M3 | Player Mode slide and fade transitions | 6.4, 8b | open |
+| M4 | PDF export: map legible, current chapter and whole project | 6.5, 8b | open |
+| M5 | Word export: map legible, current chapter and whole project | 6.5, 8b | open |
+| M6 | JPG export: map legible | 6.5, 8b | open |
+| M7 | PNG export: map legible | 6.5, 8b | open |
+| M8 | Every feature in design section 6 tried by hand in Firefox | 8 | open |
+| M9 | Every feature in design section 6 tried by hand in Chrome | 8 | open |
+| M10 | A real verification email arrives and its link verifies the account (once SMTP exists, Plan 6) | Plan 2 | open |
+| M11 | A real password-reset email arrives, also for an address typed with capitals, and its link sets the new password (once SMTP exists, Plan 6) | Plan 2 | open |

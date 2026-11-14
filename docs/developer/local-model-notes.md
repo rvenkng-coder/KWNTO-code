@@ -2,6 +2,8 @@
 
 Notes from two smoke tests of the local coding model on this project (2026-11-12), kept so later work and later projects can plan around its limits. These are two samples, not a benchmark: use them to decide where to be careful, not as proof of what the model can or cannot do.
 
+**To hand a task to the local model, follow the [runbook](local-model-runbook.md).** This page keeps what we learned and why; the runbook is the procedure.
+
 ## The setup
 
 | Part | What it is |
@@ -16,6 +18,8 @@ Run one task without a person at the keyboard:
 ```sh
 little-coder -p --session-dir <dir> "<prompt>"
 ```
+
+For a real task, start with `--skill .pi/skills/local-task` and tell the model to use it: see the [runbook](local-model-runbook.md#starting-it) (the skill is only read when the prompt asks for it).
 
 `--session-dir` keeps the log of every tool call, which is how you check the process afterwards. Add `--no-tools --no-context-files --no-extensions --no-skills` for a quick "does it answer?" check (about 8 s when the model is loaded).
 
@@ -52,18 +56,19 @@ Both runs used a throw-away sandbox: a fresh `git init` of the repo at a known c
 - Write the tests that carry the real quality bar first, including the awkward cases, or have someone else write them. Do not let the model's own tests be the bar.
 - Give a bug report as symptoms plus the cause class ("trailing comments of any kind"), not one example.
 - Tell it to work only inside the sandbox folder and give paths as relative.
-- Check the model server is loaded and answering (`curl localhost:9092/running`, or a one-word prompt) before a long run.
+- Check the model server is loaded and answering before a long run: `npm run ping:model` (it asks `/running` and prints one line; it replaces `curl localhost:9092/running`). A one-word prompt (the `--no-tools` check above) is still the test that the model itself answers.
 
 **While it runs**
 - If there is no session file after about a minute, look at the GPU and the llama-swap slots (`/upstream/coder/slots`) before waiting longer. Kill and restart a run that is alive but idle.
 
 **After it finishes** (grade from your own runs, never from its summary)
-1. Run lint, tests and typecheck yourself.
-2. Confirm no existing test lost a line (`git diff <base> -- <test file>`, look for removed lines).
-3. Run its new tests against the old, buggy code: they must fail where the bugs are.
-4. Run a probe set it was not shown, written to cover the whole class of the bug: other comment forms, line endings, order of items, empty input, two bad items together.
-5. Run any command-line or glue code against deliberately bad input and check the exit code and message.
-6. Read the session log: tests before code? a red that fails for the right reason? any path outside the sandbox? how many tool calls and minutes?
+Steps 1, 2, 3 and 5 are now done by `npm run check:task -- --task <file>` ([check-task.md](check-task.md)); run it yourself and read the full output. Steps 4 and 6 stay with a person.
+1. Run lint, tests and typecheck yourself. *Done by `check:task`: the `lint`, `typecheck` and `unit` steps (and `layers` for rules, e2e or container tests the plan names).*
+2. Confirm no existing test lost a line (`git diff <base> -- <test file>`, look for removed lines). *Done by `check:task`: the `hygiene` step (a lost test or assertion fails).*
+3. Run its new tests against the old, buggy code: they must fail where the bugs are. *Done by `check:task`: the `breaks` step applies the plan's deliberate breaks and each must be caught; the `coverage` step checks the named tests exist.*
+4. Run a probe set it was not shown, written to cover the whole class of the bug: other comment forms, line endings, order of items, empty input, two bad items together. **Still a person's job:** `check:task` runs the task's own probe folder (the `probes` step), but a person should add cases the plan's author did not think of.
+5. Run any command-line or glue code against deliberately bad input and check the exit code and message. *Done by `check:task` only as far as the Test plan has such cases and probes; a command with no bad-input case in its plan is not covered, so look.*
+6. Read the session log: tests before code? a red that fails for the right reason? any path outside the sandbox? how many tool calls and minutes? **Still a person's job:** `check:task` cannot see the session.
 
 **In review, look hardest at** code that decides whether something is allowed or reported. Anything that can pass silently needs a test for the failing input, not only the passing one.
 
@@ -72,6 +77,8 @@ Both runs used a throw-away sandbox: a fresh `git init` of the repo at a known c
 The cases the model missed are in issue 4 on GitHub (cases 8 to 11) and in `docs/developer/lint.md` for the rule they protect. When a new feature has a "check" that scans input, write the same kinds of probe: the form after code on the same line, the second item hidden behind a good first one, and two bad items in one file.
 
 ## Re-running the smoke test
+
+`npm run prepare-local-run` automates steps 1 and 2 and builds the prompt ([prepare-local-run.md](prepare-local-run.md)); the recipe below is what it does.
 
 1. `git archive <commit> | tar -x -C <sandbox>`, then `git init` and one baseline commit in it. Link `node_modules` from the real checkout.
 2. Confirm the baseline: checks clean, existing tests green, the target behaviour absent.

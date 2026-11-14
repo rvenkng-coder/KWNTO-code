@@ -34,6 +34,7 @@ These principles were set by the developer on 2026-11-11. Items marked **(planne
   
   New code can be shorter on explanation. Changed code cannot.
 - **Refactors and behavior changes go in separate commits.**
+- **Changed code stays within the [quality limits](developer/quality-limits.md)** (function length, complexity, nesting, parameters). `npm run check:quality` checks changed files only, so old code is not forced to change.
 - **Never edit a failing test to make it pass.** If a change breaks a passing test, stop and explain why, then decide with the developer whether the code or the test is wrong.
 
 ## 4. Dependencies
@@ -63,6 +64,7 @@ Everything else stays inside the task you were given.
 
 - **Tests are documented.** Each test says what behavior it protects and why it exists. A passing test with no description, or "it works" with no record, is not evidence.
 - Test layers and priorities are in the design, section 8b. Write the test first where the logic is pure.
+- Which layer a change needs, the test conventions and what counts as evidence are in the [test strategy](testing-strategy.md).
 
 ## 7. Git workflow
 

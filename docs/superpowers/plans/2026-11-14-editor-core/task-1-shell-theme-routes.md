@@ -41,10 +41,10 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 1A: Hash routes (local)
 
-- [ ] **Step 1: Write the failing tests** in `frontend/src/features/shell/routes.test.ts` with the titles in the Cases table (C1 to C7). An id is valid only if it is exactly 15 characters from `a-z0-9` (PocketBase ids). Use `abcdefghijk0123` and `zyxwvutsrq98765` as valid ids.
-- [ ] **Step 2: Run** `npx vitest run --project unit frontend/src/features/shell/routes.test.ts`. Expected: FAIL (module not found).
-- [ ] **Step 3: Implement `parseRoute` and `routeToHash`.** Check ids with the constant `const ID = /^[a-z0-9]{15}$/` (break B1 targets it). Split the hash after `#/` on `/`, drop one trailing empty segment.
-- [ ] **Step 4: Run** the same command. Expected: PASS. **Close checkpoint 1A** (commit `feat: hash routes`).
+- [x] **Step 1: Write the failing tests** in `frontend/src/features/shell/routes.test.ts` with the titles in the Cases table (C1 to C7). An id is valid only if it is exactly 15 characters from `a-z0-9` (PocketBase ids). Use `abcdefghijk0123` and `zyxwvutsrq98765` as valid ids.
+- [x] **Step 2: Run** `npx vitest run --project unit frontend/src/features/shell/routes.test.ts`. Expected: FAIL (module not found).
+- [x] **Step 3: Implement `parseRoute` and `routeToHash`.** Check ids with the constant `const ID = /^[a-z0-9]{15}$/` (break B1 targets it). Split the hash after `#/` on `/`, drop one trailing empty segment.
+- [x] **Step 4: Run** the same command. Expected: PASS. **Close checkpoint 1A** (commit `feat: hash routes`).
 
 ## Checkpoint 1B: Tokens, shell and restyled screens
 

@@ -52,12 +52,12 @@ export async function readAsAdmin(collection: string, id: string): Promise<Recor
 
 ## Checkpoint 5B: Three collections, their rules and the guarded update
 
-- [ ] **Step 5: Write the failing rule tests** C5 to C14 in the three collection files and the helpers in `tests/rules/helpers/content.ts`. Each file opens with a header naming design 5 (teams own projects; only the owner deletes a project) and security.md section 2.
-- [ ] **Step 6: Run** `npm run test:rules`. Expected: the new files FAIL.
-- [ ] **Step 7: Write the migration and the two hooks.** `content-guard.pb.js` follows the spike's `spike/realtime/pb_hooks/version.pb.js`, with three changes: the table name comes from `guardedTable(e.record.collection().name)` (never from the request), the version from `parseSentVersion` (null is 400 `version is required`), and the changed fields from `changedFields`. Register it once with all seven names as tags (collections that do not exist yet are simply never matched). `projects.pb.js` follows `teams.pb.js`: `onRecordCreate` on `projects` opens the transaction, calls `e.next()` inside it and saves the settings row and `Chapter 1`.
-- [ ] **Step 8: Confirm the order of checks** in 0.40.6: the update rule must be applied before `onRecordUpdateRequest` runs. C11 and C12 prove it. If they fail because the hook ran first, stop and report: the guard would then have to check access itself, which is a design change.
-- [ ] **Step 9: Run** `npm run test:rules`. Expected: PASS. Then open the `chapters` update rule once (`@request.auth.id != ''`), run, see C11 fail, restore (testing-strategy section 2), and say so in the report.
-- [ ] **Step 10: Close checkpoint 5B** (commit `feat: projects, chapters and project settings with guarded updates`).
+- [x] **Step 5: Write the failing rule tests** C5 to C14 in the three collection files and the helpers in `tests/rules/helpers/content.ts`. Each file opens with a header naming design 5 (teams own projects; only the owner deletes a project) and security.md section 2.
+- [x] **Step 6: Run** `npm run test:rules`. Expected: the new files FAIL.
+- [x] **Step 7: Write the migration and the two hooks.** `content-guard.pb.js` follows the spike's `spike/realtime/pb_hooks/version.pb.js`, with three changes: the table name comes from `guardedTable(e.record.collection().name)` (never from the request), the version from `parseSentVersion` (null is 400 `version is required`), and the changed fields from `changedFields`. Register it once with all seven names as tags (collections that do not exist yet are simply never matched). `projects.pb.js` follows `teams.pb.js`: `onRecordCreate` on `projects` opens the transaction, calls `e.next()` inside it and saves the settings row and `Chapter 1`.
+- [x] **Step 8: Confirm the order of checks** in 0.40.6: the update rule must be applied before `onRecordUpdateRequest` runs. C11 and C12 prove it. If they fail because the hook ran first, stop and report: the guard would then have to check access itself, which is a design change.
+- [x] **Step 9: Run** `npm run test:rules`. Expected: PASS. Then open the `chapters` update rule once (`@request.auth.id != ''`), run, see C11 fail, restore (testing-strategy section 2), and say so in the report.
+- [x] **Step 10: Close checkpoint 5B** (commit `feat: projects, chapters and project settings with guarded updates`).
 
 ## Checkpoint 5C: Concurrency proof and docs
 

@@ -171,10 +171,10 @@ export function createAuth(pb: PocketBase) {
     },
 
     onChange(
-      listenerFn: (user: AuthUser | null) => void,
+      listener: (user: AuthUser | null) => void,
     ): () => void {
-      listeners.add(listenerFn)
-      return () => { listeners.delete(listenerFn) }
+      listeners.add(listener)
+      return () => { listeners.delete(listener) }
     },
   }
 }

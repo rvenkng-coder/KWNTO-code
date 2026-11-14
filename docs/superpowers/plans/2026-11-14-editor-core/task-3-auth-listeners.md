@@ -26,11 +26,11 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 3A: A set of listeners fed by the store
 
-- [ ] **Step 1: Write the failing tests** C1 to C6 in `frontend/src/backend/auth.test.ts`. Use a fake `pb` whose `authStore.onChange` records the callback so the test can fire it (`fire(token, record)`), as a store change from another tab would.
-- [ ] **Step 2: Run** `npx vitest run --project unit frontend/src/backend/auth.test.ts`. Expected: the new tests FAIL, the old ones pass.
-- [ ] **Step 3: Implement.** Keep listeners in `const listeners = new Set<(user: AuthUser | null) => void>()`; `onChange(listener)` runs `listeners.add(listener)` and returns `() => { listeners.delete(listener) }` (breaks B1 and B2 target these two lines, so keep the names). The one `pb.authStore.onChange` callback updates `cached` and calls each listener inside its own `try`/`catch`. Remove the direct `listener?.(...)` calls from `signIn` and `refresh`.
-- [ ] **Step 4: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS (the sign-in, refresh and sign-out flows of Plan 2 still work).
-- [ ] **Step 5: Document** the listener contract in `docs/developer/backend.md`. **Close checkpoint 3A** (commit `fix: auth change listeners are a set fed by the store`).
+- [x] **Step 1: Write the failing tests** C1 to C6 in `frontend/src/backend/auth.test.ts`. Use a fake `pb` whose `authStore.onChange` records the callback so the test can fire it (`fire(token, record)`), as a store change from another tab would.
+- [x] **Step 2: Run** `npx vitest run --project unit frontend/src/backend/auth.test.ts`. Expected: the new tests FAIL, the old ones pass.
+- [x] **Step 3: Implement.** Keep listeners in `const listeners = new Set<(user: AuthUser | null) => void>()`; `onChange(listener)` runs `listeners.add(listener)` and returns `() => { listeners.delete(listener) }` (breaks B1 and B2 target these two lines, so keep the names). The one `pb.authStore.onChange` callback updates `cached` and calls each listener inside its own `try`/`catch`. Remove the direct `listener?.(...)` calls from `signIn` and `refresh`.
+- [x] **Step 4: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS (the sign-in, refresh and sign-out flows of Plan 2 still work).
+- [x] **Step 5: Document** the listener contract in `docs/developer/backend.md`. **Close checkpoint 3A** (commit `fix: auth change listeners are a set fed by the store`).
 
 ## Test plan
 ### Cases

@@ -120,23 +120,23 @@ async function doRefresh(
 
 export function createAuth(pb: PocketBase) {
   const listeners = new Set<(user: AuthUser | null) => void>()
-  let cached: AuthUser | null = null
   // Bumped by every sign-out, so a refresh that was already in flight cannot sign the
   // user back in when its answer arrives (the SDK stores the answer by itself).
   let signOutCount = 0
+  const cache = { value: null as AuthUser | null }
 
   pb.authStore.onChange((_token, record) => {
     if (!record) {
-      cached = null
+      cache.value = null
       notifyAll(listeners, null)
     } else {
-      cached = toAuthUser(record as Record<string, unknown>)
-      notifyAll(listeners, cached)
+      cache.value = toAuthUser(record as Record<string, unknown>)
+      notifyAll(listeners, cache.value)
     }
   })
 
   const currentRef = (): AuthUser | null =>
-    resolveCurrent(pb, { value: cached })
+    resolveCurrent(pb, cache)
 
   return {
     async signUp(email: string, password: string, name: string): Promise<void> {
@@ -147,7 +147,7 @@ export function createAuth(pb: PocketBase) {
       email: string,
       password: string,
     ): Promise<AuthUser> {
-      return doSignIn(pb, { value: cached }, email, password)
+      return doSignIn(pb, cache, email, password)
     },
 
     signOut(): void {
@@ -159,7 +159,7 @@ export function createAuth(pb: PocketBase) {
     current: currentRef,
 
     async refresh(): Promise<AuthUser | null> {
-      return doRefresh(pb, { value: cached }, () => signOutCount, currentRef)
+      return doRefresh(pb, cache, () => signOutCount, currentRef)
     },
 
     async requestVerification(email: string): Promise<void> {

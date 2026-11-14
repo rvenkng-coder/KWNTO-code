@@ -156,3 +156,34 @@ test('a failing listener does not silence the others', async () => {
   fire('t', { id: 'u1', email: 'a@b.test', name: 'A', verified: true })
   expect(l2).toHaveBeenCalledTimes(1)
 })
+
+// Protects: current() must return the same object on every call when the store record has not changed;
+// a per-call wrapper loses writes to cached and returns a new object each time.
+test('current() returns the same object while the store is unchanged', () => {
+  const clear = vi.fn()
+  const record = { id: 'u1', email: 'a@b.test', name: 'A', verified: false }
+  const authStore = { token: 'tok', record, clear, onChange: vi.fn() }
+  const pb = {
+    authStore,
+    collection: () => ({}),
+  } as unknown as PocketBase
+  const auth = createAuth(pb)
+  expect(auth.current()).toBe(auth.current())
+})
+
+// Protects: after signIn resolves, current() must return the same object that signIn returned;
+// a per-call wrapper in doSignIn loses the cached write so current() gets a different object.
+test('signIn result and current() are the same object', async () => {
+  const clear = vi.fn()
+  const record = { id: 'u1', email: 'a@b.test', name: 'A', verified: true }
+  const authStore = { token: 'tok', record, clear, onChange: vi.fn() }
+  const pb = {
+    authStore,
+    collection: () => ({
+      authWithPassword: () => Promise.resolve({ record }),
+    }),
+  } as unknown as PocketBase
+  const auth = createAuth(pb)
+  const result = await auth.signIn('a@b.test', 'pass')
+  expect(auth.current()).toBe(result)
+})

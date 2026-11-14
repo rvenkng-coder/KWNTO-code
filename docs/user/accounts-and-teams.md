@@ -26,6 +26,10 @@ The owner enables a join code on the team page. Share that code with someone —
 
 The owner can invite people by email. The invitee sees the invite in their inbox and can accept or decline. The owner never sees the invitee's email — only their name once they've accepted.
 
+## Light and dark theme
+
+The button in the top bar switches between the light and the dark theme. Your choice is saved to your account, so it is the same after a reload and on every device you sign in on. A new account starts dark. On the sign-in screen, before you are signed in, the app follows your browser or system setting.
+
 ## What only the owner can do
 
 - Enable/disable the join code and regenerate it

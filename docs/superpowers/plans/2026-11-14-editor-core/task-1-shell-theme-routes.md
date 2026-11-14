@@ -56,10 +56,10 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 1C: Theme toggle saved to the account
 
-- [ ] **Step 10: Write the failing tests** `frontend/src/backend/preferences.test.ts` (C8, with a fake `pb` as in `auth.test.ts`) and add C11 to `e2e/shell.spec.ts`.
-- [ ] **Step 11: Run** `npm run test:unit`. Expected: C8 FAILS.
-- [ ] **Step 12: Implement `preferences.ts`** (`createPreferences(pb)`: the row is found with `pb.filter('user = {:user}', ...)`; `set` maps `minimapVisible` to `minimap_visible` and sends only the given keys) and wire it into `createBackend` and `index.ts`. `ThemeToggle` calls `applyTheme` at once, then `backend.preferences.set({ theme })`; on sign-in the shell loads the preference and applies it. Signed out, the theme follows `prefers-color-scheme`.
-- [ ] **Step 13: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. Add one paragraph on the theme toggle to `docs/user/accounts-and-teams.md`. **Close checkpoint 1C** (commit `feat: theme toggle saved per account`).
+- [x] **Step 10: Write the failing tests** `frontend/src/backend/preferences.test.ts` (C8, with a fake `pb` as in `auth.test.ts`) and add C11 to `e2e/shell.spec.ts`.
+- [x] **Step 11: Run** `npm run test:unit`. Expected: C8 FAILS.
+- [x] **Step 12: Implement `preferences.ts`** (`createPreferences(pb)`: the row is found with `pb.filter('user = {:user}', ...)`; `set` maps `minimapVisible` to `minimap_visible` and sends only the given keys) and wire it into `createBackend` and `index.ts`. `ThemeToggle` calls `applyTheme` at once, then `backend.preferences.set({ theme })`; on sign-in the shell loads the preference and applies it. Signed out, the theme follows `prefers-color-scheme`.
+- [x] **Step 13: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. Add one paragraph on the theme toggle to `docs/user/accounts-and-teams.md`. **Close checkpoint 1C** (commit `feat: theme toggle saved per account`).
 
 ## Test plan
 ### Cases

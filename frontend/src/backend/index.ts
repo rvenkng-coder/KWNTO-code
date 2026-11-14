@@ -13,6 +13,10 @@ export const backend: Backend = {
     if (!_backend) _backend = createBackend()
     return _backend.teams
   },
+  get preferences() {
+    if (!_backend) _backend = createBackend()
+    return _backend.preferences
+  },
   async health() {
     if (!_backend) _backend = createBackend()
     return _backend.health()

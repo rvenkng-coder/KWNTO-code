@@ -6,6 +6,7 @@ import { TeamsScreen } from './features/teams/TeamsScreen'
 import { TeamDetail } from './features/teams/TeamDetail'
 import { AppShell } from './features/shell/AppShell'
 import { navigate, useRoute } from './features/shell/useRoute'
+import { useAccountTheme } from './features/shell/useAccountTheme'
 
 function Backend({ status }: { status: 'checking' | 'connected' | 'unreachable' }) {
   return (
@@ -35,6 +36,8 @@ function App() {
     window.addEventListener('focus', onFocus)
     return () => window.removeEventListener('focus', onFocus)
   }, [signedIn, refresh])
+
+  useAccountTheme(signedIn)
 
   if (!user) {
     return (

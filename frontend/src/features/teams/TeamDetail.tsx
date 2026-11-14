@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { backend } from '../../backend'
 import type { TeamMember, TeamSettings } from '../../backend/types'
 import { InviteForm } from './InviteForm'
+import { MemberList, JoinCodeRow } from './TeamParts'
 import { errorMessage } from '../errorMessage'
 
 interface TeamDetailProps {
@@ -19,8 +20,7 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
   useEffect(() => {
     async function load() {
       try {
-        const membersList = await backend.teams.members(teamId)
-        setMembers(membersList)
+        setMembers(await backend.teams.members(teamId))
         const teams = await backend.teams.list()
         const team = teams.find((t) => t.id === teamId)
         setIsOwner(team?.isOwner ?? false)
@@ -82,30 +82,12 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
       <button className="btn self-start" onClick={onBack}>← Back</button>
       <h2>Team</h2>
       {error && <p data-testid="form-error" role="alert">{error}</p>}
-      <div data-testid="member-list" data-loaded={loaded} className="panel">
-        <h3>Members</h3>
-        <ul>
-          {members.map((m) => (
-            <li key={m.id} className="flex flex-wrap items-center gap-2 py-1">
-              {m.name} ({m.role})
-              {isOwner && m.role !== 'owner' && (
-                <button className="btn" onClick={() => handleRemoveMember(m.id)}>Remove</button>
-              )}
-            </li>
-          ))}
-        </ul>
-      </div>
+      <MemberList members={members} isOwner={isOwner} loaded={loaded} onRemove={handleRemoveMember} />
       {isOwner && (
         <div className="panel flex flex-col gap-3">
           <h3>Join Code</h3>
           {settings && (
-            <div className="flex flex-wrap items-center gap-2">
-              <span data-testid="join-code" className="font-mono">{settings.joinCode}</span>
-              <button className="btn" onClick={handleToggleJoinCode}>
-                {settings.joinCodeEnabled ? 'Disable' : 'Enable'}
-              </button>
-              <button className="btn" onClick={handleRegenerateCode}>Regenerate</button>
-            </div>
+            <JoinCodeRow settings={settings} onToggle={handleToggleJoinCode} onRegenerate={handleRegenerateCode} />
           )}
           <InviteForm teamId={teamId} />
           <button className="btn-danger self-start" onClick={handleDeleteTeam}>Delete team</button>

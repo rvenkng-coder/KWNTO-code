@@ -152,7 +152,7 @@ export function createAuth(pb: PocketBase) {
 
     signOut(): void {
       signOutCount += 1
-      // clear() triggers the store's onChange above, which resets `cached` and tells every listener once.
+      // clear() triggers the store's onChange above, which resets `cache` and tells every listener once.
       pb.authStore.clear()
     },
 
@@ -174,7 +174,9 @@ export function createAuth(pb: PocketBase) {
       listener: (user: AuthUser | null) => void,
     ): () => void {
       listeners.add(listener)
-      return () => { listeners.delete(listener) }
+      return () => {
+        listeners.delete(listener)
+      }
     },
   }
 }

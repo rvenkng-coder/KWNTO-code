@@ -10,6 +10,7 @@ const limits = {
   'max-depth': ['error', 4],
   'max-params': ['error', 5],
   'no-debugger': 'error',
+  'max-statements-per-line': ['error', { max: 1 }],
 }
 const functionLength = (max) => ['error', { max, skipBlankLines: true, skipComments: true }]
 

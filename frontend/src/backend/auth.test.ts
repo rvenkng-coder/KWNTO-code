@@ -52,8 +52,6 @@ test('a refresh that was in flight when the user signed out does not sign them b
   expect(clear).toHaveBeenCalled()
 })
 
-// Protects: two listeners must both be called when the store fires a change;
-// a single-listener design silently drops one.
 function makeFakePb(record = { id: 'u1', email: 'a@b.test', name: 'A', verified: false }) {
   const clear = vi.fn()
   let storedCb: (token: string, rec: unknown) => void = () => undefined

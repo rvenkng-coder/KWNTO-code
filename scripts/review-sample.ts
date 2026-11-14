@@ -3,7 +3,7 @@ export const SENSITIVE: RegExp[] = [
   /^backend\/pb_migrations\//i,
   /^backend\/pb_hooks\//i,
   /^tests\/rules\//i,
-  /^src\/backend\//i,
+  /^frontend\/src\/backend\//i,
   /sync|conflict|queue/i,
 ]
 

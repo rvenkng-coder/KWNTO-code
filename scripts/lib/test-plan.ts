@@ -11,7 +11,7 @@ const TIERS = ['strong', 'mid', 'local'] as const
 const SECTIONS = ['Cases', 'Probes', 'Breaks', 'Flow', 'Evidence'] as const
 const CASE_COLUMNS = ['ID', 'Behaviour', 'Layer', 'Input', 'Expected', 'Test']
 const BREAK_COLUMNS = ['ID', 'File', 'Find', 'Replace', 'Tests']
-const BREAKABLE_ROOTS = ['src/', 'scripts/', 'backend/pb_hooks/lib/']
+const BREAKABLE_ROOTS = ['frontend/src/', 'scripts/', 'backend/pb_hooks/lib/']
 
 export function parseTaskMeta(markdown: string): TaskMeta {
   const text = markdown.replaceAll('\r\n', '\n')
@@ -112,7 +112,7 @@ function parseBreaks(body: string[], cases: CaseRow[], problems: string[]): Brea
     if (id === '') problems.push(`${label}: empty ID`)
     else if (seen.has(id)) problems.push(`${label}: duplicate id`)
     seen.add(id)
-    if (!isBreakablePath(file)) problems.push(`${label}: File "${file}" must be under src/, scripts/ or backend/pb_hooks/lib/ and not a test file`)
+    if (!isBreakablePath(file)) problems.push(`${label}: File "${file}" must be under frontend/src/, scripts/ or backend/pb_hooks/lib/ and not a test file`)
     if (find === '') problems.push(`${label}: Find must not be empty`)
     else if (find === replace) problems.push(`${label}: Replace must differ from Find`)
     const tests = testsCell.split(',').map((path) => path.trim()).filter((path) => path !== '')

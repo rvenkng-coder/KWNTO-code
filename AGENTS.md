@@ -17,8 +17,9 @@ See the [design](docs/superpowers/specs/2026-11-11-kwnto-design.md) and [ERD](do
 
 | Path | Purpose |
 |---|---|
-| `src/features/` | React app code, grouped by feature |
-| `src/backend/` | Only place that may import `pocketbase` |
+| `frontend/` | The React app: `src/`, `index.html`, Vite and app/node tsconfig files (one `package.json` stays at the root) |
+| `frontend/src/features/` | React app code, grouped by feature |
+| `frontend/src/backend/` | Only place that may import `pocketbase` |
 | `backend/` | PocketBase image, migrations, hooks |
 | `tests/rules/` | PocketBase access rule tests |
 | `tests/container/` | Container hardening tests |
@@ -54,7 +55,7 @@ See the [design](docs/superpowers/specs/2026-11-11-kwnto-design.md) and [ERD](do
 
 ## Hard rules
 
-- **One door to the backend.** Only `src/backend/` imports `pocketbase`.
+- **One door to the backend.** Only `frontend/src/backend/` imports `pocketbase`.
 - **300 lines max per file.** Enforced by ESLint `max-lines`.
 - **No `any`.** Justified exception needs a comment.
 - **Deny by default.** PocketBase rules default to `null` (superusers only).

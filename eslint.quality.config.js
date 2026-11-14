@@ -33,7 +33,7 @@ export default defineConfig([
   },
   {
     // Scripts print by design; the app and the hooks use the app's own error paths.
-    files: ['src/**/*.{ts,tsx,js}', 'backend/pb_hooks/**/*.js'],
+    files: ['frontend/src/**/*.{ts,tsx,js}', 'backend/pb_hooks/**/*.js'],
     rules: { 'no-console': 'error' },
   },
 ])

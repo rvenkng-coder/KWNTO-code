@@ -26,6 +26,6 @@ describe('the probes project', () => {
   test('a probe file under tests/rules or tests/container is excluded from those projects', () => {
     expect(matches(rulesConfig, 'tests/rules/a.probe.test.ts')).toBe(false)
     expect(matches(containerConfig, 'tests/container/a.probe.test.ts')).toBe(false)
-    expect(matches(unitConfig, 'src/a.probe.test.ts')).toBe(false)
+    expect(matches(unitConfig, 'frontend/src/a.probe.test.ts')).toBe(false)
   })
 })

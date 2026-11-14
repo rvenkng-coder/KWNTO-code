@@ -26,7 +26,7 @@ Every step runs, even after an earlier one failed, so the report is complete.
 |---|---|---|
 | `plan` | `checkTaskFile` from `check:plan` on the task file | The task file has a tier, an Interfaces line and a complete Test plan block ([format](test-plan-format.md)). A Test plan with any problem fails this step; the other steps still run, and `layers`, `coverage`, `breaks` and `probes` then fail with `not run: the Test plan could not be read (see the plan step)` instead of describing a plan that was not read |
 | `lint` | `npm run lint` | ESLint, `PERF:` comments, documentation links and every opted-in plan |
-| `typecheck` | `npm run typecheck` | Strict TypeScript compiles for `src/` only (`tsc -b`); `scripts/`, `tests/` and `e2e/` are not typechecked (Vitest and node strip types) |
+| `typecheck` | `npm run typecheck` | Strict TypeScript compiles for `frontend/src/` only (`tsc -b`); `scripts/`, `tests/` and `e2e/` are not typechecked (Vitest and node strip types) |
 | `unit` | `npm run test:unit` | The whole unit layer passes, not only the task's tests |
 | `layers` | `npm run test:rules`, `test:e2e`, `test:container`, only for the layers the Test plan's Cases name | Each named layer passes. A layer not named is printed as `not required by this task's test plan`, never as a pass |
 | `hygiene` | `checkHygiene` (as `check:hygiene --base <base>`) | New tests have a header comment, nothing is skipped or focused, no test or assertion was lost. An empty change set is a FAIL (see `--base`) |
@@ -84,5 +84,5 @@ The implementer pastes the full output of `npm run check:task` into its report. 
 Ctrl-C (SIGINT) or SIGTERM stops every command `check:task` started (SIGTERM, then SIGKILL after 5 seconds; the break runner puts its file back when it gets the SIGTERM), starts no further step or command, waits until they are all gone, and exits 130 or 143 with a reminder instead of the report. If the run was killed hard (SIGKILL, power loss) while a break was applied, a deliberate break can be left in a source file:
 
 1. Run `git status`.
-2. A file under `src/`, `scripts/` or `backend/pb_hooks/lib/` that you did not edit is a left-over break: `git checkout -- <file>` puts it back. Do this only for files you did not edit.
+2. A file under `frontend/src/`, `scripts/` or `backend/pb_hooks/lib/` that you did not edit is a left-over break: `git checkout -- <file>` puts it back. Do this only for files you did not edit.
 3. Run `npm run check:task` again.

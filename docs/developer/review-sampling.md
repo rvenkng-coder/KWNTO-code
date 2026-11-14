@@ -6,7 +6,7 @@ A task built by a local model gets a review at close only when the rule below sa
 
 1. **Built by a strong model:** not required. The plan's own per-task review applies.
 2. **Built by a local model, always reviewed:**
-   - any changed file under `backend/pb_migrations/`, `backend/pb_hooks/`, `tests/rules/` or `src/backend/`, or any path containing `sync`, `conflict` or `queue` (case does not matter, backslashes are read as `/`). The reason names the file. These are the paths where a silent mistake costs most (design 6.5: access rules, data shape, the one door to the backend, offline sync).
+   - any changed file under `backend/pb_migrations/`, `backend/pb_hooks/`, `tests/rules/` or `frontend/src/backend/`, or any path containing `sync`, `conflict` or `queue` (case does not matter, backslashes are read as `/`). The reason names the file. These are the paths where a silent mistake costs most (design 6.5: access rules, data shape, the one door to the backend, offline sync).
    - the escape rate is above 0.25 (every local task is reviewed), or is not a number in [0, 1] (fail closed).
 3. **Otherwise** every third task (`taskNumber % 3 === 0`) is reviewed, so ordinary work is sampled at 1 in 3. A task number that is 0, negative or not a whole number is never sampled.
 

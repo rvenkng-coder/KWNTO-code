@@ -49,6 +49,8 @@ About a minute after the start, look for a session file in the `--session-dir`. 
 
 ## After the run
 
+A strong model doing this work uses the `grading-local-task` skill ([.claude/skills/grading-local-task/SKILL.md](../../.claude/skills/grading-local-task/SKILL.md)), which follows the steps below and the next section in order and records the result.
+
 1. Run it yourself, in the sandbox or worktree: `npm run check:task -- --task <task file> --base <baseline sha> [--built-by local]` (the options and the steps are in [check-task.md](check-task.md)). **`--base` is mandatory:** you know the commit the sandbox started from; without it the default (merge base with `main`) can equal HEAD, and a check on an empty change set would otherwise pass on nothing (it now fails).
 2. **Paste the full output** in the task report. **Never grade from the model's own summary**, and not from a summary of the output either: a `FAIL` verdict means the task is not done.
 3. Read the session log (the part of grading `check:task` cannot do):

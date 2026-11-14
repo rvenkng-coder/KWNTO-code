@@ -8,7 +8,7 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 |---|---|---|---|---|
 | 1 | [Foundation and real-time spike](2026-11-11-foundation/README.md) | 1 | none | done |
 | 2 | [Accounts and teams](2026-11-12-accounts-teams/README.md) | 1 | 1 | done |
-| 3 | Editor core | 1 | 2 | outline |
+| 3 | [Editor core](2026-11-14-editor-core/README.md) | 1 | 2 | planned |
 | 4 | Offline queue, sync and conflicts | 1 | 3 | outline |
 | 5 | Media upload, quota and strict file checks | 1 | 3 | outline |
 | 6 | Deployment | 1 | 2 (3 to 5 to test on) | outline |
@@ -68,7 +68,7 @@ Each outline lists the goal, what must be decided before the detailed plan, and 
 ### 2. Accounts and teams (planned)
 Sign-up with verification and password rules, sign-in protection (lockout, block, lockdown), the security log, incident controls, teams with join code and invites, and the sign-in and team screens. Settings tables for system, user and team scope. [Detailed plan](2026-11-12-accounts-teams/README.md).
 
-### 3. Editor core
+### 3. Editor core (planned; [detailed plan](2026-11-14-editor-core/README.md))
 **Carried in from Plan 2:** the app shell and styling, team screen polish, resend verification, auth store listeners, keyboard and labels, and the e2e flake (see [Carried over from Plan 2](#carried-over-from-plan-2)); do these first.
 **Goal:** projects, chapters, canvas, nodes, connections (including cross-chapter links), properties panel (script lines, cues), search, undo/redo, copy/paste, multi-select, minimap, light and dark themes, saving per attribute.
 **Fixed already:** every concurrently edited collection (nodes, script lines, cues, connections, project settings) gets a `version` field and the guarded write from [decision 0002](../../decisions/0002-realtime-spike.md); the client treats HTTP 409 as normal flow (re-read, re-apply own field, retry, bounded). Canvas performance code needs `PERF:` comments. Only `frontend/src/backend/` imports `pocketbase`.

@@ -60,6 +60,23 @@ test('wrong code and regenerate', async ({ page, browser }) => {
   await page2.close()
 })
 
+// Protects: race between the screen's first team list and a failed join (Plan 3 Task 4
+// flake): a list response that lands after the join error must not clear the error.
+test('wrong code error survives a slow response', async ({ page }) => {
+  await page.route('**/api/collections/team_members/records**', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 1_000))
+    await route.continue()
+  })
+  await page.goto('/')
+  await signUpVerifyAndSignIn(page, uniqueEmail(), 'Slow')
+  await page.getByPlaceholder('Join code').fill('WRONGCODE')
+  await page.getByRole('button', { name: 'Join' }).click()
+  await expect(page.getByTestId('form-error')).toHaveText('That join code is not valid.')
+  // The delayed team list lands after the join error; the error must still be there.
+  await settled(page)
+  await expect(page.getByTestId('form-error')).toHaveText('That join code is not valid.')
+})
+
 // Protects: invite flow — owner invites, invitee sees the invite on the Teams screen
 // (they may have no team yet), accepts, and the team appears.
 test('invite flow', async ({ page, browser }) => {

@@ -20,14 +20,16 @@ export const useTeams = create<TeamState>((set, get) => ({
   list: async () => {
     try {
       const teams = await backend.teams.list()
-      set({ teams, error: null })
+      // Leave `error` alone: a list that lands late must not wipe an action's error
+      // (Plan 3 Task 4). Each action clears it when it starts.
+      set({ teams })
     } catch (err: unknown) {
       set({ error: errorMessage(err, 'Failed to load teams') })
     }
   },
   create: async (name: string) => {
     try {
-      set({ notice: null })
+      set({ notice: null, error: null })
       await backend.teams.create(name)
       await get().list()
       return true
@@ -38,7 +40,7 @@ export const useTeams = create<TeamState>((set, get) => ({
   },
   remove: async (teamId: string) => {
     try {
-      set({ notice: null })
+      set({ notice: null, error: null })
       await backend.teams.remove(teamId)
       await get().list()
     } catch (err: unknown) {
@@ -47,7 +49,7 @@ export const useTeams = create<TeamState>((set, get) => ({
   },
   join: async (code: string) => {
     try {
-      set({ notice: null })
+      set({ notice: null, error: null })
       const joined = await backend.teams.join(code)
       await get().list()
       set({ notice: `Joined ${joined.name}.` })

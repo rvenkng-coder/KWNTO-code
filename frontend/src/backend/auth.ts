@@ -5,7 +5,7 @@ import { toAuthUser } from './mappers'
 import { toBackendError } from './errors'
 
 export function createAuth(pb: PocketBase) {
-  let listener: ((user: AuthUser | null) => void) | null = null
+  const listeners = new Set<(user: AuthUser | null) => void>()
   let cached: AuthUser | null = null
   // Bumped by every sign-out, so a refresh that was already in flight cannot sign the
   // user back in when its answer arrives (the SDK stores the answer by itself).
@@ -13,49 +13,32 @@ export function createAuth(pb: PocketBase) {
 
   function current(): AuthUser | null {
     const rec = pb.authStore.record
-    if (!rec) {
-      cached = null
-      return null
-    }
-    if (!cached || cached.id !== rec.id) {
-      cached = toAuthUser(rec as Record<string, unknown>)
-    }
+    if (!rec) { cached = null; return null }
+    if (!cached || cached.id !== rec.id) cached = toAuthUser(rec as Record<string, unknown>)
     return cached
   }
 
+  // Feed every listener on store change (signIn, refresh, signOut, another tab).
   pb.authStore.onChange((_token, record) => {
-    if (!record) {
-      cached = null
-      listener?.(null)
-    } else {
-      cached = toAuthUser(record as Record<string, unknown>)
-    }
+    if (!record) { cached = null; for (const fn of listeners) { try { fn(null) } catch { /* listener threw */ } } }
+    else { cached = toAuthUser(record as Record<string, unknown>); for (const fn of listeners) { try { fn(cached) } catch { /* listener threw */ } } }
   })
+
+  function throwIfBackend(err: unknown): never {
+    throw toBackendError(err)
+  }
 
   return {
     async signUp(email: string, password: string, name: string): Promise<void> {
-      try {
-        await pb.collection('users').create({ email, password, passwordConfirm: password, name })
-      } catch (err) {
-        throw toBackendError(err)
-      }
+      try { await pb.collection('users').create({ email, password, passwordConfirm: password, name }) } catch (err) { throwIfBackend(err) }
     },
 
     async signIn(email: string, password: string): Promise<AuthUser> {
-      try {
-        const auth = await pb.collection('users').authWithPassword(email, password)
-        cached = toAuthUser(auth.record as Record<string, unknown>)
-        listener?.(cached)
-        return cached
-      } catch (err) {
-        throw toBackendError(err)
-      }
+      try { const auth = await pb.collection('users').authWithPassword(email, password); cached = toAuthUser(auth.record as Record<string, unknown>); return cached } catch (err) { throwIfBackend(err) }
     },
 
     signOut(): void {
-      signOutCount += 1
-      // clear() triggers the store's onChange above, which resets `cached` and tells the listener once.
-      pb.authStore.clear()
+      signOutCount += 1; pb.authStore.clear()
     },
 
     current,
@@ -65,42 +48,23 @@ export function createAuth(pb: PocketBase) {
       const startedAt = signOutCount
       try {
         const auth = await pb.collection('users').authRefresh()
-        if (signOutCount !== startedAt) {
-          pb.authStore.clear()
-          return null
-        }
+        if (signOutCount !== startedAt) { pb.authStore.clear(); return null }
         cached = toAuthUser(auth.record as Record<string, unknown>)
-        listener?.(cached)
         return cached
       } catch (err) {
-        // Only a refusal ends the session. An unreachable server (status 0) or a
-        // server error must not sign everyone out: keep the session we have.
         const refused = err instanceof ClientResponseError && [401, 403, 404].includes(err.status)
         if (!refused) return current()
-        pb.authStore.clear() // the store's onChange resets `cached` and tells the listener
-        return null
+        pb.authStore.clear(); return null
       }
     },
 
-    async requestVerification(email: string): Promise<void> {
-      try {
-        await pb.collection('users').requestVerification(email)
-      } catch (err) {
-        throw toBackendError(err)
-      }
-    },
+    async requestVerification(email: string): Promise<void> { try { await pb.collection('users').requestVerification(email) } catch (err) { throwIfBackend(err) } },
 
-    async requestPasswordReset(email: string): Promise<void> {
-      try {
-        await pb.collection('users').requestPasswordReset(email)
-      } catch (err) {
-        throw toBackendError(err)
-      }
-    },
+    async requestPasswordReset(email: string): Promise<void> { try { await pb.collection('users').requestPasswordReset(email) } catch (err) { throwIfBackend(err) } },
 
-    onChange(listenerFn: (user: AuthUser | null) => void): () => void {
-      listener = listenerFn
-      return () => { listener = null }
+    onChange(listener: (user: AuthUser | null) => void): () => void {
+      listeners.add(listener)
+      return () => { listeners.delete(listener) }
     },
   }
 }

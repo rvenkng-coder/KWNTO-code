@@ -53,9 +53,9 @@ export function SignInForm() {
       {resetSent && (
         <p className="neutral">If that account exists, we sent a link.</p>
       )}
-      <a href="#" onClick={handleForgotPassword}>
+      <button type="button" className="link-button" onClick={handleForgotPassword}>
         Forgot password?
-      </a>
+      </button>
       <button type="submit" className="btn-primary">Sign in</button>
     </form>
   )

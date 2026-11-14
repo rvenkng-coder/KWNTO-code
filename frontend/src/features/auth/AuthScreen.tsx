@@ -20,9 +20,9 @@ export function AuthScreen() {
           <SignInForm />
           <p>
             Don't have an account?{' '}
-            <a href="#" onClick={(e) => { e.preventDefault(); setView('signup') }}>
+            <button type="button" className="link-button" onClick={() => setView('signup')}>
               Sign up
-            </a>
+            </button>
           </p>
         </>
       ) : (
@@ -30,9 +30,9 @@ export function AuthScreen() {
           <SignUpForm onSignIn={() => setView('signin')} />
           <p>
             Already have an account?{' '}
-            <a href="#" onClick={(e) => { e.preventDefault(); setView('signin') }}>
+            <button type="button" className="link-button" onClick={() => setView('signin')}>
               Sign in
-            </a>
+            </button>
           </p>
         </>
       )}

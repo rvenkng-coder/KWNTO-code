@@ -68,7 +68,7 @@ test('the join notice clears on the next action', async ({ page, browser }) => {
 test('sign-up replaces the form with a confirmation', async ({ page }) => {
   const email = uniqueEmail()
   await page.goto('/')
-  await page.getByRole('link', { name: 'Sign up' }).click()
+  await page.getByRole('button', { name: 'Sign up' }).click()
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Name').fill('Owner')
   await page.getByLabel('Password').fill('KwntoPass99')
@@ -81,7 +81,19 @@ test('sign-up replaces the form with a confirmation', async ({ page }) => {
   await expect(page.getByLabel('Password')).toHaveCount(0)
 
   // A Sign in button should be present
-  await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Sign in' }).first()).toBeVisible()
+})
+
+// C9: keyboard reaches the account controls
+test('forgot password works from the keyboard', async ({ page }) => {
+  await page.goto('/')
+  // Tab to Forgot password? (email → password → forgot password)
+  await page.keyboard.press('Tab')
+  await page.keyboard.press('Tab')
+  await page.keyboard.press('Tab')
+  await page.keyboard.press('Enter')
+  // The neutral message should appear
+  await expect(page.getByText('If that account exists, we sent a link.')).toBeVisible({ timeout: 10_000 })
 })
 
 // Lost error messages: toggle fails and the alert appears

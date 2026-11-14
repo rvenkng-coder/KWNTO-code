@@ -6,7 +6,7 @@ Go to **Sign up**, enter your email, name and a password (at least 10 characters
 
 ## Verify your email
 
-Open the link in the email we send you. Once your address is verified (the page picks this up when you return to it), you can create and join teams.
+Open the link in the email we send you. If you need another copy, click **Resend verification email** on the Teams screen. Once your address is verified (the page picks this up when you return to it), you can create and join teams.
 
 ## Sign in
 

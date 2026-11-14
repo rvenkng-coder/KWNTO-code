@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { useSession } from '../auth/useSession'
 import { useTeams } from './useTeams'
 
 export function JoinByCodeForm() {
   const [code, setCode] = useState('')
   const notice = useTeams((s) => s.notice)
+  const { user } = useSession()
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -22,7 +24,7 @@ export function JoinByCodeForm() {
         aria-label="Join code"
         placeholder="Join code"
       />
-      <button type="submit" className="btn">Join</button>
+      <button type="submit" className="btn" disabled={!user?.verified}>Join</button>
       {notice && <p>{notice}</p>}
     </form>
   )

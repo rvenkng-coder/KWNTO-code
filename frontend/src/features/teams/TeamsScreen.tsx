@@ -4,6 +4,7 @@ import { navigate } from '../shell/useRoute'
 import { useTeams } from './useTeams'
 import { JoinByCodeForm } from './JoinByCodeForm'
 import { InvitesInbox } from './InvitesInbox'
+import { VerifyGate } from '../auth/VerifyGate'
 
 export function TeamsScreen() {
   const { user } = useSession()
@@ -23,9 +24,7 @@ export function TeamsScreen() {
     <div className="flex flex-col gap-3">
       <h2>Teams</h2>
       {error && <p data-testid="form-error" role="alert">{error}</p>}
-      {!user.verified && (
-        <p className="gate text-muted">Verify your email to create or join a team.</p>
-      )}
+      {!user.verified && <VerifyGate email={user.email} />}
       <button
         className="btn-primary self-start"
         onClick={() => {

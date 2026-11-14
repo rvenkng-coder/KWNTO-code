@@ -10,10 +10,11 @@ export function VerifyGate({ email }: VerifyGateProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const handleResend = async () => {
+    setStatus('idle')
+    setErrorMessage(null)
     try {
       await backend.auth.requestVerification(email)
       setStatus('sent')
-      setErrorMessage(null)
     } catch {
       setStatus('error')
       setErrorMessage('Failed to resend verification email.')
@@ -23,11 +24,9 @@ export function VerifyGate({ email }: VerifyGateProps) {
   return (
     <div>
       <p className="gate text-muted">Verify your email to create or join a team.</p>
-      {status === 'idle' && (
-        <button type="button" className="btn-link" onClick={handleResend}>
-          Resend verification email
-        </button>
-      )}
+      <button type="button" className="link-button" onClick={handleResend}>
+        Resend verification email
+      </button>
       {status === 'sent' && <p>Sent. Check your inbox.</p>}
       {status === 'error' && (
         <p data-testid="form-error" role="alert">

@@ -16,20 +16,56 @@ test('an unverified user can resend the verification email', async ({ page }) =>
   // Wait for the Teams screen to load (gate text appears)
   await expect(page.getByText('Verify your email')).toBeVisible({ timeout: 10_000 })
 
-  // Intercept the verification request so we can assert on it
-  const verificationPromise = page.waitForResponse(
-    (response) => response.url().includes('/users/request-verification') && response.request().method() === 'POST',
-  )
+  // Collect all POST requests to /users/request-verification
+  const requests: import('@playwright/test').Request[] = []
+  page.on('request', (req) => {
+    if (req.url().includes('/users/request-verification') && req.method() === 'POST') {
+      requests.push(req)
+    }
+  })
 
   // Click the resend button
   await page.getByRole('button', { name: 'Resend verification email' }).click()
 
-  // The request should have been sent with the user's email
-  const verificationResponse = await verificationPromise
-  expect(verificationResponse.ok()).toBe(true)
-
-  // Confirmation message should appear
+  // Wait for the confirmation message
   await expect(page.getByText('Sent. Check your inbox.')).toBeVisible({ timeout: 10_000 })
+
+  // Exactly one request should have been made
+  expect(requests.length).toBe(1)
+
+  // Its JSON body must contain the user's email
+  const body = await requests[0].postData()
+  const json = JSON.parse(body)
+  expect(json.email).toBe(email)
+})
+
+// Protects: the resend button stays visible after an error so the user can retry.
+test('the resend button stays visible after a failure', async ({ page }) => {
+  const email = uniqueEmail()
+  await page.goto('/')
+
+  // Intercept request-verification and make it fail
+  await page.route('**/users/request-verification', (route) => route.fulfill({ status: 500 }))
+
+  await signUp(page, email, 'Unverified', 'KwntoPass99')
+  await page.getByRole('link', { name: 'Sign in' }).click()
+  await page.getByLabel('Email').fill(email)
+  await page.getByLabel('Password').fill('KwntoPass99')
+  await page.getByRole('button', { name: 'Sign in' }).click()
+
+  // Wait for the gate text to appear
+  await expect(page.getByText('Verify your email')).toBeVisible({ timeout: 10_000 })
+
+  // Click the resend button
+  const resendBtn = page.getByRole('button', { name: 'Resend verification email' })
+  await resendBtn.click()
+
+  // An error alert should appear
+  await expect(page.getByRole('alert')).toBeVisible({ timeout: 10_000 })
+
+  // The resend button must still be visible and enabled so the user can retry
+  await expect(resendBtn).toBeVisible()
+  await expect(resendBtn).toBeEnabled()
 })
 
 // Protects: join and accept are disabled for unverified users; the gate text is shown once.

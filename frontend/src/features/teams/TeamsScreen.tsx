@@ -1,15 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useSession } from '../auth/useSession'
+import { navigate } from '../shell/useRoute'
 import { useTeams } from './useTeams'
-import { TeamDetail } from './TeamDetail'
 import { JoinByCodeForm } from './JoinByCodeForm'
 import { InvitesInbox } from './InvitesInbox'
 
 export function TeamsScreen() {
-  const { user, signOut } = useSession()
+  const { user } = useSession()
   const { teams, error, list } = useTeams()
-  const [selectedTeam, setSelectedTeam] = useState<string | null>(null)
-
 
   useEffect(() => {
     list()
@@ -21,30 +19,15 @@ export function TeamsScreen() {
 
   if (!user) return null
 
-  if (selectedTeam) {
-    return <TeamDetail
-        teamId={selectedTeam}
-        onBack={() => {
-          setSelectedTeam(null)
-          list()
-        }}
-      />
-  }
-
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>Teams</h2>
-        <div>
-          <span data-testid="session-user">{user.name}</span>{' '}
-          <button onClick={signOut}>Sign out</button>
-        </div>
-      </div>
+    <div className="flex flex-col gap-3">
+      <h2>Teams</h2>
       {error && <p data-testid="form-error" role="alert">{error}</p>}
       {!user.verified && (
-        <p className="gate">Verify your email to create or join a team.</p>
+        <p className="gate text-muted">Verify your email to create or join a team.</p>
       )}
       <button
+        className="btn-primary self-start"
         onClick={() => {
           if (user.verified) {
             const name = prompt('Team name:')
@@ -57,10 +40,10 @@ export function TeamsScreen() {
       </button>
       <InvitesInbox onAccepted={list} />
       <JoinByCodeForm />
-      <ul data-testid="team-list">
+      <ul data-testid="team-list" className="panel flex flex-col gap-1">
         {teams.map((team) => (
           <li key={team.id}>
-            <button type="button" onClick={() => setSelectedTeam(team.id)}>
+            <button type="button" className="link-button" onClick={() => navigate({ name: 'team', teamId: team.id })}>
               {team.name}
             </button>
           </li>

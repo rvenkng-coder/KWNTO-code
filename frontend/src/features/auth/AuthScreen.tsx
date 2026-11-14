@@ -14,7 +14,7 @@ export function AuthScreen() {
   }
 
   return (
-    <div>
+    <div className="mx-auto flex w-full max-w-sm flex-col gap-3 p-4">
       {view === 'signin' ? (
         <>
           <SignInForm />

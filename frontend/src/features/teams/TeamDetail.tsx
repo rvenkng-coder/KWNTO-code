@@ -78,37 +78,37 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
   }
 
   return (
-    <div>
-      <button onClick={onBack}>← Back</button>
+    <div className="flex flex-col gap-3">
+      <button className="btn self-start" onClick={onBack}>← Back</button>
       <h2>Team</h2>
       {error && <p data-testid="form-error" role="alert">{error}</p>}
-      <div data-testid="member-list" data-loaded={loaded}>
+      <div data-testid="member-list" data-loaded={loaded} className="panel">
         <h3>Members</h3>
         <ul>
           {members.map((m) => (
-            <li key={m.id}>
+            <li key={m.id} className="flex flex-wrap items-center gap-2 py-1">
               {m.name} ({m.role})
               {isOwner && m.role !== 'owner' && (
-                <button onClick={() => handleRemoveMember(m.id)}>Remove</button>
+                <button className="btn" onClick={() => handleRemoveMember(m.id)}>Remove</button>
               )}
             </li>
           ))}
         </ul>
       </div>
       {isOwner && (
-        <div>
+        <div className="panel flex flex-col gap-3">
           <h3>Join Code</h3>
           {settings && (
-            <div>
-              <span data-testid="join-code">{settings.joinCode}</span>
-              <button onClick={handleToggleJoinCode}>
+            <div className="flex flex-wrap items-center gap-2">
+              <span data-testid="join-code" className="font-mono">{settings.joinCode}</span>
+              <button className="btn" onClick={handleToggleJoinCode}>
                 {settings.joinCodeEnabled ? 'Disable' : 'Enable'}
               </button>
-              <button onClick={handleRegenerateCode}>Regenerate</button>
+              <button className="btn" onClick={handleRegenerateCode}>Regenerate</button>
             </div>
           )}
           <InviteForm teamId={teamId} />
-          <button onClick={handleDeleteTeam}>Delete team</button>
+          <button className="btn-danger self-start" onClick={handleDeleteTeam}>Delete team</button>
         </div>
       )}
     </div>

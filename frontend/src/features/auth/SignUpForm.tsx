@@ -18,11 +18,12 @@ export function SignUpForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="panel flex w-full max-w-sm flex-col gap-2">
       <h2>Sign up</h2>
       <div>
         <label htmlFor="signup-email">Email</label>
         <input
+          className="field"
           id="signup-email"
           type="email"
           value={email}
@@ -33,6 +34,7 @@ export function SignUpForm() {
       <div>
         <label htmlFor="signup-name">Name</label>
         <input
+          className="field"
           id="signup-name"
           type="text"
           value={name}
@@ -43,6 +45,7 @@ export function SignUpForm() {
       <div>
         <label htmlFor="signup-password">Password</label>
         <input
+          className="field"
           id="signup-password"
           type="password"
           value={password}
@@ -55,7 +58,7 @@ export function SignUpForm() {
       {signedUp && !error && (
         <p>Check your email for a verification link.</p>
       )}
-      <button type="submit">Sign up</button>
+      <button type="submit" className="btn-primary">Sign up</button>
     </form>
   )
 }

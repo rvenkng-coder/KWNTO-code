@@ -48,11 +48,11 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 1B: Tokens, shell and restyled screens
 
-- [ ] **Step 5: Write `index.css`** with the D1 tokens for `:root` (light: white panels, soft shadow) and `[data-theme="dark"]` (flat solid dark panels, thin borders, no shadow), `@theme inline` mapping (`--color-*`, `--radius-*`), the shared classes, and the dot-grid background variable `--canvas-dot` used later by the canvas. No blur, no transparency on panels (design 6.6).
-- [ ] **Step 6: Write `AppShell`, `TopBar`, `theme.ts`, `useRoute`;** `App.tsx` renders `AuthScreen` when signed out and otherwise `AppShell` around the screen for the current route (`teams` shows `TeamsScreen`; `team` shows `TeamDetail` for `teamId`, replacing `TeamsScreen`'s `selectedTeam` state with `navigate`, and Back goes to `#/`; `project` shows the text `Editor arrives in Task 9.` for now). Keep `data-testid="backend-status"` and `data-testid="session-user"`.
-- [ ] **Step 7: Restyle** the auth and teams screens with the shared classes and Tailwind utilities on tokens. Forms are one column, `max-w-sm w-full`, inputs `w-full`, so nothing is cut at 390 px. Do not change text, labels, roles or test ids.
-- [ ] **Step 8: Write `e2e/shell.spec.ts`** cases C9 and C10, then run `npm run test:e2e`. Expected: PASS, and every existing e2e test still passes.
-- [ ] **Step 9: Write `docs/developer/styling.md`** (tokens, shared classes, how to add a colour, the no-hex rule from the router) and link it from `docs/README.md`. **Close checkpoint 1B** (commit `feat: app shell and theme tokens`).
+- [x] **Step 5: Write `index.css`** with the D1 tokens for `:root` (light: white panels, soft shadow) and `[data-theme="dark"]` (flat solid dark panels, thin borders, no shadow), `@theme inline` mapping (`--color-*`, `--radius-*`), the shared classes, and the dot-grid background variable `--canvas-dot` used later by the canvas. No blur, no transparency on panels (design 6.6).
+- [x] **Step 6: Write `AppShell`, `TopBar`, `theme.ts`, `useRoute`;** `App.tsx` renders `AuthScreen` when signed out and otherwise `AppShell` around the screen for the current route (`teams` shows `TeamsScreen`; `team` shows `TeamDetail` for `teamId`, replacing `TeamsScreen`'s `selectedTeam` state with `navigate`, and Back goes to `#/`; `project` shows the text `Editor arrives in Task 9.` for now). Keep `data-testid="backend-status"` and `data-testid="session-user"`.
+- [x] **Step 7: Restyle** the auth and teams screens with the shared classes and Tailwind utilities on tokens. Forms are one column, `max-w-sm w-full`, inputs `w-full`, so nothing is cut at 390 px. Do not change text, labels, roles or test ids.
+- [x] **Step 8: Write `e2e/shell.spec.ts`** cases C9 and C10, then run `npm run test:e2e`. Expected: PASS, and every existing e2e test still passes.
+- [x] **Step 9: Write `docs/developer/styling.md`** (tokens, shared classes, how to add a colour, the no-hex rule from the router) and link it from `docs/README.md`. **Close checkpoint 1B** (commit `feat: app shell and theme tokens`).
 
 ## Checkpoint 1C: Theme toggle saved to the account
 

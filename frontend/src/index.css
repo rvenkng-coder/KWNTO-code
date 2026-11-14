@@ -1,1 +1,99 @@
 @import "tailwindcss";
+
+/* Theme tokens (decision D1, design 6.6). Components use these through Tailwind
+   utilities (bg-panel, text-muted, ...) and never write a colour of their own.
+   Light: white panels with a soft shadow. Dark: flat solid panels, thin borders,
+   no shadow. No blur and no transparency on panels. */
+:root {
+  --color-bg: #f3f4f6;
+  --color-panel: #ffffff;
+  --color-border: #d1d5db;
+  --color-text: #111827;
+  --color-muted: #6b7280;
+  --color-accent: #2563eb;
+  --color-accent-text: #ffffff;
+  --color-danger: #b91c1c;
+  --radius: 0.5rem;
+  --shadow: 0 1px 3px rgb(0 0 0 / 0.12), 0 1px 2px rgb(0 0 0 / 0.08);
+  --canvas-dot: #d1d5db;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --color-bg: #0f1115;
+  --color-panel: #181b21;
+  --color-border: #2c313a;
+  --color-text: #e5e7eb;
+  --color-muted: #9ca3af;
+  --color-accent: #3b82f6;
+  --color-accent-text: #0b0d10;
+  --color-danger: #f87171;
+  --shadow: none;
+  --canvas-dot: #2c313a;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--color-bg);
+  --color-panel: var(--color-panel);
+  --color-border: var(--color-border);
+  --color-text: var(--color-text);
+  --color-muted: var(--color-muted);
+  --color-accent: var(--color-accent);
+  --color-accent-text: var(--color-accent-text);
+  --color-danger: var(--color-danger);
+  --radius-base: var(--radius);
+}
+
+@layer base {
+  body {
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: system-ui, sans-serif;
+  }
+  h1, h2, h3 { font-weight: 600; }
+  h2 { font-size: 1.25rem; margin-block: 0.5rem; }
+  h3 { font-size: 1.05rem; margin-block: 0.5rem; }
+  a { color: var(--color-accent); text-decoration: underline; cursor: pointer; }
+  small { color: var(--color-muted); display: block; }
+  label { display: block; font-size: 0.875rem; margin-top: 0.5rem; }
+  [role="alert"] { color: var(--color-danger); }
+}
+
+@layer components {
+  .panel {
+    background: var(--color-panel);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1rem;
+  }
+  .field {
+    display: block;
+    width: 100%;
+    background: var(--color-panel);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 0.4rem 0.6rem;
+  }
+  .btn, .btn-primary, .btn-danger {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 0.4rem 0.8rem;
+    background: var(--color-panel);
+    color: var(--color-text);
+    cursor: pointer;
+  }
+  .btn-primary { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-accent-text); }
+  .btn-danger { color: var(--color-danger); border-color: var(--color-danger); }
+  .btn:disabled, .btn-primary:disabled, .btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
+  .link-button {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--color-accent);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+}

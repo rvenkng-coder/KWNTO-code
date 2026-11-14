@@ -25,16 +25,17 @@ export function InviteForm({ teamId }: InviteFormProps) {
   }
 
   return (
-    <form onSubmit={handleInvite}>
+    <form onSubmit={handleInvite} className="flex max-w-sm w-full flex-col gap-2">
       <h3>Invite</h3>
       <input
+        className="field"
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="Email"
         aria-label="Invitee email"
       />
-      <button type="submit">Send invite</button>
+      <button type="submit" className="btn">Send invite</button>
       {sent && <p>Invite sent!</p>}
       {error && <p data-testid="form-error" role="alert">{error}</p>}
     </form>

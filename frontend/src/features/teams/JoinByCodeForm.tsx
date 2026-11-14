@@ -13,9 +13,10 @@ export function JoinByCodeForm() {
   }
 
   return (
-    <form onSubmit={handleJoin}>
+    <form onSubmit={handleJoin} className="panel flex max-w-sm w-full flex-col gap-2">
       <h3>Join with code</h3>
       <input
+        className="field"
         type="text"
         value={code}
         onChange={(e) => {
@@ -25,7 +26,7 @@ export function JoinByCodeForm() {
         aria-label="Join code"
         placeholder="Join code"
       />
-      <button type="submit">Join</button>
+      <button type="submit" className="btn">Join</button>
       {joined && <p>Joined successfully!</p>}
     </form>
   )

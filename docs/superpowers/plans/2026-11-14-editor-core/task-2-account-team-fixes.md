@@ -11,7 +11,7 @@ Carried over from Plan 2: "Team screen polish", "Resend verification" and "Keybo
 - Modify (2A): `frontend/src/features/teams/useTeams.ts`, `frontend/src/features/teams/TeamDetail.tsx`, `frontend/src/features/teams/TeamsScreen.tsx`, `frontend/src/features/teams/JoinByCodeForm.tsx`, `frontend/src/features/auth/SignUpForm.tsx`, `frontend/src/features/auth/AuthScreen.tsx`
 - Create (2A): `e2e/teams-polish.spec.ts`
 - Create (2B): `frontend/src/features/auth/VerifyGate.tsx`, `e2e/verify-gate.spec.ts`; Modify (2B): `frontend/src/features/teams/TeamsScreen.tsx`, `frontend/src/features/teams/JoinByCodeForm.tsx`, `frontend/src/features/teams/InvitesInbox.tsx`, `docs/user/accounts-and-teams.md`
-- Create (2C): `tests/lint/screens-a11y.test.ts`; Modify (2C): `frontend/src/features/auth/AuthScreen.tsx`, `frontend/src/features/auth/SignInForm.tsx`, `e2e/helpers/ui.ts` (`getByRole('link', ...)` becomes `getByRole('button', ...)` for the three controls; planned change, not a test fix)
+- Create (2C): `tests/lint/screens-a11y.test.ts`; Modify (2C): `frontend/src/features/auth/AuthScreen.tsx`, `frontend/src/features/auth/SignInForm.tsx`, `e2e/helpers/ui.ts`, `e2e/accounts.spec.ts`, `e2e/teams-detail.spec.ts`, `e2e/verify-gate.spec.ts` (`getByRole('link', ...)` becomes `getByRole('button', ...)` for the three controls; planned change, not a test fix)
 
 **Interfaces:**
 - Consumes: `useRoute`, `navigate` (Task 1); `backend.auth.requestVerification(email: string): Promise<void>`; `backend.teams.*` (Plan 2).
@@ -43,10 +43,10 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 2C: Keyboard and labels
 
-- [ ] **Step 9: Write the failing test** `tests/lint/screens-a11y.test.ts` (C7, C8): it reads every `.tsx` file under `frontend/src/features/` as text.
-- [ ] **Step 10: Run** `npx vitest run --project unit tests/lint/screens-a11y.test.ts`. Expected: FAIL (the `href="#"` links).
-- [ ] **Step 11: Implement.** "Sign up", "Sign in" and "Forgot password?" become `<button type="button" className="link-button">`. Update `e2e/helpers/ui.ts` to find them as buttons.
-- [ ] **Step 12: Write and run** e2e C9 (add it to `e2e/teams-polish.spec.ts`), then `npm run test:e2e`. Expected: PASS. **Close checkpoint 2C** (commit `fix: account links are buttons`).
+- [x] **Step 9: Write the failing test** `tests/lint/screens-a11y.test.ts` (C7, C8): it reads every `.tsx` file under `frontend/src/features/` as text.
+- [x] **Step 10: Run** `npx vitest run --project unit tests/lint/screens-a11y.test.ts`. Expected: FAIL (the `href="#"` links).
+- [x] **Step 11: Implement.** "Sign up", "Sign in" and "Forgot password?" become `<button type="button" className="link-button">`. Update `e2e/helpers/ui.ts` to find them as buttons.
+- [x] **Step 12: Write and run** e2e C9 (add it to `e2e/teams-polish.spec.ts`), then `npm run test:e2e`. Expected: PASS. **Close checkpoint 2C** (commit `fix: account links are buttons`).
 
 ## Test plan
 ### Cases

@@ -86,7 +86,7 @@ The roadmap's "Decide first" items and calls where the spec is silent. Each is c
 | # | Task | Tier | Depends on | Checkpoints | Status |
 |---|---|---|---|---|---|
 | 1 | [App shell, theme and routes](task-1-shell-theme-routes.md) | mid (1A local) | none | 1A 1B 1C | awaiting review (1A, 1B, 1C done) |
-| 2 | [Account and team screen fixes](task-2-account-team-fixes.md) | local | 1 | 2A 2B 2C | not started |
+| 2 | [Account and team screen fixes](task-2-account-team-fixes.md) | local | 1 | 2A 2B 2C | in progress (2A done) |
 | 3 | [Auth store listeners](task-3-auth-listeners.md) | local | none | 3A | not started |
 | 4 | [The join-code e2e flake](task-4-e2e-flake.md) | strong | none | 4A | not started |
 | 5 | [Guarded write, projects, chapters, project settings](task-5-guard-projects-chapters.md) | strong | none | 5A 5B 5C | not started |

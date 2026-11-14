@@ -29,10 +29,10 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 2A: Team screen polish
 
-- [ ] **Step 1: Write the failing e2e tests** C1 to C4 in `e2e/teams-polish.spec.ts` (helpers from `e2e/helpers/ui.ts`; wait for a positive signal before asserting an absence, catalogue kind `vacuous-absence`).
-- [ ] **Step 2: Run** `npm run test:e2e -- e2e/teams-polish.spec.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement.** Delete team calls `useTeams.getState().remove(id)` and navigates to `#/` only after it resolves. `TeamDetail` takes its `Team` from `useTeams` (calling `list()` once if the store is empty) and shows its name as the heading; it no longer calls `backend.teams.list()` itself. `JoinByCodeForm` shows `notice` from the store instead of its own `joined` flag. After a successful sign-up, `SignUpForm` is replaced by the text `Check your email to verify your account, then sign in.` and a `Sign in` control.
-- [ ] **Step 4: Run** `npm run test:e2e`. Expected: PASS (all files). **Close checkpoint 2A** (commit `fix: team screen polish`).
+- [x] **Step 1: Write the failing e2e tests** C1 to C4 in `e2e/teams-polish.spec.ts` (helpers from `e2e/helpers/ui.ts`; wait for a positive signal before asserting an absence, catalogue kind `vacuous-absence`).
+- [x] **Step 2: Run** `npm run test:e2e -- e2e/teams-polish.spec.ts`. Expected: FAIL.
+- [x] **Step 3: Implement.** Delete team calls `useTeams.getState().remove(id)` and navigates to `#/` only after it resolves. `TeamDetail` takes its `Team` from `useTeams` (calling `list()` once if the store is empty) and shows its name as the heading; it no longer calls `backend.teams.list()` itself. `JoinByCodeForm` shows `notice` from the store instead of its own `joined` flag. After a successful sign-up, `SignUpForm` is replaced by the text `Check your email to verify your account, then sign in.` and a `Sign in` control.
+- [x] **Step 4: Run** `npm run test:e2e`. Expected: PASS (all files). **Close checkpoint 2A** (commit `fix: team screen polish`).
 
 ## Checkpoint 2B: Resend verification and one gate text
 

@@ -1,5 +1,7 @@
+import type PocketBase from 'pocketbase'
 import { send, tokenOf, type Reply } from './invites.ts'
-import { asAdmin, asUser, type TestUser } from './pb.ts'
+import { asAdmin, asUser, createTeam, createUser, type TestUser } from './pb.ts'
+import { addMember } from './teams.ts'
 
 // Helpers for the content collections (projects, project_settings, chapters and, from
 // Task 6, nodes, script_lines, cues and connections), whose updates go through the
@@ -36,4 +38,74 @@ export async function guardedUpdate(
 // One record as stored, read as the admin (who bypasses every rule).
 export async function readAsAdmin(collection: string, id: string): Promise<Record<string, unknown>> {
   return (await asAdmin()).collection(collection).getOne(id)
+}
+
+// A team with an owner and one plain member, and a project the owner made in it.
+export type MemberProject = {
+  owner: TestUser
+  member: TestUser
+  teamId: string
+  projectId: string
+  chapterId: string
+}
+
+export async function memberProject(): Promise<MemberProject> {
+  const [owner, member] = [await createUser(), await createUser()]
+  const team = await createTeam(owner)
+  await addMember(team.id, member)
+  const project = await createProject(owner, team.id)
+  return { owner, member, teamId: team.id, projectId: project.id, chapterId: project.chapterId }
+}
+
+// A fresh id of the form PocketBase and the editor use: 15 characters from a-z0-9.
+export function clientId(): string {
+  const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789'
+  const bytes = crypto.getRandomValues(new Uint8Array(15))
+  return Array.from(bytes, (b) => alphabet[b % alphabet.length]).join('')
+}
+
+// Creates a node through the user's own session (the create rule applies).
+export async function createNode(
+  user: TestUser,
+  projectId: string,
+  chapterId: string,
+  extra: Record<string, unknown> = {},
+): Promise<string> {
+  const body = { project: projectId, chapter: chapterId, title: '', color: 'slate', x: 0, y: 0, ...extra }
+  return (await (await asUser(user)).collection('nodes').create(body)).id
+}
+
+// Creates a script line through the user's own session (the create rule applies).
+export async function createLine(
+  user: TestUser,
+  projectId: string,
+  nodeId: string,
+  extra: Record<string, unknown> = {},
+): Promise<string> {
+  const body = { project: projectId, node: nodeId, character: '', text: '', sort_order: 1, ...extra }
+  return (await (await asUser(user)).collection('script_lines').create(body)).id
+}
+
+// One client's save, following the client rule of decision 0002: send with the version
+// it read; on 409 re-read, re-apply only its own fields and send again, at most 20 tries.
+// Returns how many 409 answers it met.
+export async function saveOwnFields(
+  pb: PocketBase,
+  collection: string,
+  id: string,
+  readVersion: number,
+  fields: Record<string, unknown>,
+): Promise<number> {
+  const maxTries = 20
+  let version = readVersion
+  for (let attempt = 0; attempt < maxTries; attempt++) {
+    try {
+      await pb.collection(collection).update(id, { ...fields, version })
+      return attempt
+    } catch (error) {
+      if ((error as { status?: number }).status !== 409) throw error
+      version = Number((await pb.collection(collection).getOne(id)).version)
+    }
+  }
+  throw new Error(`no save after ${maxTries} tries`)
 }

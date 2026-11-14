@@ -61,9 +61,9 @@ export async function readAsAdmin(collection: string, id: string): Promise<Recor
 
 ## Checkpoint 5C: Concurrency proof and docs
 
-- [ ] **Step 11: Write** `tests/rules/content-guard.rules.test.ts` (C15, C16). Two members, two SDK sessions, 20 rounds; in each round both send at the same moment (`Promise.all`) an update of a different field of the same chapter (`title` and `position`) with the version both read; the loser gets 409, re-reads, re-applies only its own field and retries (at most 20 times).
-- [ ] **Step 12: Run** `npm run test:rules`. Expected: PASS. Run the file 3 more times; expected: PASS each time.
-- [ ] **Step 13: Docs.** ERD changes listed under **Files**; `docs/developer/backend.md` "Guarded writes" (what the client sends, the 409 answer, why the hook is on the request, how to add a collection to `GUARDED`); `project_settings` in `docs/admin/settings.md`; helpers in `docs/developer/testing.md`. **Close checkpoint 5C** (commit `test: concurrent edits keep both fields`).
+- [x] **Step 11: Write** `tests/rules/content-guard.rules.test.ts` (C15, C16). Two members, two SDK sessions, 20 rounds; in each round both send at the same moment (`Promise.all`) an update of a different field of the same chapter (`title` and `position`) with the version both read; the loser gets 409, re-reads, re-applies only its own field and retries (at most 20 times).
+- [x] **Step 12: Run** `npm run test:rules`. Expected: PASS. Run the file 3 more times; expected: PASS each time.
+- [x] **Step 13: Docs.** ERD changes listed under **Files**; `docs/developer/backend.md` "Guarded writes" (what the client sends, the 409 answer, why the hook is on the request, how to add a collection to `GUARDED`); `project_settings` in `docs/admin/settings.md`; helpers in `docs/developer/testing.md`. **Close checkpoint 5C** (commit `test: concurrent edits keep both fields`).
 
 ## Test plan
 ### Cases

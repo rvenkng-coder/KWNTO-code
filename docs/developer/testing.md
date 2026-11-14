@@ -86,6 +86,15 @@ Test the outsider, a plain member and a removed member for every team table: a r
 
 To prove an owner sees no trace of a pending invitee, the test lists every collection the admin knows as the owner and searches the rows for the invitee's id, email and name. `sign-in` log entries hold the email as typed (Task 4), so a check that no email is logged must look at `invite` entries only.
 
+### Content collections (`tests/rules/helpers/content.ts`)
+`projects`, `project_settings`, `chapters` and (from Task 6 of the editor core plan) the node tables. Every update goes through the version guard ([backend.md, "Guarded writes"](backend.md#guarded-writes)), so an update must send `version`.
+
+- `createProject(user, teamId, name?)`: creates a project through the member's own session (the create rule and the projects hook apply), then finds its settings row and first chapter as the admin. Returns `{ id, chapterId, settingsId }`.
+- `guardedUpdate(user | null, collection, id, body)`: a `PATCH` of one record as the user, or signed out with `null`, with `body` sent exactly as given (leave out `version`, or send a stale one, to test the guard). Never throws on an error status; returns a `Reply` (`status`, `body`, `raw`, from `helpers/invites.ts`).
+- `readAsAdmin(collection, id)`: the record as stored, to check that a refused write changed nothing and that `version` rose by exactly 1.
+
+Rule fragments of the content collections (in [1794370000_projects_chapters.js](../../backend/pb_migrations/1794370000_projects_chapters.js); Task 6 copies them): **member of the project's team** `project.team.team_members_via_team.user ?= @request.auth.id`; **create** adds `@request.body.version:isset = false && @request.body.deleted_at:isset = false`; **update** adds `@request.body.version:isset = true` and forbids the parent field (`team` or `project`). An update refused by its rule answers 403 or 404; a stale `version` answers 409. `tests/rules/content-guard.rules.test.ts` holds the concurrency proof (two members, 20 rounds of parallel edits of different fields of one chapter).
+
 ### Admin-only collections (`tests/rules/helpers/admin-only.ts`)
 Collections only the admin may touch (the `system_*` settings and `security_events`) share one set of checks:
 

@@ -2,6 +2,8 @@
 
 This guide documents the test layers, commands, rule test harness, and deny-by-default coverage enforcement in KWNTO.
 
+When each layer is required, the test conventions, the catalogue of awkward cases and the definition of done are in the [test strategy](../testing-strategy.md).
+
 ## Test Layers and Commands
 
 KWNTO uses distinct test projects managed by Vitest and custom test harnesses:
@@ -15,8 +17,26 @@ KWNTO uses distinct test projects managed by Vitest and custom test harnesses:
 | **Full suite** | `npm test` | Runs `lint && typecheck && test:unit && test:container && test:rules` | All |
 
 ### Supporting Verification Commands
-- `npm run typecheck`: Runs `tsc -b --noEmit` to verify strict TypeScript adherence.
+- `npm run typecheck`: Runs `tsc -b --noEmit` to verify strict TypeScript compiles for `frontend/src/` only (`scripts/`, `tests/` and `e2e/` are not typechecked).
 - `npm run lint`: Runs linter guardrails.
+- `npm run check:plan`: Checks the Test plan block of every task file in plans that opt in with `**Standard:** test-plan-v1`; format in [test-plan-format.md](test-plan-format.md). Part of `lint`.
+- `npm run check:hygiene [-- --base <sha>]`: Test hygiene against the merge base with `main`, on changed test files only (shared changed-files helper: `scripts/lib/changed-files.ts`). Prints `file: rule: detail`, exit 1 on any problem. Reads test files with the TypeScript parser (`scripts/lib/test-ast.ts`, no new dependency): a declaration is a call whose chain starts at `test` or `it`, found in any expression position (conditional, `export default`, comma, template, JSX) and never in strings, comments, regex literals or JSX text. It is backed by raw-text checks (`scripts/lib/test-raw.ts`), so a parser misjudgement can only add false positives; skip and focus words are matched on raw text and a word inside a string or comment is flagged on purpose. Rules, and what each protects:
+  - `header`: every added `test(`, `it(`, `test.each(`, `it.each(` has a `//` or `*/` comment on the line directly above (no blank line), so each new test names the risk it protects.
+  - `skipped`: `.skip`, `skipIf`, `xit`, `xtest`, `xdescribe`, `test.fixme`, `test.todo` anywhere in a changed test file, so a failing test cannot be switched off.
+  - `focused`: `.only`, `fdescribe`, so a run cannot quietly cover a single test.
+  - `lost-test`: fewer tests than at base, or a base title now absent (a rename is reported too; the reviewer decides), or a deleted test file, so a removed test cannot hide behind an added one.
+  - `lost-assertion`: fewer `expect(` calls than at base, so a test cannot be weakened while it stays green.
+  - `scan`: the file has a syntax error (the parser's message and line are shown), so it cannot be read reliably; it is then judged by the raw-text checks alone. Lost tests and assertions are counted on the raw text as well and flagged if either count drops, and a bare test line is looked for on the raw lines too. The header must be a comment (`//`, `/* */` or JSDoc) ending on the line directly above the statement; a statement that does not start its own line (two tests on one line) is a problem.
+  - `--base` must be a commit; a value starting with `-` is a usage error (exit 2) and the base is resolved once to a sha.
+  - Known limits: a test imported under another name (`import { test as t }`), built with `test.extend`, or reached by computed access (`test[mode]`) is not recognised as a declaration; a title that is not a literal is compared by its source text and by the test count; `test.describe` and similar Playwright calls are treated as declarations and need a comment. An unknown command-line argument is a usage error (exit 2). Scripts run through a symlinked path work (real paths are compared).
+- `npm run check:breaks -- <task.md>` (or `node scripts/run-breaks.ts [--cwd <dir>] <task.md>`): Runs the deliberate breaks of one task file; see [test-plan-format.md](test-plan-format.md#running-the-breaks).
+- `npm run check:task -- --task <task.md> [--base <sha>] [--built-by local|strong]`: Runs every check a task ends with and prints one verdict; the implementer pastes the full output in its report. See [check-task.md](check-task.md).
+- `npm run prepare-local-run -- <plan folder> <task> [<checkpoint>]`: Builds the sandbox, prompt and start command for one local-model checkpoint after checking the server, task and checkout. See [prepare-local-run.md](prepare-local-run.md).
+- `npm run ping:model [-- <baseUrl>]`: Asks the local model server (llama-swap, default `http://localhost:9092`) whether it answers and whether the model is loaded; one line, exit 0 if answering, 1 if not. See [local-model-runbook.md](local-model-runbook.md).
+- `npm run check:probes -- <folder>`: Runs a task's unseen probes and prints only each failing row and kind; see [test-plan-format.md](test-plan-format.md#running-the-probes).
+- `npm run check:quality [-- --base <sha>]`: Function length, complexity, nesting, parameter and console limits on files changed since the base; see [quality-limits.md](quality-limits.md).
+- `npm run report:quality`: The same limits over the whole repository, counts only, exit 0; see [quality-limits.md](quality-limits.md).
+- `npm run report:escape-rate -- <progress.md>`: Share of local-model tasks that had a problem escape after close; exits 1 on a missing, empty or malformed table. See [review-sampling.md](review-sampling.md).
 
 ---
 

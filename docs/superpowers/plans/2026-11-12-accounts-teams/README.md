@@ -4,7 +4,7 @@
 
 **Goal:** Let people sign up, verify, sign in safely and form teams (join code, invites), with the settings tables, security log and admin incident controls behind them, and screens for all of it.
 
-**Architecture:** Collections and settings are PocketBase migrations; behaviour the rules cannot express (password rules, lockout, block, lockdown, joining, invites) is JavaScript hooks and custom routes in `backend/pb_hooks/`, with every pure decision in `backend/pb_hooks/lib/` so Vitest can test it without PocketBase. The browser reaches all of it only through `src/backend/`. Access is proven by rule tests against a live PocketBase, as in Plan 1.
+**Architecture:** Collections and settings are PocketBase migrations; behaviour the rules cannot express (password rules, lockout, block, lockdown, joining, invites) is JavaScript hooks and custom routes in `backend/pb_hooks/`, with every pure decision in `backend/pb_hooks/lib/` so Vitest can test it without PocketBase. The browser reaches all of it only through `frontend/src/backend/`. Access is proven by rule tests against a live PocketBase, as in Plan 1.
 
 **Tech Stack:** PocketBase 0.40.6 (JS hooks and migrations), `pocketbase` JS SDK, React, TypeScript, Zustand, Vitest, Playwright. No new dependencies.
 
@@ -65,8 +65,8 @@ These are my calls where the spec is silent. Say so if any is wrong; each is che
 | `backend/pb_hooks/*.pb.js` | Thin hooks and routes: `retention`, `users-defaults`, `users-signup`, `users-signin`, `admin-controls`, `teams`, `teams-join`, `teams-invites`. |
 | `tests/hooks/*.unit.test.ts` | Vitest tests of `lib/` (added to the `unit` project in Task 1). |
 | `tests/rules/<collection>.rules.test.ts` | One per collection, as the coverage check requires. |
-| `src/backend/` | `auth.ts`, `teams.ts`, `errors.ts`, `types.ts`; `index.ts` exposes `backend.auth` and `backend.teams`. |
-| `src/features/auth/`, `src/features/teams/` | Screens and stores. |
+| `frontend/src/backend/` | `auth.ts`, `teams.ts`, `errors.ts`, `types.ts`; `index.ts` exposes `backend.auth` and `backend.teams`. |
+| `frontend/src/features/auth/`, `frontend/src/features/teams/` | Screens and stores. |
 | `docs/admin/settings.md`, `docs/security.md`, `docs/developer/backend.md`, `docs/developer/testing.md` | Docs updated by the task that changes behaviour. |
 
 ## Tasks

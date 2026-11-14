@@ -1,6 +1,6 @@
 // Protects the whole chain: door -> routes -> rules, for the flows of Tasks 3 to 8.
 import { expect, test } from 'vitest'
-import { createBackend } from '../../src/backend/client'
+import { createBackend } from '../../frontend/src/backend/client'
 import { PB_URL, asAdmin } from './helpers/pb'
 
 test('sign up, sign in unverified, refresh after verification', async () => {

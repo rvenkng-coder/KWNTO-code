@@ -36,10 +36,10 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 2B: Resend verification and one gate text
 
-- [ ] **Step 5: Write the failing e2e tests** C5 and C6 in `e2e/verify-gate.spec.ts`.
-- [ ] **Step 6: Run** them. Expected: FAIL.
-- [ ] **Step 7: Implement `VerifyGate`** and show it in `TeamsScreen` in place of the current gate paragraph. For an unverified user, the Join button and every invite's Accept button are disabled (Decline stays enabled), so the server's own wording never appears.
-- [ ] **Step 8: Run** `npm run test:e2e`. Expected: PASS. Add the resend button to `docs/user/accounts-and-teams.md`. **Close checkpoint 2B** (commit `feat: resend verification email`).
+- [x] **Step 5: Write the failing e2e tests** C5 and C6 in `e2e/verify-gate.spec.ts`.
+- [x] **Step 6: Run** them. Expected: FAIL.
+- [x] **Step 7: Implement `VerifyGate`** and show it in `TeamsScreen` in place of the current gate paragraph. For an unverified user, the Join button and every invite's Accept button are disabled (Decline stays enabled), so the server's own wording never appears.
+- [x] **Step 8: Run** `npm run test:e2e`. Expected: PASS. Add the resend button to `docs/user/accounts-and-teams.md`. **Close checkpoint 2B** (commit `feat: resend verification email`).
 
 ## Checkpoint 2C: Keyboard and labels
 

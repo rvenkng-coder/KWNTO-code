@@ -93,7 +93,7 @@ Placeholders: `<sandbox>` and `<run dir>` are the two directories `prepare-local
    npm run check:task -- --task <task file> --base <HEAD noted in step 2> --built-by local
    ```
 
-   Paste the full output in the task report. Rows for checkpoints that are not built yet (a later checkpoint's tests) may still show `FAIL coverage`; say so in the report and name the rows.
+   Paste the full output in the task report: a file `.planning/<date>-<plan>/reports/task-<N>-<checkpoint>.md` holding the commits, your grading notes and the full `check:task` output (the first one to copy is `.planning/2026-11-14-editor-core/reports/task-1-1A.md`). Link it from the progress row. Rows for checkpoints that are not built yet (a later checkpoint's tests) may still show `FAIL coverage`; say so in the report and name the rows.
 
 5. **Record the row** in `progress.md` (Built by `local`, Review, Escaped) and clean up with the `rm -rf` line `prepare-local-run` printed. The patch file lives in `<run dir>`, so it goes with it.
 

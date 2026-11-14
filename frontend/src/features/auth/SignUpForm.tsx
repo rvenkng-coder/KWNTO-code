@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { useSession } from './useSession'
 
 const PASSWORD_RULES =
@@ -10,17 +10,14 @@ interface SignUpFormProps {
 
 export function SignUpForm({ onSignIn }: SignUpFormProps) {
   const { signUp, error } = useSession()
+  const [email, setEmail] = useState('')
+  const [name, setName] = useState('')
+  const [password, setPassword] = useState('')
   const [signedUp, setSignedUp] = useState(false)
-  const formRef = useRef<HTMLFormElement>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const form = formRef.current!
-    const ok = await signUp(
-      (form.elements.namedItem('email') as HTMLInputElement).value,
-      (form.elements.namedItem('password') as HTMLInputElement).value,
-      (form.elements.namedItem('name') as HTMLInputElement).value,
-    )
+    const ok = await signUp(email, password, name)
     if (ok) setSignedUp(true)
   }
 
@@ -37,7 +34,7 @@ export function SignUpForm({ onSignIn }: SignUpFormProps) {
   }
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="panel flex w-full max-w-sm flex-col gap-2">
+    <form onSubmit={handleSubmit} className="panel flex w-full max-w-sm flex-col gap-2">
       <h2>Sign up</h2>
       <div>
         <label htmlFor="signup-email">Email</label>
@@ -45,7 +42,8 @@ export function SignUpForm({ onSignIn }: SignUpFormProps) {
           className="field"
           id="signup-email"
           type="email"
-          name="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
         />
       </div>
@@ -55,7 +53,8 @@ export function SignUpForm({ onSignIn }: SignUpFormProps) {
           className="field"
           id="signup-name"
           type="text"
-          name="name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           required
         />
       </div>
@@ -65,7 +64,8 @@ export function SignUpForm({ onSignIn }: SignUpFormProps) {
           className="field"
           id="signup-password"
           type="password"
-          name="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           required
         />
         <small>{PASSWORD_RULES}</small>

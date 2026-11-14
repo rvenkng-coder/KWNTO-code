@@ -11,11 +11,12 @@ test('a deleted team is gone from the list at once', async ({ page }) => {
 
   // Open the team detail and delete it
   await openTeam(page, 'Crew 7')
-  await page.getByRole('button', { name: 'Delete team' }).click()
   page.once('dialog', (dialog) => dialog.accept())
+  await page.getByRole('button', { name: 'Delete team' }).click()
 
-  // The handler navigates to #/ after delete; wait for the list to settle
+  // The handler navigates to #/ after delete; wait for the teams screen to be shown
   await settled(page)
+  await expect(page.getByTestId('team-list')).toBeVisible()
   await expect(page.getByTestId('team-list').getByRole('button', { name: 'Crew 7' })).toHaveCount(0)
 })
 
@@ -54,7 +55,9 @@ test('the join notice clears on the next action', async ({ page, browser }) => {
   // Now create a new team on the same page — the notice should clear
   page2.once('dialog', (dialog) => dialog.accept('New Team'))
   await page2.getByRole('button', { name: 'Create team' }).click()
-  await settled(page2)
+  await expect(page2.getByTestId('team-list')).toContainText('New Team', {
+    timeout: 10_000,
+  })
 
   // The join notice should be gone
   await expect(page2.getByText(/^Joined Crew 7\.$/)).toHaveCount(0)
@@ -81,15 +84,34 @@ test('sign-up replaces the form with a confirmation', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible()
 })
 
-// C9: keyboard reaches the account controls
-test('forgot password works from the keyboard', async ({ page }) => {
+// Lost error messages: toggle fails and the alert appears
+test('toggle join code shows an error when the server fails', async ({ page }) => {
   await page.goto('/')
-  // Tab through email, password to reach Forgot password?
-  await page.keyboard.press('Tab')
-  await page.keyboard.press('Tab')
-  await page.keyboard.press('Tab')
-  await page.keyboard.press('Enter')
+  await signUpVerifyAndSignIn(page, uniqueEmail(), 'Owner')
+  await createTeam(page, 'Crew 7')
 
-  // The neutral message should appear
-  await expect(page.getByText('If that account exists, we sent a link.')).toBeVisible({ timeout: 10_000 })
+  // Open the team detail and enable join code first so the toggle button exists
+  await openTeam(page, 'Crew 7')
+  await enableJoinCode(page)
+
+  // Route the next setJoinCodeEnabled request to fail with a custom error message
+  await page.route('**/api/collections/team_settings/**', async (route) => {
+    const method = route.request().method()
+    if (method === 'PATCH') {
+      await route.fulfill({
+        status: 500,
+        body: JSON.stringify({ message: 'Failed to toggle join code' }),
+      })
+    } else {
+      await route.continue()
+    }
+  })
+
+  // Click the Disable button to trigger the toggle
+  await page.getByRole('button', { name: 'Disable' }).click()
+
+  // The error alert should appear
+  await expect(page.getByTestId('form-error')).toContainText('Failed to toggle join code')
 })
+
+

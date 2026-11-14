@@ -18,12 +18,14 @@ function OwnerPanel({
   onDelete,
   onToggle,
   onRegenerate,
+  onError,
 }: {
   teamId: string
   settings: TeamSettings | null
   onDelete: () => void
   onToggle: (enabled: boolean) => void
   onRegenerate: (code: string) => void
+  onError: (msg: string) => void
 }) {
   return (
     <div className="panel flex flex-col gap-3">
@@ -36,16 +38,16 @@ function OwnerPanel({
               const newEnabled = !settings.joinCodeEnabled
               await backend.teams.setJoinCodeEnabled(teamId, newEnabled)
               onToggle(newEnabled)
-            } catch {
-              // server will surface the error
+            } catch (err: unknown) {
+              onError(errorMessage(err, 'Failed to toggle join code'))
             }
           }}
           onRegenerate={async () => {
             try {
               const newCode = await backend.teams.regenerateJoinCode(teamId)
               onRegenerate(newCode)
-            } catch {
-              // server will surface the error
+            } catch (err: unknown) {
+              onError(errorMessage(err, 'Failed to regenerate code'))
             }
           }}
         />
@@ -119,6 +121,7 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
           onDelete={handleDeleteTeam}
           onToggle={(enabled) => setSettings((s) => (s ? { ...s, joinCodeEnabled: enabled } : null))}
           onRegenerate={(code) => setSettings((s) => (s ? { ...s, joinCode: code } : null))}
+          onError={setError}
         />
       )}
     </div>

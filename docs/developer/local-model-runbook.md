@@ -60,6 +60,47 @@ About a minute after the start, look for a session file in the `--session-dir`. 
 4. Run the unseen probe set a person wrote beyond the task's own probe folder (step 4 of "After it finishes" in the notes).
 5. Review when the rule says so: `check:task` prints `Review required: yes` or `no` ([review-sampling.md](review-sampling.md)). Record the outcome in the progress row (Built by, Review, Escaped).
 
+## Bringing the work into the working branch
+
+The sandbox is a separate repository with no remote, and git there cannot fetch or push, so nothing flows back by itself. You carry the commits over as a patch. Do this only when the sandbox's `check:task` has no `FAIL` other than rows that belong to later checkpoints, and the probes for the task exist and pass (a person writes the probe folder: [tests/probes/README.md](../../tests/probes/README.md); the model must never read it, so it is not in the sandbox).
+
+Placeholders: `<sandbox>` and `<run dir>` are the two directories `prepare-local-run` printed; `<baseline sha>` is the baseline it printed (the sandbox's first commit, not a commit of your checkout).
+
+1. **Export the commits the model made** (everything after the baseline), into the run directory, outside the sandbox:
+
+   ```bash
+   cd <sandbox>
+   git status --short                      # must be empty; if not, the model left work uncommitted: send it back
+   git format-patch <baseline sha> --stdout > <run dir>/work.patch
+   git apply --stat <run dir>/work.patch   # read it: only the "May touch" files may appear
+   ```
+
+2. **Apply it in the worktree you are building in** (the branch named in the plan; a clean tree, except for the untracked probe folder):
+
+   ```bash
+   cd <your worktree>
+   git rev-parse --short HEAD              # note this: it is the --base for the final check
+   git am --3way <run dir>/work.patch
+   ```
+
+   The model's commits arrive with their own messages, in order, with the author `kwnto local run <local-run@example.invalid>` and you as the committer. If `git am` stops on a conflict, your branch moved after the sandbox was built: run `git am --abort`, then either rebuild the sandbox from the new HEAD or resolve by hand and `git am --continue`. Never `git apply` over a dirty tree.
+
+3. **Put the probe folder in place** (if it is not already in the worktree) and commit it on its own, for example `test: probes for task 1`. Probes are written by a person or a strong model, never by the local model.
+
+4. **Run the final check in the worktree, not the sandbox.** This is the evidence:
+
+   ```bash
+   npm run check:task -- --task <task file> --base <HEAD noted in step 2> --built-by local
+   ```
+
+   Paste the full output in the task report. Rows for checkpoints that are not built yet (a later checkpoint's tests) may still show `FAIL coverage`; say so in the report and name the rows.
+
+5. **Record the row** in `progress.md` (Built by `local`, Review, Escaped) and clean up with the `rm -rf` line `prepare-local-run` printed. The patch file lives in `<run dir>`, so it goes with it.
+
+If the fix round is needed (the check or the probes found a problem), send the failures back to the model in the same sandbox as a new prompt in `<run dir>` (`PROMPT-fix1.md`, own `--session-dir`): state the failing input and cause, keep the same "May touch" and "Must not change", ask for the new test first, then a **new** commit (not an amend). After round 2 without a pass, escalate (next section). Then export again from step 1: the patch now holds all commits since the baseline, so apply it to a worktree that does not have the first round yet.
+
+A run that starts but writes no session file and shows an idle GPU and empty slots is stalled: see "The one-minute check".
+
 ## When to escalate to a strong model
 
 - The check still shows a `FAIL` after **two rounds** of sending the failures back to the local model.

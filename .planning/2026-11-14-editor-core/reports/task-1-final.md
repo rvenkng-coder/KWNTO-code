@@ -26,5 +26,5 @@ check:task: PASS
 
 ## Not recorded here
 
-- The plan's own per-task review (strong-model tasks have no sampled review) is not done; the README Status stays `awaiting review`.
+- The plan's own per-task review was not done; the developer marked Task 1 `done` on the strength of this `check:task` PASS.
 - Probes: the 19 probes are the 1A set (C1 to C7); none exist for 1B and 1C, which the Test plan does not require.

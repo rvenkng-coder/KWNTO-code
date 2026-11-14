@@ -27,6 +27,9 @@ function unset(...names) {
 const VERSION = { name: "version", type: "number", onlyInt: true, min: 0 }
 const CREATED = { name: "created", type: "autodate", onCreate: true }
 const UPDATED = { name: "updated", type: "autodate", onCreate: true, onUpdate: true }
+// Added to the projects update rule of 1794370000_projects_chapters.js.
+const START_NODE_IN_PROJECT = " && (@request.body.start_node:isset = false || @request.body.start_node = ''" +
+  " || @request.body.start_node.project = id)"
 const COLORS = ["slate", "red", "orange", "amber", "green", "teal", "blue", "purple"]
 
 function projectField(projects) {
@@ -127,11 +130,15 @@ migrate((app) => {
   }))
 
   // The node a playthrough starts at (plan D7). No cascade: purging the node empties it.
+  // pb_hooks/projects.pb.js sets it to the project's first node; a member may change it
+  // to another node of the same project, or empty it.
   projects.fields.add(new RelationField({ name: "start_node", collectionId: nodes.id, maxSelect: 1, cascadeDelete: false }))
+  projects.updateRule = projects.updateRule + START_NODE_IN_PROJECT
   app.save(projects)
 }, (app) => {
   const projects = app.findCollectionByNameOrId("projects")
   projects.fields.removeByName("start_node")
+  projects.updateRule = projects.updateRule.replace(START_NODE_IN_PROJECT, "")
   app.save(projects)
   for (const name of ["connections", "cues", "script_lines", "nodes"]) {
     app.delete(app.findCollectionByNameOrId(name))

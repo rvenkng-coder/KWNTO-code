@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import { expectNoRows, expectRefused } from './helpers/admin-only.ts'
-import { createProject, guardedUpdate, readAsAdmin } from './helpers/content.ts'
+import { createNode, createProject, guardedUpdate, memberProject, readAsAdmin } from './helpers/content.ts'
 import { asAdmin, asAnonymous, asUser, createTeam, createUser } from './helpers/pb.ts'
 import { addMember, expectCreateRefused } from './helpers/teams.ts'
 
@@ -92,4 +92,35 @@ test('deleting a team removes its projects', async () => {
   await expectRefused(admin.collection('projects').getOne(project.id))
   await expectRefused(admin.collection('project_settings').getOne(project.settingsId))
   await expectRefused(admin.collection('chapters').getOne(project.chapterId))
+})
+
+// Plan D7: the first node made in a project becomes its start node, in the same save, and
+// the project's version rises once so a stale edit of the project is refused.
+test('the first node becomes the start node', async () => {
+  const { member, projectId, chapterId } = await memberProject()
+  expect(await readAsAdmin('projects', projectId)).toMatchObject({ start_node: '', version: 0 })
+
+  const first = await createNode(member, projectId, chapterId)
+  expect(await readAsAdmin('projects', projectId)).toMatchObject({ start_node: first, version: 1 })
+
+  await createNode(member, projectId, chapterId)
+  expect(await readAsAdmin('projects', projectId)).toMatchObject({ start_node: first, version: 1 })
+})
+
+// Review Focus 2: a project cannot start at a node of another project.
+test('the start node must belong to the project', async () => {
+  const { owner, member, teamId, projectId, chapterId } = await memberProject()
+  const first = await createNode(member, projectId, chapterId)
+  const second = await createNode(member, projectId, chapterId)
+  const other = await createProject(owner, teamId, 'Other')
+  const foreign = await createNode(owner, other.id, other.chapterId)
+  const version = Number((await readAsAdmin('projects', projectId)).version)
+
+  const refused = await guardedUpdate(member, 'projects', projectId, { version, start_node: foreign })
+  expect([403, 404]).toContain(refused.status)
+  expect(await readAsAdmin('projects', projectId)).toMatchObject({ start_node: first, version })
+
+  const moved = await guardedUpdate(member, 'projects', projectId, { version, start_node: second })
+  expect(moved.status).toBe(200)
+  expect(await readAsAdmin('projects', projectId)).toMatchObject({ start_node: second, version: version + 1 })
 })

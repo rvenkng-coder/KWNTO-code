@@ -45,10 +45,10 @@ export async function readAsAdmin(collection: string, id: string): Promise<Recor
 
 ## Checkpoint 5A: The guard's pure parts
 
-- [ ] **Step 1: Write the failing tests** C1 to C4 in `tests/hooks/content-guard.unit.test.ts` (load the module with `createRequire`, as the other `tests/hooks/` files do).
-- [ ] **Step 2: Run** `npm run test:unit`. Expected: FAIL (module not found).
-- [ ] **Step 3: Implement `lib/content-guard.js`.** Write the checks as `if (!GUARDED.includes(name))`, `const SKIP = ['id', 'version', 'created', 'updated']` and `Number.isInteger(value) && value >= 0` (breaks B1 to B3 target these).
-- [ ] **Step 4: Run** `npm run test:unit`. Expected: PASS. **Close checkpoint 5A** (commit `feat: content guard helpers`).
+- [x] **Step 1: Write the failing tests** C1 to C4 in `tests/hooks/content-guard.unit.test.ts` (load the module with `createRequire`, as the other `tests/hooks/` files do).
+- [x] **Step 2: Run** `npm run test:unit`. Expected: FAIL (module not found).
+- [x] **Step 3: Implement `lib/content-guard.js`.** Write the checks as `if (!GUARDED.includes(name))`, `const SKIP = ['id', 'version', 'created', 'updated']` and `Number.isInteger(value) && value >= 0` (breaks B1 to B3 target these).
+- [x] **Step 4: Run** `npm run test:unit`. Expected: PASS. **Close checkpoint 5A** (commit `feat: content guard helpers`).
 
 ## Checkpoint 5B: Three collections, their rules and the guarded update
 

@@ -18,7 +18,7 @@ function parseProject(parts: string[]): Route | undefined {
   const projectId = parts[1]!
   if (!ID.test(projectId)) return undefined
   if (parts.length === 2) return { name: 'project', projectId, chapterId: null }
-  if (parts[2] === 'chapter' && parts.length >= 4) {
+  if (parts[2] === 'chapter' && parts.length === 4) {
     const chapterId = parts[3]!
     if (ID.test(chapterId)) return { name: 'project', projectId, chapterId }
   }

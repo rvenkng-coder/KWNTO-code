@@ -56,3 +56,18 @@ test('routeToHash and parseRoute round-trip', () => {
     expect(parseRoute(routeToHash(r))).toEqual(r)
   }
 })
+
+// Protects: extra segments after a project route or a project chapter route must fall
+// back to teams instead of being silently accepted as valid routes.
+test('extra segments after a project or chapter route fall back to teams', () => {
+  expect(parseRoute('#/project/abcdefghijk0123/extra')).toEqual({ name: 'teams' })
+  expect(
+    parseRoute('#/project/abcdefghijk0123/chapter/zyxwvutsrq98765/extra')
+  ).toEqual({ name: 'teams' })
+})
+
+// Protects: a project hash with only the word "chapter" and no chapter id must fall
+// back to teams (the chapter segment requires a valid id after it).
+test('project chapter without an id falls back to teams', () => {
+  expect(parseRoute('#/project/abcdefghijk0123/chapter')).toEqual({ name: 'teams' })
+})

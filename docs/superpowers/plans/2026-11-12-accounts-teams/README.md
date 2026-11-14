@@ -4,7 +4,7 @@
 
 **Goal:** Let people sign up, verify, sign in safely and form teams (join code, invites), with the settings tables, security log and admin incident controls behind them, and screens for all of it.
 
-**Architecture:** Collections and settings are PocketBase migrations; behaviour the rules cannot express (password rules, lockout, block, lockdown, joining, invites) is JavaScript hooks and custom routes in `backend/pb_hooks/`, with every pure decision in `backend/pb_hooks/lib/` so Vitest can test it without PocketBase. The browser reaches all of it only through `src/backend/`. Access is proven by rule tests against a live PocketBase, as in Plan 1.
+**Architecture:** Collections and settings are PocketBase migrations; behaviour the rules cannot express (password rules, lockout, block, lockdown, joining, invites) is JavaScript hooks and custom routes in `backend/pb_hooks/`, with every pure decision in `backend/pb_hooks/lib/` so Vitest can test it without PocketBase. The browser reaches all of it only through `frontend/src/backend/`. Access is proven by rule tests against a live PocketBase, as in Plan 1.
 
 **Tech Stack:** PocketBase 0.40.6 (JS hooks and migrations), `pocketbase` JS SDK, React, TypeScript, Zustand, Vitest, Playwright. No new dependencies.
 
@@ -65,24 +65,24 @@ These are my calls where the spec is silent. Say so if any is wrong; each is che
 | `backend/pb_hooks/*.pb.js` | Thin hooks and routes: `retention`, `users-defaults`, `users-signup`, `users-signin`, `admin-controls`, `teams`, `teams-join`, `teams-invites`. |
 | `tests/hooks/*.unit.test.ts` | Vitest tests of `lib/` (added to the `unit` project in Task 1). |
 | `tests/rules/<collection>.rules.test.ts` | One per collection, as the coverage check requires. |
-| `src/backend/` | `auth.ts`, `teams.ts`, `errors.ts`, `types.ts`; `index.ts` exposes `backend.auth` and `backend.teams`. |
-| `src/features/auth/`, `src/features/teams/` | Screens and stores. |
+| `frontend/src/backend/` | `auth.ts`, `teams.ts`, `errors.ts`, `types.ts`; `index.ts` exposes `backend.auth` and `backend.teams`. |
+| `frontend/src/features/auth/`, `frontend/src/features/teams/` | Screens and stores. |
 | `docs/admin/settings.md`, `docs/security.md`, `docs/developer/backend.md`, `docs/developer/testing.md` | Docs updated by the task that changes behaviour. |
 
 ## Tasks
 
 | # | Task | Tier | Depends on | Checkpoints | Status |
 |---|---|---|---|---|---|
-| 1 | [System settings tables and the security log](task-1-settings-and-log.md) | strong | none | 1A 1B | not started |
-| 2 | [Per-user records](task-2-user-records.md) | strong | 1 | 2A | not started |
-| 3 | [Sign-up, verification and password rules](task-3-signup-passwords.md) | strong | 1, 2 | 3A 3B | not started |
-| 4 | [Sign-in protection: lockout, block, lockdown](task-4-signin-protection.md) | strong | 1, 2 | 4A 4B | not started |
-| 5 | [Incident controls and the runbook](task-5-incident-controls.md) | strong | 4 | 5A 5B | not started |
-| 6 | [Teams, members and team settings](task-6-teams.md) | strong | 3 | 6A 6B | not started |
-| 7 | [Join by code](task-7-join-by-code.md) | strong | 6 | 7A | not started |
-| 8 | [Invite by email](task-8-invites.md) | strong | 6 | 8A 8B | not started |
-| 9 | [The backend door for accounts and teams](task-9-backend-door.md) | mid | 3, 4, 6, 7, 8 | 9A 9B | not started |
-| 10 | [Sign-in and team screens, end-to-end](task-10-screens-e2e.md) | mid | 9 | 10A 10B | not started |
+| 1 | [System settings tables and the security log](task-1-settings-and-log.md) | strong | none | 1A 1B | done |
+| 2 | [Per-user records](task-2-user-records.md) | strong | 1 | 2A | done |
+| 3 | [Sign-up, verification and password rules](task-3-signup-passwords.md) | strong | 1, 2 | 3A 3B | done |
+| 4 | [Sign-in protection: lockout, block, lockdown](task-4-signin-protection.md) | strong | 1, 2 | 4A 4B | done |
+| 5 | [Incident controls and the runbook](task-5-incident-controls.md) | strong | 4 | 5A 5B | done |
+| 6 | [Teams, members and team settings](task-6-teams.md) | strong | 3 | 6A 6B | done |
+| 7 | [Join by code](task-7-join-by-code.md) | strong | 6 | 7A | done |
+| 8 | [Invite by email](task-8-invites.md) | strong | 6 | 8A 8B | done |
+| 9 | [The backend door for accounts and teams](task-9-backend-door.md) | mid | 3, 4, 6, 7, 8 | 9A 9B | done |
+| 10 | [Sign-in and team screens, end-to-end](task-10-screens-e2e.md) | mid | 9 | 10A 10B | done |
 
 **Status values:** `not started`, `in progress`, `awaiting review` (all checkpoints closed, reviewer has not passed it), `done` (reviewer passed it). Tasks 3 and 4 can run side by side once 1 and 2 are done; so can 7 and 8 once 6 is done.
 

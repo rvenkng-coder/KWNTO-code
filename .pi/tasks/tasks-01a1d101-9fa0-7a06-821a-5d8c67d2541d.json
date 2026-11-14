@@ -1,0 +1,20 @@
+{
+  "nextId": 2,
+  "tasks": [
+    {
+      "id": "1",
+      "subject": "Task 9: The backend door for accounts and teams",
+      "description": "Implement the backend door layer: errors, mappers, auth and teams APIs. Checkpoints 9A and 9B.",
+      "status": "in_progress",
+      "activeForm": "Implementing Task 9: backend door",
+      "metadata": {
+        "agentType": "general-purpose"
+      },
+      "blocks": [],
+      "blockedBy": [],
+      "createdAt": 1794508231768,
+      "updatedAt": 1794508235529,
+      "owner": "subagent-9"
+    }
+  ]
+}

@@ -6,12 +6,12 @@ Part of the [Accounts and Teams plan](README.md). **Read the router first:** its
 **Depends on:** Tasks 3, 4, 6, 7 and 8
 
 **Files:**
-- Create: `src/backend/types.ts`, `src/backend/errors.ts`, `src/backend/errors.test.ts`, `src/backend/mappers.ts`, `src/backend/mappers.test.ts`, `src/backend/auth.ts`, `src/backend/teams.ts`, `tests/rules/backend-door.rules.test.ts`
-- Modify: `src/backend/client.ts` (`Backend` gains `auth` and `teams`), `src/backend/index.ts`, `docs/developer/backend.md`
+- Create: `frontend/src/backend/types.ts`, `frontend/src/backend/errors.ts`, `frontend/src/backend/errors.test.ts`, `frontend/src/backend/mappers.ts`, `frontend/src/backend/mappers.test.ts`, `frontend/src/backend/auth.ts`, `frontend/src/backend/teams.ts`, `tests/rules/backend-door.rules.test.ts`
+- Modify: `frontend/src/backend/client.ts` (`Backend` gains `auth` and `teams`), `frontend/src/backend/index.ts`, `docs/developer/backend.md`
 
 **Interfaces:**
 - Consumes: the collections and routes of Tasks 3 to 8 (by the exact names and messages in their Interfaces blocks).
-- Produces, `src/backend/types.ts`:
+- Produces, `frontend/src/backend/types.ts`:
 
 ```ts
 export interface AuthUser { id: string; email: string; name: string; verified: boolean }
@@ -21,7 +21,7 @@ export interface TeamSettings { joinCode: string; joinCodeEnabled: boolean }   /
 export interface Invite { id: string; teamName: string; invitedByName: string }
 ```
 
-- Produces, `src/backend/errors.ts`:
+- Produces, `frontend/src/backend/errors.ts`:
 
 ```ts
 export type BackendErrorKind = 'invalid' | 'locked' | 'forbidden' | 'not-found' | 'conflict' | 'unreachable' | 'unknown'
@@ -32,7 +32,7 @@ export function toBackendError(err: unknown): BackendError
 // message is the server's message when it sent one, otherwise a short generic text. Never throws.
 ```
 
-- Produces, `src/backend/mappers.ts`: `toAuthUser(record)`, `toTeam(record, userId)`, `toTeamMember(record)`, `toInvite(record)` turning PocketBase records into the types above (record parameter typed as `Record<string, unknown>`, no `any`).
+- Produces, `frontend/src/backend/mappers.ts`: `toAuthUser(record)`, `toTeam(record, userId)`, `toTeamMember(record)`, `toInvite(record)` turning PocketBase records into the types above (record parameter typed as `Record<string, unknown>`, no `any`).
 - Produces, on the existing `Backend` (the single place the app talks to the server):
 
 ```ts
@@ -69,13 +69,13 @@ All methods reject with a `BackendError`, never a raw SDK error.
 
 ## Checkpoint 9A: Errors and mappers (pure)
 
-- [ ] **Step 1: Write the failing tests** `src/backend/errors.test.ts` and `src/backend/mappers.test.ts` (header comment: protects design 6.7, an unreachable or refusing backend is a normal state the UI reports, and the rule that screens never see SDK types). Cases: `toBackendError(new ClientResponseError({ status: 0, response: {} }))` has kind `unreachable`; status 400 with `data.password.message = 'Use at least 10 characters.'` gives kind `invalid` and `fields.password` equal to that text; 429 gives `locked` and keeps the server's message `Too many failed sign-in attempts. Try again after 5 minutes.`; 403, 404, 409 map as in the Interfaces block; a plain `new Error('x')` gives `unknown` with message `x`; `toBackendError(undefined)` does not throw. Mappers: `toAuthUser` copies the four fields and defaults `name` to `''`; `toTeam` sets `isOwner` only when `owner === userId`; `toTeamMember` reads the `user_name` copy; `toInvite` reads `team_name` and `invited_by_name`.
-- [ ] **Step 2: Run** `npm run test:unit`; expected FAIL. **Step 3: Implement `types.ts`, `errors.ts`, `mappers.ts`.** Run again; expected PASS.
-- [ ] **Close checkpoint 9A.** Verify: Step 3 passed, `npm run lint` clean. Commit: `feat: backend door errors and mappers`.
+- [x] **Step 1: Write the failing tests** `frontend/src/backend/errors.test.ts` and `frontend/src/backend/mappers.test.ts` (header comment: protects design 6.7, an unreachable or refusing backend is a normal state the UI reports, and the rule that screens never see SDK types). Cases: `toBackendError(new ClientResponseError({ status: 0, response: {} }))` has kind `unreachable`; status 400 with `data.password.message = 'Use at least 10 characters.'` gives kind `invalid` and `fields.password` equal to that text; 429 gives `locked` and keeps the server's message `Too many failed sign-in attempts. Try again after 5 minutes.`; 403, 404, 409 map as in the Interfaces block; a plain `new Error('x')` gives `unknown` with message `x`; `toBackendError(undefined)` does not throw. Mappers: `toAuthUser` copies the four fields and defaults `name` to `''`; `toTeam` sets `isOwner` only when `owner === userId`; `toTeamMember` reads the `user_name` copy; `toInvite` reads `team_name` and `invited_by_name`.
+- [x] **Step 2: Run** `npm run test:unit`; expected FAIL. **Step 3: Implement `types.ts`, `errors.ts`, `mappers.ts`.** Run again; expected PASS.
+- [x] **Close checkpoint 9A.** Verify: Step 3 passed, `npm run lint` clean. Commit: `feat: backend door errors and mappers`.
 
 ## Checkpoint 9B: The auth and teams calls
 
-- [ ] **Step 4: Write the failing test** `tests/rules/backend-door.rules.test.ts` (it drives the real door against the live test backend, using `createBackend(PB_URL)`; a second door instance per person). Header comment: protects the whole chain door -> routes -> rules for the flows of Tasks 3 to 8.
+- [x] **Step 4: Write the failing test** `tests/rules/backend-door.rules.test.ts` (it drives the real door against the live test backend, using `createBackend(PB_URL)`; a second door instance per person). Header comment: protects the whole chain door -> routes -> rules for the flows of Tasks 3 to 8.
   - sign up with `signUp`, then `signIn` as an unverified account succeeds and `current().verified` is `false`; after the admin verifies the account, `refresh()` shows `verified: true`.
   - verified owner `create('Crew')` returns a team with `isOwner: true`; `list()` returns it; a second user's `list()` does not.
   - `settings(team)` as owner returns an 8-character `joinCode`; as a member it rejects with kind `forbidden` or `not-found`.
@@ -84,7 +84,7 @@ All methods reject with a `BackendError`, never a raw SDK error.
   - three wrong `signIn` calls then a correct one rejects with kind `locked`.
   - an unverified user's `create('x')` rejects with kind `forbidden`.
   - `signOut()` makes `current()` null and `onChange` listeners get `null` once.
-- [ ] **Step 5: Run** `npm run test:rules`; expected FAIL. **Step 6: Implement `auth.ts` and `teams.ts`** (each a `create...(pb: PocketBase)` function returning the object above; every call wrapped so errors go through `toBackendError`; custom routes called with `pb.send`; filters use `pb.filter` with bound parameters). Wire them into `createBackend` and `index.ts`. Run `npm run test:rules`; expected PASS.
-- [ ] **Step 7: Run** `npm test`. Expected: every layer passes (the existing `health()` test and the e2e smoke test still pass).
-- [ ] **Step 8: Document** the door in `docs/developer/backend.md`: the two objects, the error kinds and what the UI should do for each.
-- [ ] **Close checkpoint 9B.** Verify: Step 7 passed. Commit: `feat: backend door for accounts and teams`.
+- [x] **Step 5: Run** `npm run test:rules`; expected FAIL. **Step 6: Implement `auth.ts` and `teams.ts`** (each a `create...(pb: PocketBase)` function returning the object above; every call wrapped so errors go through `toBackendError`; custom routes called with `pb.send`; filters use `pb.filter` with bound parameters). Wire them into `createBackend` and `index.ts`. Run `npm run test:rules`; expected PASS.
+- [x] **Step 7: Run** `npm test`. Expected: every layer passes (the existing `health()` test and the e2e smoke test still pass).
+- [x] **Step 8: Document** the door in `docs/developer/backend.md`: the two objects, the error kinds and what the UI should do for each.
+- [x] **Close checkpoint 9B.** Verify: Step 7 passed. Commit: `feat: backend door for accounts and teams`.

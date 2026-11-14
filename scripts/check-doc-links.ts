@@ -5,6 +5,7 @@
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, statSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
+import { isMain } from './lib/is-main.ts'
 
 /**
  * Given a markdown string, a base directory, and an `exists` predicate,
@@ -64,7 +65,7 @@ function markdownFiles(): string[] {
   }
 }
 
-if (import.meta.filename === process.argv[1]) {
+if (isMain(import.meta.filename)) {
   let problems = 0
   for (const file of markdownFiles()) {
     const abs = resolve(file)

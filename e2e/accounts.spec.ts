@@ -143,7 +143,7 @@ test('sign-up and verification gate', async ({ page }) => {
   await signUp(page, email, 'Verifier', 'KwntoPass99')
   await expect(page.getByText('Check your email')).toBeVisible()
   // Sign in works but create team is gated
-  await page.getByRole('link', { name: 'Sign in' }).click()
+  await page.getByRole('button', { name: 'Sign in' }).first().click()
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Password').fill('KwntoPass99')
   await page.getByRole('button', { name: 'Sign in' }).click()
@@ -172,7 +172,7 @@ test('lockout after three wrong passwords', async ({ page }) => {
   await page.goto('/')
   await signUp(page, email, 'Locker', 'KwntoPass99')
   await verifyByEmail(email)
-  await page.getByRole('link', { name: 'Sign in' }).click()
+  await page.getByRole('button', { name: 'Sign in' }).first().click()
   // Three wrong attempts — each shows wrong password, not lockout
   for (let i = 0; i < 3; i++) {
     await page.getByLabel('Email').fill(email)
@@ -198,8 +198,8 @@ test('session survives reload; sign-out clears it', async ({ page }) => {
   await page.reload()
   await expect(page.getByTestId('session-user')).toContainText('Session')
   await page.getByRole('button', { name: 'Sign out' }).click()
-  await expect(page.getByRole('link', { name: 'Sign up' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Sign up' })).toBeVisible()
   await page.reload()
-  await expect(page.getByRole('link', { name: 'Sign up' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Sign up' })).toBeVisible()
   await expect(page.getByTestId('session-user')).toHaveCount(0)
 })

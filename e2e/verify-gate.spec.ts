@@ -9,7 +9,7 @@ test('an unverified user can resend the verification email', async ({ page }) =>
   await page.goto('/')
   await signUp(page, email, 'Unverified', 'KwntoPass99')
   // Sign in as the unverified user so we reach the Teams screen
-  await page.getByRole('link', { name: 'Sign in' }).click()
+  await page.getByRole('button', { name: 'Sign in' }).first().click()
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Password').fill('KwntoPass99')
   await page.getByRole('button', { name: 'Sign in' }).click()
@@ -48,7 +48,7 @@ test('the resend button stays visible after a failure', async ({ page }) => {
   await page.route('**/users/request-verification', (route) => route.fulfill({ status: 500 }))
 
   await signUp(page, email, 'Unverified', 'KwntoPass99')
-  await page.getByRole('link', { name: 'Sign in' }).click()
+  await page.getByRole('button', { name: 'Sign in' }).first().click()
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Password').fill('KwntoPass99')
   await page.getByRole('button', { name: 'Sign in' }).click()
@@ -86,7 +86,7 @@ test('join and accept are disabled until verified', async ({ page, browser }) =>
   await page2.goto('/')
   await signUp(page2, inviteeEmail, 'Invitee', 'KwntoPass99')
   // Sign in as the unverified user
-  await page2.getByRole('link', { name: 'Sign in' }).click()
+  await page2.getByRole('button', { name: 'Sign in' }).first().click()
   await page2.getByLabel('Email').fill(inviteeEmail)
   await page2.getByLabel('Password').fill('KwntoPass99')
   await page2.getByRole('button', { name: 'Sign in' }).click()

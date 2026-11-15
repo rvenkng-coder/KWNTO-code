@@ -26,18 +26,18 @@ Part of the [plan](README.md). **Read the router first:** its Global Constraints
 
 ## Checkpoint 6A: The four collections and their rules
 
-- [ ] **Step 1: Write the failing rule tests** C1 to C11 and C14 to C15 in the four new files (headers cite design 5 "save per attribute" and security.md section 2), and the two helpers.
-- [ ] **Step 2: Run** `npm run test:rules`. Expected: the new files FAIL.
-- [ ] **Step 3: Write the migration.** The reference checks use `@request.body.<relation>.project`. If 0.40.6 refuses that form or C2, C6 or C10 still pass a foreign reference, stop using the rule for it: add an `onRecordCreateRequest` hook `backend/pb_hooks/content-refs.pb.js` that loads the referenced records and answers 400 `That record belongs to another project.`, and record the finding in `findings.md`.
-- [ ] **Step 4: Run** `npm run test:rules`. Expected: PASS. Open the `script_lines` create rule once (drop the reference check), see C6 fail, restore; report it.
-- [ ] **Step 5: Close checkpoint 6A** (commit `feat: nodes, script lines, cues and connections`).
+- [x] **Step 1: Write the failing rule tests** C1 to C11 and C14 to C15 in the four new files (headers cite design 5 "save per attribute" and security.md section 2), and the two helpers.
+- [x] **Step 2: Run** `npm run test:rules`. Expected: the new files FAIL.
+- [x] **Step 3: Write the migration.** The reference checks use `@request.body.<relation>.project`. If 0.40.6 refuses that form or C2, C6 or C10 still pass a foreign reference, stop using the rule for it: add an `onRecordCreateRequest` hook `backend/pb_hooks/content-refs.pb.js` that loads the referenced records and answers 400 `That record belongs to another project.`, and record the finding in `findings.md`.
+- [x] **Step 4: Run** `npm run test:rules`. Expected: PASS. Open the `script_lines` create rule once (drop the reference check), see C6 fail, restore; report it.
+- [x] **Step 5: Close checkpoint 6A** (commit `feat: nodes, script lines, cues and connections`).
 
 ## Checkpoint 6B: Start node
 
-- [ ] **Step 6: Write the failing tests** C12 and C13 in `tests/rules/projects.rules.test.ts`.
-- [ ] **Step 7: Run** them. Expected: FAIL.
-- [ ] **Step 8: Implement** the start-node part of `projects.pb.js` (`onRecordCreate` on `nodes`: open the transaction, `e.next()`, then read the project; if `start_node` is empty set it, add 1 to `version`, save) and the `projects` rule change in this task's migration.
-- [ ] **Step 9: Run** `npm run test:rules`, then `npm test`. Expected: PASS. Update the ERD and `docs/developer/backend.md` (the reference rules, the start-node hook). **Close checkpoint 6B** (commit `feat: first node becomes the start node`).
+- [x] **Step 6: Write the failing tests** C12 and C13 in `tests/rules/projects.rules.test.ts`.
+- [x] **Step 7: Run** them. Expected: FAIL.
+- [x] **Step 8: Implement** the start-node part of `projects.pb.js` (`onRecordCreate` on `nodes`: open the transaction, `e.next()`, then read the project; if `start_node` is empty set it, add 1 to `version`, save) and the `projects` rule change in this task's migration.
+- [x] **Step 9: Run** `npm run test:rules`, then `npm test`. Expected: PASS. Update the ERD and `docs/developer/backend.md` (the reference rules, the start-node hook). **Close checkpoint 6B** (commit `feat: first node becomes the start node`).
 
 ## Test plan
 ### Cases

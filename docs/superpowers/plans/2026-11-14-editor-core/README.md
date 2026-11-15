@@ -90,7 +90,7 @@ The roadmap's "Decide first" items and calls where the spec is silent. Each is c
 | 3 | [Auth store listeners](task-3-auth-listeners.md) | local | none | 3A | done |
 | 4 | [The join-code e2e flake](task-4-e2e-flake.md) | strong | none | 4A | done |
 | 5 | [Guarded write, projects, chapters, project settings](task-5-guard-projects-chapters.md) | strong | none | 5A 5B 5C | done |
-| 6 | [Nodes, script lines, cues, connections](task-6-nodes-lines-connections.md) | strong | 5 | 6A 6B | not started |
+| 6 | [Nodes, script lines, cues, connections](task-6-nodes-lines-connections.md) | strong | 5 | 6A 6B | done |
 | 7 | [The content door](task-7-content-door.md) | strong | 5, 6 | 7A 7B 7C | not started |
 | 8 | [Editor model and store](task-8-editor-model-store.md) | mid (8A local) | 7 | 8A 8B 8C | not started |
 | 9 | [Projects, editor layout and chapters](task-9-projects-layout-chapters.md) | mid | 1, 8 | 9A 9B | not started |

@@ -78,10 +78,10 @@ backend.content: {
 
 ## Checkpoint 7A: Types, mappers and the retry loop (pure)
 
-- [ ] **Step 1: Write the failing tests** C1 to C6 in `content-mappers.test.ts` and `guarded.test.ts` (fake `GuardedIO` objects that count calls; no PocketBase). Header comments cite decision 0002 ("the client must handle 409 as normal flow … bound the retries").
-- [ ] **Step 2: Run** `npm run test:unit`. Expected: FAIL.
-- [ ] **Step 3: Implement** `content-types.ts`, `content-mappers.ts`, `guarded.ts`. Write the loop's bound as `for (let attempt = 1; attempt <= MAX_SAVE_TRIES; attempt++)`, the rethrow as `if (error.kind !== 'conflict') throw error`, and the trash mapping as `deleted_at: changes.deleted ? new Date().toISOString() : ''` (breaks B1 to B3).
-- [ ] **Step 4: Run** `npm run test:unit`. Expected: PASS. **Close checkpoint 7A** (commit `feat: content types, mappers and guarded save`).
+- [x] **Step 1: Write the failing tests** C1 to C6 in `content-mappers.test.ts` and `guarded.test.ts` (fake `GuardedIO` objects that count calls; no PocketBase). Header comments cite decision 0002 ("the client must handle 409 as normal flow … bound the retries").
+- [x] **Step 2: Run** `npm run test:unit`. Expected: FAIL.
+- [x] **Step 3: Implement** `content-types.ts`, `content-mappers.ts`, `guarded.ts`. Write the loop's bound as `for (let attempt = 1; attempt <= MAX_SAVE_TRIES; attempt++)`, the rethrow as `if (error.kind !== 'conflict') throw error`, and the trash mapping as `deleted_at: changes.deleted ? new Date().toISOString() : ''` (breaks B1 to B3).
+- [x] **Step 4: Run** `npm run test:unit`. Expected: PASS. **Close checkpoint 7A** (commit `feat: content types, mappers and guarded save`).
 
 ## Checkpoint 7B: Projects and content calls
 

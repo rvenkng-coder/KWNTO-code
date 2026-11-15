@@ -2,12 +2,16 @@ import PocketBase from 'pocketbase'
 import { createAuth } from './auth'
 import { createTeams } from './teams'
 import { createPreferences } from './preferences'
+import { createProjects } from './projects'
+import { createContent } from './content'
 
 export interface Backend {
   health(): Promise<boolean>
   auth: ReturnType<typeof createAuth>
   teams: ReturnType<typeof createTeams>
   preferences: ReturnType<typeof createPreferences>
+  projects: ReturnType<typeof createProjects>
+  content: ReturnType<typeof createContent>
 }
 
 export function createBackend(baseUrl?: string): Backend {
@@ -28,5 +32,7 @@ export function createBackend(baseUrl?: string): Backend {
     auth: createAuth(pb),
     teams: createTeams(pb),
     preferences: createPreferences(pb),
+    projects: createProjects(pb),
+    content: createContent(pb),
   }
 }

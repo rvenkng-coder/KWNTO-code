@@ -85,10 +85,10 @@ backend.content: {
 
 ## Checkpoint 7B: Projects and content calls
 
-- [ ] **Step 5: Write the failing tests** C7 to C10 in `tests/rules/content-door.rules.test.ts`, driving `createBackend(PB_URL)` per person as `backend-door.rules.test.ts` does.
-- [ ] **Step 6: Run** `npm run test:rules`. Expected: FAIL.
-- [ ] **Step 7: Implement `projects.ts` and `content.ts`** (`createProjects(pb)`, `createContent(pb)`; filters with `pb.filter` and bound parameters; `update` builds a `GuardedIO` from `getOne` and a `PATCH` that sends `{ ...body, version }`, mapping errors through `toBackendError`). Wire into `createBackend` and `index.ts`.
-- [ ] **Step 8: Run** `npm run test:rules` and `npm run test:unit`. Expected: PASS. **Close checkpoint 7B** (commit `feat: projects and content in the backend door`).
+- [x] **Step 5: Write the failing tests** C7 to C10 in `tests/rules/content-door.rules.test.ts`, driving `createBackend(PB_URL)` per person as `backend-door.rules.test.ts` does.
+- [x] **Step 6: Run** `npm run test:rules`. Expected: FAIL.
+- [x] **Step 7: Implement `projects.ts` and `content.ts`** (`createProjects(pb)`, `createContent(pb)`; filters with `pb.filter` and bound parameters; `update` builds a `GuardedIO` from `getOne` and a `PATCH` that sends `{ ...body, version }`, mapping errors through `toBackendError`). Wire into `createBackend` and `index.ts`.
+- [x] **Step 8: Run** `npm run test:rules` and `npm run test:unit`. Expected: PASS. **Close checkpoint 7B** (commit `feat: projects and content in the backend door`).
 
 ## Checkpoint 7C: Live changes
 

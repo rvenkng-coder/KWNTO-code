@@ -60,10 +60,10 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 11B: Pending text edits
 
-- [ ] **Step 5: Write the failing tests** C4 to C6 in `pendingEdits.test.ts` (inject a fake `schedule`/`cancel` that the test fires by hand).
-- [ ] **Step 6: Run** them. Expected: FAIL.
-- [ ] **Step 7: Implement `pendingEdits.ts` and `useSavedText.ts`.** In `set`, replace an older pending save with `if (existing) cancel(existing.handle)` (break B2).
-- [ ] **Step 8: Run** them. Expected: PASS. **Close checkpoint 11B** (commit `feat: pending text edits flush before leaving`).
+- [x] **Step 5: Write the failing tests** C4 to C6 in `pendingEdits.test.ts` (inject a fake `schedule`/`cancel` that the test fires by hand).
+- [x] **Step 6: Run** them. Expected: FAIL.
+- [x] **Step 7: Implement `pendingEdits.ts` and `useSavedText.ts`.** In `set`, replace an older pending save with `if (existing) cancel(existing.handle)` (break B2).
+- [x] **Step 8: Run** them. Expected: PASS. **Close checkpoint 11B** (commit `feat: pending text edits flush before leaving`).
 
 ## Checkpoint 11C: The panel
 

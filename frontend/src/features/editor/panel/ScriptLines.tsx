@@ -11,6 +11,7 @@ import { ScriptLineRow } from './ScriptLineRow'
 export function ScriptLines({ projectId, nodeId }: { projectId: string; nodeId: string }) {
   const content = useEditor((s) => s.content)
   const lines = useMemo(() => linesOf(content, nodeId), [content, nodeId])
+  const allLines = useMemo(() => Object.values(content.lines), [content.lines])
   const [focusId, setFocusId] = useState<string | null>(null)
   const clearFocus = useCallback(() => setFocusId(null), [])
 
@@ -31,7 +32,7 @@ export function ScriptLines({ projectId, nodeId }: { projectId: string; nodeId: 
       <ol className="flex flex-col gap-2">
         {lines.map((line, i) => (
           <ScriptLineRow
-            key={line.id} line={line} focus={focusId === line.id} onFocused={clearFocus}
+            key={line.id} line={line} allLines={allLines} focus={focusId === line.id} onFocused={clearFocus}
             onEnter={() => void add(i + 1)} onBackspaceEmpty={() => remove(i, true)} onDelete={() => remove(i, false)}
             onMove={(by) => void moveRow('script_lines', lines, line.id, i + by)}
             isFirst={i === 0} isLast={i === lines.length - 1}

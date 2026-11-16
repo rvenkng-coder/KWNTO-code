@@ -66,6 +66,7 @@ Select one node and the panel on the right shows it:
 
 - **Title** and **Colour** (eight swatches) of the node, and **Make start node** (or `This is the start node.`).
 - **Script:** one row per line, each with a **Character** (who speaks; leave it empty for an action such as `They wave.`) and the **line** itself. **Add line** adds one at the end.
+  - While you type a character's name, the field suggests names already used in this project (most used first). Names that differ only in capitals count as one.
   - **Enter** in a line adds a new line below it and puts the cursor there. **Shift+Enter** starts a new paragraph inside the same line.
   - **Backspace** in a line whose character and text are both empty deletes it and moves the cursor to the line above.
   - **Move up** and **Move down** change the order; **Delete line** removes one.

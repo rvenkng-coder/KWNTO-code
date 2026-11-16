@@ -1,5 +1,5 @@
 // Protects: the properties panel (editor core plan, Task 11; design 6.2 and 9c): title, script
-// lines with characters and order, Enter and Backspace in a line, cues,
+// lines with characters and order, Enter and Backspace in a line, character suggestions, cues,
 // connection labels, and text typed just before moving on is saved (Review Focus 3).
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { addNodeAt, card, connectNodes, ownerWithProject, readyCanvas, waitForSave } from './helpers/editor'
@@ -113,6 +113,16 @@ test('text typed just before moving on is saved', async ({ page }) => {
   await readyCanvas(page, 2)
   await expect(card(page, b)).toContainText('Second')
   await expect(card(page, a)).toContainText('Wait for me.')
+})
+
+// Protects: design 9c: the character field offers names already used in the project.
+test('the character field suggests names already used', async ({ page }) => {
+  await oneNode(page)
+  await addLine(page)
+  await typeAndSave(page, character(page, 0), 'ANNA', 'script_lines')
+  await addLine(page)
+  await character(page, 1).fill('a')
+  await expect(lineRows(page).nth(1).locator('datalist option[value="ANNA"]')).toHaveCount(1)
 })
 
 // Protects: design 6.2: cues keep their type; a connection's label is saved and shown; a deleted connection is gone.

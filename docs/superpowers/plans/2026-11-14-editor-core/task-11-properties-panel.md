@@ -53,10 +53,10 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 11A: Character suggestions (local)
 
-- [ ] **Step 1: Write the failing tests** C1 to C3.
-- [ ] **Step 2: Run** `npx vitest run --project unit frontend/src/features/editor/model/characters.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement `characters.ts`.** Compare lower-cased trimmed keys; leave out the typed name with `key !== typedKey` (break B1).
-- [ ] **Step 4: Run** it. Expected: PASS. **Close checkpoint 11A** (commit `feat: character name suggestions`).
+- [x] **Step 1: Write the failing tests** C1 to C3.
+- [x] **Step 2: Run** `npx vitest run --project unit frontend/src/features/editor/model/characters.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement `characters.ts`.** Compare lower-cased trimmed keys; leave out the typed name with `key !== typedKey` (break B1).
+- [x] **Step 4: Run** it. Expected: PASS. **Close checkpoint 11A** (commit `feat: character name suggestions`).
 
 ## Checkpoint 11B: Pending text edits
 
@@ -70,7 +70,7 @@ Stop and report if you need to touch anything else.
 - [x] **Step 9: Write the failing e2e tests** C7 to C11 in `e2e/editor-panel.spec.ts`.
 - [x] **Step 10: Run** `npm run test:e2e -- e2e/editor-panel.spec.ts`. Expected: FAIL.
 - [x] **Step 11: Implement the panel components.** New lines and cues get their order from `insertAt`; moves use `placeAt`; a `renumber` result sends one update per record. `EditorScreen` calls `pendingEdits.flushAll()` when the selection, chapter or project changes, on unmount and on `pagehide`, and on `beforeunload` flushes and then asks the browser to warn when `shouldWarnOnLeave(pendingEdits.size(), saving)`.
-- [ ] **Step 12: Run** `npm run test:e2e`. Expected: PASS. Add "Writing the script" to `docs/user/editor.md` (lines, characters, Enter and Backspace, cues, connection labels, when text is saved) and the save path to `docs/developer/editor.md`. **Close checkpoint 11C** (commit `feat: properties panel`).
+- [x] **Step 12: Run** `npm run test:e2e`. Expected: PASS. Add "Writing the script" to `docs/user/editor.md` (lines, characters, Enter and Backspace, cues, connection labels, when text is saved) and the save path to `docs/developer/editor.md`. **Close checkpoint 11C** (commit `feat: properties panel`).
 
 ## Test plan
 ### Cases

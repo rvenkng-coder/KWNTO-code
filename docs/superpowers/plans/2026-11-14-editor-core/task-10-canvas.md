@@ -52,10 +52,10 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 10A: Markers (local)
 
-- [ ] **Step 1: Write the failing tests** C1 to C4 in `markers.test.ts` (build states with `fromContent`).
-- [ ] **Step 2: Run** `npx vitest run --project unit frontend/src/features/editor/model/markers.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement `markers.ts`.** Count an incoming connection only when `c.fromNodeId !== c.toNodeId` and the source is live; write the result as `isUnreachable: !hasIncoming && id !== start` (breaks B1, B2).
-- [ ] **Step 4: Run** it. Expected: PASS. **Close checkpoint 10A** (commit `feat: start, end and unreachable markers`).
+- [x] **Step 1: Write the failing tests** C1 to C4 in `markers.test.ts` (build states with `fromContent`).
+- [x] **Step 2: Run** `npx vitest run --project unit frontend/src/features/editor/model/markers.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement `markers.ts`.** Count an incoming connection only when `c.fromNodeId !== c.toNodeId` and the source is live; write the result as `isUnreachable: !hasIncoming && id !== start` (breaks B1, B2).
+- [x] **Step 4: Run** it. Expected: PASS. **Close checkpoint 10A** (commit `feat: start, end and unreachable markers`).
 
 ## Checkpoint 10B: Flow mapping and the canvas
 

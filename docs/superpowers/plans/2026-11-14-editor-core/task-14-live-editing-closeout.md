@@ -19,10 +19,10 @@ Design 8b asks for "two browsers editing the same node" end-to-end, and decision
 
 ## Checkpoint 14A: Many writers and two browsers
 
-- [ ] **Step 1: Write the failing tests:** C1 in `tests/rules/content-guard.rules.test.ts`; C2 to C5 in `e2e/editor-live.spec.ts` (two browser contexts, owner and member of one team, same project; wait for positive signals on both pages, never fixed sleeps).
-- [ ] **Step 2: Run** `npm run test:rules` and `npm run test:e2e -- e2e/editor-live.spec.ts`. Expected: the new tests FAIL or pass; any that pass at once must be shown to fail once by breaking the code they protect (for C2: send the PATCH without going through `guardedSave`), then restored.
-- [ ] **Step 3: Fix** whatever they found, with its own test at the lowest layer that can show it. If a fix would change a decision of this plan, stop and report.
-- [ ] **Step 4: Run** `npm test`. Run `e2e/editor-live.spec.ts` 10 times per browser (`--repeat-each=10`). Expected: PASS every time. **Close checkpoint 14A** (commit `test: live editing in two browsers`).
+- [x] **Step 1: Write the failing tests:** C1 in `tests/rules/content-guard.rules.test.ts`; C2 to C5 in `e2e/editor-live.spec.ts` (two browser contexts, owner and member of one team, same project; wait for positive signals on both pages, never fixed sleeps).
+- [x] **Step 2: Run** `npm run test:rules` and `npm run test:e2e -- e2e/editor-live.spec.ts`. Expected: the new tests FAIL or pass; any that pass at once must be shown to fail once by breaking the code they protect (for C2: send the PATCH without going through `guardedSave`), then restored.
+- [x] **Step 3: Fix** whatever they found, with its own test at the lowest layer that can show it. If a fix would change a decision of this plan, stop and report.
+- [x] **Step 4: Run** `npm test`. Run `e2e/editor-live.spec.ts` 10 times per browser (`--repeat-each=10`). Expected: PASS every time. **Close checkpoint 14A** (commit `test: live editing in two browsers`).
 
 ## Checkpoint 14B: Walk and close-out
 

@@ -94,7 +94,7 @@ test('deleting a team removes its projects', async () => {
   await expectRefused(admin.collection('chapters').getOne(project.chapterId))
 })
 
-// Plan D7: the first node made in a project becomes its start node, in the same save, and
+// Plan D7: the first node made in a project becomes its start node when it is saved, and
 // the project's version rises once so a stale edit of the project is refused.
 test('the first node becomes the start node', async () => {
   const { member, projectId, chapterId } = await memberProject()

@@ -26,15 +26,18 @@ onRecordCreate((e) => {
   })
 }, "projects")
 
-// Plan D7: a node made in a project with no start node becomes it, in the node's own
-// transaction, and the project's version rises by 1 so an edit of the project based on
-// the old version gets a 409 (decision 0002) instead of emptying start_node again.
-// SQLite admits one writer at a time, so two first nodes made at once cannot both win.
+// Plan D7: a node made in a project with no start node becomes it, and the project's
+// version rises by 1 so an edit of the project based on the old version gets a 409
+// (decision 0002) instead of emptying start_node again. The node's own insert (e.next())
+// must stay outside a transaction of ours: with the insert moved into one (e.app = txApp),
+// PocketBase 0.40.6 sends no realtime create event for the node, so teammates never see it
+// (found by Task 14; tests/rules/content-door.rules.test.ts pins it). The check and the
+// project save run in their own transaction; SQLite admits one writer at a time, so two
+// first nodes made at once cannot both win. If that part fails, the node stays and the
+// project has no start node until one is marked (D7's "no start node" state).
 onRecordCreate((e) => {
+  e.next()
   e.app.runInTransaction((txApp) => {
-    e.app = txApp
-    e.next()
-
     const project = txApp.findRecordById("projects", e.record.getString("project"))
     if (project.getString("start_node") !== "") return
     project.set("start_node", e.record.id)

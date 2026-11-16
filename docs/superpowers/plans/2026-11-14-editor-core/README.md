@@ -98,7 +98,7 @@ The roadmap's "Decide first" items and calls where the spec is silent. Each is c
 | 11 | [Properties panel](task-11-properties-panel.md) | mid (11A local) | 10 | 11A 11B 11C | done |
 | 12 | [Undo/redo, copy/paste, shortcuts](task-12-undo-copy-shortcuts.md) | mid (12A local) | 11 | 12A 12B 12C | done |
 | 13 | [Search and cross-chapter links](task-13-search-cross-links.md) | mid (13A local) | 10, 12 | 13A 13B | done |
-| 14 | [Live editing end-to-end and close-out](task-14-live-editing-closeout.md) | strong | 1 to 13 | 14A 14B | not started |
+| 14 | [Live editing end-to-end and close-out](task-14-live-editing-closeout.md) | strong | 1 to 13 | 14A 14B | in progress |
 
 **Status values:** `not started`, `in progress`, `awaiting review`, `done`. Tasks 1, 3, 4 and 5 have no dependency on each other; run tasks one at a time (implementers never run in parallel). The carried-over items (Tasks 1 to 4) go first, as the roadmap asks.
 

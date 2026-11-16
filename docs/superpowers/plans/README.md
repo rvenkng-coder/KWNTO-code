@@ -10,7 +10,7 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 | 2 | [Accounts and teams](2026-11-12-accounts-teams/README.md) | 1 | 1 | done |
 | 3 | [Editor core](2026-11-14-editor-core/README.md) | 1 | 2 | in progress |
 | 4 | Offline queue, sync and conflicts | 1 | 3 | outline |
-| 5 | Media upload, quota and strict file checks | 1 | 3 | outline |
+| 5 | [Media upload, quota and strict file checks](2026-11-16-media-upload/README.md) | 1 | 3 | planned |
 | 6 | Deployment | 1 | 2 (3 to 5 to test on) | outline |
 | 7 | Trash, share links, comments, presence, JSON import and export | 2 | 3, 4 | outline |
 | 8 | Export (PDF, Word, JPG, PNG) | 3 | 3 | outline |
@@ -81,7 +81,7 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 **Decide first:** queue storage layout and replay order; what counts as "same attribute" for the dialog.
 **Risks:** highest-risk part of the editor (design 6.7); needs its own unit and Playwright tests (offline, reconnect, forced conflict). Strong model.
 
-### 5. Media upload, quota and strict file checks
+### 5. Media upload, quota and strict file checks (planned; [detailed plan](2026-11-16-media-upload/README.md))
 **Goal:** upload WAV, MP3, MOV, MP4, JPEG, PNG with magic-byte checks, generated file names, `nosniff` headers, the per-user quota (`user_limits` override, else `system_storage` default) and per-file limits from `system_storage`.
 **Fixed already:** `system_storage` and `user_limits` tables exist from Plan 2; trashed media counts toward quota until purged; snapshots reference media and never count.
 **Decide first:** where the byte check runs (hook on upload request) and how a refused upload reports which limit it hit.

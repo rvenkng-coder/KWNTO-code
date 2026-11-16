@@ -2,6 +2,7 @@ import { Handle, Position, type NodeProps } from '@xyflow/react'
 import { memo } from 'react'
 import { useTheme } from '../../shell/theme'
 import { NODE_COLORS } from '../model/colors'
+import { jumpToNode } from '../search/jump'
 import type { CardNode, NodeCardData } from '../model/flow'
 
 function Badges({ marker }: { marker: NodeCardData['marker'] }) {
@@ -31,7 +32,16 @@ function NodeCardView({ id, data, selected }: NodeProps<CardNode>) {
       <div className="flex flex-col gap-0.5 px-2 py-1 text-xs">
         {data.preview.map((p, i) => <p key={i} className="truncate">{p}</p>)}
         {data.more > 0 && <p className="text-muted">+{data.more} more</p>}
-        {data.crossLinks.map((l) => <p key={l.connectionId} data-testid="cross-link" className="truncate text-accent">{l.text}</p>)}
+        {data.crossLinks.map((l) => (
+          // nodrag: a press on the tag must not start a drag of the card; the click jumps instead of selecting the card.
+          <button key={l.connectionId} type="button" data-testid="cross-link" className="nodrag truncate text-left text-accent hover:underline"
+            onClick={(e) => {
+              e.stopPropagation()
+              jumpToNode(l.targetNodeId)
+            }}>
+            {l.text}
+          </button>
+        ))}
       </div>
       <Handle type="source" position={Position.Right} />
     </div>

@@ -1,7 +1,6 @@
 import {
-  applyEdgeChanges, applyNodeChanges, Background, BackgroundVariant, Controls, MiniMap, ReactFlow, ReactFlowProvider, useReactFlow,
+  applyEdgeChanges, applyNodeChanges, Background, BackgroundVariant, Controls, MiniMap, ReactFlow, ReactFlowProvider, useNodesInitialized, useReactFlow,
   type Connection as FlowConnection, type Edge, type EdgeChange, type NodeChange, type OnNodeDrag,
-  type OnSelectionChangeFunc,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react'
@@ -15,6 +14,8 @@ import { editorStore, useEditor } from '../store/editorStore'
 import { edits } from '../store/edits'
 import { CanvasToolbar } from './CanvasToolbar'
 import { NodeCard } from './NodeCard'
+import { fromSelectChanges } from './selectionChanges'
+import { useCanvasFocus } from './useCanvasFocus'
 import { plural } from './selectionActions'
 import { useSelection } from './useSelection'
 
@@ -48,6 +49,13 @@ function mergeEdges(prev: Edge[], next: Edge[], selectedId: string | null): Edge
     .map((e) => prev.find((p) => p.id === e.id && p.selected === e.selected && p.label === e.label) ?? e)
 }
 
+// The person changed the selection on the canvas (see selectionChanges.ts for why only these changes count).
+function takeSelection(chapterId: string, nodeChanges: NodeChange<CardNode>[], edgeChanges: EdgeChange[]): void {
+  const shown = new Set(liveNodes(editorStore.getState().content, chapterId).map((n) => n.id))
+  const next = fromSelectChanges(useSelection.getState(), nodeChanges, edgeChanges, shown)
+  if (next !== null) useSelection.getState().set(next.nodeIds, next.connectionId)
+}
+
 // React Flow's local nodes and edges, re-merged during render whenever the store or the selection changes.
 function useFlowState(chapterId: string) {
   const content = useEditor((s) => s.content)
@@ -63,10 +71,12 @@ function useFlowState(chapterId: string) {
   }
   const onNodesChange = useCallback((changes: NodeChange<CardNode>[]) => {
     setFlow((f) => ({ ...f, nodes: applyNodeChanges(changes, f.nodes) }))
-  }, [])
+    takeSelection(chapterId, changes, [])
+  }, [chapterId])
   const onEdgesChange = useCallback((changes: EdgeChange[]) => {
     setFlow((f) => ({ ...f, edges: applyEdgeChanges(changes, f.edges) }))
-  }, [])
+    takeSelection(chapterId, [], changes)
+  }, [chapterId])
   const synced = flow.from[0] === nextNodes
   return { nodes: flow.nodes, edges: flow.edges, onNodesChange, onEdgesChange, synced, hasStart: effectiveStart(content) !== null }
 }
@@ -97,11 +107,25 @@ function useCanvasActions(projectId: string, chapterId: string) {
   }, [])
   // React Flow would also drop the edges of a deleted node; a trashed node keeps its connections
   // (undo brings it back with them), so the canvas makes its own edits and React Flow removes nothing.
-  const onSelectionChange: OnSelectionChangeFunc = useCallback(({ nodes, edges }) => {
-    const connectionId = nodes.length === 0 && edges.length === 1 ? (edges[0]?.id ?? null) : null
-    useSelection.getState().set(nodes.map((n) => n.id), connectionId)
-  }, [])
-  return { createAt, onConnect, onNodeDragStop, onSelectionChange }
+  return { createAt, onConnect, onNodeDragStop }
+}
+
+// Selects and centres on a requested node of this chapter (search, cross-chapter tags) once React
+// Flow has measured the nodes, so the first fitView does not move the view away again.
+function useFocusRequest(chapterId: string): void {
+  const request = useCanvasFocus((s) => s.request)
+  const measured = useNodesInitialized()
+  const { getNode, getZoom, setCenter } = useReactFlow()
+  useEffect(() => {
+    if (request === null || !measured) return
+    const node = getNode(request.nodeId)
+    if (node === undefined || editorStore.getState().content.nodes[request.nodeId]?.chapterId !== chapterId) return
+    const width = node.measured?.width ?? 0
+    const height = node.measured?.height ?? 0
+    useSelection.getState().set([request.nodeId], null)
+    void setCenter(node.position.x + width / 2, node.position.y + height / 2, { zoom: getZoom() })
+    useCanvasFocus.getState().done()
+  }, [request, measured, chapterId, getNode, getZoom, setCenter])
 }
 
 // The minimap choice of the account (user_preferences.minimap_visible), shown until it loads.
@@ -131,6 +155,7 @@ function CanvasView({ projectId, chapterId }: { projectId: string; chapterId: st
   const flow = useFlowState(chapterId)
   const actions = useCanvasActions(projectId, chapterId)
   const [minimap, toggleMinimap] = useMinimap()
+  useFocusRequest(chapterId)
   const [inited, setInited] = useState(false)
   const count = useEditor((s) => liveNodes(s.content, chapterId).length)
   const anyNode = useEditor((s) => liveNodes(s.content).length > 0)
@@ -142,7 +167,7 @@ function CanvasView({ projectId, chapterId }: { projectId: string; chapterId: st
           nodes={flow.nodes} edges={flow.edges} nodeTypes={nodeTypes}
           onNodesChange={flow.onNodesChange} onEdgesChange={flow.onEdgesChange}
           onConnect={actions.onConnect} onNodeDragStop={actions.onNodeDragStop}
-          onSelectionChange={actions.onSelectionChange} onInit={() => setInited(true)}
+          onInit={() => setInited(true)}
           deleteKeyCode={null} zoomOnDoubleClick={false} fitView fitViewOptions={{ maxZoom: 1 }}
           // PERF: What: draw only the nodes and edges in view. Why: a 500-node chapter would put
           // every card in the DOM. Trade-off: cards appear a frame late while panning fast.

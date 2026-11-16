@@ -89,3 +89,9 @@ Plan Task 10. React Flow (`@xyflow/react`) draws one chapter; the store stays th
 **Theme.** `index.css` sets React Flow's `--xy-*` variables on `.kwnto-canvas` from the theme tokens; the dot grid uses `--canvas-dot`.
 
 **Performance** is measured in [decision 0003](../decisions/0003-canvas-performance.md): 500 nodes and 5,000 lines open in about 0.7 s (Chromium) and 1.1 s (Firefox) against a 3 s budget. Every optimisation carries a `PERF:` comment.
+
+### Selection, search jumps and focus (Task 13)
+
+- The canvas takes the selection from React Flow only from the `select` changes in `onNodesChange` and `onEdgesChange` (`canvas/selectionChanges.ts`), never from `onSelectionChange`. That callback also reports selections the canvas pushed in itself, one update late; a selection set from outside (a search jump) and that echo flipped back and forth until React stopped with "Maximum update depth exceeded". A select change also drops ids that are not on the canvas shown (a node left selected in another chapter).
+- `jumpToNode` (`search/jump.ts`) reopens the chapter's tab, navigates and puts a request in `useCanvasFocus`. It does not select: the canvas of the target chapter selects the node and centres on it (`setCenter`, current zoom) once `useNodesInitialized` is true, then clears the request. Selecting before the old canvas is gone caused the same loop.
+- Search is `model/search.ts` (`searchNodes`, case, accents and spaces ignored); the header box and the link picker share `search/useSearch.ts`.

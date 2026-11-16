@@ -95,3 +95,11 @@ Undo never overwrites a teammate's work. If someone else has changed the same th
 | Ctrl+A | Select every node in the chapter |
 
 While you type in a field, only Ctrl+K is the editor's; the other keys work as usual in the field (Ctrl+Z there undoes your typing).
+
+## Search and links between chapters
+
+**Search** sits in the top bar while a project is open (Ctrl+K, ⌘+K on a Mac, puts the cursor there). Type part of a node's title: capitals, accents and extra spaces do not matter, so `cafe` finds `Café Scene`. Results show `Title · Chapter`, titles that start with what you typed first. Pick one with the arrow keys and Enter, or click it: the editor opens that chapter (also when its tab was closed), selects the node and moves the canvas to it. Escape closes the list. Nodes in the trash and untitled nodes are not found.
+
+**Link to a node in another chapter:** select a node and choose **Link to another chapter** in the panel, type part of the target's title and pick it. The link shows on the node as a tag such as `→ Chapter 2: The Door`; click the tag to jump to the target. The panel lists the node's links to other chapters, each with **Remove**. A node whose only way in is such a link is not unreachable.
+
+If the target is moved to the trash, the tag disappears (and the node may become an **End**) until the target comes back, for example with Undo.

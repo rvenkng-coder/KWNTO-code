@@ -5,6 +5,7 @@
 import { expect, test } from 'vitest'
 import { fromRecord, toCreateBody, toUpdateBody } from './content-mappers'
 
+// Protects: screens get editor types (trash flag from deleted_at, defaults for missing text), never a raw record.
 test('records map to editor types', () => {
   const node = fromRecord('nodes', {
     id: 'n1', project: 'p1', chapter: 'c1', title: 'Gate', color: 'blue', x: 10, y: 20,
@@ -16,6 +17,7 @@ test('records map to editor types', () => {
   expect(line).toEqual({ id: 'l1', projectId: 'p1', nodeId: 'n1', character: '', text: 'Hello', sortOrder: 1.5, version: 0 })
 })
 
+// Protects: save per attribute: only the changed keys are sent, so a teammate's other fields are never overwritten.
 test('update bodies carry only the changed fields', () => {
   expect(toUpdateBody('nodes', { x: 5 })).toEqual({ x: 5 })
 
@@ -27,6 +29,7 @@ test('update bodies carry only the changed fields', () => {
   expect(toUpdateBody('projects', { startNodeId: null })).toEqual({ start_node: '' })
 })
 
+// Protects: undo and offline creates rely on the client id; the create rule refuses a body with `version`.
 test('create bodies keep the client id and drop the version', () => {
   const body = toCreateBody('connections', { id: 'k1', projectId: 'p1', fromNodeId: 'a', toNodeId: 'b', label: 'Yes', version: 3 })
   expect(body).toEqual({ id: 'k1', project: 'p1', from_node: 'a', to_node: 'b', label: 'Yes' })

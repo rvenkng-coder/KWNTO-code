@@ -92,9 +92,9 @@ backend.content: {
 
 ## Checkpoint 7C: Live changes
 
-- [ ] **Step 9: Write the failing tests** C11 and C12 in the same file. Wait for events with a promise that resolves on the expected event (no fixed sleeps); for "receives nothing", first make a control edit in the outsider's own project and wait for it (catalogue `vacuous-absence`).
-- [ ] **Step 10: Implement `realtime.ts`** and `content.subscribe`. Run `npm run test:rules`. Expected: PASS.
-- [ ] **Step 11: Document** `backend.projects` and `backend.content` in `docs/developer/backend.md`: the types, that `update` retries 409 by itself and when it gives up, that `load` includes trashed records, and that missed events are not replayed (Plan 4). **Close checkpoint 7C** (commit `feat: live content changes`).
+- [x] **Step 9: Write the failing tests** C11 and C12 in the same file. Wait for events with a promise that resolves on the expected event (no fixed sleeps); for "receives nothing", first make a control edit in the outsider's own project and wait for it (catalogue `vacuous-absence`).
+- [x] **Step 10: Implement `realtime.ts`** and `content.subscribe`. Run `npm run test:rules`. Expected: PASS.
+- [x] **Step 11: Document** `backend.projects` and `backend.content` in `docs/developer/backend.md`: the types, that `update` retries 409 by itself and when it gives up, that `load` includes trashed records, and that missed events are not replayed (Plan 4). **Close checkpoint 7C** (commit `feat: live content changes`).
 
 ## Test plan
 ### Cases

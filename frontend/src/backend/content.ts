@@ -1,10 +1,11 @@
 import type PocketBase from 'pocketbase'
 import type {
-  ContentKind, ContentRecords, CreatableKind, EditableFields, ProjectContent, RemovableKind,
+  ContentKind, ContentRecords, CreatableKind, EditableFields, ProjectContent, RemoteEvent, RemovableKind,
 } from './content-types'
 import { fromRecord, toCreateBody, toUpdateBody } from './content-mappers'
 import { BackendError, toBackendError } from './errors'
 import { guardedSave, type GuardedIO } from './guarded'
+import { subscribeProject } from './realtime'
 
 // The one place the editor reaches a project's content. Every update goes through the
 // version guard (decision 0002): `update` sends the caller's changed fields with the
@@ -80,6 +81,11 @@ export function createContent(pb: PocketBase) {
     /** Lines, cues and connections are deleted outright (undo re-creates them). */
     async remove(kind: RemovableKind, id: string): Promise<void> {
       await wrapped(() => pb.collection(kind).delete(id))
+    },
+
+    /** Live changes of the project; resolves to a function that closes every subscription. */
+    subscribe(projectId: string, onEvent: (event: RemoteEvent) => void): Promise<() => Promise<void>> {
+      return subscribeProject(pb, projectId, onEvent)
     },
   }
 }

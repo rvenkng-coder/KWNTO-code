@@ -27,6 +27,9 @@ export const rulesConfig = mergeConfig(base, defineConfig({
     // and rate limits) and restore them afterwards; that is only safe when one file
     // runs at a time against the shared test backend.
     fileParallelism: false,
+    // The door's live subscriptions (frontend/src/backend/realtime.ts) use EventSource, which Node 22
+    // has only behind this flag; browsers have it built in.
+    execArgv: ['--experimental-eventsource'],
   },
 }))
 

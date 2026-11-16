@@ -26,6 +26,7 @@ function fakeIO(writes: Array<BackendErrorKind | Rec>, reads: Array<BackendError
   return { io, sent, reads: () => readCount }
 }
 
+// Protects: a 409 is normal flow: re-read, then re-send only the caller's own fields with the fresh version.
 test('a conflict is retried with the fresh version and the same fields', async () => {
   const saved = { version: 8, title: 'Mine' }
   const { io, sent } = fakeIO(['conflict', saved], [{ version: 7, title: 'Theirs' }])
@@ -39,6 +40,7 @@ test('a conflict is retried with the fresh version and the same fields', async (
   ])
 })
 
+// Protects: the retry is bounded and ends with the message the plan names.
 test('it gives up after twenty conflicts', async () => {
   const { io, sent } = fakeIO(['conflict'], [{ version: 1 }])
 
@@ -51,6 +53,7 @@ test('it gives up after twenty conflicts', async () => {
   expect((error as BackendError).message).toBe(TOO_BUSY)
 })
 
+// Protects: a refusal or a failed re-read reaches the caller at once instead of looping.
 test('errors other than a conflict are not retried', async () => {
   const refused = fakeIO(['forbidden'], [{ version: 1 }])
   await expect(guardedSave(refused.io, { x: 1 }, 0)).rejects.toMatchObject({ kind: 'forbidden' })

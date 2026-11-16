@@ -1,8 +1,10 @@
 // Decimal sort order (plan decision D4): insert between two neighbours takes the midpoint,
 // at an end takes neighbour +- 1. When floats run out of room the whole list is renumbered.
 
+const usable = (n: number | null): boolean => n === null || Number.isFinite(n)
+
 export function sortOrderBetween(before: number | null, after: number | null): number | null {
-  if ((before !== null && !Number.isFinite(before)) || (after !== null && !Number.isFinite(after))) return null
+  if (!usable(before) || !usable(after)) return null
   if (before === null && after === null) return 1
   if (before === null) return (after as number) - 1
   if (after === null) return before + 1

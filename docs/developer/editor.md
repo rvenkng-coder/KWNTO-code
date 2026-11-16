@@ -10,7 +10,9 @@ The editor's state is plain data with pure functions over it, plus one store tha
 | `model/sortOrder.ts` | Decimal sort order (decision D4): `sortOrderBetween`, `renumber`, `byOrder`, and `placeAt` and `insertAt` for moving and inserting in a list |
 | `model/state.ts` | `ContentState` (records by id) and the "live" views over it |
 | `model/remote.ts` | `applyRemote`: a teammate's change applied to the state |
-| `store/editorStore.ts` | `editorStore`, `useEditor(selector)` |
+| `store/editorStore.ts` | `editorStore`, `useEditor(selector)`; composes the two below |
+| `store/editorSession.ts` | `open` and `close` |
+| `store/editorEdits.ts` | `create`, `update`, `remove` with rollback |
 | `model/fixtures.ts` | Record builders for tests only |
 
 ## The state

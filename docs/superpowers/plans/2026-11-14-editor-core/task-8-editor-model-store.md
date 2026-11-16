@@ -9,7 +9,7 @@ Part of the [plan](README.md). **Read the router first:** its Global Constraints
 The editor's state as plain data with pure functions over it, and one store that loads a project, applies edits optimistically, sends them through the door and applies teammates' live changes. Screens (Tasks 9 to 13) read and change content only through this store.
 
 **Files:**
-- Create: `frontend/src/features/editor/model/ids.ts`, `ids.test.ts`, `sortOrder.ts`, `sortOrder.test.ts`, `state.ts`, `state.test.ts`, `remote.ts`, `remote.test.ts` (all in `frontend/src/features/editor/model/`); `frontend/src/features/editor/store/editorStore.ts`, `frontend/src/features/editor/store/editorStore.test.ts`
+- Create: `frontend/src/features/editor/model/ids.ts`, `ids.test.ts`, `sortOrder.ts`, `sortOrder.test.ts`, `state.ts`, `state.test.ts`, `remote.ts`, `remote.test.ts` (all in `frontend/src/features/editor/model/`); `frontend/src/features/editor/store/editorStore.ts`, `editorSession.ts` (open and close), `editorEdits.ts` (the optimistic edits; split to stay inside the 50-line function limit), `editorStore.test.ts` (all in `frontend/src/features/editor/store/`), `model/fixtures.ts` (test builders)
 - Modify: `docs/developer/editor.md` (new: the model, the store, how an edit travels)
 
 **Interfaces:**
@@ -106,7 +106,7 @@ Stop and report if you need to touch anything else.
 
 - [x] **Step 9: Write the failing tests** C10 to C13 in `editorStore.test.ts`, with a fake `EditorDoor` whose calls the test resolves by hand (deferred promises), so "before the answer" can be asserted.
 - [x] **Step 10: Run** them. Expected: FAIL.
-- [x] **Step 11: Implement `editorStore.ts`.** `open` keeps a counter `openToken`; a load or subscribe that finishes after a newer `open` or a `close` is dropped with `if (token !== openToken) return` (break B4) and its subscription closed.
+- [x] **Step 11: Implement `editorStore.ts`.** `open` (in `editorSession.ts`) keeps a counter `openToken`; a load or subscribe that finishes after a newer `open` or a `close` is dropped with `if (token !== openToken) return` (break B4) and its subscription closed.
 - [x] **Step 12: Run** `npm run test:unit`. Expected: PASS. Write `docs/developer/editor.md` (state shape, what "live" means, how an edit travels: store, door, guard, event echo). **Close checkpoint 8C** (commit `feat: editor store`).
 
 ## Test plan
@@ -136,7 +136,7 @@ Stop and report if you need to touch anything else.
 | B1 | frontend/src/features/editor/model/sortOrder.ts | `if (!(mid > before && mid < after)) return null` | `if (false) return null` | frontend/src/features/editor/model/sortOrder.test.ts |
 | B2 | frontend/src/features/editor/model/state.ts | `chapter !== undefined && !chapter.deleted` | `chapter !== undefined` | frontend/src/features/editor/model/state.test.ts |
 | B3 | frontend/src/features/editor/model/remote.ts | `existing.version >= event.record.version` | `existing.version > event.record.version` | frontend/src/features/editor/model/remote.test.ts |
-| B4 | frontend/src/features/editor/store/editorStore.ts | `if (token !== openToken) return` | `if (false) return` | frontend/src/features/editor/store/editorStore.test.ts |
+| B4 | frontend/src/features/editor/store/editorSession.ts | `if (token !== openToken) return` | `if (false) return` | frontend/src/features/editor/store/editorStore.test.ts |
 ### Flow
 none (no screen yet)
 ### Evidence

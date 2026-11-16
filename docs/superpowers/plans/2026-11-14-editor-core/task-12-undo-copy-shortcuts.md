@@ -92,10 +92,10 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 12B: History and clipboard (pure)
 
-- [ ] **Step 5: Write the failing tests** C4 to C9.
-- [ ] **Step 6: Run** `npx vitest run --project unit frontend/src/features/editor/model`. Expected: the new tests FAIL.
-- [ ] **Step 7: Implement `history.ts` and `clipboard.ts`.** Keep the depth with `past.slice(-HISTORY_DEPTH)`, compare fields in `canApply` through one helper `sameValue(current[key], change.before[key])`, and keep connections with `ids.has(c.fromNodeId) && ids.has(c.toNodeId)` (breaks B2 to B4).
-- [ ] **Step 8: Run** them. Expected: PASS. **Close checkpoint 12B** (commit `feat: undo history and clipboard`).
+- [x] **Step 5: Write the failing tests** C4 to C9.
+- [x] **Step 6: Run** `npx vitest run --project unit frontend/src/features/editor/model`. Expected: the new tests FAIL.
+- [x] **Step 7: Implement `history.ts` and `clipboard.ts`.** Keep the depth with `past.slice(-HISTORY_DEPTH)`, compare fields in `canApply` through one helper `sameValue(current[key], change.before[key])`, and keep connections with `ids.has(c.fromNodeId) && ids.has(c.toNodeId)` (breaks B2 to B4).
+- [x] **Step 8: Run** them. Expected: PASS. **Close checkpoint 12B** (commit `feat: undo history and clipboard`).
 
 ## Checkpoint 12C: Wiring and flows
 

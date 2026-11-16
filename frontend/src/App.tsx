@@ -3,6 +3,7 @@ import { backend } from './backend'
 import { useSession } from './features/auth/useSession'
 import { AuthScreen } from './features/auth/AuthScreen'
 import { TeamsScreen } from './features/teams/TeamsScreen'
+import { EditorScreen } from './features/editor/EditorScreen'
 import { TeamDetail } from './features/teams/TeamDetail'
 import { AppShell } from './features/shell/AppShell'
 import { navigate, useRoute } from './features/shell/useRoute'
@@ -55,7 +56,7 @@ function App() {
       {route.name === 'team' ? (
         <TeamDetail teamId={route.teamId} onBack={() => navigate({ name: 'teams' })} />
       ) : route.name === 'project' ? (
-        <p>Editor arrives in Task 9.</p>
+        <EditorScreen projectId={route.projectId} chapterId={route.chapterId} />
       ) : (
         <TeamsScreen />
       )}

@@ -3,6 +3,7 @@ import { backend } from '../../backend'
 import type { TeamMember, TeamSettings, Team } from '../../backend/types'
 import { navigate } from '../shell/useRoute'
 import { useTeams } from './useTeams'
+import { ProjectList } from '../projects/ProjectList'
 import { InviteForm } from './InviteForm'
 import { MemberList, JoinCodeRow } from './TeamParts'
 import { errorMessage } from '../errorMessage'
@@ -98,13 +99,15 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
     }
   }
   const handleDeleteTeam = async () => {
-    if (confirm('Delete this team?')) {
-      try {
+    try {
+      const count = (await backend.projects.list(teamId)).length
+      const noun = count === 1 ? 'project' : 'projects'
+      if (confirm(count === 0 ? 'Delete this team?' : `Delete this team and its ${count} ${noun}?`)) {
         await useTeams.getState().remove(teamId)
         navigate({ name: 'teams' })
-      } catch (err: unknown) {
-        setError(errorMessage(err, 'Failed to delete team'))
       }
+    } catch (err: unknown) {
+      setError(errorMessage(err, 'Failed to delete team'))
     }
   }
 
@@ -114,6 +117,7 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
       <h2>{team?.name ?? 'Team'}</h2>
       {error && <p data-testid="form-error" role="alert">{error}</p>}
       <MemberList members={members} isOwner={isOwner} loaded={loaded} onRemove={handleRemoveMember} />
+      {team !== null && <ProjectList teamId={teamId} isOwner={isOwner} />}
       {isOwner && (
         <OwnerPanel
           teamId={teamId}

@@ -44,18 +44,18 @@ export function moveChapter(ordered: Chapter[], id: string, direction: 'left' | 
 
 ## Checkpoint 9A: Tab view and chapter moves (pure)
 
-- [ ] **Step 1: Write the failing tests** C1 to C4.
-- [ ] **Step 2: Run** `npx vitest run --project unit frontend/src/features/editor/chapters`. Expected: FAIL.
-- [ ] **Step 3: Implement `tabsView.ts` and `chapterMoves.ts`.** The clamp is `Math.min(TAB_MAX, Math.max(TAB_MIN, width))` (break B1).
-- [ ] **Step 4: Run** them. Expected: PASS. **Close checkpoint 9A** (commit `feat: chapter tab view and moves`).
+- [x] **Step 1: Write the failing tests** C1 to C4.
+- [x] **Step 2: Run** `npx vitest run --project unit frontend/src/features/editor/chapters`. Expected: FAIL.
+- [x] **Step 3: Implement `tabsView.ts` and `chapterMoves.ts`.** The clamp is `Math.min(TAB_MAX, Math.max(TAB_MIN, width))` (break B1).
+- [x] **Step 4: Run** them. Expected: PASS. **Close checkpoint 9A** (commit `feat: chapter tab view and moves`).
 
 ## Checkpoint 9B: Project list, editor frame and chapter tabs
 
-- [ ] **Step 5: Write `e2e/helpers/editor.ts` and the failing e2e tests** C5 to C10 in `e2e/editor-chapters.spec.ts`.
-- [ ] **Step 6: Run** `npm run test:e2e -- e2e/editor-chapters.spec.ts`. Expected: FAIL.
-- [ ] **Step 7: Implement.** `ProjectList` (name field and `New project` for members; each project opens `#/project/<id>`; `Move to trash` shown only to the owner, with a confirm). `EditorScreen` calls `editorStore.getState().open(projectId)` on mount and `close()` on unmount; when the route has no chapter, it navigates to the first live chapter. `ChapterList` (left): every live chapter, `Add chapter` (title `Chapter <n+1>`, position after the last), rename on double-click, `Move to trash` with a confirm, and a closed chapter opens its tab again when clicked. `ChapterTabs`: visible tabs, `×` closes (D10), a drag handle on the right edge sets the width, a menu with `Move left` and `Move right` (applies `moveChapter`; a renumber sends one update per chapter). The project name in the left panel renames on double-click.
-- [ ] **Step 8: Run** `npm run test:e2e`. Expected: PASS.
-- [ ] **Step 9: Write `docs/user/editor.md`** (first section: projects and chapters, what closing a tab does versus moving a chapter to the trash) and link it from `docs/README.md`. **Close checkpoint 9B** (commit `feat: projects, editor frame and chapter tabs`).
+- [x] **Step 5: Write `e2e/helpers/editor.ts` and the failing e2e tests** C5 to C10 in `e2e/editor-chapters.spec.ts`.
+- [x] **Step 6: Run** `npm run test:e2e -- e2e/editor-chapters.spec.ts`. Expected: FAIL.
+- [x] **Step 7: Implement.** `ProjectList` (name field and `New project` for members; each project opens `#/project/<id>`; `Move to trash` shown only to the owner, with a confirm). `EditorScreen` calls `editorStore.getState().open(projectId)` on mount and `close()` on unmount; when the route has no chapter, it navigates to the first live chapter. `ChapterList` (left): every live chapter, `Add chapter` (title `Chapter <n+1>`, position after the last), rename on double-click, `Move to trash` with a confirm, and a closed chapter opens its tab again when clicked. `ChapterTabs`: visible tabs, `×` closes (D10), a drag handle on the right edge sets the width, a menu with `Move left` and `Move right` (applies `moveChapter`; a renumber sends one update per chapter). The project name in the left panel renames on double-click.
+- [x] **Step 8: Run** `npm run test:e2e`. Expected: PASS.
+- [x] **Step 9: Write `docs/user/editor.md`** (first section: projects and chapters, what closing a tab does versus moving a chapter to the trash) and link it from `docs/README.md`. **Close checkpoint 9B** (commit `feat: projects, editor frame and chapter tabs`).
 
 ## Test plan
 ### Cases

@@ -67,9 +67,9 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 11C: The panel
 
-- [ ] **Step 9: Write the failing e2e tests** C7 to C11 in `e2e/editor-panel.spec.ts`.
-- [ ] **Step 10: Run** `npm run test:e2e -- e2e/editor-panel.spec.ts`. Expected: FAIL.
-- [ ] **Step 11: Implement the panel components.** New lines and cues get their order from `insertAt`; moves use `placeAt`; a `renumber` result sends one update per record. `EditorScreen` calls `pendingEdits.flushAll()` when the selection, chapter or project changes, on unmount and on `pagehide`, and on `beforeunload` flushes and then asks the browser to warn when `shouldWarnOnLeave(pendingEdits.size(), saving)`.
+- [x] **Step 9: Write the failing e2e tests** C7 to C11 in `e2e/editor-panel.spec.ts`.
+- [x] **Step 10: Run** `npm run test:e2e -- e2e/editor-panel.spec.ts`. Expected: FAIL.
+- [x] **Step 11: Implement the panel components.** New lines and cues get their order from `insertAt`; moves use `placeAt`; a `renumber` result sends one update per record. `EditorScreen` calls `pendingEdits.flushAll()` when the selection, chapter or project changes, on unmount and on `pagehide`, and on `beforeunload` flushes and then asks the browser to warn when `shouldWarnOnLeave(pendingEdits.size(), saving)`.
 - [ ] **Step 12: Run** `npm run test:e2e`. Expected: PASS. Add "Writing the script" to `docs/user/editor.md` (lines, characters, Enter and Backspace, cues, connection labels, when text is saved) and the save path to `docs/developer/editor.md`. **Close checkpoint 11C** (commit `feat: properties panel`).
 
 ## Test plan

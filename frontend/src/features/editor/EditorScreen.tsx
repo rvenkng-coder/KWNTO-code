@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import type { Chapter } from '../../backend'
 import { navigate } from '../shell/useRoute'
 import { Canvas } from './canvas/Canvas'
+import { useSelection } from './canvas/useSelection'
 import { ChapterList } from './chapters/ChapterList'
 import { ChapterTabs } from './chapters/ChapterTabs'
 import { InlineText } from './chapters/InlineText'
@@ -9,7 +10,9 @@ import { visibleTabs } from './chapters/tabsView'
 import { useTabsView } from './chapters/useTabsView'
 import { ErrorBanner } from './ErrorBanner'
 import { liveChapters } from './model/state'
+import { PropertiesPanel } from './panel/PropertiesPanel'
 import { editorStore, useEditor } from './store/editorStore'
+import { pendingEdits, shouldWarnOnLeave } from './store/pendingEdits'
 
 const NOT_FOUND = 'This project does not exist or you are not a member of its team.'
 
@@ -29,6 +32,28 @@ function useOpenProject(projectId: string): void {
     void editorStore.getState().open(projectId)
     return () => void editorStore.getState().close()
   }, [projectId])
+}
+
+// Text still waiting to be saved goes now when the person moves on (Review Focus 3): another
+// selection, chapter or project, leaving the editor or the page. Leaving the page while a save
+// is unsent or in flight asks the browser to warn.
+function useFlushOnLeave(projectId: string, chapterId: string | null): void {
+  const nodeIds = useSelection((s) => s.nodeIds)
+  const connectionId = useSelection((s) => s.connectionId)
+  useEffect(() => () => pendingEdits.flushAll(), [projectId, chapterId, nodeIds, connectionId])
+  useEffect(() => {
+    const onPageHide = () => pendingEdits.flushAll()
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      pendingEdits.flushAll()
+      if (shouldWarnOnLeave(pendingEdits.size(), editorStore.getState().saving)) e.preventDefault()
+    }
+    window.addEventListener('pagehide', onPageHide)
+    window.addEventListener('beforeunload', onBeforeUnload)
+    return () => {
+      window.removeEventListener('pagehide', onPageHide)
+      window.removeEventListener('beforeunload', onBeforeUnload)
+    }
+  }, [])
 }
 
 // A route without a chapter, or with a chapter that is gone, shows the first open tab.
@@ -67,8 +92,8 @@ function EditorFrame({ projectId, projectName, chapters, active }: FrameProps) {
             ? <p className="p-3 text-muted">Open a chapter from the list.</p>
             : <Canvas projectId={projectId} chapterId={active.id} />}
         </section>
-        <aside data-testid="editor-panel" className="panel">
-          <p className="text-muted">Properties arrive in Task 11.</p>
+        <aside data-testid="editor-panel" className="panel min-w-0">
+          <PropertiesPanel />
         </aside>
       </div>
     </div>
@@ -83,6 +108,7 @@ export function EditorScreen({ projectId, chapterId }: { projectId: string; chap
   const active = chapters.find((c) => c.id === chapterId) ?? null
   useOpenProject(projectId)
   useFirstTabRedirect(projectId, chapters, active)
+  useFlushOnLeave(projectId, chapterId)
 
   if (status === 'error') return <NotFound />
   if (status !== 'ready') return <p>Loading project…</p>

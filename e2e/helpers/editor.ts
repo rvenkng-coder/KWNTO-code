@@ -1,9 +1,9 @@
-import { expect, type Page } from '@playwright/test'
+import { expect, type Page, type Response } from '@playwright/test'
 import { uniqueEmail } from './admin'
 import { createTeam, openTeam, signUpVerifyAndSignIn } from './ui'
 
-/** Waits for the server to answer a save of a collection (POST or PATCH), so a reload cannot cut it off. */
-export function waitForSave(page: Page, collection: string, method: 'POST' | 'PATCH'): Promise<unknown> {
+/** Waits for the server to answer a save of a collection (POST, PATCH or DELETE), so a reload cannot cut it off. */
+export function waitForSave(page: Page, collection: string, method: 'POST' | 'PATCH' | 'DELETE'): Promise<Response> {
   return page.waitForResponse(
     (r) => r.request().method() === method && r.url().includes(`/api/collections/${collection}/records`) && r.ok(),
   )
@@ -58,12 +58,21 @@ export async function addNodeAt(page: Page, x: number, y: number): Promise<strin
   return ((await response.json()) as { id: string }).id
 }
 
-/** Drags from one node's outgoing handle to another node's incoming handle and waits for the save. */
-export async function connectNodes(page: Page, fromId: string, toId: string): Promise<void> {
+/** Drags from one node's outgoing handle to another node's incoming handle, waits for the save and returns the connection id. */
+export async function connectNodes(page: Page, fromId: string, toId: string): Promise<string> {
   const saved = waitForSave(page, 'connections', 'POST')
   await page.locator(`[data-node-id="${fromId}"] .react-flow__handle.source`)
     .dragTo(page.locator(`[data-node-id="${toId}"] .react-flow__handle.target`))
-  await saved
+  return ((await (await saved).json()) as { id: string }).id
+}
+
+/** One node card by id. */
+export const card = (page: Page, id: string) => page.locator(`[data-testid="node-card"][data-node-id="${id}"]`)
+
+/** Waits until the canvas has drawn the store's nodes and shows `count` of them. */
+export async function readyCanvas(page: Page, count: number): Promise<void> {
+  await expect(page.getByTestId('canvas')).toHaveAttribute('data-ready', 'true')
+  await expect(page.getByTestId('canvas')).toHaveAttribute('data-node-count', String(count))
 }
 
 /** A node's position in canvas coordinates, read from React Flow's transform. */

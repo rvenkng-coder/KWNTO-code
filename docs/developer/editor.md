@@ -36,6 +36,17 @@ Lines, cues and chapter tabs carry a decimal order. Inserting between two neighb
 4. On success the saved record replaces the local one **only if its version is higher**. On a refusal the fields of that edit go back to what they were (a later edit of another field stays) and `error` holds the message; the method resolves `false`.
 5. The server's change event for our own save comes back through the subscription. Its version is not newer than the local copy, so `applyRemote` ignores it. A teammate's change has a higher version and is applied; a delete drops the record; an event of another project is ignored.
 
+## Text fields: the save path
+
+Text in the properties panel (`panel/`) does not go to the store on every keystroke. `useSavedText(kind, id, field, value)` keeps the text locally and schedules a save of that one field through `pendingEdits` (`store/pendingEdits.ts`), keyed `${kind}:${id}:${field}`:
+
+- A new keystroke in the same field cancels the waiting save and starts the 800 ms wait again (`TEXT_SAVE_DELAY_MS`), so only the newest text is sent, once.
+- `flush(key)` sends at once: on blur, before Enter adds a line, and when the field unmounts (another node selected, the row deleted).
+- `EditorScreen` calls `pendingEdits.flushAll()` when the selection, chapter or project changes, when it unmounts and on `pagehide`. On `beforeunload` it flushes and then asks the browser to warn while `shouldWarnOnLeave(pendingEdits.size(), saving)`, that is while a save is still in flight.
+- A teammate's value replaces the local text only while nothing of ours is waiting for that field, so a live event never overwrites what someone is typing.
+
+Character, colour, cue type, order and delete are not text: they go straight to the store. New lines and cues get their `sortOrder` from `insertAt`, moves from `placeAt` (D4); `panel/ordering.ts` turns a placement into the writes, and after a renumber only the records whose order changed are sent.
+
 ## Opening and closing
 
 `open(projectId)` closes any open project and starts loading and subscribing **together**. Events that arrive before the load is applied wait in a buffer and are applied after it (the version check drops stale ones). Every `open` and `close` bumps a token; a load or subscription that finishes for an older token is dropped and its subscription closed, so a slow project A can never overwrite project B. A failed load or subscribe gives `status: 'error'` and closes whatever did open.

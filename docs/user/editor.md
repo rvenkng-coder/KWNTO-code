@@ -50,7 +50,7 @@ Badges on a node show where it sits in the story:
 
 | Badge | Means |
 |---|---|
-| **Start** | The story begins here. The first node made in a project becomes the start node. To change it, select one node and choose **Make start node** above the canvas. |
+| **Start** | The story begins here. The first node made in a project becomes the start node. To change it, select one node and choose **Make start node** in the panel on the right. |
 | **End** | No connection leads out of this node. (A connection to itself counts as leading out.) |
 | **Unreachable** | No connection from another node leads into it, and it is not the start node, so a player can never get here. |
 
@@ -59,3 +59,18 @@ Links between chapters count: a node whose only way in is from another chapter i
 ### The minimap
 
 The small map in the corner shows the whole chapter; drag in it to move around. **Hide minimap** above the canvas hides it, and **Show minimap** brings it back. The choice is saved with your account, so it follows you to every project and browser.
+
+## Writing the script
+
+Select one node and the panel on the right shows it:
+
+- **Title** and **Colour** (eight swatches) of the node, and **Make start node** (or `This is the start node.`).
+- **Script:** one row per line, each with a **Character** (who speaks; leave it empty for an action such as `They wave.`) and the **line** itself. **Add line** adds one at the end.
+  - **Enter** in a line adds a new line below it and puts the cursor there. **Shift+Enter** starts a new paragraph inside the same line.
+  - **Backspace** in a line whose character and text are both empty deletes it and moves the cursor to the line above.
+  - **Move up** and **Move down** change the order; **Delete line** removes one.
+- **Cues:** notes for sound, light or anything else, each with a type (`audio`, `lighting`, `other`) and a note. **Add cue**, **Move up**, **Move down** and **Delete cue** work as for lines. (Attaching sound or video files comes later.)
+
+Select a connection instead and the panel shows its **Choice text** (the words a player picks to follow it, shown on the arrow) and **Delete connection**. Select several nodes and it shows how many, with **Move to trash**.
+
+**When text is saved:** about a second after you stop typing, when you leave the field, and at once when you select something else, open another chapter or project, or leave the page. Only the field you changed is sent, so a teammate editing another field of the same node keeps their change. If you try to close or reload the page while a change is still on its way, the browser asks you first.

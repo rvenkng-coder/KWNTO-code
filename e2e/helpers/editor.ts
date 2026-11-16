@@ -42,3 +42,34 @@ export async function ownerWithProject(page: Page, projectName: string): Promise
   await openProject(page, projectName)
   return { email }
 }
+
+/** The node cards on the canvas. */
+export const cards = (page: Page) => page.getByTestId('node-card')
+
+/** Double-clicks the empty canvas at a point (relative to the canvas) and waits for the new node to be saved. */
+export async function addNodeAt(page: Page, x: number, y: number): Promise<string> {
+  const before = await cards(page).count()
+  const saved = page.waitForResponse(
+    (r) => r.request().method() === 'POST' && r.url().includes('/api/collections/nodes/records') && r.ok(),
+  )
+  await page.getByTestId('canvas').dblclick({ position: { x, y } })
+  const response = await saved
+  await expect(cards(page)).toHaveCount(before + 1)
+  return ((await response.json()) as { id: string }).id
+}
+
+/** Drags from one node's outgoing handle to another node's incoming handle and waits for the save. */
+export async function connectNodes(page: Page, fromId: string, toId: string): Promise<void> {
+  const saved = waitForSave(page, 'connections', 'POST')
+  await page.locator(`[data-node-id="${fromId}"] .react-flow__handle.source`)
+    .dragTo(page.locator(`[data-node-id="${toId}"] .react-flow__handle.target`))
+  await saved
+}
+
+/** A node's position in canvas coordinates, read from React Flow's transform. */
+export async function nodePosition(page: Page, id: string): Promise<{ x: number; y: number }> {
+  const transform = await page.locator(`.react-flow__node[data-id="${id}"]`).evaluate((el) => (el as HTMLElement).style.transform)
+  const match = /translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(transform)
+  if (match === null) throw new Error(`no position in "${transform}"`)
+  return { x: Number(match[1]), y: Number(match[2]) }
+}

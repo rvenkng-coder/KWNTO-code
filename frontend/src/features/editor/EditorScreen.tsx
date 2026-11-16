@@ -61,7 +61,7 @@ function EditorFrame({ projectId, projectName, chapters, active }: FrameProps) {
           />
           <ChapterList projectId={projectId} chapters={chapters} activeId={activeId} />
         </aside>
-        <section data-testid="editor-canvas" className="panel flex flex-col gap-2 p-0">
+        <section data-testid="editor-canvas" className="panel flex min-w-0 flex-col gap-2 p-0">
           <ChapterTabs projectId={projectId} chapters={chapters} activeId={activeId} />
           {active === null
             ? <p className="p-3 text-muted">Open a chapter from the list.</p>

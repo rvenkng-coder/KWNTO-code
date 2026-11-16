@@ -1,6 +1,6 @@
 # The editor
 
-This page grows as the editor does. It covers projects and chapters so far.
+This page grows as the editor does. It covers projects, chapters, and nodes and connections so far.
 
 ## Projects
 
@@ -32,3 +32,30 @@ A project is split into chapters. Each chapter has a **tab** above the canvas an
 | Saved | No, only your view | Yes |
 
 Moving a chapter to the trash asks you to confirm.
+
+## Nodes and connections
+
+The middle of the editor is the **canvas** of the open chapter: a dotted surface you can pan (drag the empty canvas) and zoom (mouse wheel, or the `+` and `−` buttons in the corner).
+
+- **Make a node:** double-click an empty spot. A node called `New node` appears there.
+- **Connect two nodes:** drag from the small dot on the right edge of one node to the dot on the left edge of another. Connecting the same two nodes twice does nothing. A node can also connect to itself.
+- **Move nodes:** drag a node. To move several, hold Shift and drag a box around them (or Ctrl-click each, ⌘-click on a Mac), then drag one of them. The new place is saved when you let go.
+- **Move to trash:** select one or more nodes and press Delete or Backspace. Their connections are hidden with them (the trash screen, to bring a node back, comes later). Select a connection and press Delete to remove it for good.
+
+Each node shows its title, its colour, its first three lines (`+2 more` when there are more) and, for a link into another chapter, a tag such as `→ Chapter 2: The Door`.
+
+### Start, End and Unreachable
+
+Badges on a node show where it sits in the story:
+
+| Badge | Means |
+|---|---|
+| **Start** | The story begins here. The first node made in a project becomes the start node. To change it, select one node and choose **Make start node** above the canvas. |
+| **End** | No connection leads out of this node. (A connection to itself counts as leading out.) |
+| **Unreachable** | No connection from another node leads into it, and it is not the start node, so a player can never get here. |
+
+Links between chapters count: a node whose only way in is from another chapter is not unreachable. If the start node is moved to the trash, the project has no start until you mark one, and the canvas says `No start node: select a node and choose "Make start node".`
+
+### The minimap
+
+The small map in the corner shows the whole chapter; drag in it to move around. **Hide minimap** above the canvas hides it, and **Show minimap** brings it back. The choice is saved with your account, so it follows you to every project and browser.

@@ -66,9 +66,9 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 10C: Canvas flows in the browser
 
-- [ ] **Step 9: Write the failing e2e tests** C8 to C11 in `e2e/editor-canvas.spec.ts` (use `ownerWithProject`).
-- [ ] **Step 10: Run** `npm run test:e2e -- e2e/editor-canvas.spec.ts`; fix until it passes; then `npm run test:e2e`. Expected: PASS.
-- [ ] **Step 11:** Add "Nodes and connections" to `docs/user/editor.md` (create, connect, move, start, end and unreachable markers, minimap). **Close checkpoint 10C** (commit `test: canvas flows`).
+- [x] **Step 9: Write the failing e2e tests** C8 to C11 in `e2e/editor-canvas.spec.ts` (use `ownerWithProject`).
+- [x] **Step 10: Run** `npm run test:e2e -- e2e/editor-canvas.spec.ts`; fix until it passes; then `npm run test:e2e`. Expected: PASS.
+- [x] **Step 11:** Add "Nodes and connections" to `docs/user/editor.md` (create, connect, move, start, end and unreachable markers, minimap). **Close checkpoint 10C** (commit `test: canvas flows`).
 
 ## Checkpoint 10D: Performance at 500 nodes and 5,000 lines
 

@@ -26,18 +26,19 @@ export type Placement = { kind: 'one'; id: string; order: number } | { kind: 're
 
 // `result` is the list as it will be shown; the item at `index` is the one being placed.
 function placeInResult(result: Ordered[], index: number): Placement {
-  const id = result[index].id
+  const id = (result[index] as Ordered).id
   const order = sortOrderBetween(result[index - 1]?.order ?? null, result[index + 1]?.order ?? null)
   if (order !== null) return { kind: 'one', id, order }
-  const orders = renumber(result.length).map((n, i) => ({ id: result[i].id, order: n }))
+  const orders = renumber(result.length).map((n, i) => ({ id: (result[i] as Ordered).id, order: n }))
   return { kind: 'renumber', orders }
 }
 
 export function placeAt(list: Ordered[], id: string, index: number): Placement | null {
   const from = list.findIndex((item) => item.id === id)
-  if (from === -1 || !Number.isInteger(index) || index < 0 || index > list.length - 1 || index === from) return null
+  const moving = list[from]
+  if (moving === undefined || !Number.isInteger(index) || index < 0 || index > list.length - 1 || index === from) return null
   const result = list.filter((item) => item.id !== id)
-  result.splice(index, 0, list[from])
+  result.splice(index, 0, moving)
   return placeInResult(result, index)
 }
 

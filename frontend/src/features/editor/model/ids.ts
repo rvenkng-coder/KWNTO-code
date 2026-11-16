@@ -4,7 +4,7 @@
 const ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyz'
 const ID_LENGTH = 15
 
-type RandomBytes = (bytes: Uint8Array) => Uint8Array
+type RandomBytes = (bytes: Uint8Array<ArrayBuffer>) => Uint8Array<ArrayBuffer>
 
 const browserRandom: RandomBytes = (bytes) => crypto.getRandomValues(bytes)
 

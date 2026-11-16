@@ -1,6 +1,6 @@
 import type { Connection } from '../../../backend'
 import { useSelection } from '../canvas/useSelection'
-import { editorStore } from '../store/editorStore'
+import { edits } from '../store/edits'
 import { useSavedText } from '../store/useSavedText'
 
 /** A selected connection: its label (the choice text a player sees) and Delete connection. */
@@ -8,7 +8,7 @@ export function ConnectionFields({ connection }: { connection: Connection }) {
   const [label, setLabel, flush] = useSavedText('connections', connection.id, 'label', connection.label)
   const remove = () => {
     useSelection.getState().set([], null)
-    void editorStore.getState().remove('connections', connection.id)
+    void edits.remove('connections', connection.id, 'Delete connection')
   }
   return (
     <div className="flex flex-col gap-2">

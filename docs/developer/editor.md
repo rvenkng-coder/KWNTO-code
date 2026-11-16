@@ -47,6 +47,17 @@ Text in the properties panel (`panel/`) does not go to the store on every keystr
 
 Character, colour, cue type, order and delete are not text: they go straight to the store. New lines and cues get their `sortOrder` from `insertAt`, moves from `placeAt` (D4); `panel/ordering.ts` turns a placement into the writes, and after a renumber only the records whose order changed are sent.
 
+## Undo history and the clipboard
+
+From Task 12 screens change content only through `edits` (`store/edits.ts`), never the store's `create`, `update` and `remove` directly, so every change lands in the history (`model/history.ts`, D5):
+
+- A step is recorded **only after its writes succeed**. An update records the old values of exactly the fields it changed (`before`) and the new ones (`after`). Creating a chapter or node is recorded as `deleted` going from true to false, so undo trashes it and redo restores it; lines, cues and connections record the whole record, so undo of a delete re-creates it with its id (at version 0).
+- `edits.group(label, run)` makes everything inside one step: a multi-node drag, trashing a selection, a paste, an insert that renumbers. An edit belongs to the group that was open **when it started**, so a text save that finishes while a group is open stays its own step.
+- `undo()` and `redo()` flush waiting text first, then check every change with `canApply` (the current values still equal `before`, the record to remove is unchanged in its editable fields, the record to create does not exist). If any change fails the check, the step is dropped with `UNDO_BLOCKED` / `REDO_BLOCKED` as the store's error, and nothing is written. Undo writes ordinary guarded updates, so the version guard still applies.
+- 100 steps (`HISTORY_DEPTH`); a new step clears redo; `edits.reset()` runs when a project opens and closes.
+- Copy and paste (`model/clipboard.ts`, D11) keep the clip in memory: live selected nodes, their lines and cues, and only the connections between them. A paste gives every record a new id, remaps the references and moves the nodes by 40 px times the paste count.
+- `useShortcuts` (on `window`) maps keys with `shortcutFor` (`model/shortcuts.ts`); in an `input`, `textarea`, `select` or contenteditable only `search` is taken. React Flow's own `deleteKeyCode` is off; Delete goes through `trashSelection` (`canvas/selectionActions.ts`), so a trashed node keeps its connections.
+
 ## Opening and closing
 
 `open(projectId)` closes any open project and starts loading and subscribing **together**. Events that arrive before the load is applied wait in a buffer and are applied after it (the version check drops stale ones). Every `open` and `close` bumps a token; a load or subscription that finishes for an older token is dropped and its subscription closed, so a slow project A can never overwrite project B. A failed load or subscribe gives `status: 'error'` and closes whatever did open.

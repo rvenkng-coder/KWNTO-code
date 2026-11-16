@@ -12,7 +12,9 @@ import { ErrorBanner } from './ErrorBanner'
 import { liveChapters } from './model/state'
 import { PropertiesPanel } from './panel/PropertiesPanel'
 import { editorStore, useEditor } from './store/editorStore'
+import { edits } from './store/edits'
 import { pendingEdits, shouldWarnOnLeave } from './store/pendingEdits'
+import { useShortcuts } from './useShortcuts'
 
 const NOT_FOUND = 'This project does not exist or you are not a member of its team.'
 
@@ -25,12 +27,17 @@ function NotFound() {
   )
 }
 
-// Opens the project while the screen is shown; the tab view starts fresh for each project.
+// Opens the project while the screen is shown; the tab view and the undo history (D5) start
+// fresh for each project.
 function useOpenProject(projectId: string): void {
   useEffect(() => {
     useTabsView.getState().reset()
+    edits.reset()
     void editorStore.getState().open(projectId)
-    return () => void editorStore.getState().close()
+    return () => {
+      edits.reset()
+      void editorStore.getState().close()
+    }
   }, [projectId])
 }
 
@@ -82,7 +89,7 @@ function EditorFrame({ projectId, projectName, chapters, active }: FrameProps) {
             value={projectName}
             label="Project name"
             className="text-left text-lg font-semibold"
-            onCommit={(name) => void editorStore.getState().update('projects', projectId, { name })}
+            onCommit={(name) => void edits.update('projects', projectId, { name }, 'Rename project')}
           />
           <ChapterList projectId={projectId} chapters={chapters} activeId={activeId} />
         </aside>
@@ -109,6 +116,7 @@ export function EditorScreen({ projectId, chapterId }: { projectId: string; chap
   useOpenProject(projectId)
   useFirstTabRedirect(projectId, chapters, active)
   useFlushOnLeave(projectId, chapterId)
+  useShortcuts(active === null ? null : active.id)
 
   if (status === 'error') return <NotFound />
   if (status !== 'ready') return <p>Loading project…</p>

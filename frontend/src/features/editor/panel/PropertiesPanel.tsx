@@ -1,6 +1,7 @@
+import { trashSelection } from '../canvas/selectionActions'
 import { useSelection } from '../canvas/useSelection'
 import { isLiveNode } from '../model/state'
-import { editorStore, useEditor } from '../store/editorStore'
+import { useEditor } from '../store/editorStore'
 import { ConnectionFields } from './ConnectionFields'
 import { NodeFields } from './NodeFields'
 
@@ -8,8 +9,8 @@ export const NOTHING_SELECTED = 'Select a node to edit it.'
 
 function ManyNodes({ ids }: { ids: string[] }) {
   const trash = () => {
-    useSelection.getState().set([], null)
-    for (const id of ids) void editorStore.getState().update('nodes', id, { deleted: true })
+    useSelection.getState().set(ids, null)
+    void trashSelection()
   }
   return (
     <div className="flex flex-col gap-2">

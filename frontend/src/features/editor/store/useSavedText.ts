@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ContentKind, EditableFields } from '../../../backend'
-import { editorStore } from './editorStore'
+import { edits } from './edits'
 import { pendingEdits } from './pendingEdits'
 
 // A text field of one record while the person types in it (plan Task 11): the text shown is
@@ -26,7 +26,7 @@ export function useSavedText<K extends ContentKind>(
     pendingEdits.set(key, () => {
       editing.current = false
       const changes = { [field]: t } as Partial<EditableFields[K]>
-      void editorStore.getState().update(kind, id, changes)
+      void edits.update(kind, id, changes, `Edit ${field}`)
     })
   }, [key, kind, id, field])
 

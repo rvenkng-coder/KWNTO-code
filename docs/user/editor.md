@@ -40,7 +40,7 @@ The middle of the editor is the **canvas** of the open chapter: a dotted surface
 - **Make a node:** double-click an empty spot. A node called `New node` appears there.
 - **Connect two nodes:** drag from the small dot on the right edge of one node to the dot on the left edge of another. Connecting the same two nodes twice does nothing. A node can also connect to itself.
 - **Move nodes:** drag a node. To move several, hold Shift and drag a box around them (or Ctrl-click each, ⌘-click on a Mac), then drag one of them. The new place is saved when you let go.
-- **Move to trash:** select one or more nodes and press Delete or Backspace. Their connections are hidden with them (the trash screen, to bring a node back, comes later). Select a connection and press Delete to remove it for good.
+- **Move to trash:** select one or more nodes and press Delete or Backspace. Their connections are hidden with them; **Undo** brings the nodes back with their connections (the trash screen comes later). Select a connection and press Delete to remove it.
 
 Each node shows its title, its colour, its first three lines (`+2 more` when there are more) and, for a link into another chapter, a tag such as `→ Chapter 2: The Door`.
 
@@ -75,3 +75,23 @@ Select one node and the panel on the right shows it:
 Select a connection instead and the panel shows its **Choice text** (the words a player picks to follow it, shown on the arrow) and **Delete connection**. Select several nodes and it shows how many, with **Move to trash**.
 
 **When text is saved:** about a second after you stop typing, when you leave the field, and at once when you select something else, open another chapter or project, or leave the page. Only the field you changed is sent, so a teammate editing another field of the same node keeps their change. If you try to close or reload the page while a change is still on its way, the browser asks you first.
+
+## Undo, copy and shortcuts
+
+**Undo** and **Redo** (above the canvas, or the keys below) step back and forward through your own changes in this project: renames, colours, moves, lines, cues, connections, chapters and trashing. A drag of several nodes, trashing a selection and a paste are one step each. The last 100 steps are kept while the project is open; closing it clears them.
+
+Undo never overwrites a teammate's work. If someone else has changed the same thing since, that step is skipped and you see `Can't undo: someone else changed this since.` (or `Can't redo: …`); the next undo goes further back.
+
+**Copy and paste:** select nodes and copy them; paste puts copies, with their lines, cues and the connections between them, into the open chapter. Each paste of the same copy lands 40 px further right and down. You can paste into another chapter or another project in the same browser tab.
+
+| Keys (⌘ on a Mac) | Does |
+|---|---|
+| Ctrl+Z | Undo |
+| Ctrl+Shift+Z or Ctrl+Y | Redo |
+| Ctrl+C | Copy the selected nodes |
+| Ctrl+V | Paste into the open chapter |
+| Delete or Backspace | Move the selected nodes to the trash, or delete the selected connection |
+| Ctrl+K | Search |
+| Ctrl+A | Select every node in the chapter |
+
+While you type in a field, only Ctrl+K is the editor's; the other keys work as usual in the field (Ctrl+Z there undoes your typing).

@@ -1,7 +1,8 @@
 import type { NodeColor, StoryNode } from '../../../backend'
 import { useTheme } from '../../shell/theme'
 import { NODE_COLORS } from '../model/colors'
-import { editorStore, useEditor } from '../store/editorStore'
+import { useEditor } from '../store/editorStore'
+import { edits } from '../store/edits'
 import { useSavedText } from '../store/useSavedText'
 import { Cues } from './Cues'
 import { ScriptLines } from './ScriptLines'
@@ -17,7 +18,7 @@ function ColorSwatches({ node }: { node: StoryNode }) {
         <button key={c} type="button" aria-label={`Colour ${c}`} aria-pressed={node.color === c}
           className={`h-6 w-6 rounded-base border-2 ${node.color === c ? 'border-text' : 'border-transparent'}`}
           style={{ background: NODE_COLORS[c][theme] }}
-          onClick={() => void editorStore.getState().update('nodes', node.id, { color: c })} />
+          onClick={() => void edits.update('nodes', node.id, { color: c }, 'Recolour node')} />
       ))}
     </div>
   )
@@ -27,7 +28,7 @@ function ColorSwatches({ node }: { node: StoryNode }) {
 export function NodeFields({ node }: { node: StoryNode }) {
   const [title, setTitle, flush] = useSavedText('nodes', node.id, 'title', node.title)
   const isStart = useEditor((s) => s.content.project?.startNodeId === node.id)
-  const makeStart = () => void editorStore.getState().update('projects', node.projectId, { startNodeId: node.id })
+  const makeStart = () => void edits.update('projects', node.projectId, { startNodeId: node.id }, 'Make start node')
   return (
     <div className="flex flex-col gap-3">
       <label className="flex flex-col gap-1">

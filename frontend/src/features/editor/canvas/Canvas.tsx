@@ -1,6 +1,6 @@
 import {
   applyEdgeChanges, applyNodeChanges, Background, BackgroundVariant, Controls, MiniMap, ReactFlow, ReactFlowProvider, useReactFlow,
-  type Connection as FlowConnection, type Edge, type EdgeChange, type NodeChange, type OnBeforeDelete, type OnNodeDrag,
+  type Connection as FlowConnection, type Edge, type EdgeChange, type NodeChange, type OnNodeDrag,
   type OnSelectionChangeFunc,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
@@ -12,8 +12,10 @@ import { newId } from '../model/ids'
 import { effectiveStart, nodeMarkers } from '../model/markers'
 import { liveNodes } from '../model/state'
 import { editorStore, useEditor } from '../store/editorStore'
+import { edits } from '../store/edits'
 import { CanvasToolbar } from './CanvasToolbar'
 import { NodeCard } from './NodeCard'
+import { plural } from './selectionActions'
 import { useSelection } from './useSelection'
 
 // The canvas of one chapter (design 6.1) on React Flow. The store holds the content; React
@@ -76,33 +78,30 @@ function connectionExists(from: string, to: string): boolean {
 // The edits the canvas makes: create, connect, move, trash and remove, and the selection.
 function useCanvasActions(projectId: string, chapterId: string) {
   const { screenToFlowPosition } = useReactFlow()
-  const store = editorStore.getState
   const createAt = useCallback((e: MouseEvent) => {
     if (!(e.target instanceof Element) || !e.target.classList.contains('react-flow__pane')) return
     const { x, y } = screenToFlowPosition({ x: e.clientX, y: e.clientY })
     const id = newId()
-    void store().create('nodes', { id, projectId, chapterId, title: 'New node', color: DEFAULT_NODE_COLOR, x: Math.round(x), y: Math.round(y), deleted: false, version: 0 })
-  }, [screenToFlowPosition, store, projectId, chapterId])
+    void edits.create('nodes', { id, projectId, chapterId, title: 'New node', color: DEFAULT_NODE_COLOR, x: Math.round(x), y: Math.round(y), deleted: false, version: 0 }, 'Add node')
+  }, [screenToFlowPosition, projectId, chapterId])
   const onConnect = useCallback((c: FlowConnection) => {
     if (connectionExists(c.source, c.target)) return
-    void store().create('connections', { id: newId(), projectId, fromNodeId: c.source, toNodeId: c.target, label: '', version: 0 })
-  }, [store, projectId])
+    void edits.create('connections', { id: newId(), projectId, fromNodeId: c.source, toNodeId: c.target, label: '', version: 0 }, 'Connect nodes')
+  }, [projectId])
   const onNodeDragStop: OnNodeDrag<CardNode> = useCallback((_e, _node, moved) => {
-    for (const n of moved) void store().update('nodes', n.id, { x: Math.round(n.position.x), y: Math.round(n.position.y) })
-  }, [store])
+    // A drag of several nodes is one undo step.
+    const label = `Move ${plural(moved.length, 'node')}`
+    void edits.group(label, async () => {
+      await Promise.all(moved.map((n) => edits.update('nodes', n.id, { x: Math.round(n.position.x), y: Math.round(n.position.y) }, label)))
+    })
+  }, [])
   // React Flow would also drop the edges of a deleted node; a trashed node keeps its connections
   // (undo brings it back with them), so the canvas makes its own edits and React Flow removes nothing.
-  const onBeforeDelete: OnBeforeDelete<CardNode> = useCallback(async ({ nodes, edges }) => {
-    for (const n of nodes) void store().update('nodes', n.id, { deleted: true })
-    for (const e of edges) if (e.selected === true) void store().remove('connections', e.id)
-    useSelection.getState().set([], null)
-    return false
-  }, [store])
   const onSelectionChange: OnSelectionChangeFunc = useCallback(({ nodes, edges }) => {
     const connectionId = nodes.length === 0 && edges.length === 1 ? (edges[0]?.id ?? null) : null
     useSelection.getState().set(nodes.map((n) => n.id), connectionId)
   }, [])
-  return { createAt, onConnect, onNodeDragStop, onBeforeDelete, onSelectionChange }
+  return { createAt, onConnect, onNodeDragStop, onSelectionChange }
 }
 
 // The minimap choice of the account (user_preferences.minimap_visible), shown until it loads.
@@ -142,9 +141,9 @@ function CanvasView({ projectId, chapterId }: { projectId: string; chapterId: st
         <ReactFlow<CardNode>
           nodes={flow.nodes} edges={flow.edges} nodeTypes={nodeTypes}
           onNodesChange={flow.onNodesChange} onEdgesChange={flow.onEdgesChange}
-          onConnect={actions.onConnect} onNodeDragStop={actions.onNodeDragStop} onBeforeDelete={actions.onBeforeDelete}
+          onConnect={actions.onConnect} onNodeDragStop={actions.onNodeDragStop}
           onSelectionChange={actions.onSelectionChange} onInit={() => setInited(true)}
-          deleteKeyCode={['Delete', 'Backspace']} zoomOnDoubleClick={false} fitView fitViewOptions={{ maxZoom: 1 }}
+          deleteKeyCode={null} zoomOnDoubleClick={false} fitView fitViewOptions={{ maxZoom: 1 }}
           // PERF: What: draw only the nodes and edges in view. Why: a 500-node chapter would put
           // every card in the DOM. Trade-off: cards appear a frame late while panning fast.
           onlyRenderVisibleElements

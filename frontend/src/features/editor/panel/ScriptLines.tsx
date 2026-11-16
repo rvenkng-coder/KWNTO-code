@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useState } from 'react'
 import type { ScriptLine } from '../../../backend'
 import { linesOf } from '../model/state'
-import { editorStore, useEditor } from '../store/editorStore'
+import { useEditor } from '../store/editorStore'
+import { edits } from '../store/edits'
 import { insertRow, moveRow } from './rowActions'
 import { ScriptLineRow } from './ScriptLineRow'
 
@@ -23,7 +24,7 @@ export function ScriptLines({ projectId, nodeId }: { projectId: string; nodeId: 
     const line = lines[index]
     if (line === undefined) return
     if (focusAbove) setFocusId(lines[index - 1]?.id ?? null)
-    void editorStore.getState().remove('script_lines', line.id)
+    void edits.remove('script_lines', line.id, 'Delete line')
   }
 
   return (

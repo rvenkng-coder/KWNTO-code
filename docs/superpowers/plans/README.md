@@ -9,7 +9,7 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 | 1 | [Foundation and real-time spike](2026-11-11-foundation/README.md) | 1 | none | done |
 | 2 | [Accounts and teams](2026-11-12-accounts-teams/README.md) | 1 | 1 | done |
 | 3 | [Editor core](2026-11-14-editor-core/README.md) | 1 | 2 | in progress |
-| 4 | Offline queue, sync and conflicts | 1 | 3 | outline |
+| 4 | [Offline queue, sync and conflicts](2026-11-16-offline-sync/README.md) | 1 | 3 | planned |
 | 5 | Media upload, quota and strict file checks | 1 | 3 | outline |
 | 6 | Deployment | 1 | 2 (3 to 5 to test on) | outline |
 | 7 | Trash, share links, comments, presence, JSON import and export | 2 | 3, 4 | outline |
@@ -75,7 +75,7 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 **Decide first:** how the guarded write hook is shared between collections; the decimal `sort_order` scheme for lines; undo history depth; `project_settings` (created with each project, rows made by a hook as in Plan 2).
 **Risks:** performance at 500 nodes and 5,000 lines (measured fine on the backend side, not yet on the canvas); the 409 retry path.
 
-### 4. Offline queue, sync and conflicts
+### 4. Offline queue, sync and conflicts (planned; [detailed plan](2026-11-16-offline-sync/README.md))
 **Goal:** edits go to IndexedDB first, sync later; keep-mine/keep-theirs on conflict; an "offline, N changes waiting" indicator.
 **Fixed already:** events missed while disconnected are not replayed, so refetch after every reconnect (finding E); `updated` alone is not a version, use the counter (finding G); queued writes carry the version they were based on. Confirm reconnect behaviour once through Funnel.
 **Decide first:** queue storage layout and replay order; what counts as "same attribute" for the dialog.

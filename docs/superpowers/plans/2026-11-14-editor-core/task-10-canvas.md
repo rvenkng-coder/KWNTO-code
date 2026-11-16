@@ -59,10 +59,10 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 10B: Flow mapping and the canvas
 
-- [ ] **Step 5: Write the failing tests** C5 to C7 in `flow.test.ts`.
-- [ ] **Step 6: Run** them. Expected: FAIL.
-- [ ] **Step 7: Implement `flow.ts`** (edge filter written as `from.chapterId === chapterId && to.chapterId === chapterId`, break B3), `colors.ts`, `useSelection.ts`, `NodeCard`, `CanvasToolbar`, `Canvas`. React Flow: `BackgroundVariant.Dots` on `--canvas-dot`, `MiniMap`, `Controls`, `onlyRenderVisibleElements`, `nodeTypes` defined outside the component. Node positions live in React Flow's local state during a drag and are committed on `onNodeDragStop`. Each optimisation carries a `PERF:` comment (what, why, trade-off).
-- [ ] **Step 8: Run** `npm run test:unit`. Expected: PASS. **Close checkpoint 10B** (commit `feat: canvas with nodes, connections and markers`).
+- [x] **Step 5: Write the failing tests** C5 to C7 in `flow.test.ts`.
+- [x] **Step 6: Run** them. Expected: FAIL.
+- [x] **Step 7: Implement `flow.ts`** (edge filter written as `from.chapterId === chapterId && to.chapterId === chapterId`, break B3), `colors.ts`, `useSelection.ts`, `NodeCard`, `CanvasToolbar`, `Canvas`. React Flow: `BackgroundVariant.Dots` on `--canvas-dot`, `MiniMap`, `Controls`, `onlyRenderVisibleElements`, `nodeTypes` defined outside the component. Node positions live in React Flow's local state during a drag and are committed on `onNodeDragStop`. Each optimisation carries a `PERF:` comment (what, why, trade-off).
+- [x] **Step 8: Run** `npm run test:unit`. Expected: PASS. **Close checkpoint 10B** (commit `feat: canvas with nodes, connections and markers`).
 
 ## Checkpoint 10C: Canvas flows in the browser
 

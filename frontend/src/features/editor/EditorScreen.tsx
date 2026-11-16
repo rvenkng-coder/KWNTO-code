@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import type { Chapter } from '../../backend'
 import { navigate } from '../shell/useRoute'
+import { Canvas } from './canvas/Canvas'
 import { ChapterList } from './chapters/ChapterList'
 import { ChapterTabs } from './chapters/ChapterTabs'
 import { InlineText } from './chapters/InlineText'
@@ -62,7 +63,9 @@ function EditorFrame({ projectId, projectName, chapters, active }: FrameProps) {
         </aside>
         <section data-testid="editor-canvas" className="panel flex flex-col gap-2 p-0">
           <ChapterTabs projectId={projectId} chapters={chapters} activeId={activeId} />
-          <p className="p-3 text-muted">{active === null ? 'Open a chapter from the list.' : `${active.title}: the canvas arrives in Task 10.`}</p>
+          {active === null
+            ? <p className="p-3 text-muted">Open a chapter from the list.</p>
+            : <Canvas projectId={projectId} chapterId={active.id} />}
         </section>
         <aside data-testid="editor-panel" className="panel">
           <p className="text-muted">Properties arrive in Task 11.</p>

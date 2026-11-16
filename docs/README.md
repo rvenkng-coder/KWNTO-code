@@ -27,6 +27,7 @@
 | **Developer** | [local-model-notes.md](developer/local-model-notes.md) | Notes for local model usage |
 | **Decisions** | [0001-toolchain.md](decisions/0001-toolchain.md) | Toolchain decisions |
 | **Decisions** | [0002-realtime-spike.md](decisions/0002-realtime-spike.md) | Real-time spike results |
+| **Decisions** | [0003-canvas-performance.md](decisions/0003-canvas-performance.md) | Canvas performance at 500 nodes |
 | **Plans** | [Roadmap](superpowers/plans/README.md) | Status of every plan and an outline of each later one |
 | **Plans** | [Foundation plan](superpowers/plans/2026-11-11-foundation/README.md) | Foundation and real-time spike |
 | **Plans** | [Accounts and teams plan](superpowers/plans/2026-11-12-accounts-teams/README.md) | Sign-up, sign-in protection, teams, invites |

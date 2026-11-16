@@ -24,8 +24,8 @@ async function cardInView(page: Page): Promise<Box> {
 }
 
 // Protects: plan Global Constraints (canvas budget) and engineering 9 (positions saved on drag end only).
-test('a 500-node chapter opens within budget', async ({ page }) => {
-  test.setTimeout(180_000)
+test('a 500-node chapter opens within budget', async ({ page }, testInfo) => {
+  testInfo.setTimeout(180_000)
   await page.goto('/')
   await signUpVerifyAndSignIn(page, uniqueEmail(), 'Owner')
   await createTeam(page, 'Crew')
@@ -43,8 +43,8 @@ test('a 500-node chapter opens within budget', async ({ page }) => {
   await expect(canvas).toHaveAttribute('data-ready', 'true', { timeout: 30_000 })
   await expect(cards(page).first()).toBeVisible()
   const loadMs = Date.now() - started
-  test.info().annotations.push({ type: 'load-ms', description: String(loadMs) })
-  console.log(`[perf] ${test.info().project.name}: ready in ${loadMs} ms`)
+  testInfo.annotations.push({ type: 'load-ms', description: String(loadMs) })
+  console.log(`[perf] ${testInfo.project.name}: ready in ${loadMs} ms`)
 
   const patches: string[] = []
   page.on('request', (r) => {

@@ -43,19 +43,40 @@ function applyChange(store: StoreApi<EditorStore>, c: Change): Promise<boolean> 
 }
 
 type Recorder = Pick<Edits, 'group' | 'undo' | 'redo' | 'reset'> & {
-  /** The group open right now; an edit captures it before its write. */
+  /** The group open right now. An edit captures it before its write, so an edit that finishes
+   * while some later group is open is not counted into that group. */
   openGroup(): Change[] | null
   record(group: Change[] | null, label: string, change: Change): void
+  /** Keeps a write in the in-flight set until it settles, so undo can wait for it. */
+  track(write: Promise<boolean>): Promise<boolean>
+}
+
+// Writes still on their way. `settle` sends waiting text, then resolves once no write is left
+// (also those started meanwhile), so Ctrl+Z pressed while a save finishes undoes that save,
+// not the step before it.
+function createInFlight(flush: () => void) {
+  const writes = new Set<Promise<boolean>>()
+  return {
+    track(write: Promise<boolean>): Promise<boolean> {
+      writes.add(write)
+      void write.finally(() => writes.delete(write))
+      return write
+    },
+    async settle(): Promise<void> {
+      flush()
+      while (writes.size > 0) await Promise.allSettled([...writes])
+    },
+  }
 }
 
 // The history: recording, groups, undo and redo.
 function createRecorder(store: StoreApi<EditorStore>, flush: () => void): Recorder {
   let history: History = EMPTY_HISTORY
   let collecting: Change[] | null = null
+  const inFlight = createInFlight(flush)
 
   // Applies a step if every change still fits the state; otherwise skips it with `blocked`.
   async function play(taken: { history: History; step: Step } | null, blocked: string, skipped: History | null): Promise<void> {
-    flush()
     if (taken === null) return
     const content = store.getState().content
     if (!taken.step.changes.every((c) => canApply(c, content))) {
@@ -69,8 +90,7 @@ function createRecorder(store: StoreApi<EditorStore>, flush: () => void): Record
 
   return {
     openGroup: () => collecting,
-    // `group` is the group open when the edit started, so an edit that finishes while some
-    // later group is open is not counted into that group.
+    track: inFlight.track,
     record(group, label, change) {
       if (group !== null) group.push(change)
       else history = recordStep(history, { label, changes: [change] })
@@ -86,11 +106,13 @@ function createRecorder(store: StoreApi<EditorStore>, flush: () => void): Record
         history = recordStep(history, { label, changes })
       }
     },
-    undo() {
+    async undo() {
+      await inFlight.settle()
       const taken = takeUndo(history)
       return play(taken, UNDO_BLOCKED, taken === null ? null : { past: taken.history.past, future: history.future })
     },
-    redo() {
+    async redo() {
+      await inFlight.settle()
       const taken = takeRedo(history)
       return play(taken, REDO_BLOCKED, taken === null ? null : { past: history.past, future: taken.history.future })
     },
@@ -155,7 +177,12 @@ function createClipboard(store: StoreApi<EditorStore>, writes: Pick<Edits, 'crea
 
 export function createEdits(store: StoreApi<EditorStore>, flush: () => void): Edits {
   const rec = createRecorder(store, flush)
-  const writes = createWrites(store, rec)
+  const raw = createWrites(store, rec)
+  const writes: typeof raw = {
+    create: (kind, record, label) => rec.track(raw.create(kind, record, label)),
+    update: (kind, id, changes, label) => rec.track(raw.update(kind, id, changes, label)),
+    remove: (kind, id, label) => rec.track(raw.remove(kind, id, label)),
+  }
   const { group, undo, redo, reset } = rec
   return { ...writes, group, undo, redo, reset, ...createClipboard(store, writes, group) }
 }

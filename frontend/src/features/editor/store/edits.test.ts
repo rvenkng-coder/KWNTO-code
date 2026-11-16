@@ -128,3 +128,13 @@ test('an edit that started before a group is not part of it', async () => {
   await edits.undo()
   expect(store.getState().content.nodes.a?.title).toBe('a')
 })
+
+// Protects: Ctrl+Z pressed while a save is still finishing undoes that save, not the step before it.
+test('undo waits for an edit still on its way', async () => {
+  const { store, edits } = await setup()
+  await edits.update('nodes', 'n1', { color: 'red' }, 'Recolour node')
+  void edits.update('nodes', 'n1', { title: 'Mine' }, 'Rename node')
+  await edits.undo()
+  expect(store.getState().content.nodes.n1?.title).toBe('A')
+  expect(store.getState().content.nodes.n1?.color).toBe('red')
+})

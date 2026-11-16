@@ -13,10 +13,10 @@ function autoDoor(start: ProjectContent) {
   for (const r of [...start.chapters, ...start.nodes, ...start.lines]) records.set(r.id, { ...r })
   const calls: string[] = []
   let emit: (e: RemoteEvent) => void = () => undefined
-  const fail = { next: false }
+  const refuse = { next: false }
   const check = () => {
-    if (!fail.next) return
-    fail.next = false
+    if (!refuse.next) return
+    refuse.next = false
     throw new BackendError('forbidden', 403, {}, 'no')
   }
   const door: EditorDoor = {
@@ -41,7 +41,7 @@ function autoDoor(start: ProjectContent) {
       records.delete(id)
     },
   }
-  return { door, calls, fail, emit: (e: RemoteEvent) => emit(e) }
+  return { door, calls, refuse, emit: (e: RemoteEvent) => emit(e) }
 }
 
 async function setup(start: ProjectContent = content({ nodes: [node('n1', { title: 'A' })] })) {
@@ -71,7 +71,7 @@ test("undo never overwrites a teammate's later change", async () => {
 // Protects: a refused write is not recorded, so undo does not try to undo something that never happened.
 test('a step is recorded only after its writes succeed', async () => {
   const { fake, edits } = await setup()
-  fake.fail.next = true
+  fake.refuse.next = true
   expect(await edits.update('nodes', 'n1', { title: 'B' }, 'Rename node')).toBe(false)
   fake.calls.length = 0
   await edits.undo()

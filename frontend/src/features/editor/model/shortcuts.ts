@@ -9,13 +9,18 @@ export interface KeyInput {
 }
 
 export function shortcutFor(e: KeyInput, inTextField: boolean): ShortcutAction | null {
-  if (inTextField) return e.key.toLowerCase() === 'k' && hasModifier(e) ? 'search' : null
   if (e.altKey) return null
 
   const k = e.key.toLowerCase()
   const action = lookup(k, e.shiftKey, hasModifier(e))
-  if (action) return action
-  if (!hasModifier(e) && !e.shiftKey && isDeleteKey(k)) return 'delete'
+  if (action) {
+    if (inTextField) return action === 'search' ? action : null
+    return action
+  }
+  if (!hasModifier(e) && !e.shiftKey && isDeleteKey(k)) {
+    if (inTextField) return null
+    return 'delete'
+  }
   return null
 }
 

@@ -48,3 +48,10 @@ test('other keys are not shortcuts', () => {
   expect(shortcutFor({ ...no, key: 'Delete', ctrlKey: true, shiftKey: true }, false)).toBeNull()
   expect(shortcutFor({ ...no, key: 'q', ctrlKey: true }, false)).toBeNull()
 })
+
+// Protects: Alt held inside a text field still returns null (Alt wins everywhere).
+test('Alt inside a text field returns null', () => {
+  const no = { key: 'x', ctrlKey: false, metaKey: false, shiftKey: false, altKey: false }
+  expect(shortcutFor({ ...no, key: 'k', ctrlKey: true, altKey: true }, true)).toBeNull()
+  expect(shortcutFor({ ...no, key: 'k', metaKey: true, altKey: true }, true)).toBeNull()
+})

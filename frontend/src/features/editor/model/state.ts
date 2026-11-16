@@ -64,6 +64,12 @@ export function cuesOf(s: ContentState, nodeId: string): Cue[] {
 // The collections that hold many records of one kind (the project and its settings are single).
 const TABLE = { chapters: 'chapters', nodes: 'nodes', script_lines: 'lines', cues: 'cues', connections: 'connections' } as const
 
+export function getRecord<K extends ContentKind>(s: ContentState, kind: K, id: string): ContentRecords[K] | undefined {
+  if (kind === 'projects') return (s.project?.id === id ? s.project : undefined) as ContentRecords[K] | undefined
+  if (kind === 'project_settings') return (s.settings?.id === id ? s.settings : undefined) as ContentRecords[K] | undefined
+  return s[TABLE[kind as keyof typeof TABLE]][id] as ContentRecords[K] | undefined
+}
+
 export function putRecord<K extends ContentKind>(s: ContentState, kind: K, record: ContentRecords[K]): ContentState {
   if (kind === 'projects') return { ...s, project: record as Project }
   if (kind === 'project_settings') return { ...s, settings: record as ProjectSettings }

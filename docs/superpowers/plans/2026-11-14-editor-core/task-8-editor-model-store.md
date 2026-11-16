@@ -90,24 +90,24 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 8A: Ids and sort order (local)
 
-- [ ] **Step 1: Write the failing tests** C1 to C5 and C14 to C15.
-- [ ] **Step 2: Run** `npx vitest run --project unit frontend/src/features/editor/model`. Expected: FAIL.
-- [ ] **Step 3: Implement `ids.ts` and `sortOrder.ts`.** Write the midpoint check as `if (!(mid > before && mid < after)) return null` (break B1).
-- [ ] **Step 4: Run** the same command. Expected: PASS. **Close checkpoint 8A** (commit `feat: client ids and decimal sort order`).
+- [x] **Step 1: Write the failing tests** C1 to C5 and C14 to C15.
+- [x] **Step 2: Run** `npx vitest run --project unit frontend/src/features/editor/model`. Expected: FAIL.
+- [x] **Step 3: Implement `ids.ts` and `sortOrder.ts`.** Write the midpoint check as `if (!(mid > before && mid < after)) return null` (break B1).
+- [x] **Step 4: Run** the same command. Expected: PASS. **Close checkpoint 8A** (commit `feat: client ids and decimal sort order`).
 
 ## Checkpoint 8B: State and remote events
 
-- [ ] **Step 5: Write the failing tests** C6 to C9 in `state.test.ts` and `remote.test.ts`.
-- [ ] **Step 6: Run** them. Expected: FAIL.
-- [ ] **Step 7: Implement `state.ts` and `remote.ts`.** In `isLiveNode` write the chapter check as `chapter !== undefined && !chapter.deleted`; in `applyRemote` the version check as `existing.version >= event.record.version` (breaks B2, B3).
-- [ ] **Step 8: Run** them. Expected: PASS. **Close checkpoint 8B** (commit `feat: editor state and remote events`).
+- [x] **Step 5: Write the failing tests** C6 to C9 in `state.test.ts` and `remote.test.ts`.
+- [x] **Step 6: Run** them. Expected: FAIL.
+- [x] **Step 7: Implement `state.ts` and `remote.ts`.** In `isLiveNode` write the chapter check as `chapter !== undefined && !chapter.deleted`; in `applyRemote` the version check as `existing.version >= event.record.version` (breaks B2, B3).
+- [x] **Step 8: Run** them. Expected: PASS. **Close checkpoint 8B** (commit `feat: editor state and remote events`).
 
 ## Checkpoint 8C: The store
 
-- [ ] **Step 9: Write the failing tests** C10 to C13 in `editorStore.test.ts`, with a fake `EditorDoor` whose calls the test resolves by hand (deferred promises), so "before the answer" can be asserted.
-- [ ] **Step 10: Run** them. Expected: FAIL.
-- [ ] **Step 11: Implement `editorStore.ts`.** `open` keeps a counter `openToken`; a load or subscribe that finishes after a newer `open` or a `close` is dropped with `if (token !== openToken) return` (break B4) and its subscription closed.
-- [ ] **Step 12: Run** `npm run test:unit`. Expected: PASS. Write `docs/developer/editor.md` (state shape, what "live" means, how an edit travels: store, door, guard, event echo). **Close checkpoint 8C** (commit `feat: editor store`).
+- [x] **Step 9: Write the failing tests** C10 to C13 in `editorStore.test.ts`, with a fake `EditorDoor` whose calls the test resolves by hand (deferred promises), so "before the answer" can be asserted.
+- [x] **Step 10: Run** them. Expected: FAIL.
+- [x] **Step 11: Implement `editorStore.ts`.** `open` keeps a counter `openToken`; a load or subscribe that finishes after a newer `open` or a `close` is dropped with `if (token !== openToken) return` (break B4) and its subscription closed.
+- [x] **Step 12: Run** `npm run test:unit`. Expected: PASS. Write `docs/developer/editor.md` (state shape, what "live" means, how an edit travels: store, door, guard, event echo). **Close checkpoint 8C** (commit `feat: editor store`).
 
 ## Test plan
 ### Cases

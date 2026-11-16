@@ -15,6 +15,7 @@
 | **Developer** | [testing.md](developer/testing.md) | Test layers and commands |
 | **Developer** | [backend.md](developer/backend.md) | Backend development notes |
 | **Developer** | [styling.md](developer/styling.md) | Theme tokens, shared classes, the no-hex rule |
+| **Developer** | [editor.md](developer/editor.md) | Editor model and store, how an edit travels |
 | **Developer** | [test-plan-format.md](developer/test-plan-format.md) | The per-task Test plan block and `check:plan` |
 | **Developer** | [quality-limits.md](developer/quality-limits.md) | Function length, complexity and other limits on changed files, `check:quality` |
 | **Developer** | [check-task.md](developer/check-task.md) | `check:task`, the self-check every task ends with, and how to read its report |

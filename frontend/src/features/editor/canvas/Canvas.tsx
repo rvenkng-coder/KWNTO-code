@@ -6,12 +6,12 @@ import '@xyflow/react/dist/style.css'
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { backend } from '../../../backend'
 import { toFlowEdges, toFlowNodes, type CardNode } from '../model/flow'
-import { hasChoiceTo, newChoice } from '../model/choices'
 import { effectiveStart, nodeMarkers } from '../model/markers'
 import { liveNodes } from '../model/state'
 import { editorStore, useEditor } from '../store/editorStore'
 import { edits } from '../store/edits'
 import { CanvasToolbar } from './CanvasToolbar'
+import { connectChoice } from './connectChoice'
 import { newNodeRecord } from './newNode'
 import { NodeCard } from './NodeCard'
 import { fromSelectChanges } from './selectionChanges'
@@ -47,7 +47,7 @@ function mergeNodes(prev: CardNode[], next: CardNode[], selected: Set<string>): 
 
 function mergeEdges(prev: Edge[], next: Edge[], selectedId: string | null): Edge[] {
   return next.map((e) => ({ ...e, selected: e.id === selectedId }))
-    .map((e) => prev.find((p) => p.id === e.id && p.selected === e.selected && p.label === e.label) ?? e)
+    .map((e) => prev.find((p) => p.id === e.id && p.selected === e.selected && p.label === e.label && p.target === e.target && p.source === e.source && p.sourceHandle === e.sourceHandle) ?? e)
 }
 
 // The person changed the selection on the canvas (see selectionChanges.ts for why only these changes count).
@@ -90,8 +90,7 @@ function useCanvasActions(projectId: string, chapterId: string) {
     void edits.create('nodes', newNodeRecord(projectId, chapterId, screenToFlowPosition({ x: e.clientX, y: e.clientY })), 'Add node')
   }, [screenToFlowPosition, projectId, chapterId])
   const onConnect = useCallback((c: FlowConnection) => {
-    if (hasChoiceTo(editorStore.getState().content, c.source, c.target)) return
-    void edits.create('connections', newChoice(projectId, c.source, c.target, new Date().toISOString()), 'Connect nodes')
+    connectChoice(projectId, c.source, c.sourceHandle, c.target)
   }, [projectId])
   const onNodeDragStop: OnNodeDrag<CardNode> = useCallback((_e, _node, moved) => {
     // A drag of several nodes is one undo step.

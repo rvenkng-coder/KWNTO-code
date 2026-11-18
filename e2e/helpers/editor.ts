@@ -58,10 +58,10 @@ export async function addNodeAt(page: Page, x: number, y: number): Promise<strin
   return ((await response.json()) as { id: string }).id
 }
 
-/** Drags from one node's outgoing handle to another node's incoming handle, waits for the save and returns the connection id. */
+/** Drags from one node's "+" (new choice) handle to another node's incoming handle, waits for the save and returns the new choice's connection id. */
 export async function connectNodes(page: Page, fromId: string, toId: string): Promise<string> {
   const saved = waitForSave(page, 'connections', 'POST')
-  await page.locator(`[data-node-id="${fromId}"] .react-flow__handle.source`)
+  await page.locator(`[data-node-id="${fromId}"] [data-testid="new-choice-handle"]`)
     .dragTo(page.locator(`[data-node-id="${toId}"] .react-flow__handle.target`))
   return ((await (await saved).json()) as { id: string }).id
 }

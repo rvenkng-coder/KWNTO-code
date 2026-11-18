@@ -136,7 +136,8 @@ test('cues and connection labels are saved', async ({ page }) => {
   await typed
   await typeAndSave(page, panel(page).getByTestId('cue-row').first().getByLabel('Cue text'), 'Lights dim', 'cues')
   const b = await addNodeAt(page, 320, 60)
-  const c = await addNodeAt(page, 320, 300)
+  // Lower than before: the card now has a row for its choices, so it is taller.
+  const c = await addNodeAt(page, 320, 400)
   const toB = await connectNodes(page, a, b)
   const toC = await connectNodes(page, a, c)
   await page.getByTestId(`rf__edge-${toB}`).click()

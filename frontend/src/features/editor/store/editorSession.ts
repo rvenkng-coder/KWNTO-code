@@ -1,8 +1,8 @@
 import type { ProjectContent, RemoteEvent } from '../../../backend'
 import { errorMessage } from '../../errorMessage'
 import { applyRemote } from '../model/remote'
-import { EMPTY_STATE, fromContent, type ContentState } from '../model/state'
-import { overlay } from '../sync/outbox'
+import { EMPTY_STATE, fromContent, mergeNewer, type ContentState } from '../model/state'
+import { overlay, type OutboxEntry } from '../sync/outbox'
 import type { EditorSyncPort } from './editorSync'
 import type { EditorDoor, EditorStore } from './editorStore'
 
@@ -36,22 +36,25 @@ export function createSession(door: EditorDoor, set: Set, sync: EditorSyncPort):
     discard(close)
   }
 
-  // Loads the project, and subscribes when asked; events that arrive before the load is applied wait in a buffer.
+  // Live events that arrive while a load is under way wait here, and are applied on top of it (the version check drops stale ones).
+  let buffered: RemoteEvent[] | null = null
+  const onEventOf = (token: number) => (event: RemoteEvent) => {
+    if (token !== openToken) return
+    if (buffered !== null) buffered.push(event)
+    else set((st) => ({ content: overlay(applyRemote(st.content, event), waitingEntries()) }))
+  }
+
+  // Loads the project, and subscribes when asked.
   async function fetchProject(projectId: string, token: number, subscribe: boolean): Promise<Fetched> {
-    let buffer: RemoteEvent[] | null = []
-    const onEvent = (event: RemoteEvent) => {
-      if (token !== openToken) return
-      if (buffer !== null) buffer.push(event)
-      else set((st) => ({ content: overlay(applyRemote(st.content, event), waitingEntries()) }))
-    }
-    const subscribed = subscribe ? door.subscribe(projectId, onEvent, () => void reload(token)) : Promise.resolve(null)
+    buffered ??= []
+    const subscribed = subscribe ? door.subscribe(projectId, onEventOf(token), () => void reload(token)) : Promise.resolve(null)
     const [loaded, sub] = await Promise.allSettled([door.load(projectId), subscribed])
+    const events = buffered ?? []
+    buffered = null
     const close: Closer = sub.status === 'fulfilled' ? sub.value : null
     if (loaded.status === 'rejected') return { ok: false, reason: loaded.reason, close }
     if (sub.status === 'rejected') return { ok: false, reason: sub.reason, close }
-    const state = finish(loaded.value, buffer)
-    buffer = null
-    return { ok: true, state, close }
+    return { ok: true, state: finish(loaded.value, events), close }
   }
 
   const finish = (loaded: ProjectContent, buffered: RemoteEvent[]): ContentState =>
@@ -62,7 +65,7 @@ export function createSession(door: EditorDoor, set: Set, sync: EditorSyncPort):
     const projectId = openProject
     if (projectId === null || token !== openToken) return
     const result = await fetchProject(projectId, token, false)
-    if (token === openToken && result.ok) set({ content: result.state })
+    if (token === openToken && result.ok) set((st) => ({ content: mergeNewer(st.content, result.state) }))
   }
 
   // The connection is back after the live subscriptions were closed: subscribe again and load again.
@@ -73,7 +76,15 @@ export function createSession(door: EditorDoor, set: Set, sync: EditorSyncPort):
     if (token !== openToken || !result.ok) return discard(result.close)
     stopSubscription()
     closeSubscription = result.close
-    set({ content: result.state })
+    set((st) => ({ content: mergeNewer(st.content, result.state) }))
+  }
+
+  // Waiting edits that were not known when the project loaded (the outbox was still being read) are laid over it now.
+  let laidOver: OutboxEntry[] = []
+  function layOver(entries: OutboxEntry[]): void {
+    if (entries === laidOver) return
+    laidOver = entries
+    if (entries.length > 0) set((st) => (st.status === 'ready' ? { content: overlay(st.content, entries) } : {}))
   }
 
   // D6: offline closes the live subscriptions; coming back opens them again and reloads.
@@ -86,7 +97,8 @@ export function createSession(door: EditorDoor, set: Set, sync: EditorSyncPort):
       const online = snapshot?.online ?? true
       const changed = online !== wasOnline
       wasOnline = online
-      if (!changed || openProject === null) return
+      if (openProject === null) return
+      if (!changed) return layOver(snapshot?.entries ?? [])
       if (online) void reopen(openToken)
       else stopSubscription()
     })

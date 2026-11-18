@@ -243,3 +243,13 @@ test('keep mine without a copy to restore moves the entry to the failed list', a
   expect(t.engine.snapshot().conflict).toBeNull()
   expect(t.log.refused).toHaveLength(1)
 })
+
+// Protects: D11 and the sign-out question: an edit still being stored already counts as waiting, so undo cannot slip in before it.
+test('an edit that is still being stored already counts as waiting', async () => {
+  const t = await started()
+  t.engine.setOnline(false)
+  const stored = t.engine.add(upd('n1', { title: 'B' }, { title: 'A' }))
+  expect(t.engine.snapshot().waiting).toBe(1)
+  await stored
+  expect(t.engine.snapshot().waiting).toBe(1)
+})

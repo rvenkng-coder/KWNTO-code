@@ -53,6 +53,7 @@ class Engine implements SyncEngine {
   private stopped = false
   private started = false
   private sendingSeq: number | null = null
+  private adding = 0
   private conflict: PendingConflict | null = null
   private attempt = 0
   private timer: unknown = null
@@ -85,7 +86,7 @@ class Engine implements SyncEngine {
 
   private build(): SyncSnapshot {
     return {
-      online: this.netOnline && !this.serverDown, owner: this.owner, waiting: this.queue.length, sendingSeq: this.sendingSeq,
+      online: this.netOnline && !this.serverDown, owner: this.owner, waiting: this.queue.length + this.adding, sendingSeq: this.sendingSeq,
       failed: this.failed, conflict: this.conflict, entries: this.queue,
     }
   }
@@ -156,13 +157,19 @@ class Engine implements SyncEngine {
   }
 
   add(partial: EngineEntry): Promise<number> {
+    // Counted as waiting from this moment, so undo and the sign-out question see an edit that is still being stored.
+    this.adding++
+    this.publish()
     return this.exclusive(async () => {
-      const entry = { ...partial, userId: this.deps.userId, offline: !this.current.online, made: this.deps.clock.now() } as NewEntry
-      const seq = await this.store(entry)
-      await this.refresh()
-      this.deps.channel.post()
-      this.wake()
-      return seq
+      try {
+        const entry = { ...partial, userId: this.deps.userId, offline: !this.current.online, made: this.deps.clock.now() } as NewEntry
+        return await this.store(entry)
+      } finally {
+        this.adding--
+        await this.refresh()
+        this.deps.channel.post()
+        this.wake()
+      }
     })
   }
 

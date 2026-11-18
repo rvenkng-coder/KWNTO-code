@@ -2,7 +2,32 @@
 // finding E): the outbox keeps entries across a reload, edits made offline wait and are saved
 // when the connection returns, a teammate's changes show after a reconnect, a refused change is
 // shown and not lost, signing out and undo say what is waiting.
-import { expect, test } from '@playwright/test'
+import { expect, test, type Browser, type Page } from '@playwright/test'
+import { adminRecord, uniqueEmail } from './helpers/admin'
+import { addNodeAt, card, createProject, openProject, ownerWithProject, readyCanvas, waitForSave } from './helpers/editor'
+import { goOffline, goOnline, syncStatus } from './helpers/offline'
+import { createTeam, enableJoinCode, joinWithCode, openTeam, signUpVerifyAndSignIn } from './helpers/ui'
+
+const mod = process.platform === 'darwin' ? 'Meta' : 'Control'
+const panel = (page: Page) => page.getByTestId('editor-panel')
+const titleField = (page: Page) => panel(page).getByLabel('Title', { exact: true })
+const colourButton = (page: Page, colour: string) => panel(page).getByRole('button', { name: `Colour ${colour}` })
+
+// Selects a node and types a new title, leaving the field so the edit is made.
+async function rename(page: Page, id: string, title: string): Promise<void> {
+  await card(page, id).click()
+  await titleField(page).fill(title)
+  await titleField(page).blur()
+}
+
+/** A project with `count` nodes in a row, as its owner. */
+async function projectWithNodes(page: Page, count: number): Promise<string[]> {
+  await ownerWithProject(page, 'Story')
+  await readyCanvas(page, 0)
+  const ids: string[] = []
+  for (let i = 0; i < count; i++) ids.push(await addNodeAt(page, 40 + i * 260, 60))
+  return ids
+}
 
 const OUTBOX = '/src/features/editor/sync/indexedDbOutbox.ts'
 
@@ -43,4 +68,156 @@ test('the browser outbox keeps entries across a reload', async ({ page }) => {
   expect(after.failed).toEqual([[2, 'nope']])
   expect(after.other).toEqual([4])
   expect(after.again).toBe(5)
+})
+
+// Protects: design 6.7: edits made offline wait in the outbox (counted in the status), nothing reaches the server, and all of them are saved when the connection returns.
+test('edits made offline are saved when the connection returns', async ({ page, context }) => {
+  const [a, b, c] = await projectWithNodes(page, 3) as [string, string, string]
+  await goOffline(context, page)
+  await rename(page, a, 'First')
+  await card(page, b).click()
+  await colourButton(page, 'red').click()
+  await card(page, c).click()
+  await panel(page).getByRole('button', { name: 'Add line' }).click()
+  await expect(syncStatus(page)).toHaveText('Offline, 3 changes waiting')
+  expect((await adminRecord('nodes', a)).title).toBe('New node')
+  expect((await adminRecord('nodes', b)).color).toBe('blue')
+
+  await goOnline(context, page)
+  await expect(syncStatus(page)).toHaveCount(0)
+  expect((await adminRecord('nodes', a)).title).toBe('First')
+  expect((await adminRecord('nodes', b)).color).toBe('red')
+  await page.reload()
+  await readyCanvas(page, 3)
+  await expect(card(page, a)).toContainText('First')
+  await card(page, b).click()
+  await expect(colourButton(page, 'red')).toHaveAttribute('aria-pressed', 'true')
+  await card(page, c).click()
+  await expect(panel(page).getByTestId('line-row')).toHaveCount(1)
+})
+
+// Protects: review focus 1: text typed just before closing an offline tab reaches IndexedDB and is sent from the next page.
+test('text typed just before closing an offline tab is not lost', async ({ page, context }) => {
+  const [id] = await projectWithNodes(page, 1) as [string]
+  await card(page, id).click()
+  await goOffline(context, page)
+  await titleField(page).fill('Typed in a hurry')
+  await page.close({ runBeforeUnload: true })
+  expect((await adminRecord('nodes', id)).title).toBe('New node')
+
+  await context.setOffline(false)
+  const next = await context.newPage()
+  await next.goto('/')
+  await openTeam(next, 'Crew')
+  await openProject(next, 'Story')
+  await expect(card(next, id)).toContainText('Typed in a hurry')
+  await expect.poll(async () => (await adminRecord('nodes', id)).title).toBe('Typed in a hurry')
+})
+
+/** The owner (page `a`, own context) and a member (page `b`) with the project `Story` open and `count` nodes made by the owner. */
+async function ownerAndMember(browser: Browser, count: number) {
+  const ctxA = await browser.newContext()
+  const a = await ctxA.newPage()
+  await a.goto('/')
+  await signUpVerifyAndSignIn(a, uniqueEmail(), 'Owner')
+  await createTeam(a, 'Crew')
+  await openTeam(a, 'Crew')
+  const code = await enableJoinCode(a)
+  await createProject(a, 'Story')
+  const ctxB = await browser.newContext()
+  const b = await ctxB.newPage()
+  await b.goto('/')
+  await signUpVerifyAndSignIn(b, uniqueEmail(), 'Member')
+  await joinWithCode(b, code, 'Crew')
+  await openTeam(b, 'Crew')
+  await openProject(b, 'Story')
+  await openProject(a, 'Story')
+  await readyCanvas(a, 0)
+  const ids: string[] = []
+  for (let i = 0; i < count; i++) ids.push(await addNodeAt(a, 40 + i * 260, 60))
+  await readyCanvas(b, count)
+  return { a, b, ctxA, ids }
+}
+
+// Protects: review focus 3: after reconnecting, a teammate's changes made meanwhile appear and my waiting edits still show on top.
+test('after reconnecting a teammate\'s changes show and mine are kept', async ({ browser }) => {
+  const { a, b, ctxA, ids } = await ownerAndMember(browser, 2)
+  const [n1, n2] = ids as [string, string]
+  await goOffline(ctxA, a)
+  await rename(b, n1, 'Their title')
+  await card(b, n2).click()
+  await panel(b).getByRole('button', { name: 'Add line' }).click()
+  await expect(panel(b).getByTestId('line-row')).toHaveCount(1)
+  await card(a, n1).click()
+  await colourButton(a, 'red').click()
+  await expect(syncStatus(a)).toHaveText('Offline, 1 change waiting')
+
+  await goOnline(ctxA, a)
+  await expect(card(a, n1)).toContainText('Their title')
+  await card(a, n1).click()
+  await expect(colourButton(a, 'red')).toHaveAttribute('aria-pressed', 'true')
+  await card(a, n2).click()
+  await expect(panel(a).getByTestId('line-row')).toHaveCount(1)
+  await card(b, n1).click()
+  await expect(colourButton(b, 'red')).toHaveAttribute('aria-pressed', 'true')
+  await expect(syncStatus(a)).toHaveCount(0)
+})
+
+// Protects: review focus 5: a refused change is shown with the server's message and rolled back, the next change still saves, and Dismiss clears the list.
+test('a refused change goes to the failed list and later changes still save', async ({ page }) => {
+  const [a, b] = await projectWithNodes(page, 2) as [string, string]
+  let refused = false
+  await page.route('**/api/collections/nodes/records/*', async (route) => {
+    if (!refused && route.request().method() === 'PATCH') {
+      refused = true
+      await route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ message: 'Not allowed.' }) })
+    } else {
+      await route.continue()
+    }
+  })
+  await rename(page, a, 'Refused')
+  await expect(syncStatus(page)).toContainText('1 change could not be saved')
+  await expect(card(page, a)).toContainText('New node')
+  const saved = waitForSave(page, 'nodes', 'PATCH')
+  await rename(page, b, 'Accepted')
+  await saved
+  await syncStatus(page).getByRole('button', { name: 'Show' }).click()
+  await expect(syncStatus(page)).toContainText('Not allowed.')
+  await syncStatus(page).getByRole('button', { name: 'Dismiss' }).click()
+  await expect(syncStatus(page)).toHaveCount(0)
+  expect((await adminRecord('nodes', b)).title).toBe('Accepted')
+  expect((await adminRecord('nodes', a)).title).toBe('New node')
+})
+
+// Protects: D13: signing out with waiting changes asks in the page (no browser pop-up), and Stay signed in keeps the session.
+test('signing out with waiting changes asks first', async ({ page, context }) => {
+  const [id] = await projectWithNodes(page, 1) as [string]
+  page.on('dialog', () => { throw new Error('a browser dialog opened') })
+  await goOffline(context, page)
+  await rename(page, id, 'Waiting')
+  await expect(syncStatus(page)).toHaveText('Offline, 1 change waiting')
+  await page.getByRole('button', { name: 'Sign out' }).click()
+  await expect(page.getByRole('alertdialog')).toContainText(
+    '1 change has not been saved yet. It will be saved the next time you sign in on this browser. Sign out anyway?',
+  )
+  await page.getByRole('button', { name: 'Stay signed in' }).click()
+  await expect(page.getByRole('alertdialog')).toHaveCount(0)
+  await expect(page.getByTestId('session-user')).toBeVisible()
+})
+
+// Protects: D11: undo is paused while offline changes wait, and works once they are saved.
+test('undo works again once offline changes are saved', async ({ page, context }) => {
+  const [id] = await projectWithNodes(page, 1) as [string]
+  await goOffline(context, page)
+  await rename(page, id, 'Changed')
+  await page.keyboard.press(`${mod}+z`)
+  await expect(page.getByRole('alert')).toContainText('Undo waits until you are back online and your changes are saved.')
+  await expect(card(page, id)).toContainText('Changed')
+  await goOnline(context, page)
+  await expect(syncStatus(page)).toHaveCount(0)
+  await page.getByRole('button', { name: 'Dismiss' }).click()
+  const saved = waitForSave(page, 'nodes', 'PATCH')
+  await page.keyboard.press(`${mod}+z`)
+  await saved
+  await expect(card(page, id)).toContainText('New node')
 })

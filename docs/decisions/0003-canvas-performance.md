@@ -38,7 +38,7 @@ Positions live in React Flow's local state while a node is dragged and are writt
 
 ## Not measured
 
-- A production build (`vite build`); the dev server is slower, so these numbers are an upper bound.
+- A production build (`vite build`) at the time of this decision; the dev server is slower, so these numbers are an upper bound. **Since 2026-11-18** the spec runs against a production build (`vite preview`), after the dev server took 3.9 s in Firefox on a GitHub runner (developer decision).
 - A slower machine, and panning smoothness as a number (the Task 10 Flow records how panning felt).
 - The time to open over Tailscale Funnel (decision 0002 measured the data load there: well under budget).
 

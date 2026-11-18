@@ -154,7 +154,7 @@ End-to-end tests verify the full stack: browser → Vite dev server → PocketBa
 - **Base URL:** `http://localhost:5174` (Vite dev server started by Playwright's `webServer`).
 - **WebServer:** Starts `npm run dev -- --port 5174 --strictPort` automatically before tests.
 - **Timeout:** 60 seconds per test.
-- **The performance spec runs alone.** `e2e/editor-performance.spec.ts` (500 nodes within 3 s, [decision 0003](../decisions/0003-canvas-performance.md)) is left out of the `chromium` and `firefox` projects and runs in `perf-chromium`, then `perf-firefox`, after every other test has finished, so no other worker shares the machine with it. Next to three other workers it measured load, not the app (Firefox about 1.2 s alone, up to 3.4 s in the parallel suite). If any other test fails, Playwright skips the two perf projects. To run only the performance spec: `npm run test:e2e -- --project perf-firefox --project perf-chromium --no-deps`.
+- **The performance spec runs alone.** `e2e/editor-performance.spec.ts` (500 nodes within 3 s, [decision 0003](../decisions/0003-canvas-performance.md)) is left out of the `chromium` and `firefox` projects and runs in `perf-chromium`, then `perf-firefox`, after every other test has finished, so no other worker shares the machine with it. It loads a **production build** served by `vite preview` on port 5175 (a second Playwright web server), not the dev server, so it times the app people will use. Next to three other workers it measured load, not the app (Firefox about 1.2 s alone, up to 3.4 s in the parallel suite). If any other test fails, Playwright skips the two perf projects. To run only the performance spec: `npm run test:e2e -- --project perf-firefox --project perf-chromium --no-deps`.
 
 ### Running E2E Tests
 - **Standalone:** `npm run test:e2e` (starts PocketBase via `with-pocketbase.ts`, then Playwright).
@@ -197,7 +197,7 @@ The CI workflow runs on pushes to `main` and on every pull request (so a branch 
 
 | Job | What it runs | Notes |
 |---|---|---|
-| `checks` | `npm run lint`, `npm run typecheck`, `npm run test:unit`, `npm audit --audit-level=high` | Runs on every run |
+| `checks` | `npm run lint`, `npm run typecheck`, `npm run test:unit`, `npm audit --omit=dev --audit-level=high` (shipped dependencies only; build and test tools are not audited in CI, developer decision 2026-11-18) | Runs on every run |
 | `backend` | `npm run test:container`, `npm run test:rules` | Uses the runner's Docker; `with-pocketbase.ts` starts and stops PocketBase itself |
 | `e2e` | Playwright install (firefox + chromium), `npm run test:e2e` | Uses the runner's Docker via `with-pocketbase.ts`; uploads `playwright-report/` on failure |
 | `secrets` | gitleaks over full history (`fetch-depth: 0`) | Runs on every run |

@@ -89,7 +89,7 @@ function clamp(value: number, max: number): number {
 
 ## Checkpoint 1B: The tab bar
 
-- [ ] **Step 1B.1: Write the failing e2e tests** in `e2e/editor-tabs.spec.ts`. Give each test a `// Protects:` header. Use `ownerWithProject`, `waitForSave` and `tabTitles` from `e2e/helpers/editor.ts`.
+- [x] **Step 1B.1: Write the failing e2e tests** in `e2e/editor-tabs.spec.ts`. Give each test a `// Protects:` header. Use `ownerWithProject`, `waitForSave` and `tabTitles` from `e2e/helpers/editor.ts`.
   - **`the tab menu shows above the canvas and every item can be clicked`**
     1. Add a chapter with the `Add chapter` button. Wait for the POST.
     2. Click `Menu for Chapter 2`.
@@ -114,8 +114,8 @@ function clamp(value: number, max: number): number {
     1. `getByTestId('chapter-list')` has count 0.
     2. `getByRole('button', { name: 'Add chapter' })` is inside `getByTestId('editor-canvas')`.
     3. `getByRole('button', { name: 'All chapters' })` is visible.
-- [ ] **Step 1B.2: Run** `npm run test:e2e -- e2e/editor-tabs.spec.ts`. Expect a FAIL. Record which tests fail and why. The first must fail on the clipped menu, which reproduces the bug.
-- [ ] **Step 1B.3: Implement.**
+- [x] **Step 1B.2: Run** `npm run test:e2e -- e2e/editor-tabs.spec.ts`. Expect a FAIL. Record which tests fail and why. The first must fail on the clipped menu, which reproduces the bug.
+- [x] **Step 1B.3: Implement.**
   - **`Popover`:**
     - Renders with `createPortal(…, document.body)` at `position: fixed`.
     - Measures itself after the first render (`useLayoutEffect`) and places itself with `menuPosition(anchor.getBoundingClientRect(), own size, { width: innerWidth, height: innerHeight })`.
@@ -131,7 +131,7 @@ function clamp(value: number, max: number): number {
     - "≡", then the tabs, then a "+" button named `Add chapter` that calls `addChapter`, opens the new tab and navigates to it.
     - The tab title is an `InlineText` with `role="tab"`, `selected`, the label `Chapter title`, and an `onClick` that navigates. Editing is controlled by the tab so that `Rename` can start it.
   - **`EditorScreen`:** remove `ChapterList` and its import, then delete `ChapterList.tsx`.
-- [ ] **Step 1B.4: Move the two old chapter tests to the tab bar.** The left list no longer exists. Change only how each step is reached; every assertion stays the same.
+- [x] **Step 1B.4: Move the two old chapter tests to the tab bar.** The left list no longer exists. Change only how each step is reached; every assertion stays the same.
   - **`chapter names and order survive a reload`:** rename by double-clicking the `Chapter 2` tab title instead of the list row.
   - **`closing a tab hides it and trashing removes the chapter`:**
     - "is in the list" becomes "is an item of `All chapters`".
@@ -139,7 +139,7 @@ function clamp(value: number, max: number): number {
     - Trashing uses `Menu for Chapter 2` → `Move to trash`.
     - The last check is that `All chapters` has no `Chapter 2` item.
   - **The `chapterRow` helper** is deleted. Update the header comment to say "the All chapters list reopens it".
-- [ ] **Step 1B.5: Run** `npm run test:e2e -- e2e/editor-tabs.spec.ts e2e/editor-chapters.spec.ts e2e/editor-panel.spec.ts e2e/editor-search-links.spec.ts e2e/editor-undo-paste.spec.ts`, plus `npm run lint` and `npm run typecheck`. Expect a PASS in both browsers. Close the checkpoint with one commit: `feat: draw.io-style chapter tab bar`.
+- [x] **Step 1B.5: Run** `npm run test:e2e -- e2e/editor-tabs.spec.ts e2e/editor-chapters.spec.ts e2e/editor-panel.spec.ts e2e/editor-search-links.spec.ts e2e/editor-undo-paste.spec.ts`, plus `npm run lint` and `npm run typecheck`. Expect a PASS in both browsers. Close the checkpoint with one commit: `feat: draw.io-style chapter tab bar`.
 
 ## Test plan
 ### Cases
@@ -157,6 +157,8 @@ function clamp(value: number, max: number): number {
 | C10 | left list gone | e2e | open a project | no `chapter-list`; `Add chapter` in the centre region; `All chapters` visible | e2e/editor-tabs.spec.ts :: chapter actions live in the tab bar, not the left panel |
 | C11 | chapters persist (moved test) | e2e | add, rename by tab double-click, move left, reload | `The Door`, `Chapter 1` | e2e/editor-chapters.spec.ts :: chapter names and order survive a reload |
 | C12 | close versus trash (moved test) | e2e | close, reopen from All chapters, trash from tab menu, reload | tab back; then gone from tabs and All chapters | e2e/editor-chapters.spec.ts :: closing a tab hides it and trashing removes the chapter |
+| C13 | a scrolled-off tab's menu stays open (found in the Flow) | e2e | 5 chapters in a 1000 px window, strip at the start, `Menu for Chapter 5` → `Move left` | the menu stays open; order 1, 2, 3, 5, 4 | e2e/editor-tabs.spec.ts :: the menu of a scrolled-off tab stays open and works |
+| C14 | scrolling the strip closes a menu (E1) | e2e | open `Menu for Chapter 1`, scroll the strip to the end | no menu | e2e/editor-tabs.spec.ts :: scrolling the tab strip closes an open menu |
 ### Probes
 **Probe folder:** none
 ### Breaks

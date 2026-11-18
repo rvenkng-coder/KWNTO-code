@@ -3,7 +3,6 @@ import type { Chapter } from '../../backend'
 import { navigate } from '../shell/useRoute'
 import { Canvas } from './canvas/Canvas'
 import { useSelection } from './canvas/useSelection'
-import { ChapterList } from './chapters/ChapterList'
 import { ChapterTabs } from './chapters/ChapterTabs'
 import { InlineText } from './chapters/InlineText'
 import { visibleTabs } from './chapters/tabsView'
@@ -91,12 +90,11 @@ function EditorFrame({ projectId, projectName, chapters, active }: FrameProps) {
             className="text-left text-lg font-semibold"
             onCommit={(name) => void edits.update('projects', projectId, { name }, 'Rename project')}
           />
-          <ChapterList projectId={projectId} chapters={chapters} activeId={activeId} />
         </aside>
         <section data-testid="editor-canvas" className="panel flex min-w-0 flex-col gap-2 p-0">
           <ChapterTabs projectId={projectId} chapters={chapters} activeId={activeId} />
           {active === null
-            ? <p className="p-3 text-muted">Open a chapter from the list.</p>
+            ? <p className="p-3 text-muted">Open a chapter from ≡ All chapters.</p>
             : <Canvas projectId={projectId} chapterId={active.id} />}
         </section>
         <aside data-testid="editor-panel" className="panel min-w-0">

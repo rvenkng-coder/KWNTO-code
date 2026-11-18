@@ -6,8 +6,7 @@ import { uniqueEmail } from './helpers/admin'
 import { createProject, ownerWithProject, tabTitles, waitForSave } from './helpers/editor'
 import { enableJoinCode, joinWithCode, openTeam, signUpVerifyAndSignIn } from './helpers/ui'
 
-const chapterRow = (page: import('@playwright/test').Page, title: string) =>
-  page.getByTestId('chapter-list').getByRole('listitem').filter({ hasText: title })
+const allChapters = (page: import('@playwright/test').Page) => page.getByRole('menu', { name: 'All chapters' })
 
 // Protects: a new project opens in the editor with its first chapter and the three regions.
 test('a new project opens with Chapter 1', async ({ page }) => {
@@ -25,7 +24,7 @@ test('chapter names and order survive a reload', async ({ page }) => {
   await page.getByRole('button', { name: 'Add chapter' }).click()
   await created
   await expect(page.getByRole('tab', { name: 'Chapter 2' })).toBeVisible()
-  await chapterRow(page, 'Chapter 2').getByText('Chapter 2').dblclick()
+  await page.getByRole('tab', { name: 'Chapter 2' }).dblclick()
   const renamed = waitForSave(page, 'chapters', 'PATCH')
   await page.getByRole('textbox', { name: 'Chapter title' }).fill('The Door')
   await page.getByRole('textbox', { name: 'Chapter title' }).press('Enter')
@@ -41,7 +40,7 @@ test('chapter names and order survive a reload', async ({ page }) => {
   expect(await tabTitles(page)).toEqual(['The Door', 'Chapter 1'])
 })
 
-// Protects: closing a tab only hides it here (the list reopens it); trashing removes the chapter for good.
+// Protects: closing a tab only hides it here (the All chapters list reopens it); trashing removes the chapter for good.
 test('closing a tab hides it and trashing removes the chapter', async ({ page }) => {
   await ownerWithProject(page, 'Story')
   const created = waitForSave(page, 'chapters', 'POST')
@@ -49,17 +48,21 @@ test('closing a tab hides it and trashing removes the chapter', async ({ page })
   await created
   await page.getByRole('button', { name: 'Close Chapter 2' }).click()
   await expect(page.getByRole('tab', { name: 'Chapter 2' })).toHaveCount(0)
-  await expect(chapterRow(page, 'Chapter 2')).toHaveCount(1)
-  await chapterRow(page, 'Chapter 2').getByRole('button', { name: 'Chapter 2' }).click()
+  await page.getByRole('button', { name: 'All chapters' }).click()
+  await expect(allChapters(page).getByRole('menuitem', { name: 'Chapter 2' })).toHaveCount(1)
+  await allChapters(page).getByRole('menuitem', { name: 'Chapter 2' }).click()
   await expect(page.getByRole('tab', { name: 'Chapter 2' })).toBeVisible()
   page.once('dialog', (d) => d.accept())
   const trashed = waitForSave(page, 'chapters', 'PATCH')
-  await chapterRow(page, 'Chapter 2').getByRole('button', { name: 'Move to trash' }).click()
+  await page.getByRole('button', { name: 'Menu for Chapter 2' }).click()
+  await page.getByRole('menuitem', { name: 'Move to trash' }).click()
   await trashed
   await page.reload()
   await expect(page.getByRole('tab', { name: 'Chapter 1' })).toBeVisible()
   await expect(page.getByRole('tab', { name: 'Chapter 2' })).toHaveCount(0)
-  await expect(chapterRow(page, 'Chapter 2')).toHaveCount(0)
+  await page.getByRole('button', { name: 'All chapters' }).click()
+  await expect(allChapters(page).getByRole('menuitem', { name: 'Chapter 1' })).toBeVisible()
+  await expect(allChapters(page).getByRole('menuitem', { name: 'Chapter 2' })).toHaveCount(0)
 })
 
 // Protects: only the team owner moves a project to the trash (design 5).

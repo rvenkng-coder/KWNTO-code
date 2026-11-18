@@ -15,7 +15,7 @@ This task brings the docs in line with the new editor, records the later work, a
     - why a menu inside a scrolling strip must not be absolutely positioned
     - `canvasCommands` and `useAddNode`
   - `docs/superpowers/plans/README.md` (the roadmap):
-    - Add a line under the plan table: "**Editor polish plan:** [Editor tabs and Add node](2026-11-18-editor-tabs/README.md), status `done`".
+    - Add a line under the plan table: "**Editor polish plan:** Editor tabs and Add node, status `done`", where the name links to `2026-11-18-editor-tabs/README.md`.
     - Remove the "Canvas width" row from "Carried over from Plan 3".
     - Add a "Later (developer decision, 2026-11-18)" table with two rows:
       - **Custom node colours (hex or RGB):** change `nodes.color` from an 8-value select to a validated hex text field, and pick black or white header text by contrast.

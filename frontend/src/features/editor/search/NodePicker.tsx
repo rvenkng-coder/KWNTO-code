@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { StoryNode } from '../../../backend'
-import { newId } from '../model/ids'
+import { hasChoiceTo, newChoice } from '../model/choices'
 import type { SearchHit } from '../model/search'
 import { editorStore } from '../store/editorStore'
 import { edits } from '../store/edits'
@@ -8,10 +8,8 @@ import { SearchResults } from './SearchResults'
 import { useSearch } from './useSearch'
 
 function linkTo(node: StoryNode, hit: SearchHit): void {
-  const exists = Object.values(editorStore.getState().content.connections)
-    .some((c) => c.fromNodeId === node.id && c.toNodeId === hit.nodeId)
-  if (exists) return
-  const connection = { id: newId(), projectId: node.projectId, fromNodeId: node.id, toNodeId: hit.nodeId, label: '', version: 0 }
+  if (hasChoiceTo(editorStore.getState().content, node.id, hit.nodeId)) return
+  const connection = newChoice(node.projectId, node.id, hit.nodeId, new Date().toISOString())
   void edits.create('connections', connection, 'Link to another chapter')
 }
 

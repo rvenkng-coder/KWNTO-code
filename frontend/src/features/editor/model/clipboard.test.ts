@@ -39,3 +39,16 @@ test('paste makes new records in the target chapter', () => {
   expect(pasted.connections[0]).toMatchObject({ fromNodeId: byOld.get('a')?.id, toNodeId: byOld.get('b')?.id, projectId: 'p2', version: 0 })
   expect(pasted.lines.find((l) => l.nodeId === byOld.get('b')?.id)?.text).toBe('lb')
 })
+
+// Protects: editor cards design (copy and paste keep empty choices): a choice with no target travels with its node and stays empty.
+test('copy keeps a node\'s empty choices and paste keeps them empty', () => {
+  const s = fromContent(content({
+    nodes: [node('a'), node('c')],
+    connections: [connection('empty', 'a', null, { label: 'Wait' }), connection('out', 'a', 'c')],
+  }))
+  const clip = copySelection(s, ['a'])
+  if (clip === null) throw new Error('nothing copied')
+  expect(clip.connections.map((c) => c.id)).toEqual(['empty'])
+  const pasted = buildPaste(clip, { projectId: 'p1', chapterId: 'c1' }, 1, () => 'new')
+  expect(pasted.connections[0]).toMatchObject({ id: 'new', toNodeId: null, label: 'Wait' })
+})

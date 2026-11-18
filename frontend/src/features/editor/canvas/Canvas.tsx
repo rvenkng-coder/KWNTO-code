@@ -6,7 +6,7 @@ import '@xyflow/react/dist/style.css'
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { backend } from '../../../backend'
 import { toFlowEdges, toFlowNodes, type CardNode } from '../model/flow'
-import { newId } from '../model/ids'
+import { hasChoiceTo, newChoice } from '../model/choices'
 import { effectiveStart, nodeMarkers } from '../model/markers'
 import { liveNodes } from '../model/state'
 import { editorStore, useEditor } from '../store/editorStore'
@@ -82,10 +82,6 @@ function useFlowState(chapterId: string) {
   return { nodes: flow.nodes, edges: flow.edges, onNodesChange, onEdgesChange, synced, hasStart: effectiveStart(content) !== null }
 }
 
-function connectionExists(from: string, to: string): boolean {
-  return Object.values(editorStore.getState().content.connections).some((c) => c.fromNodeId === from && c.toNodeId === to)
-}
-
 // The edits the canvas makes: create, connect, move, trash and remove, and the selection.
 function useCanvasActions(projectId: string, chapterId: string) {
   const { screenToFlowPosition } = useReactFlow()
@@ -94,8 +90,8 @@ function useCanvasActions(projectId: string, chapterId: string) {
     void edits.create('nodes', newNodeRecord(projectId, chapterId, screenToFlowPosition({ x: e.clientX, y: e.clientY })), 'Add node')
   }, [screenToFlowPosition, projectId, chapterId])
   const onConnect = useCallback((c: FlowConnection) => {
-    if (connectionExists(c.source, c.target)) return
-    void edits.create('connections', { id: newId(), projectId, fromNodeId: c.source, toNodeId: c.target, label: '', version: 0 }, 'Connect nodes')
+    if (hasChoiceTo(editorStore.getState().content, c.source, c.target)) return
+    void edits.create('connections', newChoice(projectId, c.source, c.target, new Date().toISOString()), 'Connect nodes')
   }, [projectId])
   const onNodeDragStop: OnNodeDrag<CardNode> = useCallback((_e, _node, moved) => {
     // A drag of several nodes is one undo step.

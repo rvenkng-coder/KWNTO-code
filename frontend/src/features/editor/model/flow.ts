@@ -1,8 +1,8 @@
 import type { Edge, Node } from '@xyflow/react'
-import type { Connection, NodeColor, ScriptLine, StoryNode } from '../../../backend'
+import type { NodeColor, ScriptLine, StoryNode } from '../../../backend'
 import type { NodeMarker } from './markers'
 import { byOrder } from './sortOrder'
-import { isLiveNode, liveConnections, liveNodes, type ContentState } from './state'
+import { isLiveNode, liveConnections, liveNodes, type ContentState, type LinkedConnection } from './state'
 
 // What React Flow draws for one chapter (design 6.1, plan decision D9): node cards with a
 // preview of their lines, edges inside the chapter, and tags for links into other chapters.
@@ -39,7 +39,7 @@ function linesByNode(s: ContentState, nodeIds: Set<string>): Map<string, ScriptL
 }
 
 // Both ends of a connection; liveConnections only returns connections whose ends exist.
-function ends(s: ContentState, c: Connection): { from: StoryNode; to: StoryNode } | null {
+function ends(s: ContentState, c: LinkedConnection): { from: StoryNode; to: StoryNode } | null {
   const from = s.nodes[c.fromNodeId]
   const to = s.nodes[c.toNodeId]
   return from === undefined || to === undefined ? null : { from, to }

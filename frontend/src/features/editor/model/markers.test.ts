@@ -49,3 +49,11 @@ test('cross-chapter connections count as links', () => {
   expect(m.get('a')?.isEnd).toBe(false)
   expect(m.get('b')?.isUnreachable).toBe(false)
 })
+
+// Protects: editor cards design 1 (markers): an empty choice is not an outgoing link and makes nothing reachable.
+test('an empty choice is not an outgoing link', () => {
+  const s = fromContent(content({ project: project('a'), nodes: [node('a'), node('b')], connections: [connection('k1', 'a', null)] }))
+  const m = nodeMarkers(s)
+  expect(m.get('a')).toEqual({ isStart: true, isEnd: true, isUnreachable: false })
+  expect(m.get('b')).toEqual({ isStart: false, isEnd: true, isUnreachable: true })
+})

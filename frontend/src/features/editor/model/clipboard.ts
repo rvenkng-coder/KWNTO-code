@@ -17,7 +17,7 @@ export function copySelection(s: ContentState, nodeIds: string[]): Clip | null {
     nodes,
     lines: nodes.flatMap((n) => linesOf(s, n.id)),
     cues: nodes.flatMap((n) => cuesOf(s, n.id)),
-    connections: Object.values(s.connections).filter((c) => ids.has(c.fromNodeId) && ids.has(c.toNodeId)),
+    connections: Object.values(s.connections).filter((c) => ids.has(c.fromNodeId) && (c.toNodeId === null || ids.has(c.toNodeId))),
   }
 }
 
@@ -30,6 +30,6 @@ export function buildPaste(clip: Clip, target: { projectId: string; chapterId: s
     nodes: clip.nodes.map((n) => ({ ...n, id: ref(n.id), projectId, chapterId: target.chapterId, x: n.x + shift, y: n.y + shift, version: 0, deleted: false })),
     lines: clip.lines.map((l) => ({ ...l, id: makeId(), projectId, nodeId: ref(l.nodeId), version: 0 })),
     cues: clip.cues.map((c) => ({ ...c, id: makeId(), projectId, nodeId: ref(c.nodeId), version: 0 })),
-    connections: clip.connections.map((c) => ({ ...c, id: makeId(), projectId, fromNodeId: ref(c.fromNodeId), toNodeId: ref(c.toNodeId), version: 0 })),
+    connections: clip.connections.map((c) => ({ ...c, id: makeId(), projectId, fromNodeId: ref(c.fromNodeId), toNodeId: c.toNodeId === null ? null : ref(c.toNodeId), version: 0 })),
   }
 }

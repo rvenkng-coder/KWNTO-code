@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import type { Chapter } from '../../backend'
 import { navigate } from '../shell/useRoute'
 import { Canvas } from './canvas/Canvas'
+import { useCanvasCommands } from './canvas/canvasCommands'
 import { useSelection } from './canvas/useSelection'
 import { ChapterTabs } from './chapters/ChapterTabs'
 import { InlineText } from './chapters/InlineText'
@@ -78,6 +79,7 @@ interface FrameProps { projectId: string; projectName: string; chapters: Chapter
 
 function EditorFrame({ projectId, projectName, chapters, active }: FrameProps) {
   const activeId = active === null ? null : active.id
+  const addNode = useCanvasCommands((s) => s.addNode)
   return (
     <div className="flex flex-col gap-3">
       <ErrorBanner />
@@ -90,6 +92,8 @@ function EditorFrame({ projectId, projectName, chapters, active }: FrameProps) {
             className="text-left text-lg font-semibold"
             onCommit={(name) => void edits.update('projects', projectId, { name }, 'Rename project')}
           />
+          <button type="button" className="btn-primary" aria-label="Add node" disabled={addNode === null} onClick={() => addNode?.()}>+ Add node</button>
+          <p className="text-muted">or double-click the canvas</p>
         </aside>
         <section data-testid="editor-canvas" className="panel flex min-w-0 flex-col gap-2 p-0">
           <ChapterTabs projectId={projectId} chapters={chapters} activeId={activeId} />

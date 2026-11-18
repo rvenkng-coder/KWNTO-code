@@ -3,7 +3,7 @@ import {
   type Connection as FlowConnection, type Edge, type EdgeChange, type NodeChange, type OnNodeDrag,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { backend } from '../../../backend'
 import { toFlowEdges, toFlowNodes, type CardNode } from '../model/flow'
 import { newId } from '../model/ids'
@@ -15,6 +15,7 @@ import { CanvasToolbar } from './CanvasToolbar'
 import { newNodeRecord } from './newNode'
 import { NodeCard } from './NodeCard'
 import { fromSelectChanges } from './selectionChanges'
+import { useAddNode } from './useAddNode'
 import { useCanvasFocus } from './useCanvasFocus'
 import { plural } from './selectionActions'
 import { useSelection } from './useSelection'
@@ -154,13 +155,15 @@ function CanvasView({ projectId, chapterId }: { projectId: string; chapterId: st
   const actions = useCanvasActions(projectId, chapterId)
   const [minimap, toggleMinimap] = useMinimap()
   useFocusRequest(chapterId)
+  const canvasRef = useRef<HTMLDivElement>(null)
+  useAddNode(projectId, chapterId, canvasRef)
   const [inited, setInited] = useState(false)
   const count = useEditor((s) => liveNodes(s.content, chapterId).length)
   const anyNode = useEditor((s) => liveNodes(s.content).length > 0)
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2">
       <CanvasToolbar showNoStart={anyNode && !flow.hasStart} minimapVisible={minimap} onToggleMinimap={toggleMinimap} />
-      <div data-testid="canvas" data-node-count={count} data-ready={inited && flow.synced ? 'true' : 'false'} className="kwnto-canvas h-[calc(100vh-14rem)] min-h-96" onDoubleClick={actions.createAt}>
+      <div ref={canvasRef} data-testid="canvas" data-node-count={count} data-ready={inited && flow.synced ? 'true' : 'false'} className="kwnto-canvas h-[calc(100vh-14rem)] min-h-96" onDoubleClick={actions.createAt}>
         <ReactFlow<CardNode>
           nodes={flow.nodes} edges={flow.edges} nodeTypes={nodeTypes}
           onNodesChange={flow.onNodesChange} onEdgesChange={flow.onEdgesChange}

@@ -85,7 +85,7 @@ export function freeSpot(at: Point, taken: readonly Point[]): Point {
 
 ## Checkpoint 2B: The button
 
-- [ ] **Step 2B.1: Write the failing e2e tests** in `e2e/editor-add-node.spec.ts`. Give each a `// Protects:` header. Use `ownerWithProject`, `readyCanvas`, `cards`, `nodePosition` and `waitForSave` from `e2e/helpers/editor.ts`. The `Title` field is `getByTestId('editor-panel').getByLabel('Title', { exact: true })`.
+- [x] **Step 2B.1: Write the failing e2e tests** in `e2e/editor-add-node.spec.ts`. Give each a `// Protects:` header. Use `ownerWithProject`, `readyCanvas`, `cards`, `nodePosition` and `waitForSave` from `e2e/helpers/editor.ts`. The `Title` field is `getByTestId('editor-panel').getByLabel('Title', { exact: true })`.
   - **`the Add node button puts a selected node in the middle of the canvas`**
     1. The text `or double-click the canvas` is visible in `editor-left`.
     2. Click `Add node`. Wait for the nodes POST. `cards` has count 1.
@@ -98,8 +98,8 @@ export function freeSpot(at: Point, taken: readonly Point[]): Point {
   - **`Add node is disabled when no chapter is open`**
     1. Click `Close Chapter 1`.
     2. `Add node` is disabled, and the hint is still visible.
-- [ ] **Step 2B.2: Run** `npm run test:e2e -- e2e/editor-add-node.spec.ts`. Expect a FAIL, because there is no button yet.
-- [ ] **Step 2B.3: Implement.**
+- [x] **Step 2B.2: Run** `npm run test:e2e -- e2e/editor-add-node.spec.ts`. Expect a FAIL, because there is no button yet.
+- [x] **Step 2B.3: Implement.**
   - Add `canvasCommands.ts` and `useAddNode.ts` as in Interfaces, and call `useAddNode(projectId, chapterId, ref)` in `CanvasView`.
   - **In `EditorFrame`'s left panel**, under the project name:
 
@@ -110,7 +110,7 @@ export function freeSpot(at: Point, taken: readonly Point[]): Point {
 
     Here `addNode` is `useCanvasCommands((s) => s.addNode)`.
   - **Accessible name:** set `aria-label="Add node"` so the "+" is not read out.
-- [ ] **Step 2B.4: Run** the new spec, `npm run test:e2e -- e2e/editor-canvas.spec.ts e2e/editor-tabs.spec.ts`, `npm run lint` and `npm run typecheck`. Expect a PASS in both browsers. Close the checkpoint with one commit: `feat: an Add node button in the left panel`.
+- [x] **Step 2B.4: Run** the new spec, `npm run test:e2e -- e2e/editor-canvas.spec.ts e2e/editor-tabs.spec.ts`, `npm run lint` and `npm run typecheck`. Expect a PASS in both browsers. Close the checkpoint with one commit: `feat: an Add node button in the left panel`.
 
 ## Test plan
 ### Cases

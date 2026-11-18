@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'vitest'
-import { BackendError } from '../../../backend/errors'
+import { BackendError, EditConflict } from '../../../backend/errors'
+import { TOO_BUSY } from '../../../backend/guarded'
 import { line, node } from '../model/fixtures'
-import { settle, tab } from './fakes'
+import { settle, sharedParts, tab } from './fakes'
 import type { SyncEngine } from './syncEngine'
 
 type Add = Parameters<SyncEngine['add']>[0]
@@ -119,4 +120,126 @@ describe('order, success, offline, lost answers', () => {
     expect(retry).toBe(true)
     expect(t.door.calls.some((c) => c.method === 'remove')).toBe(false)
   })
+})
+
+describe('refusals, conflicts, two tabs', () => {
+  // Protects: review focus 5: one refused entry does not block the queue and is not dropped: it waits in the failed list until dismissed.
+  test('a refused entry goes to the failed list and the queue goes on', async () => {
+    const t = await started()
+    t.door.gate(true)
+    await t.engine.add(upd('n1', { title: 'B' }, { title: 'A' }))
+    await t.engine.add(upd('n2', { title: 'B' }, { title: 'A' }))
+    await t.engine.add(upd('n3', { title: 'B' }, { title: 'A' }))
+    t.door.on('update', (c) => {
+      if (c.id === 'n2') throw new BackendError('forbidden', 403, {}, 'Not allowed.')
+      return node(c.id, { version: 4 })
+    })
+    for (let i = 0; i < 3; i++) { t.door.releaseNext(); await settle() }
+    expect(t.door.calls.map((c) => c.id)).toEqual(['n1', 'n2', 'n3'])
+    expect(t.log.refused).toHaveLength(1)
+    const failed = t.engine.snapshot().failed
+    expect(failed.map((f) => [f.entry.id, f.message])).toEqual([['n2', 'Not allowed.']])
+    await t.engine.dismiss(failed[0]!.entry.seq)
+    expect(t.engine.snapshot().failed).toEqual([])
+    expect(await t.storage.failed('u1')).toEqual([])
+  })
+
+  const conflictOn = (t: Awaited<ReturnType<typeof started>>, server = node('n1', { title: 'Theirs', version: 9 })) => {
+    let first = true
+    t.door.on('update', (c) => {
+      if (c.id === 'n1' && first) { first = false; throw new EditConflict(server) }
+      return node(c.id, { version: 10 })
+    })
+  }
+  const offlineEdits = async (t: Awaited<ReturnType<typeof started>>) => {
+    t.engine.setOnline(false)
+    await t.engine.add(upd('n1', { title: 'B' }, { title: 'A' }))
+    await t.engine.add(upd('n2', { title: 'B' }, { title: 'A' }))
+    t.engine.setOnline(true)
+    await settle()
+  }
+
+  // Protects: D4, D12: a real conflict stops the queue for the person; each choice is kept, and a deleted record can be re-created.
+  test('a real conflict waits for the person and then keeps their choice', async () => {
+    const mine = await started()
+    conflictOn(mine)
+    await offlineEdits(mine)
+    expect(mine.engine.snapshot().conflict).toMatchObject({ fields: ['title'], deleted: false, server: { title: 'Theirs' } })
+    expect(mine.door.calls.map((c) => c.id)).toEqual(['n1'])
+    await mine.engine.resolve('mine')
+    await settle()
+    expect(mine.door.calls.map((c) => c.id)).toEqual(['n1', 'n1', 'n2'])
+    expect(mine.door.calls[1]!.args[1]).toBe(9)
+    expect(mine.engine.snapshot()).toMatchObject({ conflict: null, waiting: 0 })
+
+    const theirs = await started()
+    conflictOn(theirs)
+    await offlineEdits(theirs)
+    await theirs.engine.resolve('theirs')
+    await settle()
+    expect(theirs.door.calls.map((c) => c.id)).toEqual(['n1', 'n2'])
+    expect(theirs.log.theirs).toHaveLength(1)
+    expect(theirs.log.theirs[0]![1]).toMatchObject({ title: 'Theirs' })
+    expect(theirs.log.saved.map((a) => (a[0] as { id: string }).id)).toEqual(['n2'])
+
+    const gone = await started()
+    gone.door.on('update', () => { throw new BackendError('not-found', 404, {}, 'gone') })
+    gone.engine.setOnline(false)
+    await gone.engine.add({ projectId: 'p1', op: 'update', kind: 'script_lines', id: 'l1', changes: { text: 'B' }, baseVersion: 1, baseValues: { text: 'A' }, snapshot: line('l1', { text: 'B' }) })
+    gone.engine.setOnline(true)
+    await settle()
+    expect(gone.engine.snapshot().conflict).toMatchObject({ deleted: true, server: null })
+    await gone.engine.resolve('mine')
+    await settle()
+    const created = gone.door.calls.find((c) => c.method === 'create')
+    expect(created).toMatchObject({ kind: 'script_lines', id: 'l1' })
+    expect((created!.args[0] as { text: string }).text).toBe('B')
+  })
+
+  // Protects: review focus 4: only the tab holding the lock sends, each entry once, and another tab takes over when the holder stops.
+  test('only the tab holding the lock sends and another takes over', async () => {
+    const shared = sharedParts()
+    const a = tab(shared)
+    const b = tab(shared)
+    a.engine.start()
+    await settle()
+    b.engine.start()
+    await settle()
+    for (const id of ['n1', 'n2', 'n3']) await b.engine.add(upd(id, { title: 'B' }, { title: 'A' }))
+    await settle()
+    expect(shared.door.calls.map((c) => c.id)).toEqual(['n1', 'n2', 'n3'])
+    expect(a.log.saved).toHaveLength(3)
+    expect(b.log.saved).toHaveLength(0)
+    await a.engine.stop()
+    await b.engine.add(upd('n4', { title: 'B' }, { title: 'A' }))
+    await settle()
+    expect(shared.door.calls.map((c) => c.id)).toEqual(['n1', 'n2', 'n3', 'n4'])
+    expect(await shared.storage.list('u1')).toEqual([])
+  })
+
+  // Protects: design 5 "the later write wins": an edit made online is retried silently by the door and never raises the dialog.
+  test('an edit made online is retried silently as before', async () => {
+    const t = await started()
+    t.door.on('update', () => { throw new BackendError('conflict', 409, {}, TOO_BUSY) })
+    await t.engine.add(upd('n1', { title: 'B' }, { title: 'A' }))
+    await settle()
+    expect((t.door.calls[0]!.args[2] as { shouldRetry?: unknown }).shouldRetry).toBeUndefined()
+    expect(t.engine.snapshot().conflict).toBeNull()
+    expect(t.engine.snapshot().failed.map((f) => f.message)).toEqual([TOO_BUSY])
+  })
+})
+
+// Protects: engineering 9 "never discard a queued edit": Keep mine on a deleted record with no copy to re-create goes to the failed list.
+test('keep mine without a copy to restore moves the entry to the failed list', async () => {
+  const t = await started()
+  t.door.on('update', () => { throw new BackendError('not-found', 404, {}, 'gone') })
+  t.engine.setOnline(false)
+  await t.engine.add({ projectId: 'p1', op: 'update', kind: 'cues', id: 'q1', changes: { text: 'B' }, baseVersion: 1, baseValues: { text: 'A' }, snapshot: null })
+  t.engine.setOnline(true)
+  await settle()
+  await t.engine.resolve('mine')
+  await settle()
+  expect(t.engine.snapshot().failed).toHaveLength(1)
+  expect(t.engine.snapshot().conflict).toBeNull()
+  expect(t.log.refused).toHaveLength(1)
 })

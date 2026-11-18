@@ -1,8 +1,9 @@
 import type { Backend, ContentKind, ContentRecords } from '../../../backend'
-import type { BackendError } from '../../../backend/errors'
+import { BackendError } from '../../../backend/errors'
 import { planAdd, type NewEntry, type OutboxEntry } from './outbox'
 import { nextDelay } from './outboxText'
 import type { FailedEntry, OutboxStorage } from './outboxStorage'
+import { mineEntry } from './syncResolve'
 import { createSender, type Outcome } from './syncSend'
 
 // The one loop that sends outbox entries (offline sync plan Task 3, D2, D7 to D9, D12): in seq
@@ -10,6 +11,7 @@ import { createSender, type Outcome } from './syncSend'
 // server cannot be reached. Everything it touches is injected.
 
 export const LOCK_PREFIX = 'kwnto-sync-'
+const NO_COPY = 'The record was deleted and no copy of your change is left to restore it.'
 
 export type SyncDoor = Pick<Backend['content'], 'get' | 'create' | 'update' | 'remove'>
 export interface PendingConflict { entry: OutboxEntry; server: ContentRecords[ContentKind] | null; fields: string[]; deleted: boolean }
@@ -76,7 +78,9 @@ class Engine implements SyncEngine {
 
   subscribe = (listener: (s: SyncSnapshot) => void): (() => void) => {
     this.listeners.add(listener)
-    return () => { this.listeners.delete(listener) }
+    return () => {
+      this.listeners.delete(listener)
+    }
   }
 
   private build(): SyncSnapshot {
@@ -107,7 +111,9 @@ class Engine implements SyncEngine {
   start(): void {
     if (this.started) return
     this.started = true
-    this.unlisten = this.deps.channel.listen(() => { void this.exclusive(() => this.refresh()).then(() => this.wake()) })
+    this.unlisten = this.deps.channel.listen(() => {
+      void this.exclusive(() => this.refresh()).then(() => this.wake())
+    })
     void this.exclusive(() => this.refresh())
     this.lockDone = this.deps.lock(LOCK_PREFIX + this.deps.userId, () => this.holdLock())
   }
@@ -117,7 +123,9 @@ class Engine implements SyncEngine {
     this.owner = true
     this.publish()
     this.wake()
-    return new Promise<void>((resolve) => { this.release = resolve }).then(() => {
+    return new Promise<void>((resolve) => {
+      this.release = resolve
+    }).then(() => {
       this.owner = false
       this.publish()
     })
@@ -181,8 +189,22 @@ class Engine implements SyncEngine {
     this.deps.channel.post()
   }
 
-  resolve(): Promise<void> {
-    return Promise.resolve()
+  async resolve(choice: 'mine' | 'theirs'): Promise<void> {
+    const { conflict } = this
+    if (conflict === null) return
+    await this.exclusive(async () => {
+      const { storage, hooks } = this.deps
+      const mine = choice === 'mine' ? mineEntry(conflict) : null
+      if (mine !== null) await storage.put(mine)
+      else if (choice === 'theirs') await storage.remove([conflict.entry.seq])
+      else await storage.fail(conflict.entry, NO_COPY)
+      this.conflict = null
+      if (choice === 'theirs') hooks.theirs(conflict.entry, conflict.server)
+      else if (mine === null) hooks.refused(conflict.entry, new BackendError('invalid', 0, {}, NO_COPY))
+      await this.refresh()
+    })
+    this.deps.channel.post()
+    this.wake()
   }
 
   private wake(): void {
@@ -217,7 +239,8 @@ class Engine implements SyncEngine {
 
   private async take(): Promise<OutboxEntry | null> {
     await this.refresh()
-    const entry = this.queue[0]
+    // An entry waiting for the person's answer is never the next one to send.
+    const entry = this.queue.find((e) => e.seq !== this.conflict?.entry.seq)
     if (entry === undefined || this.stopped) return null
     this.sendingSeq = entry.seq
     this.publish()
@@ -241,6 +264,9 @@ class Engine implements SyncEngine {
       this.markReachable()
       await storage.remove([entry.seq])
       hooks.saved(entry, outcome.record)
+    } else if (outcome.type === 'conflict') {
+      this.markReachable()
+      this.conflict = { entry, server: outcome.server, fields: outcome.fields, deleted: outcome.deleted }
     } else if (outcome.type === 'refused') {
       this.markReachable()
       await storage.fail(entry, outcome.error.message)

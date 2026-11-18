@@ -46,12 +46,18 @@ export function fakeClock() {
   const timers = new Map<number, { at: number; fn: () => void }>()
   return {
     now: () => t,
-    setTimeout: (fn: () => void, ms: number): unknown => { timers.set(next, { at: t + ms, fn }); return next++ },
+    setTimeout: (fn: () => void, ms: number): unknown => {
+      timers.set(next, { at: t + ms, fn })
+      return next++
+    },
     clearTimeout: (handle: unknown) => { timers.delete(handle as number) },
     advance(ms: number) {
       t += ms
       const due = [...timers].filter(([, v]) => v.at <= t).sort((a, b) => a[1].at - b[1].at)
-      for (const [id, v] of due) { timers.delete(id); v.fn() }
+      for (const [id, v] of due) {
+        timers.delete(id)
+        v.fn()
+      }
     },
     pending: () => timers.size,
   }
@@ -75,7 +81,12 @@ export function fakeBus() {
     members.add(me)
     return {
       post: () => { for (const m of members) if (m !== me) queueMicrotask(m.fn) },
-      listen: (fn) => { me.fn = fn; return () => { me.fn = () => {} } },
+      listen: (fn) => {
+        me.fn = fn
+        return () => {
+          me.fn = () => {}
+        }
+      },
     }
   }
 }
@@ -92,7 +103,9 @@ export function tab(shared: Shared = sharedParts()) {
   const engine: SyncEngine = createSyncEngine({
     userId: 'u1', door: shared.door.door, storage: shared.storage, clock, lock: shared.lock, channel: shared.channel(),
     hooks: {
-      saved: (...a) => { log.saved.push(a) }, refused: (...a) => { log.refused.push(a) }, theirs: (...a) => { log.theirs.push(a) },
+      saved: (...a) => { log.saved.push(a) },
+      refused: (...a) => { log.refused.push(a) },
+      theirs: (...a) => { log.theirs.push(a) },
     },
   })
   return { engine, clock, log, ...shared }

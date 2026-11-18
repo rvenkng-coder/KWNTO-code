@@ -27,8 +27,8 @@ Design 8b asks for "two browsers editing the same node" end-to-end, and decision
 ## Checkpoint 14B: Walk and close-out
 
 - [ ] **Step 5: Walk the Flow** below and record it in `progress.md`.
-- [ ] **Step 6: Update the docs** listed under **Files**: test-plan rows "Canvas and nodes", "Properties panel: script lines, cues, lighting notes", "Chapters" and "Look and feel" to `covered` with the layers that now have tests (M1 and M2 stay `open` until the developer signs them); the 0002 production-check section; the roadmap.
-- [ ] **Step 7: Run** `npm test` and `npm run check:docs`. Expected: PASS. **Close checkpoint 14B** (commit `docs: close the editor core plan`). The whole-branch review follows; it is not part of this task.
+- [x] **Step 6: Update the docs** listed under **Files**: test-plan rows "Canvas and nodes", "Properties panel: script lines, cues, lighting notes", "Chapters" and "Look and feel" to `covered` with the layers that now have tests (M1 and M2 stay `open` until the developer signs them); the 0002 production-check section; the roadmap.
+- [x] **Step 7: Run** `npm test` and `npm run check:docs`. Expected: PASS. **Close checkpoint 14B** (commit `docs: close the editor core plan`). The whole-branch review follows; it is not part of this task.
 
 ## Test plan
 ### Cases

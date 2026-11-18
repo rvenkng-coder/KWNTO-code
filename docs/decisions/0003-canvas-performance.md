@@ -9,7 +9,7 @@ Plan 3 (Global Constraints): a project with **500 nodes in one chapter and 5,000
 
 ## Results
 
-`npm run test:e2e -- e2e/editor-performance.spec.ts --repeat-each=3 --workers=1`. The test seeds 500 nodes on a 25 × 20 grid, 10 lines each and 499 connections (a chain), then measures from `page.goto` (a full page load, after `about:blank`) until the canvas says `data-node-count="500"` and `data-ready="true"` and a card is visible. Then it drags one node and counts `PATCH` requests to `nodes`.
+`npm run test:e2e -- e2e/editor-performance.spec.ts --repeat-each=3 --workers=1` (since Plan 3 Task 14 the spec has its own projects that run after the rest of the suite, one browser at a time; to run it alone now: `npm run test:e2e -- --project perf-chromium --project perf-firefox --no-deps --repeat-each=3`). The test seeds 500 nodes on a 25 × 20 grid, 10 lines each and 499 connections (a chain), then measures from `page.goto` (a full page load, after `about:blank`) until the canvas says `data-node-count="500"` and `data-ready="true"` and a card is visible. Then it drags one node and counts `PATCH` requests to `nodes`.
 
 | Run | Chromium | Firefox |
 |---|---|---|

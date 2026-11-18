@@ -25,14 +25,14 @@ Which test layers must cover each feature, and how far each feature is. The laye
 | Invites (send, accept, decline, no email leak, shared limit) | 5 | unit, rules, e2e | covered | 2 |
 | Security log and its retention | 6.9 | unit, rules | covered | 2 |
 | Per-user and system settings | 7c | unit, rules | covered | 2 |
-| Canvas and nodes (connections, cross-chapter links, start node, end and unreachable markers, undo/redo, copy/paste, multi-select, minimap, search) | 6.1 | unit, rules, e2e | not started | 3 |
-| Properties panel: script lines, cues, lighting notes | 6.2 | unit, rules, e2e | not started | 3 |
+| Canvas and nodes (connections, cross-chapter links, start node, end and unreachable markers, undo/redo, copy/paste, multi-select, minimap, search, two people editing live) | 6.1, 8b | unit, rules, e2e | covered | 3 |
+| Properties panel: script lines, cues, lighting notes | 6.2 | unit, rules, e2e | covered | 3 |
 | Properties panel: media upload, quota, strict file checks | 6.2 | unit, rules, e2e | not started | 5 |
-| Chapters | 6.3 | rules, e2e | not started | 3 |
+| Chapters | 6.3 | unit, rules, e2e | covered | 3 |
 | Player Mode | 6.4 | unit, e2e, manual | not started | 9 |
 | Path analytics (anonymous per-choice counts) | 6.4 | unit, rules, e2e | not started | 10 |
 | Export (PDF, Word, JPG, PNG) | 6.5 | unit, manual | not started | 8 |
-| Look and feel (light and dark, theme toggle, layout) | 6.6 | e2e, manual | not started | 3 |
+| Look and feel (light and dark, theme toggle, layout) | 6.6 | e2e (manual M1 and M2 still open) | covered | 3 |
 | Offline queue, sync and conflicts | 6.7 | unit, rules, e2e | not started | 4 |
 | Trash and recovery (30 days, restore, purge) | 6.8 | unit, rules, e2e | not started | 7 |
 | Share links (view, comment, edit; live, snapshot; revoke) | 5, 6.9 | rules, e2e | not started | 7 |

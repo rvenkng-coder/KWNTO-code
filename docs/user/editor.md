@@ -103,3 +103,13 @@ While you type in a field, only Ctrl+K is the editor's; the other keys work as u
 **Link to a node in another chapter:** select a node and choose **Link to another chapter** in the panel, type part of the target's title and pick it. The link shows on the node as a tag such as `→ Chapter 2: The Door`; click the tag to jump to the target. The panel lists the node's links to other chapters, each with **Remove**. A node whose only way in is such a link is not unreachable.
 
 If the target is moved to the trash, the tag disappears (and the node may become an **End**) until the target comes back, for example with Undo.
+
+## Working together
+
+Everyone in the project's team can open it and write in it at the same time. What a teammate does (a new node, a line, a connection, a move, a rename, a node moved to the trash) shows on your screen as it happens, without a reload.
+
+Two people can edit the same node at once: if you change its title while a teammate drags it, both changes are kept. Only the field each of you changed is saved, and when two saves meet, the later one is sent again on top of the first.
+
+If very many people save the same thing at the same moment and your change still cannot get through after 20 tries, you see `Could not save: too many people are editing this at once. Try again.` Your change is taken back on your screen (nothing half-saved reaches your teammates); make it again.
+
+If the team's owner removes you from the team, the project stays on your screen until you reload or open it again; then you see `This project does not exist or you are not a member of its team.`

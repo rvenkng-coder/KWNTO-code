@@ -154,6 +154,7 @@ End-to-end tests verify the full stack: browser → Vite dev server → PocketBa
 - **Base URL:** `http://localhost:5174` (Vite dev server started by Playwright's `webServer`).
 - **WebServer:** Starts `npm run dev -- --port 5174 --strictPort` automatically before tests.
 - **Timeout:** 60 seconds per test.
+- **The performance spec runs alone.** `e2e/editor-performance.spec.ts` (500 nodes within 3 s, [decision 0003](../decisions/0003-canvas-performance.md)) is left out of the `chromium` and `firefox` projects and runs in `perf-chromium`, then `perf-firefox`, after every other test has finished, so no other worker shares the machine with it. Next to three other workers it measured load, not the app (Firefox about 1.2 s alone, up to 3.4 s in the parallel suite). If any other test fails, Playwright skips the two perf projects. To run only the performance spec: `npm run test:e2e -- --project perf-firefox --project perf-chromium --no-deps`.
 
 ### Running E2E Tests
 - **Standalone:** `npm run test:e2e` (starts PocketBase via `with-pocketbase.ts`, then Playwright).

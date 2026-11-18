@@ -8,7 +8,7 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 |---|---|---|---|---|
 | 1 | [Foundation and real-time spike](2026-11-11-foundation/README.md) | 1 | none | done |
 | 2 | [Accounts and teams](2026-11-12-accounts-teams/README.md) | 1 | 1 | done |
-| 3 | [Editor core](2026-11-14-editor-core/README.md) | 1 | 2 | in progress |
+| 3 | [Editor core](2026-11-14-editor-core/README.md) | 1 | 2 | done |
 | 4 | Offline queue, sync and conflicts | 1 | 3 | outline |
 | 5 | Media upload, quota and strict file checks | 1 | 3 | outline |
 | 6 | Deployment | 1 | 2 (3 to 5 to test on) | outline |
@@ -25,17 +25,6 @@ If time runs out, cut from the bottom (design section 11). Plans 8 to 10 are the
 
 Found by the whole-branch review and the scripted walk of Task 10 (2026-11-13), and left out of Plan 2 on purpose. Each item names the plan whose task list it joins; when that plan is written, these go in as tasks, not as a separate plan. The source is `.planning/2026-11-12-accounts-teams/progress.md`.
 
-**Plan 3 (editor core), first tasks, because every later screen builds on them**
-
-| Item | What and why | Tier |
-|---|---|---|
-| App shell and styling | The app is unstyled HTML today (Tailwind is imported, no class is used). Decide the layout, spacing and theme tokens (light and dark, design 6) once, then restyle the sign-in, sign-up and teams screens with them. Includes phone width: the email field is cut off at 390 px. Needs a decision on how components share styles before any screen is restyled. | strong decides, local builds |
-| Team screen polish | After Delete team the deleted team stays in the owner's list for a moment (delete through `useTeams.remove` so the list updates before leaving the detail screen); the team detail heading says "Team" instead of the team's name, and fetches the team list again for the owner flag (pass the `Team` from the list into `TeamDetail`); "Joined successfully!" stays on screen; the sign-up form stays filled after "Check your email" (show a plain confirmation instead). | local |
-| Resend verification | A signed-in unverified user has no way to ask for another email (`backend.auth.requestVerification` exists, nothing calls it). Add the button to the gate text, and make Join and Accept show the same gate text as Create team instead of the server's wording. | local |
-| Auth store listeners | `backend.auth.onChange` holds one listener (a second silently replaces the first) and does not notice a sign-in in another tab. Make it a set of listeners and update on every store change. Unit tests with a fake `pb`. | local |
-| Keyboard and labels | Plan 2 fixed teams opening from the keyboard and the join and invite labels. Check the rest of the account screens: the "Sign up", "Sign in" and "Forgot password?" links are `<a href="#">` acting as buttons; error text uses `role="alert"` everywhere. | local |
-| e2e flake | `wrong code and regenerate` failed once on Firefox (no error within 5 s) in about 7 full runs. Repeat it under load, find the cause (slow join response? ordering of the regenerate?) and fix the test or the code. Never raise the timeout to hide it. | strong |
-
 **Plan 6 (deployment)**
 
 | Item | What and why |
@@ -44,7 +33,16 @@ Found by the whole-branch review and the scripted walk of Task 10 (2026-11-13), 
 | Real mail | Nobody has tested a real verification or password-reset email. Set up SMTP (Gmail app password), then walk sign-up, verification and reset by hand with an address typed with capitals (a reset typed with capitals once sent no mail). |
 | Unknown-email timing | PocketBase answers an unknown email faster than a known one (it skips the password hash). Accepted while internal; add one line to `docs/security.md` section 3 and re-judge before going public. |
 
-**Before Plan 3 starts (not a plan task):** the local-AI quality tooling (design `docs/superpowers/specs/2026-11-13-local-ai-quality-design.md`, in this branch, merged with it) (test strategy, project test plan, `check:task`), which the developer scheduled for after Plan 2.
+## Carried over from Plan 3
+
+Found while building the editor core (2026-11-14 to 2026-11-16) and left out of it on purpose. The source is `.planning/2026-11-14-editor-core/progress.md`, `findings.md` and the task reports. Each item names the plan whose task list it joins.
+
+| Item | What and why | Plan |
+|---|---|---|
+| Live creates of teams and projects | A create hook that moves the record's own insert into a transaction (`e.app = txApp; e.next()`) makes PocketBase 0.40.6 send no realtime create event (found by Task 14 for nodes, fixed there). `teams.pb.js` and the project create hook in `projects.pb.js` still use it. Nothing subscribes to those creates today; a live team or project list (presence, Plan 7) would miss new ones. Restructure as the `nodes` hook does, with a rule test of the create event. | 7 |
+| Canvas width | `AppShell` caps the page at `max-w-5xl`, so between the two side panels the canvas is about 500 px wide. Usable but cramped; a full-width editor layout is a developer decision. | 4 (it next touches the editor screen) |
+| Watch for a card re-mount loop | Once (Tasks 11 to 13 `npm test`), after switching back to Chapter 1 a node card kept re-mounting for 60 s ("element was detached from the DOM"). Not reproduced in 106 runs. If it shows again, capture a trace before rerunning. | 4 |
+| Hygiene checker false positives | `check:hygiene` reads `test.setTimeout(...)` and `test.info()` as new tests without a header, and `.fail` on any object (`fake.fail.next`) as Vitest's `.fail`. Match only test-defining calls. | tooling (next plan that touches it) |
 
 ## Carried over from the local-AI quality plan
 
@@ -68,14 +66,15 @@ Each outline lists the goal, what must be decided before the detailed plan, and 
 ### 2. Accounts and teams (planned)
 Sign-up with verification and password rules, sign-in protection (lockout, block, lockdown), the security log, incident controls, teams with join code and invites, and the sign-in and team screens. Settings tables for system, user and team scope. [Detailed plan](2026-11-12-accounts-teams/README.md).
 
-### 3. Editor core (in progress; [detailed plan](2026-11-14-editor-core/README.md))
-**Carried in from Plan 2:** the app shell and styling, team screen polish, resend verification, auth store listeners, keyboard and labels, and the e2e flake (see [Carried over from Plan 2](#carried-over-from-plan-2)); do these first.
+### 3. Editor core (done; [detailed plan](2026-11-14-editor-core/README.md))
+**Carried in from Plan 2:** the app shell and styling, team screen polish, resend verification, auth store listeners, keyboard and labels, and the e2e flake; all built as Tasks 1 to 4.
 **Goal:** projects, chapters, canvas, nodes, connections (including cross-chapter links), properties panel (script lines, cues), search, undo/redo, copy/paste, multi-select, minimap, light and dark themes, saving per attribute.
 **Fixed already:** every concurrently edited collection (nodes, script lines, cues, connections, project settings) gets a `version` field and the guarded write from [decision 0002](../../decisions/0002-realtime-spike.md); the client treats HTTP 409 as normal flow (re-read, re-apply own field, retry, bounded). Canvas performance code needs `PERF:` comments. Only `frontend/src/backend/` imports `pocketbase`.
 **Decide first:** how the guarded write hook is shared between collections; the decimal `sort_order` scheme for lines; undo history depth; `project_settings` (created with each project, rows made by a hook as in Plan 2).
 **Risks:** performance at 500 nodes and 5,000 lines (measured fine on the backend side, not yet on the canvas); the 409 retry path.
 
 ### 4. Offline queue, sync and conflicts
+**Carried in from Plan 3:** canvas width and the card re-mount watch (see [Carried over from Plan 3](#carried-over-from-plan-3)).
 **Goal:** edits go to IndexedDB first, sync later; keep-mine/keep-theirs on conflict; an "offline, N changes waiting" indicator.
 **Fixed already:** events missed while disconnected are not replayed, so refetch after every reconnect (finding E); `updated` alone is not a version, use the counter (finding G); queued writes carry the version they were based on. Confirm reconnect behaviour once through Funnel.
 **Decide first:** queue storage layout and replay order; what counts as "same attribute" for the dialog.
@@ -95,6 +94,7 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 **Risks:** Funnel bandwidth for video (fallback: Cloudflare Tunnel).
 
 ### 7. Trash, share links, comments, presence, JSON import and export
+**Carried in from Plan 3:** live creates of teams and projects (see [Carried over from Plan 3](#carried-over-from-plan-3)).
 **Goal:** the second build step in design section 11: trash and restore (30 days, scheduled purge), share links (view, comment, edit; live, snapshot; revocable), comments, presence with heartbeat, project JSON import and export.
 **Fixed already:** "revoke all share links" is an incident control (security.md section 9) added to the Plan 2 runbook when `share_links` exists; view links work without an account and include media; comment and edit links need sign-in and the verified flag; JSON import is untrusted input, validated by schema with size limits (a `zod` dependency needs a decision record first).
 **Decide first:** split into two plans if it is too large (share links and comments, then trash and import/export); how a link token is checked inside access rules.

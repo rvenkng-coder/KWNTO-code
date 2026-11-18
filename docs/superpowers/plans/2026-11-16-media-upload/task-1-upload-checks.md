@@ -33,7 +33,10 @@ function checkUpload(input)
 //        4. size > maxMb[kind] * MIB -> media_too_large
 //        5. usedBytes + size > quotaBytes -> media_over_quota
 // messages: the router's exact copy
-module.exports = { TYPES, MIB, extensionType, quotaFor, formatBytes, detectType, kindOf, checkUpload }
+function usedThrough(rows, id)
+// rows: [{ id, created, size }] of one uploader; sorted by `created`, then `id`; the sum of `size` up to and including `id`
+// (D1's re-check after the insert); an id not in rows -> the sum of all rows
+module.exports = { TYPES, MIB, extensionType, quotaFor, formatBytes, detectType, kindOf, checkUpload, usedThrough }
 ```
 
 **If interrupted:** nothing leaves state outside the working tree.
@@ -54,9 +57,9 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 1B: Bytes and the whole check (mid)
 
-- [ ] **Step 5: Write the failing tests** C1, C2 and C5 to C7.
+- [ ] **Step 5: Write the failing tests** C1, C2 and C5 to C8.
 - [ ] **Step 6: Run** the file. Expected: the new tests FAIL.
-- [ ] **Step 7: Implement** `detectType`, `kindOf`, `checkUpload`. Write these decisions as single lines: the MP3 frame sync `if (head[0] === 0xff && (head[1] & 0xe0) === 0xe0) return "mp3"` (B2); the family test `const sameFamily = detected === claimed || (VIDEO.includes(detected) && VIDEO.includes(claimed))` (B3); the size test `if (input.size > input.maxMb[kind] * MIB)` (B4); the quota test `if (input.usedBytes + input.size > input.quotaBytes)` (B5). The JPEG test must come before the MP3 test, because `FF D8` would otherwise need the frame-sync rule to exclude it (it does: `D8 & E0` is `C0`, but keep the order anyway).
+- [ ] **Step 7: Implement** `detectType`, `kindOf`, `checkUpload`, `usedThrough` (its sort compares `created` first, and on a tie ends with the line `return a.id < b.id ? -1 : 1` (B6)). Write these decisions as single lines: the MP3 frame sync `if (head[0] === 0xff && (head[1] & 0xe0) === 0xe0) return "mp3"` (B2); the family test `const sameFamily = detected === claimed || (VIDEO.includes(detected) && VIDEO.includes(claimed))` (B3); the size test `if (input.size > input.maxMb[kind] * MIB)` (B4); the quota test `if (input.usedBytes + input.size > input.quotaBytes)` (B5). The JPEG test must come before the MP3 test, because `FF D8` would otherwise need the frame-sync rule to exclude it (it does: `D8 & E0` is `C0`, but keep the order anyway).
 - [ ] **Step 8: Run** it. Expected: PASS. **Close checkpoint 1B** (commit `feat: upload type detection and checks`).
 
 ## Test plan
@@ -70,6 +73,7 @@ Stop and report if you need to touch anything else.
 | C5 | renamed files refused | unit | PNG bytes named `song.mp3`; HTML named `photo.jpg`; zeros named `a.wav`; real JPEG named `a.jpg`; MP4 bytes named `clip.mov` | `media_not_real` `This file is not a real MP3 file.`; `… real JPEG file.`; `… real WAV file.`; ok jpeg image; ok mp4 video | tests/hooks/media-check.unit.test.ts :: a file whose bytes do not match its name is refused |
 | C6 | allowed list | unit | `a.gif` (any bytes); `a.png` with `allowedTypes` without png; `clip.mov` with MP4 bytes and `allowedTypes` without mp4 | `media_type_not_allowed` `This file type is not allowed. Allowed: WAV, MP3, MOV, MP4, JPEG, PNG.`; `… Allowed: WAV, MP3, MOV, MP4, JPEG.`; `… Allowed: WAV, MP3, MOV, JPEG, PNG.` | tests/hooks/media-check.unit.test.ts :: only types on the admin's list are allowed |
 | C7 | size and quota limits | unit | video exactly 200 MiB with max 200; one byte more; image 50 MiB + 1 with image max 50 and video max 200; quota 2147483648, used 2040109466 (107374182 bytes free), file 200 MiB; exactly filling the quota | ok; `media_too_large` `This video file is larger than the 200 MB limit.`; `… image file is larger than the 50 MB limit.`; `media_over_quota` `Not enough storage: this file is 200.0 MB and you have 102.4 MB of 2.0 GB left. Nothing was deleted.`; ok | tests/hooks/media-check.unit.test.ts :: size and quota limits refuse with the limit named |
+| C8 | order of parallel uploads | unit | rows `b` (created T, 600), `a` (created T, 600), `c` (created T−1, 100), given in that order; `usedThrough(rows, 'a')`, `(rows, 'b')`, `(rows, 'c')`, `(rows, 'zz')` | 700, 1300, 100, 1300 (a tie is broken by id, so `a` counts before `b` whatever the input order) | tests/hooks/media-check.unit.test.ts :: parallel uploads are counted in one fixed order |
 ### Probes
 **Probe folder:** `tests/probes/2026-11-16-media-upload/task-1/`
 ### Breaks
@@ -80,6 +84,7 @@ Stop and report if you need to touch anything else.
 | B3 | backend/pb_hooks/lib/media-check.js | `const sameFamily = detected === claimed \|\| (VIDEO.includes(detected) && VIDEO.includes(claimed))` | `const sameFamily = detected !== null` | tests/hooks/media-check.unit.test.ts |
 | B4 | backend/pb_hooks/lib/media-check.js | `if (input.size > input.maxMb[kind] * MIB)` | `if (input.size > input.maxMb.video * MIB)` | tests/hooks/media-check.unit.test.ts |
 | B5 | backend/pb_hooks/lib/media-check.js | `if (input.usedBytes + input.size > input.quotaBytes)` | `if (input.usedBytes + input.size >= input.quotaBytes)` | tests/hooks/media-check.unit.test.ts |
+| B6 | backend/pb_hooks/lib/media-check.js | `return a.id < b.id ? -1 : 1` | `return 0` | tests/hooks/media-check.unit.test.ts |
 ### Flow
 none
 ### Evidence

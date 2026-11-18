@@ -122,7 +122,7 @@ These are the failure modes most likely to bite a person. Each is pinned by a te
 
 | # | Task | Tier | Depends on | Checkpoints | Status |
 |---|---|---|---|---|---|
-| 1 | [Empty choices: backend, door and model](task-1-empty-choices.md) | strong | none | 1A 1B | not started |
+| 1 | [Empty choices: backend, door and model](task-1-empty-choices.md) | strong | none | 1A 1B | done |
 | 2 | [Choices and cues on the card](task-2-card-choices.md) | strong | 1 | 2A 2B | not started |
 | 3 | [Choices in the panel and link mode](task-3-panel-choices.md) | mid | 2 | 3A | not started |
 | 4 | [Tool strip, Cut, left panel and scrolling](task-4-tool-strip.md) | mid | 1 | 4A 4B | not started |

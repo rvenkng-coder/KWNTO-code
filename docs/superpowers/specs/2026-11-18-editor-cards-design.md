@@ -1,6 +1,6 @@
 # Editor cards, choices and tools: design
 
-Date: 2026-11-18. Status: draft for the developer's approval. Builds on `feat/editor-tabs` and is built on branch `feat/editor-cards` in `../KWNTO-code-cards`.
+Date: 2026-11-18. Status: approved by the developer. Builds on `feat/editor-tabs` and is built on branch `feat/editor-cards` in `../KWNTO-code-cards`.
 
 ## Intent
 
@@ -78,7 +78,7 @@ Below the list:
 - The state is remembered in this browser (`localStorage`, read and written inside try/catch, with "shown" as the default).
 - The right properties panel is always shown.
 
-**The tool strip.** A narrow vertical strip at the right edge of the canvas, always visible, holds icon buttons in this order:
+**The tool strip.** A narrow vertical strip at the left edge of the canvas, always visible, holds icon buttons in this order (developer decision: tools on the left; the right side is for editing the selected node):
 - **Add node:** the existing command, moved here as a small icon (developer decision). The text button and hint in the left panel go.
 - **Cut:** a new action. It copies the selected nodes and moves them to the trash as one undo step.
 - **Copy**
@@ -198,8 +198,8 @@ The rejected alternatives were:
 - **Choices** may be empty.
 - **One choice per target:** a node never has two choices to the same node.
 - **No cap on choice rows:** every choice gets its own row and dot.
-- **Add node** is an icon in the right tool strip, with a tooltip.
-- **The tools** sit on the right side.
+- **Add node** is an icon in the tool strip, with a tooltip.
+- **The tool strip** sits at the left edge of the canvas; the right panel is for editing the selected node.
 - **The left panel** collapses.
 - **Notes** are dropped from this work.
 

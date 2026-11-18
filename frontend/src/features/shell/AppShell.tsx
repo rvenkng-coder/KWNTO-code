@@ -9,7 +9,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen">
       <TopBar search={projectOpen ? <SearchBox /> : null} />
-      <main className="mx-auto max-w-5xl p-4">{children}</main>
+      <main className={projectOpen ? 'p-3' : 'mx-auto max-w-5xl p-4'}>{children}</main>
     </div>
   )
 }

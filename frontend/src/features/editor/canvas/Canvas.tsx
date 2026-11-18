@@ -162,7 +162,7 @@ function CanvasView({ projectId, chapterId }: { projectId: string; chapterId: st
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2">
       <CanvasToolbar showNoStart={anyNode && !flow.hasStart} minimapVisible={minimap} onToggleMinimap={toggleMinimap} />
-      <div data-testid="canvas" data-node-count={count} data-ready={inited && flow.synced ? 'true' : 'false'} className="kwnto-canvas h-[70vh] min-h-96" onDoubleClick={actions.createAt}>
+      <div data-testid="canvas" data-node-count={count} data-ready={inited && flow.synced ? 'true' : 'false'} className="kwnto-canvas h-[calc(100vh-14rem)] min-h-96" onDoubleClick={actions.createAt}>
         <ReactFlow<CardNode>
           nodes={flow.nodes} edges={flow.edges} nodeTypes={nodeTypes}
           onNodesChange={flow.onNodesChange} onEdgesChange={flow.onEdgesChange}

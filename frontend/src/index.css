@@ -15,6 +15,10 @@
   --color-danger: #b91c1c;
   --radius: 0.5rem;
   --shadow: 0 1px 3px rgb(0 0 0 / 0.12), 0 1px 2px rgb(0 0 0 / 0.08);
+  --radius-lg: 0.875rem;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.06), 0 4px 14px rgb(0 0 0 / 0.1);
+  --color-card: #ffffff;
+  --color-label: #6b7280;
   --canvas-dot: #d1d5db;
   color-scheme: light;
 }
@@ -29,6 +33,10 @@
   --color-accent-text: #0b0d10;
   --color-danger: #f87171;
   --shadow: none;
+  /* The card keeps a soft shadow in dark: it is what lifts it off the canvas. */
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 14px rgb(0 0 0 / 0.35);
+  --color-card: #1d2128;
+  --color-label: #9ca3af;
   --canvas-dot: #2c313a;
   color-scheme: dark;
 }
@@ -42,6 +50,8 @@
   --color-accent: var(--color-accent);
   --color-accent-text: var(--color-accent-text);
   --color-danger: var(--color-danger);
+  --color-card: var(--color-card);
+  --color-label: var(--color-label);
   --radius-base: var(--radius);
 }
 
@@ -87,7 +97,26 @@
   }
   .btn-primary { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-accent-text); }
   .btn-danger { color: var(--color-danger); border-color: var(--color-danger); }
-  .btn:disabled, .btn-primary:disabled, .btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
+  /* A secondary action that stays out of the way: no border, a faint tint on hover. */
+  .btn-quiet {
+    border: none;
+    border-radius: var(--radius);
+    padding: 0.3rem 0.6rem;
+    background: none;
+    color: var(--color-text);
+    cursor: pointer;
+  }
+  .btn-quiet:hover:not(:disabled) { background: color-mix(in srgb, var(--color-text) 8%, transparent); }
+  /* Small uppercase muted heading of a panel section (SCRIPT, CUES, CHOICES). */
+  .section-label {
+    margin-block: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-label);
+  }
+  .btn:disabled, .btn-primary:disabled, .btn-danger:disabled, .btn-quiet:disabled { opacity: 0.5; cursor: not-allowed; }
   .link-button {
     background: none;
     border: none;

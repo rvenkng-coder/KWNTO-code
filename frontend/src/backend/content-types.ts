@@ -10,7 +10,7 @@ export interface Chapter { id: string; projectId: string; title: string; positio
 export interface StoryNode { id: string; projectId: string; chapterId: string; title: string; color: NodeColor; x: number; y: number; deleted: boolean; version: number }
 export interface ScriptLine { id: string; projectId: string; nodeId: string; character: string; text: string; sortOrder: number; version: number }
 export interface Cue { id: string; projectId: string; nodeId: string; type: CueType; text: string; sortOrder: number; version: number }
-export interface Connection { id: string; projectId: string; fromNodeId: string; toNodeId: string; label: string; version: number }
+export interface Connection { id: string; projectId: string; fromNodeId: string; toNodeId: string | null; label: string; created: string; version: number }
 export interface ContentRecords { projects: Project; project_settings: ProjectSettings; chapters: Chapter; nodes: StoryNode; script_lines: ScriptLine; cues: Cue; connections: Connection }
 export type ContentKind = keyof ContentRecords
 export type CreatableKind = 'chapters' | 'nodes' | 'script_lines' | 'cues' | 'connections'
@@ -22,7 +22,7 @@ export interface EditableFields {
   nodes: Pick<StoryNode, 'title' | 'color' | 'x' | 'y' | 'deleted'>
   script_lines: Pick<ScriptLine, 'character' | 'text' | 'sortOrder'>
   cues: Pick<Cue, 'type' | 'text' | 'sortOrder'>
-  connections: Pick<Connection, 'label'>
+  connections: Pick<Connection, 'label' | 'toNodeId'>
 }
 export interface ProjectContent { project: Project; settings: ProjectSettings; chapters: Chapter[]; nodes: StoryNode[]; lines: ScriptLine[]; cues: Cue[]; connections: Connection[] }
 export type RemoteEvent = { [K in ContentKind]: { kind: K; action: 'create' | 'update' | 'delete'; record: ContentRecords[K] } }[ContentKind]

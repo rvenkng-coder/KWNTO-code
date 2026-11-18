@@ -8,7 +8,7 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 |---|---|---|---|---|
 | 1 | [Foundation and real-time spike](2026-11-11-foundation/README.md) | 1 | none | done |
 | 2 | [Accounts and teams](2026-11-12-accounts-teams/README.md) | 1 | 1 | done |
-| 3 | [Editor core](2026-11-14-editor-core/README.md) | 1 | 2 | in progress |
+| 3 | [Editor core](2026-11-14-editor-core/README.md) | 1 | 2 | done |
 | 4 | Offline queue, sync and conflicts | 1 | 3 | outline |
 | 5 | [Media upload, quota and strict file checks](2026-11-16-media-upload/README.md) | 1 | 3 | planned |
 | 6 | Deployment | 1 | 2 (3 to 5 to test on) | outline |
@@ -16,6 +16,10 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 | 8 | Export (PDF, Word, JPG, PNG) | 3 | 3 | outline |
 | 9 | Player Mode | 4 | 3 | outline |
 | 10 | Path analytics | 5 | 9 | outline |
+
+**Editor polish plan:** [Editor tabs and Add node](2026-11-18-editor-tabs/README.md), status `done` (the developer accepted the branch on 2026-11-18).
+
+**Editor cards plan:** [Editor cards, choices and tools](2026-11-18-editor-cards/README.md), status `done` (the developer closed it on 2026-11-18 and recorded the UI problems below for a later plan).
 
 **Tooling plan (not a product plan):** [Local-AI quality tooling](2026-11-13-local-ai-quality/README.md) (test strategy, project test plan, `check:task`), status `done`; built before Plan 3 so Plan 3's tasks can carry the Test plan block.
 
@@ -25,17 +29,6 @@ If time runs out, cut from the bottom (design section 11). Plans 8 to 10 are the
 
 Found by the whole-branch review and the scripted walk of Task 10 (2026-11-13), and left out of Plan 2 on purpose. Each item names the plan whose task list it joins; when that plan is written, these go in as tasks, not as a separate plan. The source is `.planning/2026-11-12-accounts-teams/progress.md`.
 
-**Plan 3 (editor core), first tasks, because every later screen builds on them**
-
-| Item | What and why | Tier |
-|---|---|---|
-| App shell and styling | The app is unstyled HTML today (Tailwind is imported, no class is used). Decide the layout, spacing and theme tokens (light and dark, design 6) once, then restyle the sign-in, sign-up and teams screens with them. Includes phone width: the email field is cut off at 390 px. Needs a decision on how components share styles before any screen is restyled. | strong decides, local builds |
-| Team screen polish | After Delete team the deleted team stays in the owner's list for a moment (delete through `useTeams.remove` so the list updates before leaving the detail screen); the team detail heading says "Team" instead of the team's name, and fetches the team list again for the owner flag (pass the `Team` from the list into `TeamDetail`); "Joined successfully!" stays on screen; the sign-up form stays filled after "Check your email" (show a plain confirmation instead). | local |
-| Resend verification | A signed-in unverified user has no way to ask for another email (`backend.auth.requestVerification` exists, nothing calls it). Add the button to the gate text, and make Join and Accept show the same gate text as Create team instead of the server's wording. | local |
-| Auth store listeners | `backend.auth.onChange` holds one listener (a second silently replaces the first) and does not notice a sign-in in another tab. Make it a set of listeners and update on every store change. Unit tests with a fake `pb`. | local |
-| Keyboard and labels | Plan 2 fixed teams opening from the keyboard and the join and invite labels. Check the rest of the account screens: the "Sign up", "Sign in" and "Forgot password?" links are `<a href="#">` acting as buttons; error text uses `role="alert"` everywhere. | local |
-| e2e flake | `wrong code and regenerate` failed once on Firefox (no error within 5 s) in about 7 full runs. Repeat it under load, find the cause (slow join response? ordering of the regenerate?) and fix the test or the code. Never raise the timeout to hide it. | strong |
-
 **Plan 6 (deployment)**
 
 | Item | What and why |
@@ -44,7 +37,43 @@ Found by the whole-branch review and the scripted walk of Task 10 (2026-11-13), 
 | Real mail | Nobody has tested a real verification or password-reset email. Set up SMTP (Gmail app password), then walk sign-up, verification and reset by hand with an address typed with capitals (a reset typed with capitals once sent no mail). |
 | Unknown-email timing | PocketBase answers an unknown email faster than a known one (it skips the password hash). Accepted while internal; add one line to `docs/security.md` section 3 and re-judge before going public. |
 
-**Before Plan 3 starts (not a plan task):** the local-AI quality tooling (design `docs/superpowers/specs/2026-11-13-local-ai-quality-design.md`, in this branch, merged with it) (test strategy, project test plan, `check:task`), which the developer scheduled for after Plan 2.
+## Carried over from Plan 3
+
+Found while building the editor core (2026-11-14 to 2026-11-16) and left out of it on purpose. The source is `.planning/2026-11-14-editor-core/progress.md`, `findings.md` and the task reports. Each item names the plan whose task list it joins.
+
+| Item | What and why | Plan |
+|---|---|---|
+| Live creates of teams and projects | A create hook that moves the record's own insert into a transaction (`e.app = txApp; e.next()`) makes PocketBase 0.40.6 send no realtime create event (found by Task 14 for nodes, fixed there). `teams.pb.js` and the project create hook in `projects.pb.js` still use it. Nothing subscribes to those creates today; a live team or project list (presence, Plan 7) would miss new ones. Restructure as the `nodes` hook does, with a rule test of the create event. | 7 |
+| Watch for a card re-mount loop | Once (Tasks 11 to 13 `npm test`), after switching back to Chapter 1 a node card kept re-mounting for 60 s ("element was detached from the DOM"). Not reproduced in 106 runs. If it shows again, capture a trace before rerunning. | 4 |
+| Hygiene checker false positives | `check:hygiene` reads `test.setTimeout(...)` and `test.info()` as new tests without a header, and `.fail` on any object (`fake.fail.next`) as Vitest's `.fail`. Match only test-defining calls. | tooling (next plan that touches it) |
+
+## Later (developer decision, 2026-11-18)
+
+Asked for while the editor tabs plan was designed and left out of it on purpose.
+
+| Item | What and why |
+|---|---|
+| Custom node colours (hex or RGB) | Change `nodes.color` from an 8-value select to a validated hex text field, and pick black or white header text by contrast so it stays readable. |
+| Duplicate chapter | Copy nodes, lines, cues and connections, and decide what happens to cross-chapter links. |
+
+## UI problems found after the editor cards plan (developer, 2026-11-18)
+
+The developer used the editor after the cards plan and found it better but not yet right. These go into a UI plan, designed with the developer before it is written (no detailed plan yet). The source is `.planning/2026-11-18-editor-cards/progress.md`.
+
+| Item | What and why |
+|---|---|
+| The editor's left panel is empty | After chapters moved to tabs and Add node to the tool strip, the left panel holds only "Back to teams" and the project name. A whole column is spent on two controls. Decide what it is for, or remove it. |
+| The teams screens feel clunky | The Teams page stacks Create team, the invites inbox, the join-code form and the team list in one column. A team's page stacks Members, Projects and the owner's join code, invite form and Delete team. Projects are plain links, and members read `Name (role)`. |
+| Browser pop-ups | Create team asks for its name with `prompt()`. Moving a project to the trash and deleting a team confirm with `confirm()`. Both look out of place and can't be styled. |
+| "Back to teams" goes too far | From the editor it opens the list of all teams, not the team the project belongs to. |
+| The UI as a whole | The developer wants the whole UI fixed, not one screen. Before designing, ask what they open KWNTO to reach first: the answer decides whether the teams area becomes a home page with projects up front or stays a settings area. |
+| Undo of a deleted choice, after a reload | It comes back in its place, but after a reload it is last, because PocketBase sets `created` itself (pinned by the rules test `a client cannot set the created time of a choice`). **Developer ruling 2026-11-18: fix it in the UI plan** with an explicit order field on choices, so undo keeps the place after a reload. |
+| Editor walk in the second browser | The developer walked the editor (Plan 3 Task 14B) with real writing in one browser on 2026-11-18 and signed off M1 and M2. The same session in the other browser (Firefox or Chromium) is still owed; do it after the UI plan. |
+| The link-mode banner covers a card | `Select a target node` sits at the top centre of the canvas, over whatever card is there (seen over Hall's header in the scripted walk). Move it off the canvas content, for example into the tab bar or a corner. |
+| The error banner pushes the editor down | The duplicate-choice message (F3) is a full-width bar above the editor, so the whole canvas jumps down while it shows. Show it as a toast over the canvas instead. |
+| Space spent on chrome | A `Backend: connected` line sits above the editor, and Undo, Redo and Show minimap are a separate row of large buttons above the canvas. Both take height from the canvas; Undo and Redo could join the tool strip. |
+| Cue rows in the panel are bulky | Each cue has a type box, a text box and large Move up, Move down and Delete cue buttons, so four cues fill the panel. The type box reads `audio`, `lighting`, `other` while the card reads `Audio`, `Light`, `Other`. |
+| Card connectors are small | The choice dots and the "+" connector are 6 px and the "+" row is faint, so they are hard to find and grab. A linked choice with no text reads `Untitled` on the card and its line has no label; showing the target's title would read better. |
 
 ## Carried over from the local-AI quality plan
 
@@ -68,14 +97,15 @@ Each outline lists the goal, what must be decided before the detailed plan, and 
 ### 2. Accounts and teams (planned)
 Sign-up with verification and password rules, sign-in protection (lockout, block, lockdown), the security log, incident controls, teams with join code and invites, and the sign-in and team screens. Settings tables for system, user and team scope. [Detailed plan](2026-11-12-accounts-teams/README.md).
 
-### 3. Editor core (in progress; [detailed plan](2026-11-14-editor-core/README.md))
-**Carried in from Plan 2:** the app shell and styling, team screen polish, resend verification, auth store listeners, keyboard and labels, and the e2e flake (see [Carried over from Plan 2](#carried-over-from-plan-2)); do these first.
+### 3. Editor core (done; [detailed plan](2026-11-14-editor-core/README.md))
+**Carried in from Plan 2:** the app shell and styling, team screen polish, resend verification, auth store listeners, keyboard and labels, and the e2e flake; all built as Tasks 1 to 4.
 **Goal:** projects, chapters, canvas, nodes, connections (including cross-chapter links), properties panel (script lines, cues), search, undo/redo, copy/paste, multi-select, minimap, light and dark themes, saving per attribute.
 **Fixed already:** every concurrently edited collection (nodes, script lines, cues, connections, project settings) gets a `version` field and the guarded write from [decision 0002](../../decisions/0002-realtime-spike.md); the client treats HTTP 409 as normal flow (re-read, re-apply own field, retry, bounded). Canvas performance code needs `PERF:` comments. Only `frontend/src/backend/` imports `pocketbase`.
 **Decide first:** how the guarded write hook is shared between collections; the decimal `sort_order` scheme for lines; undo history depth; `project_settings` (created with each project, rows made by a hook as in Plan 2).
 **Risks:** performance at 500 nodes and 5,000 lines (measured fine on the backend side, not yet on the canvas); the 409 retry path.
 
 ### 4. Offline queue, sync and conflicts
+**Carried in from Plan 3:** the card re-mount watch (see [Carried over from Plan 3](#carried-over-from-plan-3)).
 **Goal:** edits go to IndexedDB first, sync later; keep-mine/keep-theirs on conflict; an "offline, N changes waiting" indicator.
 **Fixed already:** events missed while disconnected are not replayed, so refetch after every reconnect (finding E); `updated` alone is not a version, use the counter (finding G); queued writes carry the version they were based on. Confirm reconnect behaviour once through Funnel.
 **Decide first:** queue storage layout and replay order; what counts as "same attribute" for the dialog.
@@ -95,6 +125,7 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 **Risks:** Funnel bandwidth for video (fallback: Cloudflare Tunnel).
 
 ### 7. Trash, share links, comments, presence, JSON import and export
+**Carried in from Plan 3:** live creates of teams and projects (see [Carried over from Plan 3](#carried-over-from-plan-3)).
 **Goal:** the second build step in design section 11: trash and restore (30 days, scheduled purge), share links (view, comment, edit; live, snapshot; revocable), comments, presence with heartbeat, project JSON import and export.
 **Fixed already:** "revoke all share links" is an incident control (security.md section 9) added to the Plan 2 runbook when `share_links` exists; view links work without an account and include media; comment and edit links need sign-in and the verified flag; JSON import is untrusted input, validated by schema with size limits (a `zod` dependency needs a decision record first).
 **Decide first:** split into two plans if it is too large (share links and comments, then trash and import/export); how a link token is checked inside access rules.
@@ -104,7 +135,7 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 PDF (`jsPDF`), Word (`docx`), JPG and PNG (`html-to-image`) of the branch map; current chapter by default, whole project optional. These libraries need decision records before use.
 
 ### 9. Player Mode
-Node-by-node playback with transitions, media, screenplay-style lines, restart, back, history; works for viewers through share links.
+Node-by-node playback with transitions, media, screenplay-style lines, restart, back, history; works for viewers through share links. An empty choice (written but never linked) shows as a dead end (editor cards plan).
 
 ### 10. Path analytics
 Anonymous per-choice counts with a random session id; not recorded for signed-in team members; retention from `system_behavior`.

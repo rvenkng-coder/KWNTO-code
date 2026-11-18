@@ -16,14 +16,18 @@ They are CSS variables in `frontend/src/index.css`, set on `:root` (light) and o
 | `--color-danger` | errors and destructive buttons |
 | `--radius`, `--shadow` | corner radius; soft shadow in light, none in dark |
 | `--canvas-dot` | dot-grid colour of the canvas (Task 10) |
+| `--radius-lg` | the larger radius of node cards and the editor's panels |
+| `--shadow-card` | the soft two-layer shadow of a node card; kept in dark, where `--shadow` is none |
+| `--color-card` | the surface of a node card (a little lighter than a panel in dark) |
+| `--color-label` | muted colour of the uppercase section labels |
 
 Light has white panels and a soft shadow. Dark has flat solid panels, thin borders and no shadow. No blur and no transparency on panels (design 6.6).
 
-`@theme inline` maps the colour tokens into Tailwind, so `bg-panel`, `text-muted`, `border-border`, `text-danger` and the like work.
+`@theme inline` maps the colour tokens into Tailwind, so `bg-panel`, `bg-card`, `text-muted`, `border-border`, `text-danger` and the like work. The radius and shadow tokens are used as `rounded-[var(--radius-lg)]` and `shadow-[var(--shadow-card)]`.
 
 ## Shared classes
 
-In `@layer components`: `.panel`, `.field` (inputs), `.btn`, `.btn-primary`, `.btn-danger`, `.link-button` (a button that looks like a link). Use them instead of repeating utilities.
+In `@layer components`: `.panel`, `.field` (inputs), `.btn`, `.btn-primary`, `.btn-danger`, `.btn-quiet` (a borderless secondary button with a hover tint), `.section-label` (small uppercase muted heading; use `SectionLabel` in the editor's panels), `.link-button` (a button that looks like a link). Use them instead of repeating utilities.
 
 ## Rules
 

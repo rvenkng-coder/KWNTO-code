@@ -7,7 +7,8 @@ const ADMIN_PASSWORD = process.env.KWNTO_ADMIN_PASSWORD ?? 'test-admin-password-
 
 let _adminPB: PocketBase | undefined
 
-async function adminPB(): Promise<PocketBase> {
+/** The test backend as its superuser (rules do not apply; hooks still run). */
+export async function adminPB(): Promise<PocketBase> {
   if (!_adminPB) {
     _adminPB = new PocketBase(PB_URL)
     await _adminPB.collection('_superusers').authWithPassword(ADMIN_EMAIL, ADMIN_PASSWORD)

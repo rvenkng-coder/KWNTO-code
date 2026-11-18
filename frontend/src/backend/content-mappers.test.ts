@@ -31,7 +31,22 @@ test('update bodies carry only the changed fields', () => {
 
 // Protects: undo and offline creates rely on the client id; the create rule refuses a body with `version`.
 test('create bodies keep the client id and drop the version', () => {
-  const body = toCreateBody('connections', { id: 'k1', projectId: 'p1', fromNodeId: 'a', toNodeId: 'b', label: 'Yes', version: 3 })
+  const body = toCreateBody('connections', { id: 'k1', projectId: 'p1', fromNodeId: 'a', toNodeId: 'b', label: 'Yes', created: '2026-11-18T10:00:00.000Z', version: 3 })
   expect(body).toEqual({ id: 'k1', project: 'p1', from_node: 'a', to_node: 'b', label: 'Yes' })
   expect('version' in body).toBe(false)
+})
+
+// Protects: editor cards design 1: an empty choice reads as no target, and the stored time sorts as text with a browser-made one (F2).
+test('an empty to_node reads as null and created is ISO', () => {
+  const choice = fromRecord('connections', {
+    id: 'k1', project: 'p1', from_node: 'a', to_node: '', label: 'Wait', created: '2026-11-18 10:00:00.000Z', version: 0,
+  })
+  expect(choice).toEqual({ id: 'k1', projectId: 'p1', fromNodeId: 'a', toNodeId: null, label: 'Wait', created: '2026-11-18T10:00:00.000Z', version: 0 })
+})
+
+// Protects: editor cards design 1: unlinking sends an empty relation, and the server owns `created`.
+test('a choice is created and unlinked with an empty to_node', () => {
+  const body = toCreateBody('connections', { id: 'k1', projectId: 'p1', fromNodeId: 'a', toNodeId: null, label: '', created: '2026-11-18T10:00:00.000Z', version: 0 })
+  expect(body).toEqual({ id: 'k1', project: 'p1', from_node: 'a', to_node: '', label: '' })
+  expect(toUpdateBody('connections', { toNodeId: null })).toEqual({ to_node: '' })
 })

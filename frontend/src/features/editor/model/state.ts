@@ -49,8 +49,14 @@ export function liveNodes(s: ContentState, chapterId?: string): StoryNode[] {
   return Object.values(s.nodes).filter((n) => isLiveNode(s, n.id) && (chapterId === undefined || n.chapterId === chapterId))
 }
 
-export function liveConnections(s: ContentState): Connection[] {
-  return Object.values(s.connections).filter((c) => isLiveNode(s, c.fromNodeId) && isLiveNode(s, c.toNodeId))
+/** A connection whose target is set (an empty choice has none). */
+export type LinkedConnection = Connection & { toNodeId: string }
+
+/** Both ends live and the target set. */
+export function liveConnections(s: ContentState): LinkedConnection[] {
+  return Object.values(s.connections).filter(
+    (c): c is LinkedConnection => c.toNodeId !== null && isLiveNode(s, c.fromNodeId) && isLiveNode(s, c.toNodeId),
+  )
 }
 
 export function linesOf(s: ContentState, nodeId: string): ScriptLine[] {

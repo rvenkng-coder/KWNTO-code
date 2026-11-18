@@ -188,3 +188,31 @@ test('an outsider receives no events of the project', async () => {
   await closeForeign()
   await closeOwn()
 })
+
+// Protects: plan D15 and design 8b for records a teammate makes: a new node (the first one,
+// which also becomes the start node, and a later one), a line and a connection each reach the
+// open editor as a create event. Found by Task 14's two-browser test: the start-node hook ran
+// the node's insert inside its own transaction, and PocketBase then sent no create event.
+test("a teammate's new records arrive as create events", async () => {
+  const { a, b, project } = await setup()
+  const chapterId = await firstChapterId(b, project.id)
+  const seen = recorder()
+  const close = await a.content.subscribe(project.id, seen.onEvent)
+
+  const first = await b.content.create('nodes', node(project.id, chapterId, 'First'))
+  const second = await b.content.create('nodes', node(project.id, chapterId, 'Second'))
+  const line = await b.content.create('script_lines', {
+    id: clientId(), projectId: project.id, nodeId: first.id, character: '', text: 'Hi', sortOrder: 1, version: 0,
+  })
+  const link = await b.content.create('connections', {
+    id: clientId(), projectId: project.id, fromNodeId: first.id, toNodeId: second.id, label: '', version: 0,
+  })
+
+  // A later edit on the same stream: once it has arrived, every earlier event has too.
+  await b.content.update('nodes', second.id, { title: 'Control' }, second.version)
+  await seen.next((e) => e.action === 'update' && e.record.id === second.id)
+
+  const creates = seen.events.filter((e) => e.action === 'create').map((e) => e.record)
+  expect(creates).toEqual([first, second, line, link])
+  await close()
+})

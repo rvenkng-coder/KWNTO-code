@@ -42,8 +42,8 @@ const READERS: { [K in ContentKind]: (r: Raw) => ContentRecords[K] } = {
     text: text(r.text), sortOrder: num(r.sort_order), version: num(r.version),
   }),
   connections: (r) => ({
-    id: text(r.id), projectId: text(r.project), fromNodeId: text(r.from_node), toNodeId: text(r.to_node),
-    label: text(r.label), version: num(r.version),
+    id: text(r.id), projectId: text(r.project), fromNodeId: text(r.from_node), toNodeId: text(r.to_node) || null,
+    label: text(r.label), created: text(r.created).replace(' ', 'T'), version: num(r.version),
   }),
 }
 
@@ -66,7 +66,7 @@ const EDITABLE: { [K in ContentKind]: ReadonlyArray<keyof EditableFields[K]> } =
   nodes: ['title', 'color', 'x', 'y'],
   script_lines: ['character', 'text', 'sortOrder'],
   cues: ['type', 'text', 'sortOrder'],
-  connections: ['label'],
+  connections: ['label', 'toNodeId'],
 }
 
 const storedName = (key: string): string => STORED_NAME[key] ?? key
@@ -85,12 +85,12 @@ export function toUpdateBody<K extends ContentKind>(kind: K, edits: Partial<Edit
   return body
 }
 
-/** The whole record under stored names, with the client-made id; never `version` or `deleted_at`. */
+/** The whole record under stored names, with the client-made id; never `version`, `created` or `deleted_at`. A null relation is ''. */
 export function toCreateBody<K extends CreatableKind>(_kind: K, record: ContentRecords[K]): Raw {
   const body: Raw = {}
   for (const [key, value] of Object.entries(record)) {
-    if (key === 'version' || key === 'deleted') continue
-    body[storedName(key)] = value
+    if (key === 'version' || key === 'deleted' || key === 'created') continue
+    body[storedName(key)] = value === null ? '' : value
   }
   return body
 }

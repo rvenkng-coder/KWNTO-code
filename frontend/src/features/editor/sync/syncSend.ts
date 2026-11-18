@@ -44,7 +44,11 @@ export function createSender(door: SyncDoor): (entry: OutboxEntry) => Promise<Ou
     const shouldRetry = entry.offline ? (cur: ContentRecords[ContentKind]) => classifyConflict(entry, cur).type === 'none' : undefined
     try {
       const changes = entry.changes as Partial<EditableFields[ContentKind]>
-      return { type: 'saved', record: await door.update(entry.kind, entry.id, changes, entry.baseVersion, { shouldRetry }) }
+      // An online edit is sent as Plan 3 sent it: no options.
+      const saved = shouldRetry === undefined
+        ? await door.update(entry.kind, entry.id, changes, entry.baseVersion)
+        : await door.update(entry.kind, entry.id, changes, entry.baseVersion, { shouldRetry })
+      return { type: 'saved', record: saved }
     } catch (err) {
       if (err instanceof EditConflict) return conflictOf(entry, err.server as ContentRecords[ContentKind])
       const error = toBackendError(err)

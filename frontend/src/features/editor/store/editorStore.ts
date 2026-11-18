@@ -4,12 +4,13 @@ import { backend, type Backend, type ContentKind, type ContentRecords, type Crea
 import { EMPTY_STATE, type ContentState } from '../model/state'
 import { createEdits } from './editorEdits'
 import { createSession } from './editorSession'
+import { appSync, directSync, type EditorSyncPort } from './editorSync'
 
 // The editor's one store (plan Task 8). Screens read and change content only through it.
-// An edit is applied at once, then sent through the door; a refusal puts it back.
+// An edit is applied at once, then written to the outbox, which sends it; a refusal puts it back.
 // `editorSession.ts` opens and closes a project; `editorEdits.ts` holds the edits.
 
-export type EditorDoor = Pick<Backend['content'], 'load' | 'create' | 'update' | 'remove' | 'subscribe'>
+export type EditorDoor = Pick<Backend['content'], 'load' | 'get' | 'create' | 'update' | 'remove' | 'subscribe'>
 
 export interface EditorStore {
   status: 'idle' | 'loading' | 'ready' | 'error'
@@ -27,15 +28,15 @@ export interface EditorStore {
   dismissError(): void
 }
 
-export function createEditorStore(door: EditorDoor): StoreApi<EditorStore> {
+export function createEditorStore(door: EditorDoor, sync: EditorSyncPort = directSync(door)): StoreApi<EditorStore> {
   return createStore<EditorStore>((set, get) => ({
     status: 'idle',
     error: null,
     saving: 0,
     content: EMPTY_STATE,
     hasClip: false,
-    ...createSession(door, set),
-    ...createEdits(door, set, get),
+    ...createSession(door, set, sync),
+    ...createEdits(door, sync, set, get),
     dismissError() {
       set({ error: null })
     },
@@ -45,11 +46,12 @@ export function createEditorStore(door: EditorDoor): StoreApi<EditorStore> {
 // The door is looked up per call, so importing this module opens no connection.
 export const editorStore = createEditorStore({
   load: (projectId) => backend.content.load(projectId),
+  get: (kind, id) => backend.content.get(kind, id),
   create: (kind, record) => backend.content.create(kind, record),
-  update: (kind, id, changes, base) => backend.content.update(kind, id, changes, base),
+  update: (kind, id, changes, base, options) => backend.content.update(kind, id, changes, base, options),
   remove: (kind, id) => backend.content.remove(kind, id),
-  subscribe: (projectId, onEvent) => backend.content.subscribe(projectId, onEvent),
-})
+  subscribe: (projectId, onEvent, onReconnect) => backend.content.subscribe(projectId, onEvent, onReconnect),
+}, appSync())
 
 export function useEditor<T>(selector: (s: EditorStore) => T): T {
   return useStore(editorStore, selector)

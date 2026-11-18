@@ -168,17 +168,22 @@ class Engine implements SyncEngine {
 
   // The tab that sends merges waiting edits (D5); another tab only appends, because it cannot know what is on the wire.
   private async store(entry: NewEntry): Promise<number> {
-    const { storage, userId } = this.deps
+    const { storage } = this.deps
     if (!this.owner) return storage.add(entry)
-    const queue = await storage.list(userId)
+    // Planned on the cached queue and written without a read first: the first storage call is made
+    // at once, so a text flushed on `pagehide` reaches IndexedDB before the page goes. The new
+    // entry is written before the cancelled ones are removed, so a stop in between loses nothing.
     const locked = this.sendingSeq ?? this.conflict?.entry.seq ?? null
-    const plan = planAdd(queue, entry, locked)
-    await storage.remove(plan.drop)
+    const plan = planAdd(this.queue, entry, locked)
+    let seq = 0
     if (plan.replace !== null) {
       await storage.put(plan.replace)
-      return plan.replace.seq
+      seq = plan.replace.seq
+    } else if (plan.append !== null) {
+      seq = await storage.add(plan.append)
     }
-    return plan.append === null ? 0 : storage.add(plan.append)
+    await storage.remove(plan.drop)
+    return seq
   }
 
   async dismiss(seq: number): Promise<void> {
@@ -257,22 +262,25 @@ class Engine implements SyncEngine {
   private async settle(entry: OutboxEntry, outcome: Outcome): Promise<void> {
     const { storage, hooks } = this.deps
     this.sendingSeq = null
+    let tell: () => void = () => undefined
     if (outcome.type === 'unreachable') {
       await storage.put({ ...entry, offline: true })
       this.backOff()
     } else if (outcome.type === 'saved') {
       this.markReachable()
       await storage.remove([entry.seq])
-      hooks.saved(entry, outcome.record)
+      tell = () => hooks.saved(entry, outcome.record)
     } else if (outcome.type === 'conflict') {
       this.markReachable()
       this.conflict = { entry, server: outcome.server, fields: outcome.fields, deleted: outcome.deleted }
-    } else if (outcome.type === 'refused') {
+    } else {
       this.markReachable()
       await storage.fail(entry, outcome.error.message)
-      hooks.refused(entry, outcome.error)
+      tell = () => hooks.refused(entry, outcome.error)
     }
     await this.refresh()
+    // After the refresh: whoever hears the answer sees a snapshot without the entry that was just answered.
+    tell()
     this.deps.channel.post()
   }
 

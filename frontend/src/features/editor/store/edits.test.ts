@@ -5,6 +5,7 @@ import { chapter, content, line, node } from '../model/fixtures'
 import { UNDO_BLOCKED } from '../model/history'
 import { createEdits } from './edits'
 import { createEditorStore, type EditorDoor } from './editorStore'
+import { UNDO_PAUSED } from './editorSync'
 
 // A door that answers at once: an update returns the merged record one version higher.
 // `refuse` makes the next call fail; `calls` lists what was sent.
@@ -21,6 +22,7 @@ function autoDoor(start: ProjectContent) {
   }
   const door: EditorDoor = {
     load: () => Promise.resolve(start),
+    get: () => Promise.resolve(null),
     subscribe: (_p, onEvent) => { emit = onEvent; return Promise.resolve(async () => {}) },
     create: (async (kind: ContentKind, record: ContentRecords[ContentKind]) => {
       calls.push(`create ${kind} ${record.id}`)
@@ -137,4 +139,22 @@ test('undo waits for an edit still on its way', async () => {
   await edits.undo()
   expect(store.getState().content.nodes.n1?.title).toBe('A')
   expect(store.getState().content.nodes.n1?.color).toBe('red')
+})
+
+// Protects: D11: while offline with changes waiting, undo does nothing but say why, and the step stays; it works once the pause ends.
+test('undo waits while offline changes are waiting', async () => {
+  const fake = autoDoor(content({ nodes: [node('n1', { title: 'A' })] }))
+  const store = createEditorStore(fake.door)
+  await store.getState().open('p1')
+  let paused: string | null = UNDO_PAUSED
+  const edits = createEdits(store, () => {}, () => paused)
+  await edits.update('nodes', 'n1', { title: 'B' }, 'Rename node')
+  fake.calls.length = 0
+  await edits.undo()
+  expect(fake.calls).toEqual([])
+  expect(store.getState().error).toBe(UNDO_PAUSED)
+  expect(store.getState().content.nodes.n1?.title).toBe('B')
+  paused = null
+  await edits.undo()
+  expect(store.getState().content.nodes.n1?.title).toBe('A')
 })

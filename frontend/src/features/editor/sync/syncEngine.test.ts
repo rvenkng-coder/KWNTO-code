@@ -223,7 +223,7 @@ describe('refusals, conflicts, two tabs', () => {
     t.door.on('update', () => { throw new BackendError('conflict', 409, {}, TOO_BUSY) })
     await t.engine.add(upd('n1', { title: 'B' }, { title: 'A' }))
     await settle()
-    expect((t.door.calls[0]!.args[2] as { shouldRetry?: unknown }).shouldRetry).toBeUndefined()
+    expect(t.door.calls[0]!.args).toHaveLength(2)
     expect(t.engine.snapshot().conflict).toBeNull()
     expect(t.engine.snapshot().failed.map((f) => f.message)).toEqual([TOO_BUSY])
   })

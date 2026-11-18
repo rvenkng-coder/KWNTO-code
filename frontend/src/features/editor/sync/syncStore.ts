@@ -1,7 +1,8 @@
 import { useSyncExternalStore } from 'react'
 import { backend } from '../../../backend'
+import { createHookRegistry } from './hookRegistry'
 import { createIndexedDbOutbox } from './indexedDbOutbox'
-import { createSyncEngine, type SyncDeps, type SyncEngine, type SyncHooks, type SyncSnapshot } from './syncEngine'
+import { createSyncEngine, type SyncDeps, type SyncEngine, type SyncSnapshot } from './syncEngine'
 import { createSyncLifecycle, type SyncLifecycle } from './syncLifecycle'
 
 // The app's sync engine (offline sync plan Task 4): one per signed-in account, on IndexedDB, the
@@ -9,18 +10,8 @@ import { createSyncLifecycle, type SyncLifecycle } from './syncLifecycle'
 // Built on first use, so importing this module touches no browser API.
 
 /** The editor store registers here to hear what happened to its edits. */
-const hookRegistry = new Set<SyncHooks>()
-export function registerHooks(hooks: SyncHooks): () => void {
-  hookRegistry.add(hooks)
-  return () => {
-    hookRegistry.delete(hooks)
-  }
-}
-const fanOut: SyncHooks = {
-  saved: (entry, record) => hookRegistry.forEach((h) => h.saved(entry, record)),
-  refused: (entry, error) => hookRegistry.forEach((h) => h.refused(entry, error)),
-  theirs: (entry, server) => hookRegistry.forEach((h) => h.theirs(entry, server)),
-}
+const registry = createHookRegistry()
+export const registerHooks = registry.register
 
 const browserLock: SyncDeps['lock'] = (name, run) =>
   typeof navigator.locks === 'undefined' ? run() : navigator.locks.request(name, run)
@@ -49,7 +40,7 @@ function build(): SyncLifecycle {
   }
   const lifecycle = createSyncLifecycle(onUser, (userId) => {
     const engine = createSyncEngine({
-      userId, door: backend.content, storage, hooks: fanOut, lock: browserLock, channel: browserChannel(),
+      userId, door: backend.content, storage, hooks: registry.hooks, lock: browserLock, channel: browserChannel(),
       clock: { now: () => Date.now(), setTimeout: (fn, ms) => setTimeout(fn, ms), clearTimeout: (h) => clearTimeout(h as ReturnType<typeof setTimeout>) },
     })
     engine.setOnline(navigator.onLine)

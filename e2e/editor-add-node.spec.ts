@@ -42,4 +42,7 @@ test('Add node is disabled when no chapter is open', async ({ page }) => {
   await ownerWithProject(page, 'Story')
   await page.getByRole('button', { name: 'Close Chapter 1' }).click()
   await expect(page.getByRole('button', { name: 'Add node' })).toBeDisabled()
+  // Disabled but still focusable, so its tooltip still says how else to add a node.
+  await page.getByRole('button', { name: 'Add node' }).focus()
+  await expect(page.getByRole('tooltip')).toHaveText('Add node (or double-click the canvas)')
 })

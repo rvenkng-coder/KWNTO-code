@@ -60,15 +60,15 @@ export const useCanvasCommands: UseBoundStore<StoreApi<CanvasCommands>>   // zus
 
 ## Checkpoint 2A: The new node and its spot
 
-- [ ] **Step 2A.1: Write the failing tests** in `newNode.test.ts`:
+- [x] **Step 2A.1: Write the failing tests** in `newNode.test.ts`:
   - `freeSpot rounds the point when nothing is there`: `freeSpot({ x: 10.6, y: 20.4 }, [])` is `{ x: 11, y: 20 }`.
   - `freeSpot steps 40 px right and down past taken spots`: `freeSpot({ x: 100, y: 100 }, [{ x: 100, y: 100 }, { x: 140, y: 140 }])` is `{ x: 180, y: 180 }`.
   - `freeSpot ignores nodes near the spot but not on it`: `freeSpot({ x: 100, y: 100 }, [{ x: 101, y: 100 }])` is `{ x: 100, y: 100 }`.
   - `newNodeRecord makes a titled node at the point`:
     - `newNodeRecord('p', 'c', { x: 10.4, y: -3.6 })` matches `{ projectId: 'p', chapterId: 'c', title: 'New node', color: 'blue', x: 10, y: -4, deleted: false, version: 0 }`.
     - Its `id` matches `/^[a-z0-9]{15}$/`.
-- [ ] **Step 2A.2: Run** `npx vitest run --project unit frontend/src/features/editor/canvas/newNode.test.ts`. Expect a FAIL.
-- [ ] **Step 2A.3: Implement `newNode.ts`.**
+- [x] **Step 2A.2: Run** `npx vitest run --project unit frontend/src/features/editor/canvas/newNode.test.ts`. Expect a FAIL.
+- [x] **Step 2A.3: Implement `newNode.ts`.**
   - `newNodeRecord` is a plain object literal.
   - `freeSpot` is this exact text, which the Breaks table matches:
 
@@ -81,7 +81,7 @@ export function freeSpot(at: Point, taken: readonly Point[]): Point {
 ```
 
   Then change `createAt` in `Canvas.tsx` to call `newNodeRecord(projectId, chapterId, screenToFlowPosition(...))`. Its behaviour is unchanged.
-- [ ] **Step 2A.4: Run** the unit test and `npm run test:e2e -- e2e/editor-canvas.spec.ts`. Expect a PASS, which shows double-click is unchanged. Close the checkpoint with one commit: `feat: one place that builds a new node`.
+- [x] **Step 2A.4: Run** the unit test and `npm run test:e2e -- e2e/editor-canvas.spec.ts`. Expect a PASS, which shows double-click is unchanged. Close the checkpoint with one commit: `feat: one place that builds a new node`.
 
 ## Checkpoint 2B: The button
 

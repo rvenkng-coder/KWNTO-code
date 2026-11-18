@@ -5,7 +5,6 @@ import {
 import '@xyflow/react/dist/style.css'
 import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react'
 import { backend } from '../../../backend'
-import { DEFAULT_NODE_COLOR } from '../model/colors'
 import { toFlowEdges, toFlowNodes, type CardNode } from '../model/flow'
 import { newId } from '../model/ids'
 import { effectiveStart, nodeMarkers } from '../model/markers'
@@ -13,6 +12,7 @@ import { liveNodes } from '../model/state'
 import { editorStore, useEditor } from '../store/editorStore'
 import { edits } from '../store/edits'
 import { CanvasToolbar } from './CanvasToolbar'
+import { newNodeRecord } from './newNode'
 import { NodeCard } from './NodeCard'
 import { fromSelectChanges } from './selectionChanges'
 import { useCanvasFocus } from './useCanvasFocus'
@@ -90,9 +90,7 @@ function useCanvasActions(projectId: string, chapterId: string) {
   const { screenToFlowPosition } = useReactFlow()
   const createAt = useCallback((e: MouseEvent) => {
     if (!(e.target instanceof Element) || !e.target.classList.contains('react-flow__pane')) return
-    const { x, y } = screenToFlowPosition({ x: e.clientX, y: e.clientY })
-    const id = newId()
-    void edits.create('nodes', { id, projectId, chapterId, title: 'New node', color: DEFAULT_NODE_COLOR, x: Math.round(x), y: Math.round(y), deleted: false, version: 0 }, 'Add node')
+    void edits.create('nodes', newNodeRecord(projectId, chapterId, screenToFlowPosition({ x: e.clientX, y: e.clientY })), 'Add node')
   }, [screenToFlowPosition, projectId, chapterId])
   const onConnect = useCallback((c: FlowConnection) => {
     if (connectionExists(c.source, c.target)) return

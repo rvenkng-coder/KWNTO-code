@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 import type { Chapter } from '../../backend'
 import { navigate } from '../shell/useRoute'
 import { Canvas } from './canvas/Canvas'
-import { useCanvasCommands } from './canvas/canvasCommands'
+import { ToolStrip } from './canvas/ToolStrip'
 import { useSelection } from './canvas/useSelection'
 import { ChapterTabs } from './chapters/ChapterTabs'
 import { InlineText } from './chapters/InlineText'
@@ -14,6 +14,7 @@ import { PropertiesPanel } from './panel/PropertiesPanel'
 import { editorStore, useEditor } from './store/editorStore'
 import { edits } from './store/edits'
 import { pendingEdits, shouldWarnOnLeave } from './store/pendingEdits'
+import { useLeftPanel } from './useLeftPanel'
 import { useShortcuts } from './useShortcuts'
 
 const NOT_FOUND = 'This project does not exist or you are not a member of its team.'
@@ -79,29 +80,33 @@ interface FrameProps { projectId: string; projectName: string; chapters: Chapter
 
 function EditorFrame({ projectId, projectName, chapters, active }: FrameProps) {
   const activeId = active === null ? null : active.id
-  const addNode = useCanvasCommands((s) => s.addNode)
+  const leftShown = useLeftPanel((s) => s.shown)
+  // The frame fills the window: each side panel scrolls on its own and the page never does.
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
       <ErrorBanner />
-      <div className="grid grid-cols-[14rem_1fr_16rem] gap-3">
-        <aside data-testid="editor-left" className="panel flex flex-col gap-3">
-          <button type="button" className="btn self-start" onClick={() => navigate({ name: 'teams' })}>Back to teams</button>
-          <InlineText
-            value={projectName}
-            label="Project name"
-            className="text-left text-lg font-semibold"
-            onCommit={(name) => void edits.update('projects', projectId, { name }, 'Rename project')}
-          />
-          <button type="button" className="btn-primary" aria-label="Add node" disabled={addNode === null} onClick={() => addNode?.()}>+ Add node</button>
-          <p className="text-muted">or double-click the canvas</p>
-        </aside>
-        <section data-testid="editor-canvas" className="panel flex min-w-0 flex-col gap-2 p-0">
+      <div className={`grid min-h-0 flex-1 gap-3 ${leftShown ? 'grid-cols-[14rem_1fr_16rem]' : 'grid-cols-[1fr_16rem]'}`}>
+        {leftShown && (
+          <aside data-testid="editor-left" className="panel flex min-h-0 flex-col gap-3 overflow-y-auto">
+            <button type="button" className="btn self-start" onClick={() => navigate({ name: 'teams' })}>Back to teams</button>
+            <InlineText
+              value={projectName}
+              label="Project name"
+              className="text-left text-lg font-semibold"
+              onCommit={(name) => void edits.update('projects', projectId, { name }, 'Rename project')}
+            />
+          </aside>
+        )}
+        <section data-testid="editor-canvas" className="panel flex min-h-0 min-w-0 flex-col gap-2 p-0">
           <ChapterTabs projectId={projectId} chapters={chapters} activeId={activeId} />
-          {active === null
-            ? <p className="p-3 text-muted">Open a chapter from ≡ All chapters.</p>
-            : <Canvas projectId={projectId} chapterId={active.id} />}
+          <div className="flex min-h-0 flex-1">
+            <ToolStrip chapterId={activeId} />
+            {active === null
+              ? <p className="p-3 text-muted">Open a chapter from ≡ All chapters.</p>
+              : <Canvas projectId={projectId} chapterId={active.id} />}
+          </div>
         </section>
-        <aside data-testid="editor-panel" className="panel min-w-0">
+        <aside data-testid="editor-panel" className="panel min-h-0 min-w-0 overflow-y-auto">
           <PropertiesPanel />
         </aside>
       </div>

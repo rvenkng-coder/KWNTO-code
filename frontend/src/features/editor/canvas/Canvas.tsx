@@ -11,6 +11,7 @@ import { liveNodes } from '../model/state'
 import { editorStore, useEditor } from '../store/editorStore'
 import { edits } from '../store/edits'
 import { CanvasToolbar } from './CanvasToolbar'
+import { useCanvasCommands } from './canvasCommands'
 import { connectChoice, linkChoice } from './connectChoice'
 import { LINK_BANNER, useLinkMode } from './linkMode'
 import { newNodeRecord } from './newNode'
@@ -178,6 +179,7 @@ function CanvasView({ projectId, chapterId }: { projectId: string; chapterId: st
   const [minimap, toggleMinimap] = useMinimap()
   useFocusRequest(chapterId)
   const link = useLinkClicks()
+  const areaSelect = useCanvasCommands((s) => s.areaSelect)
   const canvasRef = useRef<HTMLDivElement>(null)
   useAddNode(projectId, chapterId, canvasRef)
   const [inited, setInited] = useState(false)
@@ -186,13 +188,14 @@ function CanvasView({ projectId, chapterId }: { projectId: string; chapterId: st
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2">
       <CanvasToolbar showNoStart={anyNode && !flow.hasStart} minimapVisible={minimap} onToggleMinimap={toggleMinimap} />
-      <div ref={canvasRef} data-testid="canvas" data-node-count={count} data-ready={inited && flow.synced ? 'true' : 'false'} className="kwnto-canvas relative h-[calc(100vh-14rem)] min-h-96" onDoubleClick={actions.createAt}>
+      <div ref={canvasRef} data-testid="canvas" data-node-count={count} data-ready={inited && flow.synced ? 'true' : 'false'} className="kwnto-canvas relative min-h-0 flex-1" onDoubleClick={actions.createAt}>
         {link.linking && <div role="status" className="panel absolute left-1/2 top-2 z-10 -translate-x-1/2">{LINK_BANNER}</div>}
         <ReactFlow<CardNode>
           nodes={flow.nodes} edges={flow.edges} nodeTypes={nodeTypes}
           onNodesChange={flow.onNodesChange} onEdgesChange={flow.onEdgesChange}
           onConnect={actions.onConnect} onNodeDragStop={actions.onNodeDragStop}
           onInit={() => setInited(true)} onNodeClick={link.onNodeClick} onPaneClick={link.onPaneClick} elementsSelectable={!link.linking}
+          selectionOnDrag={areaSelect} panOnDrag={!areaSelect}
           deleteKeyCode={null} zoomOnDoubleClick={false} fitView fitViewOptions={{ maxZoom: 1 }}
           // PERF: What: draw only the nodes and edges in view. Why: a 500-node chapter would put
           // every card in the DOM. Trade-off: cards appear a frame late while panning fast.

@@ -6,9 +6,14 @@ interface CanvasCommands {
   /** Adds a node at the centre of the visible canvas; null while no chapter is open. */
   addNode: (() => void) | null
   setAddNode(fn: (() => void) | null): void
+  /** Area select (F5): while on, dragging on empty canvas draws a selection box instead of panning. Not remembered. */
+  areaSelect: boolean
+  toggleAreaSelect(): void
 }
 
 export const useCanvasCommands = create<CanvasCommands>((set) => ({
   addNode: null,
   setAddNode: (fn) => set({ addNode: fn }),
+  areaSelect: false,
+  toggleAreaSelect: () => set((s) => ({ areaSelect: !s.areaSelect })),
 }))

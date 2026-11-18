@@ -13,7 +13,8 @@ async function addNode(page: Page): Promise<string> {
 // Protects: one click makes one saved, selected node near the centre of what the person sees (decision E4).
 test('the Add node button puts a selected node in the middle of the canvas', async ({ page }) => {
   await ownerWithProject(page, 'Story')
-  await expect(page.getByTestId('editor-left')).toContainText('or double-click the canvas')
+  await page.getByRole('button', { name: 'Add node' }).focus()
+  await expect(page.getByRole('tooltip')).toHaveText('Add node (or double-click the canvas)')
   await addNode(page)
   await expect(cards(page)).toHaveCount(1)
   await expect(page.getByTestId('editor-panel').getByLabel('Title', { exact: true })).toHaveValue('New node')
@@ -41,5 +42,4 @@ test('Add node is disabled when no chapter is open', async ({ page }) => {
   await ownerWithProject(page, 'Story')
   await page.getByRole('button', { name: 'Close Chapter 1' }).click()
   await expect(page.getByRole('button', { name: 'Add node' })).toBeDisabled()
-  await expect(page.getByTestId('editor-left')).toContainText('or double-click the canvas')
 })

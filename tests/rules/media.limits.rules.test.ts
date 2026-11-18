@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from 'vitest'
 import { createNode, guardedUpdate, memberProject } from './helpers/content.ts'
 import { sampleBytes, setQuotaOverride, setStorageSetting, uploadMedia } from './helpers/media.ts'
-import { asAdmin, asUser, PB_URL, rawSend } from './helpers/pb.ts'
+import { asAdmin, asUser, rawSend } from './helpers/pb.ts'
 
 describe('media limits and quota rules', () => {
   let restoreSetting: (() => Promise<void>) | null = null

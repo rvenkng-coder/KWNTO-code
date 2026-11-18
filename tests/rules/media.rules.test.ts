@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from 'vitest'
 import { createNode, memberProject } from './helpers/content.ts'
-import { PNG_1PX, uploadMedia } from './helpers/media.ts'
-import { asAdmin, asAnonymous, asUser, createUser, PB_URL } from './helpers/pb.ts'
+import { PNG_1PX, sampleBytes, uploadMedia } from './helpers/media.ts'
+import { asAdmin, asAnonymous, asUser, createUser, PB_URL, rawSend } from './helpers/pb.ts'
 import { addMember } from './helpers/teams.ts'
 
 describe('media rules and collection', () => {
@@ -170,5 +170,87 @@ describe('media rules and collection', () => {
 
     const admin = await asAdmin()
     await expect(admin.collection('media').getOne(record.id)).rejects.toThrow()
+  })
+
+  // Protects: stored files are served so they cannot run as a page (C6)
+  test('stored files are served so they cannot run as a page', async () => {
+    const { owner, projectId, chapterId } = await memberProject()
+    const nodeId = await createNode(owner, projectId, chapterId)
+
+    // 1. Regular PNG
+    const r1 = await uploadMedia(
+      owner,
+      { project: projectId, node: nodeId },
+      { name: 'photo.png', bytes: PNG_1PX },
+    )
+    expect(r1.status).toBe(200)
+    const d1 = await r1.json()
+
+    // 2. Polyglot PNG
+    const polyglotBytes = new Uint8Array([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+      ...Buffer.from('<script>alert(1)</script>'),
+    ])
+    const r2 = await uploadMedia(
+      owner,
+      { project: projectId, node: nodeId },
+      { name: 'x.png', bytes: polyglotBytes },
+    )
+    expect(r2.status).toBe(200)
+    const d2 = await r2.json()
+
+    const ownerPb = await asUser(owner)
+    const token = await ownerPb.files.getToken()
+
+    for (const d of [d1, d2]) {
+      const res = await fetch(`${PB_URL}/api/files/media/${d.id}/${d.file}?token=${token}`)
+      expect(res.status).toBe(200)
+      expect(res.headers.get('x-content-type-options')).toBe('nosniff')
+      expect(res.headers.get('content-type')).toContain('image/png')
+      const csp = res.headers.get('content-security-policy') ?? ''
+      expect(csp).toContain("default-src 'none'")
+      expect(csp).toContain("img-src 'self'")
+      expect(csp).toContain('sandbox')
+    }
+  })
+
+  // Protects: the storage route tells a person only their own usage and limits (C10)
+  test('the storage route tells a person only their own usage and limits', async () => {
+    const { owner, projectId, chapterId } = await memberProject()
+    const nodeId = await createNode(owner, projectId, chapterId)
+
+    // Upload 2 files: 67 bytes + 600 bytes
+    const r1 = await uploadMedia(
+      owner,
+      { project: projectId, node: nodeId },
+      { name: 'f1.png', bytes: PNG_1PX },
+    )
+    expect(r1.status).toBe(200)
+
+    const r2 = await uploadMedia(
+      owner,
+      { project: projectId, node: nodeId },
+      { name: 'f2.png', bytes: sampleBytes('png', 600) },
+    )
+    expect(r2.status).toBe(200)
+
+    const ownerPb = await asUser(owner)
+    const res = await rawSend(ownerPb.authStore.token, '/api/kwnto/storage')
+    expect(res.status).toBe(200)
+    const data = await res.json()
+    expect(data.usedBytes).toBe(667)
+    expect(data.quotaBytes).toBe(2147483648)
+    expect(data.maxBytes.video).toBe(209715200)
+    expect(data.allowedTypes).toEqual(['wav', 'mp3', 'mov', 'mp4', 'jpeg', 'png'])
+
+    // Signed out -> 401
+    const anonRes = await rawSend(undefined, '/api/kwnto/storage')
+    expect(anonRes.status).toBe(401)
+
+    // Unverified -> 403
+    const unverified = await createUser({ verified: false })
+    const unverifiedPb = await asUser(unverified)
+    const unverifiedRes = await rawSend(unverifiedPb.authStore.token, '/api/kwnto/storage')
+    expect(unverifiedRes.status).toBe(403)
   })
 })

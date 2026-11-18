@@ -38,51 +38,36 @@ export class EditConflict<R = unknown> extends BackendError {
   }
 }
 
+const STATUS_KINDS: Record<number, BackendErrorKind> = {
+  400: 'invalid', 401: 'forbidden', 403: 'forbidden', 404: 'not-found', 409: 'conflict', 429: 'locked',
+}
+
+// PocketBase's field errors: `data.<field>` is `{ message }` (or, rarely, a string).
+function fieldErrors(response: object): Record<string, string> {
+  const data = (response as { data?: unknown }).data
+  const fields: Record<string, string> = {}
+  if (typeof data !== 'object' || data === null) return fields
+  for (const [key, val] of Object.entries(data as Record<string, unknown>)) {
+    const message = typeof val === 'object' && val !== null ? (val as { message?: unknown }).message : val
+    if (typeof message === 'string') fields[key] = message
+  }
+  return fields
+}
+
+function fromResponseError(err: ClientResponseError): BackendError {
+  const response = err.response ?? {}
+  const message = (response as { message?: string }).message ?? 'Request failed'
+  const kind = STATUS_KINDS[err.status]
+  if (kind === undefined) {
+    if (err.status === 0 || err.isAbort) return new BackendError('unreachable', 0, {}, 'The server cannot be reached.')
+    return new BackendError('unknown', err.status, {}, message)
+  }
+  return new BackendError(kind, err.status, kind === 'invalid' ? fieldErrors(response) : {}, message)
+}
+
 export function toBackendError(err: unknown): BackendError {
   if (err instanceof BackendError) return err
-
-  if (err instanceof ClientResponseError) {
-    const status = err.status
-    const response = err.response ?? {}
-    const message = (response as { message?: string }).message ?? 'Request failed'
-
-    switch (status) {
-      case 0:
-      default:
-        if (status === 0 || err.isAbort) {
-          return new BackendError('unreachable', 0, {}, 'The server cannot be reached.')
-        }
-        return new BackendError('unknown', status, {}, message)
-      case 400: {
-        const fields: Record<string, string> = {}
-        const data = (response as { data?: Record<string, unknown> }).data
-        if (data && typeof data === 'object') {
-          for (const key of Object.keys(data) as string[]) {
-            const val = (data as Record<string, { message?: string } | string>)[key]
-            if (typeof val === 'object' && val !== null && 'message' in val && typeof (val as { message: string }).message === 'string') {
-              fields[key] = (val as { message: string }).message
-            } else if (typeof val === 'string') {
-              fields[key] = val
-            }
-          }
-        }
-        return new BackendError('invalid', status, fields, message)
-      }
-      case 401:
-      case 403:
-        return new BackendError('forbidden', status, {}, message)
-      case 404:
-        return new BackendError('not-found', status, {}, message)
-      case 409:
-        return new BackendError('conflict', status, {}, message)
-      case 429:
-        return new BackendError('locked', status, {}, message)
-    }
-  }
-
-  if (err instanceof Error) {
-    return new BackendError('unknown', 0, {}, err.message)
-  }
-
+  if (err instanceof ClientResponseError) return fromResponseError(err)
+  if (err instanceof Error) return new BackendError('unknown', 0, {}, err.message)
   return new BackendError('unknown', 0, {}, 'An unexpected error occurred')
 }

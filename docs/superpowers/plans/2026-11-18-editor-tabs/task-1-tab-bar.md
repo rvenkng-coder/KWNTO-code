@@ -63,13 +63,13 @@ selected?: boolean                        // aria-selected on that button
 
 ## Checkpoint 1A: Where a menu goes
 
-- [ ] **Step 1A.1: Write the failing tests** in `menuPosition.test.ts`, using `describe('menuPosition')` with a window of `{ width: 1280, height: 720 }` and a menu of `{ width: 160, height: 120 }`:
+- [x] **Step 1A.1: Write the failing tests** in `menuPosition.test.ts`, using `describe('menuPosition')` with a window of `{ width: 1280, height: 720 }` and a menu of `{ width: 160, height: 120 }`:
   - `places the menu below the anchor when it fits`: anchor `{ left: 100, top: 20, width: 20, height: 20 }` gives `{ left: 100, top: 40 }`.
   - `keeps the menu inside the right edge`: anchor `{ left: 1250, top: 20, width: 20, height: 20 }` gives `{ left: 1112, top: 40 }`.
   - `opens above the anchor when there is no room below`: anchor `{ left: 100, top: 680, width: 20, height: 20 }` gives `{ left: 100, top: 560 }`.
   - `never leaves the window when the window is smaller than the menu`: window `{ width: 100, height: 100 }` and anchor `{ left: 10, top: 10, width: 20, height: 20 }` give `{ left: 8, top: 8 }`.
-- [ ] **Step 1A.2: Run** `npx vitest run --project unit frontend/src/features/editor/chapters/menuPosition.test.ts`. Expect a FAIL, because the module does not exist yet.
-- [ ] **Step 1A.3: Implement `menuPosition`.** The Breaks table matches this exact text:
+- [x] **Step 1A.2: Run** `npx vitest run --project unit frontend/src/features/editor/chapters/menuPosition.test.ts`. Expect a FAIL, because the module does not exist yet.
+- [x] **Step 1A.3: Implement `menuPosition`.** The Breaks table matches this exact text:
 
 ```ts
 /** Below the anchor, left edges aligned; above it when there is no room below; always inside the window. */
@@ -85,7 +85,7 @@ function clamp(value: number, max: number): number {
 }
 ```
 
-- [ ] **Step 1A.4: Run.** Expect a PASS. Close the checkpoint with one commit: `feat: place chapter menus inside the window`.
+- [x] **Step 1A.4: Run.** Expect a PASS. Close the checkpoint with one commit: `feat: place chapter menus inside the window`.
 
 ## Checkpoint 1B: The tab bar
 

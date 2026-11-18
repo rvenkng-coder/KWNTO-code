@@ -68,7 +68,11 @@ The developer used the editor after the cards plan and found it better but not y
 | "Back to teams" goes too far | From the editor it opens the list of all teams, not the team the project belongs to. |
 | The UI as a whole | The developer wants the whole UI fixed, not one screen. Before designing, ask what they open KWNTO to reach first: the answer decides whether the teams area becomes a home page with projects up front or stays a settings area. |
 | Undo of a deleted choice, after a reload | It comes back in its place, but after a reload it is last, because PocketBase sets `created` itself (pinned by the rules test `a client cannot set the created time of a choice`). Not yet ruled on: accept, or keep an explicit order field. |
-| The cards plan's walk | The developer closed the plan on their general use of the editor rather than the 8-step Flow in [Task 6](2026-11-18-editor-cards/task-6-closeout.md). Walk that Flow during the UI plan, in both browsers and both themes. |
+| The link-mode banner covers a card | `Select a target node` sits at the top centre of the canvas, over whatever card is there (seen over Hall's header in the scripted walk). Move it off the canvas content, for example into the tab bar or a corner. |
+| The error banner pushes the editor down | The duplicate-choice message (F3) is a full-width bar above the editor, so the whole canvas jumps down while it shows. Show it as a toast over the canvas instead. |
+| Space spent on chrome | A `Backend: connected` line sits above the editor, and Undo, Redo and Show minimap are a separate row of large buttons above the canvas. Both take height from the canvas; Undo and Redo could join the tool strip. |
+| Cue rows in the panel are bulky | Each cue has a type box, a text box and large Move up, Move down and Delete cue buttons, so four cues fill the panel. The type box reads `audio`, `lighting`, `other` while the card reads `Audio`, `Light`, `Other`. |
+| Card connectors are small | The choice dots and the "+" connector are 6 px and the "+" row is faint, so they are hard to find and grab. A linked choice with no text reads `Untitled` on the card and its line has no label; showing the target's title would read better. |
 
 ## Carried over from the local-AI quality plan
 

@@ -81,8 +81,8 @@ The roadmap's "Decide first" items and calls where the spec is silent. Each is c
 
 | # | Task | Tier | Depends on | Checkpoints | Status |
 |---|---|---|---|---|---|
-| 1 | [The upload checks](task-1-upload-checks.md) | mid (1A local) | Plan 3 | 1A 1B | not started |
-| 2 | [The media collection, hook and headers](task-2-media-collection.md) | strong | 1 | 2A 2B 2C | not started |
+| 1 | [The upload checks](task-1-upload-checks.md) | mid (1A local) | Plan 3 | 1A 1B | done |
+| 2 | [The media collection, hook and headers](task-2-media-collection.md) | strong | 1 | 2A 2B 2C | done |
 | 3 | [The media door](task-3-media-door.md) | strong | 2 | 3A 3B | not started |
 | 4 | [Media in the properties panel and close-out](task-4-panel-closeout.md) | mid | 3 | 4A 4B 4C | not started |
 

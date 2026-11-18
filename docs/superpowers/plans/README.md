@@ -19,6 +19,8 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 
 **Editor polish plan:** [Editor tabs and Add node](2026-11-18-editor-tabs/README.md), status `in progress` (built and tested; `done` once the developer has walked its Flow).
 
+**Editor cards plan:** [Editor cards, choices and tools](2026-11-18-editor-cards/README.md), status `in progress` (built and tested; `done` once the developer has walked its Flow).
+
 **Tooling plan (not a product plan):** [Local-AI quality tooling](2026-11-13-local-ai-quality/README.md) (test strategy, project test plan, `check:task`), status `done`; built before Plan 3 so Plan 3's tasks can carry the Test plan block.
 
 If time runs out, cut from the bottom (design section 11). Plans 8 to 10 are the first to go.
@@ -114,7 +116,7 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 PDF (`jsPDF`), Word (`docx`), JPG and PNG (`html-to-image`) of the branch map; current chapter by default, whole project optional. These libraries need decision records before use.
 
 ### 9. Player Mode
-Node-by-node playback with transitions, media, screenplay-style lines, restart, back, history; works for viewers through share links.
+Node-by-node playback with transitions, media, screenplay-style lines, restart, back, history; works for viewers through share links. An empty choice (written but never linked) shows as a dead end (editor cards plan).
 
 ### 10. Path analytics
 Anonymous per-choice counts with a random session id; not recorded for signed-in team members; retention from `system_behavior`.

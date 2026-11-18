@@ -26,7 +26,8 @@ Which test layers must cover each feature, and how far each feature is. The laye
 | Security log and its retention | 6.9 | unit, rules | covered | 2 |
 | Per-user and system settings | 7c | unit, rules | covered | 2 |
 | Canvas and nodes (connections, cross-chapter links, start node, end and unreachable markers, undo/redo, copy/paste, multi-select, minimap, search, two people editing live) | 6.1, 8b | unit, rules, e2e | covered | 3 |
-| Properties panel: script lines, cues, lighting notes | 6.2 | unit, rules, e2e | covered | 3 |
+| Choices on cards (empty, link, re-link, unlink, one per target), cues on cards, tool strip, Cut, area select, collapsible left panel, scrolling panels, soft look: `e2e/editor-choices.spec.ts`, `editor-tools.spec.ts`, `editor-look.spec.ts` | 6.1 | unit, rules, e2e | covered | editor cards |
+| Properties panel: script lines, cues, lighting notes; the Choices section and link mode: `e2e/editor-choices-panel.spec.ts` | 6.2 | unit, rules, e2e | covered | 3 |
 | Properties panel: media upload, quota, strict file checks | 6.2 | unit, rules, e2e | not started | 5 |
 | Chapters | 6.3 | unit, rules, e2e | covered | 3 |
 | Player Mode | 6.4 | unit, e2e, manual | not started | 9 |

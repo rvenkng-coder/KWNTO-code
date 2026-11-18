@@ -104,3 +104,13 @@ The only place that imports `pocketbase`. Screens use `import { backend } from '
 | `unknown` | anything else | show `message` |
 
 - **Tests:** unit tests beside the code (`errors.test.ts`, `mappers.test.ts`, `teams.test.ts`, `auth.test.ts`, fake `pb` objects); the chain door, routes and rules in `tests/rules/backend-door.rules.test.ts`, and for projects and content (concurrent saves, outsiders, live events) in `tests/rules/content-door.rules.test.ts`.
+
+## Open choices (`1794370200_open_choices.js`)
+
+A choice is a `connections` record whose `to_node` may be empty (editor cards plan). The migration:
+
+- makes `to_node` optional and **removes its cascade delete**: purging a target node (Plan 7) leaves an empty choice instead of deleting the player's text. (`nodes.rules.test.ts` pins this.)
+- makes the unique pair index partial, `WHERE to_node != ''`, so a node may have many empty choices but one choice per target.
+- opens the create and update rules to an empty `to_node`, and lets an update change `to_node` to a node of the record's **own** project (`@request.body.to_node.project = project`). `from_node` and `project` still cannot change, and no rule becomes public.
+
+The down step deletes the empty choices and restores the old field, index and rules. `1794370100_nodes_lines_connections.js` is never edited. The `created` time is the server's: PocketBase ignores one sent by the client, which is why a choice made again after an undo is listed last after a reload.

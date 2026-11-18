@@ -40,12 +40,50 @@ Moving a chapter to the trash asks you to confirm. If it was the open chapter, i
 
 The middle of the editor is the **canvas** of the open chapter: a dotted surface you can pan (drag the empty canvas) and zoom (mouse wheel, or the `+` and `−` buttons in the corner).
 
-- **Make a node:** choose **+ Add node** in the left panel, under the project name. A node called `New node` appears with its top-left corner at the centre of what you see on the canvas, and it is selected, so the panel on the right shows it. Choosing it again puts the next node 40 px right and down, so it does not hide under the first. The button is greyed out while no chapter is open. Or double-click an empty spot: the node goes there.
-- **Connect two nodes:** drag from the small dot on the right edge of one node to the dot on the left edge of another. Connecting the same two nodes twice does nothing. A node can also connect to itself.
+- **Make a node:** choose the **Add node** button (the `+` at the top of the tool strip, left of the canvas). A node called `New node` appears with its top-left corner at the centre of what you see on the canvas, and it is selected, so the panel on the right shows it. Choosing it again puts the next node 40 px right and down, so it does not hide under the first. The button is greyed out while no chapter is open. Or double-click an empty spot: the node goes there.
+- **Connect two nodes:** drag from the `+` at the bottom of a node's right edge to the dot on the left edge of another node. This makes a new **choice** (see below). A node can also connect to itself.
 - **Move nodes:** drag a node. To move several, hold Shift and drag a box around them (or Ctrl-click each, ⌘-click on a Mac), then drag one of them. The new place is saved when you let go.
 - **Move to trash:** select one or more nodes and press Delete or Backspace. Their connections are hidden with them; **Undo** brings the nodes back with their connections (the trash screen comes later). Select a connection and press Delete to remove it.
 
-Each node shows its title, its colour, its first three lines (`+2 more` when there are more) and, for a link into another chapter, a tag such as `→ Chapter 2: The Door`.
+Each node shows its title, its colour, its first three lines (`+2 more` when there are more), up to two cues, and one row for each of its choices.
+
+### Choices
+
+A **choice** is something a player can pick at a node, such as `Open the door`. Each choice is a row on the node, with its own dot on the right edge. A choice may have no target yet: write it first, link it later.
+
+- **Make a choice:**
+  - drag from the `+` at the bottom of the node to another node: the choice is made already linked, with no text (the row reads `Untitled` until you name it); or
+  - select the node and choose **Add choice** in the panel on the right. It is made empty and its text box is ready to type in.
+- **Write it:** the choice's **Choice text** box in the panel. The same text is on the row.
+- **Link or re-link:** drag the choice's own dot to another node, or choose **Link** (**Re-link** when it already leads somewhere) in the panel, then click the target node. A banner says `Select a target node`; Esc, a click on empty canvas or opening another chapter cancels it. The choice keeps its text and its place in the list.
+- **Unlink:** **Unlink** in the panel empties the target again. The row stays and its dot turns hollow.
+- **Delete:** **Delete** next to the choice. **Undo** brings it back.
+- **One choice per target:** a node cannot have two choices to the same node. Trying shows `This node already has a choice to <title>.` and changes nothing. A node can have any number of empty choices.
+- **Order:** choices are listed in the order they were made, on the node and in the panel. If you delete a choice and then undo, it returns to its place now, but after a reload it is listed last.
+- A choice to a node in another chapter shows as a tag such as `→ Chapter 2: The Door` (click it to jump there) and has no line.
+
+An empty choice does not lead anywhere, so a node whose choices are all empty is an **End**.
+
+### Cues on the card
+
+Under the script lines a node shows its first two cues, each marked `Audio`, `Light` or `Other`, then `+N more`. They are for the crew; the player does not see them.
+
+### The tool strip
+
+A narrow strip left of the canvas holds six tools. Hover a tool or Tab to it to read its tooltip.
+
+| Tool | Does | Keys (⌘ on a Mac) |
+|---|---|---|
+| Add node | Adds a node at the centre of the canvas | or double-click the canvas |
+| Cut | Copies the selected nodes and moves them to the trash, as one undo step | Ctrl+X |
+| Copy | Copies the selected nodes | Ctrl+C |
+| Paste | Pastes them into the open chapter (greyed until something is copied or cut) | Ctrl+V |
+| Move to trash | Moves the selected nodes to the trash | Delete |
+| Area select | On: dragging on empty canvas draws a box that selects the nodes inside; off: it pans | or Shift+drag |
+
+### Hiding the project panel
+
+The button at the far left of the tab bar hides or shows the left panel (Back to teams and the project name), so the canvas gets the width. Your choice is remembered in this browser. The panels scroll on their own when they are long; the page never scrolls.
 
 ### Start, End and Unreachable
 
@@ -54,7 +92,7 @@ Badges on a node show where it sits in the story:
 | Badge | Means |
 |---|---|
 | **Start** | The story begins here. The first node made in a project becomes the start node. To change it, select one node and choose **Make start node** in the panel on the right. |
-| **End** | No connection leads out of this node. (A connection to itself counts as leading out.) |
+| **End** | No linked choice leads out of this node (empty choices lead nowhere). A choice to itself counts as leading out. |
 | **Unreachable** | No connection from another node leads into it, and it is not the start node, so a player can never get here. |
 
 Links between chapters count: a node whose only way in is from another chapter is not unreachable. If the start node is moved to the trash, the project has no start until you mark one, and the canvas says `No start node: select a node and choose "Make start node".`
@@ -75,7 +113,9 @@ Select one node and the panel on the right shows it:
   - **Move up** and **Move down** change the order; **Delete line** removes one.
 - **Cues:** notes for sound, light or anything else, each with a type (`audio`, `lighting`, `other`) and a note. **Add cue**, **Move up**, **Move down** and **Delete cue** work as for lines. (Attaching sound or video files comes later.)
 
-Select a connection instead and the panel shows its **Choice text** (the words a player picks to follow it, shown on the arrow) and **Delete connection**. Select several nodes and it shows how many, with **Move to trash**.
+- **Choices:** one block for each choice of the node, in the order the card shows them. Each has its **Choice text**, a status (`Linked → <target>` or `Not linked`), **Link** or **Re-link**, **Unlink** (when linked) and **Delete**. **Add choice** adds an empty one. **Link to another chapter** (below) adds a choice to a node elsewhere.
+
+Select a connection (a line) instead and the panel shows its **Choice text** (the words a player picks to follow it, shown on the arrow) and **Delete connection**. Select several nodes and it shows how many, with **Move to trash**.
 
 **When text is saved:** about a second after you stop typing, when you leave the field, and at once when you select something else, open another chapter or project, or leave the page. Only the field you changed is sent, so a teammate editing another field of the same node keeps their change. If you try to close or reload the page while a change is still on its way, the browser asks you first.
 
@@ -91,6 +131,7 @@ Undo never overwrites a teammate's work. If someone else has changed the same th
 |---|---|
 | Ctrl+Z | Undo |
 | Ctrl+Shift+Z or Ctrl+Y | Redo |
+| Ctrl+X | Cut the selected nodes (copy, then move to the trash) |
 | Ctrl+C | Copy the selected nodes |
 | Ctrl+V | Paste into the open chapter |
 | Delete or Backspace | Move the selected nodes to the trash, or delete the selected connection |
@@ -103,7 +144,7 @@ While you type in a field, only Ctrl+K is the editor's; the other keys work as u
 
 **Search** sits in the top bar while a project is open (Ctrl+K, ⌘+K on a Mac, puts the cursor there). Type part of a node's title: capitals, accents and extra spaces do not matter, so `cafe` finds `Café Scene`. Results show `Title · Chapter`, titles that start with what you typed first. Pick one with the arrow keys and Enter, or click it: the editor opens that chapter (also when its tab was closed), selects the node and moves the canvas to it. Escape closes the list. Nodes in the trash and untitled nodes are not found.
 
-**Link to a node in another chapter:** select a node and choose **Link to another chapter** in the panel, type part of the target's title and pick it. The link shows on the node as a tag such as `→ Chapter 2: The Door`; click the tag to jump to the target. The panel lists the node's links to other chapters, each with **Remove**. A node whose only way in is such a link is not unreachable.
+**Link to a node in another chapter:** select a node and choose **Link to another chapter** in the panel, type part of the target's title and pick it. The link shows on the node as a tag such as `→ Chapter 2: The Door`; click the tag to jump to the target. The link is one of the node's choices, listed under **Choices** in the panel, where **Delete** removes it. A node whose only way in is such a link is not unreachable.
 
 If the target is moved to the trash, the tag disappears (and the node may become an **End**) until the target comes back, for example with Undo.
 

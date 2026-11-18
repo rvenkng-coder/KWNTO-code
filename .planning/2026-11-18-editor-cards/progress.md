@@ -8,3 +8,4 @@
 | 2026-11-18 | Task 3 | strong | Choices section, link mode; found PocketBase ignores client created (undo-delete reorders after reload; ruled and ledgered); check:task PASS; Flow by eye left to the developer | none | 0 | Task 4 |
 | 2026-11-18 | Task 4 | strong | Tool strip, Cut, Area select, collapsible left panel, scrolling panels; check:task PASS; full e2e 162 passed; Flow by eye left to the developer | none | 0 | Task 5 |
 | 2026-11-18 | Task 5 | strong | Tokens, SectionLabel, quiet buttons, soft cards; perf 984/1900 ms; check:task PASS; side-by-side with the prototype left to the developer | none | 0 | Task 6 |
+| 2026-11-18 | Task 6 | strong | Docs updated; npm test passed twice (exit 0 both); awaiting the developer's Flow walk before plan is marked done | none | 0 | Developer walk |

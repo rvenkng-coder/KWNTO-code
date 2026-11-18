@@ -33,7 +33,7 @@ Which test layers must cover each feature, and how far each feature is. The laye
 | Player Mode | 6.4 | unit, e2e, manual | not started | 9 |
 | Path analytics (anonymous per-choice counts) | 6.4 | unit, rules, e2e | not started | 10 |
 | Export (PDF, Word, JPG, PNG) | 6.5 | unit, manual | not started | 8 |
-| Look and feel (light and dark, theme toggle, layout) | 6.6 | e2e (manual M1 and M2 still open) | covered | 3 |
+| Look and feel (light and dark, theme toggle, layout) | 6.6 | e2e, manual M1 and M2 (signed 2026-11-18) | covered | 3 |
 | Offline queue, sync and conflicts | 6.7 | unit, rules, e2e | not started | 4 |
 | Trash and recovery (30 days, restore, purge) | 6.8 | unit, rules, e2e | not started | 7 |
 | Share links (view, comment, edit; live, snapshot; revoke) | 5, 6.9 | rules, e2e | not started | 7 |
@@ -46,8 +46,8 @@ Design sections 8 and 8b make this the developer's sign-off sheet. A person runs
 
 | # | Item | Source | Status |
 |---|---|---|---|
-| M1 | Light mode looks as designed (white panels, soft shadows, dot grid, one blue accent) | 6.6, 8b | open |
-| M2 | Dark mode looks as designed (flat solid panels, thin borders, dot grid, one blue accent) | 6.6, 8b | open |
+| M1 | Light mode looks as designed (white panels, soft shadows, dot grid, one blue accent) | 6.6, 8b | done 2026-11-18 |
+| M2 | Dark mode looks as designed (flat solid panels, thin borders, dot grid, one blue accent) | 6.6, 8b | done 2026-11-18 |
 | M3 | Player Mode slide and fade transitions | 6.4, 8b | open |
 | M4 | PDF export: map legible, current chapter and whole project | 6.5, 8b | open |
 | M5 | Word export: map legible, current chapter and whole project | 6.5, 8b | open |

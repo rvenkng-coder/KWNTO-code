@@ -30,9 +30,10 @@ Design 8b asks for "two browsers editing the same node" end-to-end, and decision
   - the cards plan's 8-step Flow, walked by script in Firefox and Chromium, light and dark, including two browsers editing one node's choices
   - C2 to C5 of this task, which pass in both browsers
   
-  **Still open,** carried in the roadmap's "UI problems found after the editor cards plan":
-  - 10 minutes of real writing by two people on one project
-  - M1 and M2, the developer's sign-off of the light and dark look
+  **The developer's own walk (2026-11-18):** the developer went through the system with real writing in one browser and found nothing beyond the UI problems already on the roadmap. They signed off M1 and M2.
+
+  **Still owed,** carried in the roadmap's "UI problems found after the editor cards plan": the same two-browser writing session in the other browser.
+
 - [x] **Step 6: Update the docs** listed under **Files**: test-plan rows "Canvas and nodes", "Properties panel: script lines, cues, lighting notes", "Chapters" and "Look and feel" to `covered` with the layers that now have tests (M1 and M2 stay `open` until the developer signs them); the 0002 production-check section; the roadmap.
 - [x] **Step 7: Run** `npm test` and `npm run check:docs`. Expected: PASS. **Close checkpoint 14B** (commit `docs: close the editor core plan`). The whole-branch review follows; it is not part of this task.
 

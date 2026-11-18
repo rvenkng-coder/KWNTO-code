@@ -37,18 +37,18 @@ subscribe(projectId: string, onEvent: (event: RemoteEvent) => void, onReconnect?
 
 ## Checkpoint 2A: Stop on conflict, reconnect signal (unit)
 
-- [ ] **Step 1: Confirm the reconnect event.** Read `node_modules/pocketbase/src/services/RealtimeService.ts` (or the built `dist` file): find where the SDK sends `PB_CONNECT` to subscribers and whether it does so again after an automatic reconnect. Write the finding (file and lines) in the checkpoint's `progress.md` row. If the SDK does not tell subscribers about a reconnect, stop and report: D6 needs another signal.
-- [ ] **Step 2: Write the failing tests** C1 to C3 (`guarded.test.ts` with a fake `GuardedIO`; `realtime.test.ts` with a fake `pb` whose `collection(...).subscribe` and `realtime.subscribe('PB_CONNECT', cb)` record the callbacks).
-- [ ] **Step 3: Run** `npx vitest run --project unit frontend/src/backend`. Expected: the new tests FAIL.
-- [ ] **Step 4: Implement** `EditConflict` and `EDIT_CONFLICT` in `errors.ts`; the `shouldRetry` parameter in `guarded.ts`, with the check written as the one line `if (shouldRetry !== undefined && !shouldRetry(current)) throw new EditConflict(current)` (B1); `onReconnect` in `realtime.ts`: one extra subscription to `PB_CONNECT` opened with the others and closed by the same close function, counting connects with `if (connects > 1) onReconnect?.()` (B2).
-- [ ] **Step 5: Run** them. Expected: PASS, and the Plan 3 tests in `frontend/src/backend` still pass. **Close checkpoint 2A** (commit `feat: door stops a retry on a real conflict and reports reconnects`).
+- [x] **Step 1: Confirm the reconnect event.** Read `node_modules/pocketbase/src/services/RealtimeService.ts` (or the built `dist` file): find where the SDK sends `PB_CONNECT` to subscribers and whether it does so again after an automatic reconnect. Write the finding (file and lines) in the checkpoint's `progress.md` row. If the SDK does not tell subscribers about a reconnect, stop and report: D6 needs another signal.
+- [x] **Step 2: Write the failing tests** C1 to C3 (`guarded.test.ts` with a fake `GuardedIO`; `realtime.test.ts` with a fake `pb` whose `collection(...).subscribe` and `realtime.subscribe('PB_CONNECT', cb)` record the callbacks).
+- [x] **Step 3: Run** `npx vitest run --project unit frontend/src/backend`. Expected: the new tests FAIL.
+- [x] **Step 4: Implement** `EditConflict` and `EDIT_CONFLICT` in `errors.ts`; the `shouldRetry` parameter in `guarded.ts`, with the check written as the one line `if (shouldRetry !== undefined && !shouldRetry(current)) throw new EditConflict(current)` (B1); `onReconnect` in `realtime.ts`: one extra subscription to `PB_CONNECT` opened with the others and closed by the same close function, counting connects with `if (connects > 1) onReconnect?.()` (B2).
+- [x] **Step 5: Run** them. Expected: PASS, and the Plan 3 tests in `frontend/src/backend` still pass. **Close checkpoint 2A** (commit `feat: door stops a retry on a real conflict and reports reconnects`).
 
 ## Checkpoint 2B: Against a live PocketBase (rules)
 
-- [ ] **Step 6: Write the failing tests** C4 to C7 in `tests/rules/content-door-offline.rules.test.ts`, through `createBackend(PB_URL)` signed in as members of one project (a fresh project per test).
-- [ ] **Step 7: Run** `npm run test:rules -- tests/rules/content-door-offline.rules.test.ts`. Expected: C4, C5, C7 FAIL (`get` missing, option ignored); C6 may pass at once: then show it fails once by making `content.create` swallow the error (return the record sent), restore, and say so in the report.
-- [ ] **Step 8: Implement** `content.get` and the `options` of `content.update` (passed to `guardedSave` as `shouldRetry`; the read inside is the existing `io.read`).
-- [ ] **Step 9: Run** `npm run test:rules` and `npm run test:unit`. Expected: PASS. Update `docs/developer/backend.md`. **Close checkpoint 2B** (commit `feat: door reads a record and reports offline conflicts`).
+- [x] **Step 6: Write the failing tests** C4 to C7 in `tests/rules/content-door-offline.rules.test.ts`, through `createBackend(PB_URL)` signed in as members of one project (a fresh project per test).
+- [x] **Step 7: Run** `npm run test:rules -- tests/rules/content-door-offline.rules.test.ts`. Expected: C4, C5, C7 FAIL (`get` missing, option ignored); C6 may pass at once: then show it fails once by making `content.create` swallow the error (return the record sent), restore, and say so in the report.
+- [x] **Step 8: Implement** `content.get` and the `options` of `content.update` (passed to `guardedSave` as `shouldRetry`; the read inside is the existing `io.read`).
+- [x] **Step 9: Run** `npm run test:rules` and `npm run test:unit`. Expected: PASS. Update `docs/developer/backend.md`. **Close checkpoint 2B** (commit `feat: door reads a record and reports offline conflicts`).
 
 ## Test plan
 ### Cases

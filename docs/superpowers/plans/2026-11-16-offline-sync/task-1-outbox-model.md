@@ -75,17 +75,17 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 1A: Backoff and words (local)
 
-- [ ] **Step 1: Write the failing tests** C1 to C3 in `outboxText.test.ts`, each with a `// Protects:` header.
-- [ ] **Step 2: Run** `npx vitest run --project unit frontend/src/features/editor/sync/outboxText.test.ts`. Expected: FAIL (module not found).
-- [ ] **Step 3: Implement `outboxText.ts`.** The cap is the line `return Math.min(MAX_DELAY_MS, BASE_DELAY_MS * 2 ** (attempt - 1))` (break B1); the plural is `waiting === 1 ? 'change' : 'changes'` (break B2).
-- [ ] **Step 4: Run** it. Expected: PASS. **Close checkpoint 1A** (commit `feat: outbox backoff and status words`).
+- [x] **Step 1: Write the failing tests** C1 to C3 in `outboxText.test.ts`, each with a `// Protects:` header.
+- [x] **Step 2: Run** `npx vitest run --project unit frontend/src/features/editor/sync/outboxText.test.ts`. Expected: FAIL (module not found).
+- [x] **Step 3: Implement `outboxText.ts`.** The cap is the line `return Math.min(MAX_DELAY_MS, BASE_DELAY_MS * 2 ** (attempt - 1))` (break B1); the plural is `waiting === 1 ? 'change' : 'changes'` (break B2).
+- [x] **Step 4: Run** it. Expected: PASS. **Close checkpoint 1A** (commit `feat: outbox backoff and status words`).
 
 ## Checkpoint 1B: Merge, overlay, conflicts, storage (strong)
 
-- [ ] **Step 5: Write the failing tests** C4 to C8 (`outbox.test.ts` with the record builders of `model/fixtures.ts`; `outboxStorage.test.ts`).
-- [ ] **Step 6: Run** `npx vitest run --project unit frontend/src/features/editor/sync`. Expected: the new tests FAIL.
-- [ ] **Step 7: Implement `outbox.ts` and `outboxStorage.ts`.** Write these decisions as single lines so the breaks can find them: the base-value merge `baseValues: { ...entry.baseValues, ...last.baseValues }` (B3); the field test `!sameValue(serverValue, entry.baseValues[field]) && !sameValue(serverValue, entry.changes[field])` (B4); the first line of `classifyConflict` `if (!entry.offline) return NO_CONFLICT` (B5); in `overlay`, a create is skipped with `if (getRecord(s, entry.kind, entry.id) !== undefined) return s` (B6).
-- [ ] **Step 8: Run** them. Expected: PASS. **Close checkpoint 1B** (commit `feat: outbox merge, overlay and conflict rules`).
+- [x] **Step 5: Write the failing tests** C4 to C8 (`outbox.test.ts` with the record builders of `model/fixtures.ts`; `outboxStorage.test.ts`).
+- [x] **Step 6: Run** `npx vitest run --project unit frontend/src/features/editor/sync`. Expected: the new tests FAIL.
+- [x] **Step 7: Implement `outbox.ts` and `outboxStorage.ts`.** Write these decisions as single lines so the breaks can find them: the base-value merge `baseValues: { ...entry.baseValues, ...last.baseValues }` (B3); the field test `!sameValue(serverValue, entry.baseValues[field]) && !sameValue(serverValue, entry.changes[field])` (B4); the first line of `classifyConflict` `if (!entry.offline) return NO_CONFLICT` (B5); in `overlay`, a create is skipped with `if (getRecord(s, entry.kind, entry.id) !== undefined) return s` (B6).
+- [x] **Step 8: Run** them. Expected: PASS. **Close checkpoint 1B** (commit `feat: outbox merge, overlay and conflict rules`).
 
 ## Test plan
 ### Cases

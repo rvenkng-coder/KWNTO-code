@@ -57,17 +57,17 @@ export const LOCK_PREFIX = 'kwnto-sync-'
 
 ## Checkpoint 3A: Order, success, offline, lost answers
 
-- [ ] **Step 1: Write `fakes.ts` and the failing tests** C1 to C4. The fake door records each call and answers from a script; the fake clock runs timers when the test says; the fake lock grants one holder per name at a time and queues the rest.
-- [ ] **Step 2: Run** `npx vitest run --project unit frontend/src/features/editor/sync/syncEngine.test.ts`. Expected: FAIL (module not found).
-- [ ] **Step 3: Implement** `syncEngine.ts` and `syncSend.ts` for C1 to C4. Write the lost-create rule as the line `if (isIdTaken(error)) return confirmCreated(entry)` (B1) and the retry delay as `const delay = nextDelay(attempt)` after `attempt += 1`, with `let attempt = 0` at the start and the reset after any successful send written as the line `attempt = 0 // reset after a success` (B2).
-- [ ] **Step 4: Run** it. Expected: PASS. **Close checkpoint 3A** (commit `feat: sync engine sends the outbox in order`).
+- [x] **Step 1: Write `fakes.ts` and the failing tests** C1 to C4. The fake door records each call and answers from a script; the fake clock runs timers when the test says; the fake lock grants one holder per name at a time and queues the rest.
+- [x] **Step 2: Run** `npx vitest run --project unit frontend/src/features/editor/sync/syncEngine.test.ts`. Expected: FAIL (module not found).
+- [x] **Step 3: Implement** `syncEngine.ts` and `syncSend.ts` for C1 to C4. Write the lost-create rule as the line `if (isIdTaken(error)) return confirmCreated(entry)` (B1) and the retry delay as `const delay = nextDelay(attempt)` after `attempt += 1`, with `let attempt = 0` at the start and the reset after any successful send written as the line `attempt = 0 // reset after a success` (B2).
+- [x] **Step 4: Run** it. Expected: PASS. **Close checkpoint 3A** (commit `feat: sync engine sends the outbox in order`).
 
 ## Checkpoint 3B: Refusals, conflicts, two tabs
 
-- [ ] **Step 5: Write the failing tests** C5 to C8.
-- [ ] **Step 6: Run** them. Expected: the new tests FAIL.
-- [ ] **Step 7: Implement** them. The loop stops for a conflict with the line `if (conflict !== null) return` at the top of each pass (B3).
-- [ ] **Step 8: Run** `npm run test:unit`. Expected: PASS. **Close checkpoint 3B** (commit `feat: sync engine handles refusals, conflicts and two tabs`).
+- [x] **Step 5: Write the failing tests** C5 to C8.
+- [x] **Step 6: Run** them. Expected: the new tests FAIL.
+- [x] **Step 7: Implement** them. The loop stops for a conflict with the line `if (conflict !== null) return` at the top of each pass (B3).
+- [x] **Step 8: Run** `npm run test:unit`. Expected: PASS. **Close checkpoint 3B** (commit `feat: sync engine handles refusals, conflicts and two tabs`).
 
 ## Test plan
 ### Cases

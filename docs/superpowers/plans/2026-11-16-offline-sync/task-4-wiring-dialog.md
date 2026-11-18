@@ -45,24 +45,24 @@ export function appSync(): EditorSyncPort                      // the app's: fol
 
 ## Checkpoint 4A: Storage and the engine's lifecycle
 
-- [ ] **Step 1: Write the failing tests** C1 (`e2e/editor-offline.spec.ts`: the page imports `/src/features/editor/sync/indexedDbOutbox.ts` through the Vite dev server inside `page.evaluate`) and C2 (`syncLifecycle.test.ts`).
-- [ ] **Step 2: Run** `npx vitest run --project unit frontend/src/features/editor/sync/syncLifecycle.test.ts` and `npm run test:e2e -- e2e/editor-offline.spec.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** `indexedDbOutbox.ts`, `syncLifecycle.ts` and `syncStore.ts`. The user switch is the line `if (userId === currentUser) return` (B1).
-- [ ] **Step 4: Run** them. Expected: PASS. **Close checkpoint 4A** (commit `feat: browser outbox and one sync engine per account`).
+- [x] **Step 1: Write the failing tests** C1 (`e2e/editor-offline.spec.ts`: the page imports `/src/features/editor/sync/indexedDbOutbox.ts` through the Vite dev server inside `page.evaluate`) and C2 (`syncLifecycle.test.ts`).
+- [x] **Step 2: Run** `npx vitest run --project unit frontend/src/features/editor/sync/syncLifecycle.test.ts` and `npm run test:e2e -- e2e/editor-offline.spec.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** `indexedDbOutbox.ts`, `syncLifecycle.ts` and `syncStore.ts`. The user switch is the line `if (userId === currentUser) return` (B1).
+- [x] **Step 4: Run** them. Expected: PASS. **Close checkpoint 4A** (commit `feat: browser outbox and one sync engine per account`).
 
 ## Checkpoint 4B: The store goes through the outbox
 
-- [ ] **Step 5: Write the failing tests** C3 to C7 in `editorSync.test.ts` and C13 in `edits.test.ts` (a store from `createEditorStore` with Plan 3's fake door plus `get`, and a port built on `createSyncEngine` with a memory outbox the test can pre-fill).
-- [ ] **Step 6: Run** `npx vitest run --project unit frontend/src/features/editor/store`. Expected: the new tests FAIL; Plan 3's `editorStore.test.ts` passes.
-- [ ] **Step 7: Implement.** `editorEdits.ts`: apply locally as today, then `sync.add` an entry (`baseVersion` and `baseValues` from the record before the edit; `snapshot` for lines, cues and connections); keep each edit's resolver and `before` by seq, resolve on `hooks.saved` / `hooks.refused`; a refusal with no `before` in memory (an entry from before a reload) takes `door.get`'s record, or drops the record when it is `null`. `editorSession.ts`: after the load, `overlay` with the snapshot's entries; every remote event is applied with `applyRemote` and then overlaid again, written as the line `content: overlay(applyRemote(st.content, event), waitingEntries())` (B2); on `onReconnect`, and when the snapshot's `online` turns from false to true, load again and overlay; when it turns to false, close the subscriptions (D6) and open them again on the way back.
-- [ ] **Step 8: Run** `npm run test:unit`. Expected: PASS. **Close checkpoint 4B** (commit `feat: editor edits go through the outbox`).
+- [x] **Step 5: Write the failing tests** C3 to C7 in `editorSync.test.ts` and C13 in `edits.test.ts` (a store from `createEditorStore` with Plan 3's fake door plus `get`, and a port built on `createSyncEngine` with a memory outbox the test can pre-fill).
+- [x] **Step 6: Run** `npx vitest run --project unit frontend/src/features/editor/store`. Expected: the new tests FAIL; Plan 3's `editorStore.test.ts` passes.
+- [x] **Step 7: Implement.** `editorEdits.ts`: apply locally as today, then `sync.add` an entry (`baseVersion` and `baseValues` from the record before the edit; `snapshot` for lines, cues and connections); keep each edit's resolver and `before` by seq, resolve on `hooks.saved` / `hooks.refused`; a refusal with no `before` in memory (an entry from before a reload) takes `door.get`'s record, or drops the record when it is `null`. `editorSession.ts`: after the load, `overlay` with the snapshot's entries; every remote event is applied with `applyRemote` and then overlaid again, written as the line `content: overlay(applyRemote(st.content, event), waitingEntries())` (B2); on `onReconnect`, and when the snapshot's `online` turns from false to true, load again and overlay; when it turns to false, close the subscriptions (D6) and open them again on the way back.
+- [x] **Step 8: Run** `npm run test:unit`. Expected: PASS. **Close checkpoint 4B** (commit `feat: editor edits go through the outbox`).
 
 ## Checkpoint 4C: Screens and flows
 
-- [ ] **Step 9: Write the failing tests** C8 to C12 and C14 in `e2e/editor-offline.spec.ts`. `e2e/helpers/offline.ts`: `goOffline(context)` and `goOnline(context)` (`context.setOffline`, then wait for `sync-status` to show or hide `Offline`). `adminRecord(collection, id)` in `e2e/helpers/admin.ts` reads a record as the admin.
-- [ ] **Step 10: Run** `npm run test:e2e -- e2e/editor-offline.spec.ts`. Expected: FAIL.
-- [ ] **Step 11: Implement** `SyncStatus`, `FailedList`, `ConflictDialog`, the top-bar wiring and the in-page sign-out question (D13: `role="alertdialog"`, the router's copy, `Sign out anyway` and `Stay signed in`; only when `waiting > 0`).
-- [ ] **Step 12: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. Write "Working offline" in `docs/user/editor.md` (the indicator, what survives closing the tab, the dialog, the failed list, undo after sync, D10's shared-computer note) and the outbox in `docs/developer/editor.md`. **Close checkpoint 4C** (commit `feat: offline status, failed list and conflict dialog`).
+- [x] **Step 9: Write the failing tests** C8 to C12 and C14 in `e2e/editor-offline.spec.ts`. `e2e/helpers/offline.ts`: `goOffline(context)` and `goOnline(context)` (`context.setOffline`, then wait for `sync-status` to show or hide `Offline`). `adminRecord(collection, id)` in `e2e/helpers/admin.ts` reads a record as the admin.
+- [x] **Step 10: Run** `npm run test:e2e -- e2e/editor-offline.spec.ts`. Expected: FAIL.
+- [x] **Step 11: Implement** `SyncStatus`, `FailedList`, `ConflictDialog`, the top-bar wiring and the in-page sign-out question (D13: `role="alertdialog"`, the router's copy, `Sign out anyway` and `Stay signed in`; only when `waiting > 0`).
+- [x] **Step 12: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. Write "Working offline" in `docs/user/editor.md` (the indicator, what survives closing the tab, the dialog, the failed list, undo after sync, D10's shared-computer note) and the outbox in `docs/developer/editor.md`. **Close checkpoint 4C** (commit `feat: offline status, failed list and conflict dialog`).
 
 ## Test plan
 ### Cases

@@ -16,28 +16,31 @@ If you open a project you are not allowed to see (a link from someone else's tea
 
 ## Chapters
 
-A project is split into chapters. Each chapter has a **tab** above the canvas and a row in the **Chapters** list on the left.
+A project is split into chapters. Each chapter has a **tab** in the bar above the canvas. The bar works like the page tabs in draw.io: `≡` at the start, the tabs, and `+` at the end.
 
-- **Add a chapter:** **Add chapter** in the left panel. It is named `Chapter 3` (and so on) and goes after the last one.
-- **Rename:** double-click its name in the list, type, and press Enter. Escape cancels.
-- **Change the order:** the `⋯` menu on a tab has **Move left** and **Move right**. The order is saved and everyone on the team sees it.
+- **Add a chapter:** `+` at the end of the tabs. It is named `Chapter 3` (and so on), goes after the last one and opens at once.
+- **Rename:** double-click the tab's name, type, and press Enter. Escape cancels. Or open the tab's `▾` menu and choose **Rename**.
+- **Change the order:** the `▾` menu on a tab has **Move left** and **Move right**. The order is saved and everyone on the team sees it.
+- **See every chapter:** `≡` at the start of the bar lists all chapters, including those whose tab you closed. The open one is in bold. Choose one to open it (its tab comes back if it was closed).
 - **Resize a tab:** drag the thin bar on the right edge of the tab. This is only how *you* see the tabs; it is not saved.
+
+Every menu opens above the canvas, next to its button, and stays inside the window. Escape, a click anywhere else, resizing the window or scrolling the tabs closes it.
 
 ### Closing a tab is not deleting a chapter
 
-| | Close (`×` on the tab) | Move to trash (in the list) |
+| | Close (`×` on the tab) | Move to trash (in the tab's `▾` menu) |
 |---|---|---|
 | What happens | The tab is hidden **for you, until you reload** | The chapter is removed for everyone |
-| The chapter | Still in the list; click it to bring its tab back | Gone from the tabs and the list, with its nodes |
+| The chapter | Still in the `≡` list; choose it to bring its tab back | Gone from the tabs and the `≡` list, with its nodes |
 | Saved | No, only your view | Yes |
 
-Moving a chapter to the trash asks you to confirm.
+Moving a chapter to the trash asks you to confirm. If it was the open chapter, its neighbour opens.
 
 ## Nodes and connections
 
 The middle of the editor is the **canvas** of the open chapter: a dotted surface you can pan (drag the empty canvas) and zoom (mouse wheel, or the `+` and `−` buttons in the corner).
 
-- **Make a node:** double-click an empty spot. A node called `New node` appears there.
+- **Make a node:** choose **+ Add node** in the left panel, under the project name. A node called `New node` appears with its top-left corner at the centre of what you see on the canvas, and it is selected, so the panel on the right shows it. Choosing it again puts the next node 40 px right and down, so it does not hide under the first. The button is greyed out while no chapter is open. Or double-click an empty spot: the node goes there.
 - **Connect two nodes:** drag from the small dot on the right edge of one node to the dot on the left edge of another. Connecting the same two nodes twice does nothing. A node can also connect to itself.
 - **Move nodes:** drag a node. To move several, hold Shift and drag a box around them (or Ctrl-click each, ⌘-click on a Mac), then drag one of them. The new place is saved when you let go.
 - **Move to trash:** select one or more nodes and press Delete or Backspace. Their connections are hidden with them; **Undo** brings the nodes back with their connections (the trash screen comes later). Select a connection and press Delete to remove it.

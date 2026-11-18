@@ -58,6 +58,26 @@ From Task 12 screens change content only through `edits` (`store/edits.ts`), nev
 - Copy and paste (`model/clipboard.ts`, D11) keep the clip in memory: live selected nodes, their lines and cues, and only the connections between them. A paste gives every record a new id, remaps the references and moves the nodes by 40 px times the paste count.
 - `useShortcuts` (on `window`) maps keys with `shortcutFor` (`model/shortcuts.ts`); in an `input`, `textarea`, `select` or contenteditable only `search` is taken. React Flow's own `deleteKeyCode` is off; Delete goes through `trashSelection` (`canvas/selectionActions.ts`), so a trashed node keeps its connections.
 
+## Chapter tabs and menus
+
+Plan: [editor tabs](../superpowers/plans/2026-11-18-editor-tabs/README.md). All chapter actions live in the tab bar (`chapters/ChapterTabs.tsx`): `≡` (`AllChaptersMenu`), the tabs (title as an `InlineText` with `role="tab"`, `TabMenu`'s `▾`, `×`, the resize handle) and `+`. The left panel only has Back to teams, the project name and Add node.
+
+**Menus are portals, placed by `menuPosition`.** `Popover` renders into `document.body` at `position: fixed` with `z-50`, measures itself after its first render and takes its place from `menuPosition(anchorBox, menuSize, windowSize)` (`chapters/menuPosition.ts`, pure and unit-tested): below the anchor, left edges aligned; above it when there is no room below; always `MENU_MARGIN` (8 px) inside the window.
+
+**Why a menu in a scrolling strip must not be absolutely positioned.** The tab strip is `overflow-x-auto`. Per CSS, when one overflow axis is not `visible` the other computes to `auto` too, so the strip also clips vertically and an absolutely positioned child is cut off inside its 30 px height (the first version of the tab menu opened hidden under the canvas). A portal moves the menu out of the strip, and `fixed` takes it out of every ancestor's clipping and stacking. The anchor's `getBoundingClientRect()` is the only link back to the tab.
+
+**Closing rules (decision E1).** Escape (focus returns to the button), a `pointerdown` outside the menu and its button (capture phase, so the canvas still gets the click but nothing is added by it), a window `resize`, and a `scroll` (capture, so the strip's scroll is seen) **that moved the button**. The last condition matters: Chromium fires the scroll that brings a half-hidden `▾` into view one frame after the click that opened the menu, and closing on that scroll made such a menu vanish at once (`e2e/editor-tabs.spec.ts`, "the menu of a scrolled-off tab stays open and works").
+
+`InlineText` is controlled when given `editing` and `onEditingChange`, which is how a tab's Rename item starts the same `Chapter title` box that a double-click opens.
+
+## Add node
+
+The Add node button sits in the left panel, outside the canvas's `ReactFlowProvider`, so it cannot call React Flow. The canvas registers a command instead: `useAddNode(projectId, chapterId, canvasRef)` (called by `CanvasView`) puts a function in `useCanvasCommands` (`canvas/canvasCommands.ts`, a Zustand store) on mount and sets it back to `null` on unmount. The button is disabled while `addNode` is `null` (no chapter open).
+
+The command takes the centre of the canvas element, converts it with `screenToFlowPosition`, passes it through `freeSpot` (steps 40 px right and down while a live node of the chapter sits exactly there) and builds the record with `newNodeRecord` (`canvas/newNode.ts`, shared with the double-click `createAt`). It creates the node through `edits.create` and selects it.
+
+**The queued first fit.** `<ReactFlow fitView>` keeps a fit queued until the first node exists. In a chapter that was empty when opened, that fit would run when the new node appears and move the view by half a card, so the node would not be at the centre and a second click would not be 40 px from the first. `useAddNode` therefore sets `fitViewQueued: false` in React Flow's store before it creates the node. The double-click path keeps the fit (`e2e/editor-panel.spec.ts` lays out its nodes assuming it).
+
 ## Opening and closing
 
 `open(projectId)` closes any open project and starts loading and subscribing **together**. Events that arrive before the load is applied wait in a buffer and are applied after it (the version check drops stale ones). Every `open` and `close` bumps a token; a load or subscription that finishes for an older token is dropped and its subscription closed, so a slow project A can never overwrite project B. A failed load or subscribe gives `status: 'error'` and closes whatever did open.

@@ -17,6 +17,8 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 | 9 | Player Mode | 4 | 3 | outline |
 | 10 | Path analytics | 5 | 9 | outline |
 
+**Editor polish plan:** [Editor tabs and Add node](2026-11-18-editor-tabs/README.md), status `in progress` (built and tested; `done` once the developer has walked its Flow).
+
 **Tooling plan (not a product plan):** [Local-AI quality tooling](2026-11-13-local-ai-quality/README.md) (test strategy, project test plan, `check:task`), status `done`; built before Plan 3 so Plan 3's tasks can carry the Test plan block.
 
 If time runs out, cut from the bottom (design section 11). Plans 8 to 10 are the first to go.
@@ -40,9 +42,17 @@ Found while building the editor core (2026-11-14 to 2026-11-16) and left out of 
 | Item | What and why | Plan |
 |---|---|---|
 | Live creates of teams and projects | A create hook that moves the record's own insert into a transaction (`e.app = txApp; e.next()`) makes PocketBase 0.40.6 send no realtime create event (found by Task 14 for nodes, fixed there). `teams.pb.js` and the project create hook in `projects.pb.js` still use it. Nothing subscribes to those creates today; a live team or project list (presence, Plan 7) would miss new ones. Restructure as the `nodes` hook does, with a rule test of the create event. | 7 |
-| Canvas width | `AppShell` caps the page at `max-w-5xl`, so between the two side panels the canvas is about 500 px wide. Usable but cramped; a full-width editor layout is a developer decision. | 4 (it next touches the editor screen) |
 | Watch for a card re-mount loop | Once (Tasks 11 to 13 `npm test`), after switching back to Chapter 1 a node card kept re-mounting for 60 s ("element was detached from the DOM"). Not reproduced in 106 runs. If it shows again, capture a trace before rerunning. | 4 |
 | Hygiene checker false positives | `check:hygiene` reads `test.setTimeout(...)` and `test.info()` as new tests without a header, and `.fail` on any object (`fake.fail.next`) as Vitest's `.fail`. Match only test-defining calls. | tooling (next plan that touches it) |
+
+## Later (developer decision, 2026-11-18)
+
+Asked for while the editor tabs plan was designed and left out of it on purpose.
+
+| Item | What and why |
+|---|---|
+| Custom node colours (hex or RGB) | Change `nodes.color` from an 8-value select to a validated hex text field, and pick black or white header text by contrast so it stays readable. |
+| Duplicate chapter | Copy nodes, lines, cues and connections, and decide what happens to cross-chapter links. |
 
 ## Carried over from the local-AI quality plan
 
@@ -74,7 +84,7 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 **Risks:** performance at 500 nodes and 5,000 lines (measured fine on the backend side, not yet on the canvas); the 409 retry path.
 
 ### 4. Offline queue, sync and conflicts
-**Carried in from Plan 3:** canvas width and the card re-mount watch (see [Carried over from Plan 3](#carried-over-from-plan-3)).
+**Carried in from Plan 3:** the card re-mount watch (see [Carried over from Plan 3](#carried-over-from-plan-3)).
 **Goal:** edits go to IndexedDB first, sync later; keep-mine/keep-theirs on conflict; an "offline, N changes waiting" indicator.
 **Fixed already:** events missed while disconnected are not replayed, so refetch after every reconnect (finding E); `updated` alone is not a version, use the counter (finding G); queued writes carry the version they were based on. Confirm reconnect behaviour once through Funnel.
 **Decide first:** queue storage layout and replay order; what counts as "same attribute" for the dialog.

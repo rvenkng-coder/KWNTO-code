@@ -100,7 +100,7 @@ These are the failure modes most likely to bite a person. Each is pinned by a te
 |---|---|---|---|---|---|
 | 1 | [Draw.io-style tab bar](task-1-tab-bar.md) | mid | none | 1A 1B | done |
 | 2 | [Add node button](task-2-add-node.md) | mid | 1 | 2A 2B | done |
-| 3 | [Docs and close-out](task-3-closeout.md) | mid | 1, 2 | 3A | not started |
+| 3 | [Docs and close-out](task-3-closeout.md) | mid | 1, 2 | 3A | awaiting review |
 
 **Status values:** `not started`, `in progress`, `awaiting review`, `done`. Run the tasks in order: Tasks 1 and 2 both change `EditorScreen.tsx`.
 

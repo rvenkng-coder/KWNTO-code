@@ -11,7 +11,8 @@ import { liveNodes } from '../model/state'
 import { editorStore, useEditor } from '../store/editorStore'
 import { edits } from '../store/edits'
 import { CanvasToolbar } from './CanvasToolbar'
-import { connectChoice } from './connectChoice'
+import { connectChoice, linkChoice } from './connectChoice'
+import { LINK_BANNER, useLinkMode } from './linkMode'
 import { newNodeRecord } from './newNode'
 import { NodeCard } from './NodeCard'
 import { fromSelectChanges } from './selectionChanges'
@@ -122,6 +123,32 @@ function useFocusRequest(chapterId: string): void {
   }, [request, measured, chapterId, getNode, getZoom, setCenter])
 }
 
+// Link mode (see linkMode.ts): the next node clicked becomes the choice's target; Escape, a click on
+// empty canvas or leaving the chapter (this view unmounts) ends it. While it is on, a click picks a
+// target instead of selecting, so the panel keeps showing the node whose choice is being linked.
+function useLinkClicks() {
+  const linking = useLinkMode((s) => s.choiceId !== null)
+  useEffect(() => {
+    const stop = () => useLinkMode.getState().stop()
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') stop()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      stop()
+    }
+  }, [])
+  const onNodeClick = useCallback((_e: MouseEvent, node: CardNode) => {
+    const { choiceId, stop } = useLinkMode.getState()
+    if (choiceId === null) return
+    linkChoice(choiceId, node.id)
+    stop()
+  }, [])
+  const onPaneClick = useCallback(() => useLinkMode.getState().stop(), [])
+  return { linking, onNodeClick, onPaneClick }
+}
+
 // The minimap choice of the account (user_preferences.minimap_visible), shown until it loads.
 function useMinimap(): [boolean, () => void] {
   const [visible, setVisible] = useState(true)
@@ -150,6 +177,7 @@ function CanvasView({ projectId, chapterId }: { projectId: string; chapterId: st
   const actions = useCanvasActions(projectId, chapterId)
   const [minimap, toggleMinimap] = useMinimap()
   useFocusRequest(chapterId)
+  const link = useLinkClicks()
   const canvasRef = useRef<HTMLDivElement>(null)
   useAddNode(projectId, chapterId, canvasRef)
   const [inited, setInited] = useState(false)
@@ -158,12 +186,13 @@ function CanvasView({ projectId, chapterId }: { projectId: string; chapterId: st
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2">
       <CanvasToolbar showNoStart={anyNode && !flow.hasStart} minimapVisible={minimap} onToggleMinimap={toggleMinimap} />
-      <div ref={canvasRef} data-testid="canvas" data-node-count={count} data-ready={inited && flow.synced ? 'true' : 'false'} className="kwnto-canvas h-[calc(100vh-14rem)] min-h-96" onDoubleClick={actions.createAt}>
+      <div ref={canvasRef} data-testid="canvas" data-node-count={count} data-ready={inited && flow.synced ? 'true' : 'false'} className="kwnto-canvas relative h-[calc(100vh-14rem)] min-h-96" onDoubleClick={actions.createAt}>
+        {link.linking && <div role="status" className="panel absolute left-1/2 top-2 z-10 -translate-x-1/2">{LINK_BANNER}</div>}
         <ReactFlow<CardNode>
           nodes={flow.nodes} edges={flow.edges} nodeTypes={nodeTypes}
           onNodesChange={flow.onNodesChange} onEdgesChange={flow.onEdgesChange}
           onConnect={actions.onConnect} onNodeDragStop={actions.onNodeDragStop}
-          onInit={() => setInited(true)}
+          onInit={() => setInited(true)} onNodeClick={link.onNodeClick} onPaneClick={link.onPaneClick} elementsSelectable={!link.linking}
           deleteKeyCode={null} zoomOnDoubleClick={false} fitView fitViewOptions={{ maxZoom: 1 }}
           // PERF: What: draw only the nodes and edges in view. Why: a 500-node chapter would put
           // every card in the DOM. Trade-off: cards appear a frame late while panning fast.

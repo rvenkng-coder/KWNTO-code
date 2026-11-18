@@ -4,7 +4,7 @@ import { NODE_COLORS } from '../model/colors'
 import { useEditor } from '../store/editorStore'
 import { edits } from '../store/edits'
 import { useSavedText } from '../store/useSavedText'
-import { CrossLinks } from './CrossLinks'
+import { Choices } from './Choices'
 import { Cues } from './Cues'
 import { ScriptLines } from './ScriptLines'
 
@@ -25,7 +25,7 @@ function ColorSwatches({ node }: { node: StoryNode }) {
   )
 }
 
-/** One selected node (design 6.2): title, colour, start node, script lines, cues and links to other chapters. */
+/** One selected node (design 6.2): title, colour, start node, script lines, cues and choices (with links to other chapters). */
 export function NodeFields({ node }: { node: StoryNode }) {
   const [title, setTitle, flush] = useSavedText('nodes', node.id, 'title', node.title)
   const isStart = useEditor((s) => s.content.project?.startNodeId === node.id)
@@ -42,7 +42,7 @@ export function NodeFields({ node }: { node: StoryNode }) {
         : <button type="button" className="btn self-start" onClick={makeStart}>Make start node</button>}
       <ScriptLines projectId={node.projectId} nodeId={node.id} />
       <Cues projectId={node.projectId} nodeId={node.id} />
-      <CrossLinks node={node} />
+      <Choices node={node} />
     </div>
   )
 }

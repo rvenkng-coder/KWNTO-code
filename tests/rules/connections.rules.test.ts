@@ -122,3 +122,14 @@ test('a node may have many empty choices but one choice per target', async () =>
   const relink = await guardedUpdate(member, 'connections', second.id, { version: 0, to_node: b })
   expect(relink.status).not.toBe(200)
 })
+
+// Protects editor cards design F2: `created` is the server's own time, so a client cannot backdate a
+// choice to take another's place. (A choice that undo makes again therefore joins the end of the list
+// after a reload.)
+test('a client cannot set the created time of a choice', async () => {
+  const { member, projectId, chapterId } = await memberProject()
+  const a = await createNode(member, projectId, chapterId)
+  const choice = await (await asUser(member)).collection('connections')
+    .create({ project: projectId, from_node: a, to_node: '', created: '2020-01-01 00:00:00.000Z' })
+  expect(choice.created).not.toBe('2020-01-01 00:00:00.000Z')
+})

@@ -36,8 +36,8 @@ This task brings the docs in line, records what moved to later plans, runs the w
 
 - [x] **Step 6A.1: Update the docs** listed above. Run `npm run lint`, which includes the docs link check. Expect a PASS.
 - [x] **Step 6A.2: Run `npm test` twice.** Expect a PASS both times. If anything fails, stop and report; do not edit a failing test. Record both results in `progress.md`.
-- [ ] **Step 6A.3: Hand the Flow below to the developer.** It gathers every walk Tasks 2 to 5 left to the developer, so no other task's Flow is walked separately. Record their result per step in `progress.md`, including their ruling on step 7. Anything they reject becomes a fix (with its own failing test) or a roadmap line, as they choose. Mark the plan `done` only after they confirm.
-- [ ] **Step 6A.4: Close the checkpoint** with one commit: `docs: close the editor cards plan`.
+- [x] **Step 6A.3: Hand the Flow below to the developer.** It gathers every walk Tasks 2 to 5 left to the developer, so no other task's Flow is walked separately. Record their result per step in `progress.md`, including their ruling on step 7. Anything they reject becomes a fix (with its own failing test) or a roadmap line, as they choose. Mark the plan `done` only after they confirm.
+- [x] **Step 6A.4: Close the checkpoint** with one commit: `docs: close the editor cards plan`.
 
 ## Test plan
 ### Cases

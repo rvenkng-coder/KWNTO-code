@@ -31,8 +31,8 @@ This task brings the docs in line with the new editor, records the later work, a
 
 - [x] **Step 3A.1: Update the docs** listed above. Run `npm run lint`, which includes the docs link check. Expect a PASS.
 - [x] **Step 3A.2: Run `npm test`.** Expect a PASS, then run it a second time. If anything fails, stop and report; do not edit a failing test. Record both results in `progress.md`.
-- [ ] **Step 3A.3: Hand the Flow below to the developer.** Record their result in `progress.md`. Mark the plan `done` only after they confirm.
-- [ ] **Step 3A.4: Close the checkpoint** with one commit: `docs: close the editor tabs plan`.
+- [x] **Step 3A.3: Hand the Flow below to the developer.** Record their result in `progress.md`. Mark the plan `done` only after they confirm.
+- [x] **Step 3A.4: Close the checkpoint** with one commit: `docs: close the editor tabs plan`.
 
 ## Test plan
 ### Cases

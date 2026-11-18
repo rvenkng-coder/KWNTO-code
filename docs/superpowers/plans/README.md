@@ -17,9 +17,9 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 | 9 | Player Mode | 4 | 3 | outline |
 | 10 | Path analytics | 5 | 9 | outline |
 
-**Editor polish plan:** [Editor tabs and Add node](2026-11-18-editor-tabs/README.md), status `in progress` (built and tested; `done` once the developer has walked its Flow).
+**Editor polish plan:** [Editor tabs and Add node](2026-11-18-editor-tabs/README.md), status `done` (the developer accepted the branch on 2026-11-18).
 
-**Editor cards plan:** [Editor cards, choices and tools](2026-11-18-editor-cards/README.md), status `in progress` (built and tested; `done` once the developer has walked its Flow).
+**Editor cards plan:** [Editor cards, choices and tools](2026-11-18-editor-cards/README.md), status `done` (the developer closed it on 2026-11-18 and recorded the UI problems below for a later plan).
 
 **Tooling plan (not a product plan):** [Local-AI quality tooling](2026-11-13-local-ai-quality/README.md) (test strategy, project test plan, `check:task`), status `done`; built before Plan 3 so Plan 3's tasks can carry the Test plan block.
 
@@ -55,6 +55,20 @@ Asked for while the editor tabs plan was designed and left out of it on purpose.
 |---|---|
 | Custom node colours (hex or RGB) | Change `nodes.color` from an 8-value select to a validated hex text field, and pick black or white header text by contrast so it stays readable. |
 | Duplicate chapter | Copy nodes, lines, cues and connections, and decide what happens to cross-chapter links. |
+
+## UI problems found after the editor cards plan (developer, 2026-11-18)
+
+The developer used the editor after the cards plan and found it better but not yet right. These go into a UI plan, designed with the developer before it is written (no detailed plan yet). The source is `.planning/2026-11-18-editor-cards/progress.md`.
+
+| Item | What and why |
+|---|---|
+| The editor's left panel is empty | After chapters moved to tabs and Add node to the tool strip, the left panel holds only "Back to teams" and the project name. A whole column is spent on two controls. Decide what it is for, or remove it. |
+| The teams screens feel clunky | The Teams page stacks Create team, the invites inbox, the join-code form and the team list in one column. A team's page stacks Members, Projects and the owner's join code, invite form and Delete team. Projects are plain links, and members read `Name (role)`. |
+| Browser pop-ups | Create team asks for its name with `prompt()`. Moving a project to the trash and deleting a team confirm with `confirm()`. Both look out of place and can't be styled. |
+| "Back to teams" goes too far | From the editor it opens the list of all teams, not the team the project belongs to. |
+| The UI as a whole | The developer wants the whole UI fixed, not one screen. Before designing, ask what they open KWNTO to reach first: the answer decides whether the teams area becomes a home page with projects up front or stays a settings area. |
+| Undo of a deleted choice, after a reload | It comes back in its place, but after a reload it is last, because PocketBase sets `created` itself (pinned by the rules test `a client cannot set the created time of a choice`). Not yet ruled on: accept, or keep an explicit order field. |
+| The cards plan's walk | The developer closed the plan on their general use of the editor rather than the 8-step Flow in [Task 6](2026-11-18-editor-cards/task-6-closeout.md). Walk that Flow during the UI plan, in both browsers and both themes. |
 
 ## Carried over from the local-AI quality plan
 

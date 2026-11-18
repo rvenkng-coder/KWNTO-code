@@ -92,3 +92,12 @@ Every team has one row, made by the server together with the team (and removed w
 | `join_code_enabled` | `false` | Whether the code works. **Off by default**: the owner turns it on when they want people to join by code, and off again afterwards. |
 
 Teams themselves are in `teams` (name and owner) and their members in `team_members` (`role` is `owner` or `member`; `user_name` is a copy of the member's name, kept up to date by the server). An account that owns a team cannot be deleted until its team is deleted; deleting any other account removes it from its teams.
+
+## Project settings (`project_settings`)
+
+Every project has one row, made by the server together with the project (and removed with it); the same step also gives the project its first chapter, `Chapter 1`. Any member of the project's team edits it from the app; you can edit it in the dashboard (Collections, `project_settings`, filter by `project`). Nobody can add or delete a row through the API.
+
+| Field | Default | What it does |
+|---|---|---|
+| `analytics_enabled` | `false` | Whether play-through analytics are recorded for this project's shared links (design 6.6). **Off by default**; used by a later plan. |
+| `version` | `0` | A counter the server raises on every save, so two people saving at once cannot overwrite each other (see [backend.md, "Guarded writes"](../developer/backend.md#guarded-writes)). Do not change it by hand. If someone saved the row after you opened it in the dashboard, your save should be refused with "This record was changed by someone else": reload and save again. |

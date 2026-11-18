@@ -60,6 +60,23 @@ test('wrong code and regenerate', async ({ page, browser }) => {
   await page2.close()
 })
 
+// Protects: race between the screen's first team list and a failed join (Plan 3 Task 4
+// flake): a list response that lands after the join error must not clear the error.
+test('wrong code error survives a slow response', async ({ page }) => {
+  await page.route('**/api/collections/team_members/records**', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 1_000))
+    await route.continue()
+  })
+  await page.goto('/')
+  await signUpVerifyAndSignIn(page, uniqueEmail(), 'Slow')
+  await page.getByPlaceholder('Join code').fill('WRONGCODE')
+  await page.getByRole('button', { name: 'Join' }).click()
+  await expect(page.getByTestId('form-error')).toHaveText('That join code is not valid.')
+  // The delayed team list lands after the join error; the error must still be there.
+  await settled(page)
+  await expect(page.getByTestId('form-error')).toHaveText('That join code is not valid.')
+})
+
 // Protects: invite flow — owner invites, invitee sees the invite on the Teams screen
 // (they may have no team yet), accepts, and the team appears.
 test('invite flow', async ({ page, browser }) => {
@@ -143,7 +160,7 @@ test('sign-up and verification gate', async ({ page }) => {
   await signUp(page, email, 'Verifier', 'KwntoPass99')
   await expect(page.getByText('Check your email')).toBeVisible()
   // Sign in works but create team is gated
-  await page.getByRole('link', { name: 'Sign in' }).click()
+  await page.getByRole('button', { name: 'Sign in' }).first().click()
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Password').fill('KwntoPass99')
   await page.getByRole('button', { name: 'Sign in' }).click()
@@ -172,7 +189,7 @@ test('lockout after three wrong passwords', async ({ page }) => {
   await page.goto('/')
   await signUp(page, email, 'Locker', 'KwntoPass99')
   await verifyByEmail(email)
-  await page.getByRole('link', { name: 'Sign in' }).click()
+  await page.getByRole('button', { name: 'Sign in' }).first().click()
   // Three wrong attempts — each shows wrong password, not lockout
   for (let i = 0; i < 3; i++) {
     await page.getByLabel('Email').fill(email)
@@ -198,8 +215,8 @@ test('session survives reload; sign-out clears it', async ({ page }) => {
   await page.reload()
   await expect(page.getByTestId('session-user')).toContainText('Session')
   await page.getByRole('button', { name: 'Sign out' }).click()
-  await expect(page.getByRole('link', { name: 'Sign up' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Sign up' })).toBeVisible()
   await page.reload()
-  await expect(page.getByRole('link', { name: 'Sign up' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Sign up' })).toBeVisible()
   await expect(page.getByTestId('session-user')).toHaveCount(0)
 })

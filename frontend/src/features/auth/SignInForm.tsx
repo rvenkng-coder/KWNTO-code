@@ -25,11 +25,12 @@ export function SignInForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="panel flex w-full max-w-sm flex-col gap-2">
       <h2>Sign in</h2>
       <div>
         <label htmlFor="signin-email">Email</label>
         <input
+          className="field"
           id="signin-email"
           type="email"
           value={email}
@@ -40,6 +41,7 @@ export function SignInForm() {
       <div>
         <label htmlFor="signin-password">Password</label>
         <input
+          className="field"
           id="signin-password"
           type="password"
           value={password}
@@ -51,10 +53,10 @@ export function SignInForm() {
       {resetSent && (
         <p className="neutral">If that account exists, we sent a link.</p>
       )}
-      <a href="#" onClick={handleForgotPassword}>
+      <button type="button" className="link-button" onClick={handleForgotPassword}>
         Forgot password?
-      </a>
-      <button type="submit">Sign in</button>
+      </button>
+      <button type="submit" className="btn-primary">Sign in</button>
     </form>
   )
 }

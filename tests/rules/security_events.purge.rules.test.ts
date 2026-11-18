@@ -45,7 +45,9 @@ test('security_events: the purge keeps entries inside the retention period and r
   await admin.crons.run(JOB)
   expect(await entryExists(entry.id), 'an entry inside the retention period was purged').toBe(true)
 
+  // PocketBase runs a triggered job in the background and answers at once (apis/cron.go,
+  // routine.FireAndForget), so wait for the delete instead of checking straight away.
   await setRetentionDays(0)
   await admin.crons.run(JOB)
-  expect(await entryExists(entry.id), 'an entry older than the retention period was kept').toBe(false)
+  await expect.poll(() => entryExists(entry.id), { message: 'an entry older than the retention period was kept', timeout: 5000 }).toBe(false)
 })

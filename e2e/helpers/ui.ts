@@ -11,7 +11,7 @@ export async function signUp(
   name: string,
   password: string,
 ): Promise<void> {
-  await page.getByRole('link', { name: 'Sign up' }).click()
+  await page.getByRole('button', { name: 'Sign up' }).click()
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Name').fill(name)
   await page.getByLabel('Password').fill(password)
@@ -33,7 +33,11 @@ export async function signUpVerifyAndSignIn(
 ): Promise<void> {
   await signUp(page, email, name, password)
   await verifyByEmail(email)
-  await page.getByRole('link', { name: 'Sign in' }).click()
+  await page
+    .getByRole('paragraph')
+    .filter({ hasText: 'Already have an account?' })
+    .getByRole('button', { name: 'Sign in' })
+    .click()
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Password').fill(password)
   await page.getByRole('button', { name: 'Sign in' }).click()

@@ -6,7 +6,7 @@ Go to **Sign up**, enter your email, name and a password (at least 10 characters
 
 ## Verify your email
 
-Open the link in the email we send you. Once your address is verified (the page picks this up when you return to it), you can create and join teams.
+Open the link in the email we send you. If you need another copy, click **Resend verification email** on the Teams screen. Once your address is verified (the page picks this up when you return to it), you can create and join teams.
 
 ## Sign in
 
@@ -25,6 +25,10 @@ The owner enables a join code on the team page. Share that code with someone —
 ## Invites
 
 The owner can invite people by email. The invitee sees the invite in their inbox and can accept or decline. The owner never sees the invitee's email — only their name once they've accepted.
+
+## Light and dark theme
+
+The button in the top bar switches between the light and the dark theme. Your choice is saved to your account, so it is the same after a reload and on every device you sign in on. A new account starts dark. On the sign-in screen, before you are signed in, the app follows your browser or system setting.
 
 ## What only the owner can do
 

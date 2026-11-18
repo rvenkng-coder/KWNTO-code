@@ -9,7 +9,7 @@ test('sign-up with weak password shows error, no confirmation', async ({
 }) => {
   const email = uniqueEmail()
   await page.goto('/')
-  await page.getByRole('link', { name: 'Sign up' }).click()
+  await page.getByRole('button', { name: 'Sign up' }).click()
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Name').fill('Shorty')
   await page.getByLabel('Password').fill('short1')

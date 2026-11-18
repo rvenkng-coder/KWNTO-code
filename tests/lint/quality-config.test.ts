@@ -56,8 +56,16 @@ describe('quality limits', () => {
 
   // Protects: long parameter lists are reported at 6.
   test('6 parameters fail', async () => {
-    expect(await rulesFor('frontend/src/a.ts', 'function f(a, b, c, d, e) { return a }\n')).toEqual([])
-    expect(await rulesFor('frontend/src/a.ts', 'function f(a, b, c, d, e, g) { return a }\n')).toContain('max-params')
+    expect(await rulesFor('frontend/src/a.ts', 'function f(a, b, c, d, e) {\n  return a\n}\n')).toEqual([])
+    expect(await rulesFor('frontend/src/a.ts', 'function f(a, b, c, d, e, g) {\n  return a\n}\n')).toContain('max-params')
+  })
+
+  // Protects: statements squeezed onto one line (a way to pass the length limit without splitting
+  // the function) are reported; one statement per line passes.
+  test('two statements on one line fail max-statements-per-line', async () => {
+    expect(await rulesFor('frontend/src/a.ts', 'function f(a) {\n  if (!a) { doIt(); return 1 }\n  return 2\n}\n')).toContain('max-statements-per-line')
+    expect(await rulesFor('frontend/src/a.ts', 'function f() {\n  try { doIt() } catch { redo() }\n}\n')).toContain('max-statements-per-line')
+    expect(await rulesFor('frontend/src/a.ts', 'function f(a) {\n  if (!a) return 1\n  doIt()\n  return 2\n}\n')).toEqual([])
   })
 
   // Protects: console is banned in the app and hooks but scripts print by design.

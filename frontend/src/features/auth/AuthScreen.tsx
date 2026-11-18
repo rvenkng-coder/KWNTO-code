@@ -14,25 +14,25 @@ export function AuthScreen() {
   }
 
   return (
-    <div>
+    <div className="mx-auto flex w-full max-w-sm flex-col gap-3 p-4">
       {view === 'signin' ? (
         <>
           <SignInForm />
           <p>
             Don't have an account?{' '}
-            <a href="#" onClick={(e) => { e.preventDefault(); setView('signup') }}>
+            <button type="button" className="link-button" onClick={() => setView('signup')}>
               Sign up
-            </a>
+            </button>
           </p>
         </>
       ) : (
         <>
-          <SignUpForm />
+          <SignUpForm onSignIn={() => setView('signin')} />
           <p>
             Already have an account?{' '}
-            <a href="#" onClick={(e) => { e.preventDefault(); setView('signin') }}>
+            <button type="button" className="link-button" onClick={() => setView('signin')}>
               Sign in
-            </a>
+            </button>
           </p>
         </>
       )}

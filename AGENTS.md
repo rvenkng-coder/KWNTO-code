@@ -27,6 +27,7 @@ See the [design](docs/superpowers/specs/2026-11-11-kwnto-design.md) and [ERD](do
 | `scripts/` | TypeScript utility scripts (run with `node`) |
 | `spike/` | Throwaway spikes (isolated from the app) |
 | `.pi/skills/` | Skills for the local model (`local-task`: loaded with `--skill`, see the [runbook](docs/developer/local-model-runbook.md)) |
+| `.claude/skills/` | Skills for the controller (`grading-local-task`: grade, apply and record a local model's work) |
 | `docs/` | Design, engineering, security, developer guides |
 
 ## Commands

@@ -86,6 +86,15 @@ Test the outsider, a plain member and a removed member for every team table: a r
 
 To prove an owner sees no trace of a pending invitee, the test lists every collection the admin knows as the owner and searches the rows for the invitee's id, email and name. `sign-in` log entries hold the email as typed (Task 4), so a check that no email is logged must look at `invite` entries only.
 
+### Content collections (`tests/rules/helpers/content.ts`)
+`projects`, `project_settings`, `chapters` and (from Task 6 of the editor core plan) the node tables. Every update goes through the version guard ([backend.md, "Guarded writes"](backend.md#guarded-writes)), so an update must send `version`.
+
+- `createProject(user, teamId, name?)`: creates a project through the member's own session (the create rule and the projects hook apply), then finds its settings row and first chapter as the admin. Returns `{ id, chapterId, settingsId }`.
+- `guardedUpdate(user | null, collection, id, body)`: a `PATCH` of one record as the user, or signed out with `null`, with `body` sent exactly as given (leave out `version`, or send a stale one, to test the guard). Never throws on an error status; returns a `Reply` (`status`, `body`, `raw`, from `helpers/invites.ts`).
+- `readAsAdmin(collection, id)`: the record as stored, to check that a refused write changed nothing and that `version` rose by exactly 1.
+
+Rule fragments of the content collections (in [1794370000_projects_chapters.js](../../backend/pb_migrations/1794370000_projects_chapters.js); Task 6 copies them): **member of the project's team** `project.team.team_members_via_team.user ?= @request.auth.id`; **create** adds `@request.body.version:isset = false && @request.body.deleted_at:isset = false`; **update** adds `@request.body.version:isset = true` and forbids the parent field (`team` or `project`). An update refused by its rule answers 403 or 404; a stale `version` answers 409. `tests/rules/content-guard.rules.test.ts` holds the concurrency proof (two members, 20 rounds of parallel edits of different fields of one chapter).
+
 ### Admin-only collections (`tests/rules/helpers/admin-only.ts`)
 Collections only the admin may touch (the `system_*` settings and `security_events`) share one set of checks:
 
@@ -145,6 +154,7 @@ End-to-end tests verify the full stack: browser → Vite dev server → PocketBa
 - **Base URL:** `http://localhost:5174` (Vite dev server started by Playwright's `webServer`).
 - **WebServer:** Starts `npm run dev -- --port 5174 --strictPort` automatically before tests.
 - **Timeout:** 60 seconds per test.
+- **The performance spec runs alone.** `e2e/editor-performance.spec.ts` (500 nodes within 3 s, [decision 0003](../decisions/0003-canvas-performance.md)) is left out of the `chromium` and `firefox` projects and runs in `perf-chromium`, then `perf-firefox`, after every other test has finished, so no other worker shares the machine with it. It loads a **production build** served by `vite preview` on port 5175 (a second Playwright web server), not the dev server, so it times the app people will use. Next to three other workers it measured load, not the app (Firefox about 1.2 s alone, up to 3.4 s in the parallel suite). If any other test fails, Playwright skips the two perf projects. To run only the performance spec: `npm run test:e2e -- --project perf-firefox --project perf-chromium --no-deps`.
 
 ### Running E2E Tests
 - **Standalone:** `npm run test:e2e` (starts PocketBase via `with-pocketbase.ts`, then Playwright).
@@ -187,7 +197,7 @@ The CI workflow runs on pushes to `main` and on every pull request (so a branch 
 
 | Job | What it runs | Notes |
 |---|---|---|
-| `checks` | `npm run lint`, `npm run typecheck`, `npm run test:unit`, `npm audit --audit-level=high` | Runs on every run |
+| `checks` | `npm run lint`, `npm run typecheck`, `npm run test:unit`, `npm audit --omit=dev --audit-level=high` (shipped dependencies only; build and test tools are not audited in CI, developer decision 2026-11-18) | Runs on every run |
 | `backend` | `npm run test:container`, `npm run test:rules` | Uses the runner's Docker; `with-pocketbase.ts` starts and stops PocketBase itself |
 | `e2e` | Playwright install (firefox + chromium), `npm run test:e2e` | Uses the runner's Docker via `with-pocketbase.ts`; uploads `playwright-report/` on failure |
 | `secrets` | gitleaks over full history (`fetch-depth: 0`) | Runs on every run |

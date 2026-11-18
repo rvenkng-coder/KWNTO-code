@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { backend } from '../../backend'
 import type { Invite } from '../../backend/types'
 import { errorMessage } from '../errorMessage'
+import { useSession } from '../auth/useSession'
 
 interface InvitesInboxProps {
   onAccepted?: () => void
@@ -10,6 +11,7 @@ interface InvitesInboxProps {
 export function InvitesInbox({ onAccepted }: InvitesInboxProps) {
   const [invites, setInvites] = useState<Invite[]>([])
   const [error, setError] = useState<string | null>(null)
+  const { user } = useSession()
 
   useEffect(() => {
     async function load() {
@@ -47,15 +49,15 @@ export function InvitesInbox({ onAccepted }: InvitesInboxProps) {
   }
 
   return (
-    <div data-testid="invite-inbox">
+    <div data-testid="invite-inbox" className="panel">
       <h3>Invites</h3>
       {error && <p data-testid="form-error" role="alert">{error}</p>}
       <ul>
         {invites.map((invite) => (
-          <li key={invite.id}>
+          <li key={invite.id} className="flex flex-wrap items-center gap-2">
             {invite.teamName} (invited by {invite.invitedByName})
-            <button onClick={() => handleAccept(invite.id)}>Accept</button>
-            <button onClick={() => handleDecline(invite.id)}>Decline</button>
+            <button className="btn-primary" onClick={() => handleAccept(invite.id)} disabled={!user?.verified}>Accept</button>
+            <button className="btn" onClick={() => handleDecline(invite.id)}>Decline</button>
           </li>
         ))}
       </ul>

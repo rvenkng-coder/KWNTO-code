@@ -19,6 +19,7 @@ Files checked: `.ts`, `.tsx` and `.js` under `frontend/src/`, `scripts/` and `ba
 | `complexity` | 10 | Each branch is one more case to keep in mind; split a function that has more. |
 | `max-depth` | 4 | Deeply nested blocks hide which condition applies; return early or extract. |
 | `max-params` | 5 | Many parameters are easy to pass in the wrong order; use an object. |
+| `max-statements-per-line` | 1 | Cramming statements onto one line hides a long function instead of splitting it (a local model did this once, see the Task 3 report). One statement per line; a short arrow body such as `() => { x.delete(y) }` goes on its own lines. |
 | `no-debugger` | all files | A stray `debugger` must never be committed. |
 | `no-console` | `frontend/src/` and `backend/pb_hooks/` (scripts print by design and are exempt) | The app and the hooks use their own error paths, not console output. |
 

@@ -29,11 +29,11 @@ type Edits = {
 }
 
 // D11: offline with changes waiting, undo and redo do nothing and say why.
-function pauseGate(store: StoreApi<EditorStore>, undoPaused: () => string | null) {
+function pauseGate(store: StoreApi<EditorStore>, undoPaused: () => string | null, settle: () => Promise<void>) {
   return (run: () => Promise<void>): Promise<void> | void => {
     const paused = undoPaused()
     if (paused !== null) return store.setState({ error: paused })
-    return run()
+    return settle().then(run)
   }
 }
 
@@ -86,7 +86,7 @@ function createRecorder(store: StoreApi<EditorStore>, flush: () => void, undoPau
   let history: History = EMPTY_HISTORY
   let collecting: Change[] | null = null
   const inFlight = createInFlight(flush)
-  const whenNotPaused = pauseGate(store, undoPaused)
+  const whenNotPaused = pauseGate(store, undoPaused, inFlight.settle)
 
   // Applies a step if every change still fits the state; otherwise skips it with `blocked`.
   async function play(taken: { history: History; step: Step } | null, blocked: string, skipped: History | null): Promise<void> {
@@ -120,15 +120,13 @@ function createRecorder(store: StoreApi<EditorStore>, flush: () => void, undoPau
       }
     },
     async undo() {
-      await whenNotPaused(async () => {
-        await inFlight.settle()
+      await whenNotPaused(() => {
         const taken = takeUndo(history)
         return play(taken, UNDO_BLOCKED, taken === null ? null : { past: taken.history.past, future: history.future })
       })
     },
     async redo() {
-      await whenNotPaused(async () => {
-        await inFlight.settle()
+      await whenNotPaused(() => {
         const taken = takeRedo(history)
         return play(taken, REDO_BLOCKED, taken === null ? null : { past: history.past, future: taken.history.future })
       })

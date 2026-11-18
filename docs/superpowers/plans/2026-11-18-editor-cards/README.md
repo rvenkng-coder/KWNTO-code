@@ -126,7 +126,7 @@ These are the failure modes most likely to bite a person. Each is pinned by a te
 | 2 | [Choices and cues on the card](task-2-card-choices.md) | strong | 1 | 2A 2B | done |
 | 3 | [Choices in the panel and link mode](task-3-panel-choices.md) | mid | 2 | 3A | done |
 | 4 | [Tool strip, Cut, left panel and scrolling](task-4-tool-strip.md) | mid | 1 | 4A 4B | done |
-| 5 | [The cleaner look](task-5-look.md) | mid | 2, 3, 4 | 5A | not started |
+| 5 | [The cleaner look](task-5-look.md) | mid | 2, 3, 4 | 5A | done |
 | 6 | [Docs and close-out](task-6-closeout.md) | mid | 1 to 5 | 6A | not started |
 
 **Status values:** `not started`, `in progress`, `awaiting review`, `done`. Run the tasks one at a time, in order.

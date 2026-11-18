@@ -159,6 +159,7 @@ function clamp(value: number, max: number): number {
 | C12 | close versus trash (moved test) | e2e | close, reopen from All chapters, trash from tab menu, reload | tab back; then gone from tabs and All chapters | e2e/editor-chapters.spec.ts :: closing a tab hides it and trashing removes the chapter |
 | C13 | a scrolled-off tab's menu stays open (found in the Flow) | e2e | 5 chapters in a 1000 px window, strip at the start, `Menu for Chapter 5` → `Move left` | the menu stays open; order 1, 2, 3, 5, 4 | e2e/editor-tabs.spec.ts :: the menu of a scrolled-off tab stays open and works |
 | C14 | scrolling the strip closes a menu (E1) | e2e | open `Menu for Chapter 1`, scroll the strip to the end | no menu | e2e/editor-tabs.spec.ts :: scrolling the tab strip closes an open menu |
+| C15 | a long All chapters list scrolls inside the window (final review) | e2e | 12 chapters in a 1000×420 window, open `All chapters`, choose `Chapter 12` | menu inside the window; `Chapter 12` opens and is selected | e2e/editor-tabs.spec.ts :: a long All chapters list scrolls inside the window |
 ### Probes
 **Probe folder:** none
 ### Breaks

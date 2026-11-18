@@ -6,6 +6,7 @@ interface PopoverProps { anchor: HTMLElement; label: string; onClose(): void; ch
 
 // A menu drawn in its own layer on `document.body`, so a scrolling tab strip cannot clip it and
 // the canvas cannot cover it. It sits where `menuPosition` says, measured after the first render.
+// It is never taller than the window and scrolls inside itself (a project with many chapters).
 // It closes on Escape (focus goes back to its button), on a press outside it and its button, on
 // a window resize and on any scroll that moves its button (decision E1). A scroll that leaves the
 // button where it was is ignored: Chromium reports the scroll that brought a half-hidden button
@@ -28,7 +29,7 @@ export function Popover({ anchor, label, onClose, children }: PopoverProps): Rea
       ref={menu}
       role="menu"
       aria-label={label}
-      className="panel fixed z-50 flex flex-col gap-1 p-1"
+      className="panel fixed z-50 flex max-h-[calc(100vh-1rem)] flex-col gap-1 overflow-y-auto p-1"
       style={{ left: at?.left ?? 0, top: at?.top ?? 0, visibility: at === null ? 'hidden' : 'visible' }}
     >
       {children}

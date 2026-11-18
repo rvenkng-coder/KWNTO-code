@@ -123,3 +123,20 @@ test('scrolling the tab strip closes an open menu', async ({ page }) => {
   await page.getByRole('tablist').evaluate((strip) => { strip.scrollLeft = strip.scrollWidth })
   await expect(page.getByRole('menu')).toHaveCount(0)
 })
+
+// Protects: a long All chapters list stays inside the window and scrolls, so the last chapter can still be reopened (spec anti-goal: no chapter action unreachable).
+test('a long All chapters list scrolls inside the window', async ({ page }) => {
+  await page.setViewportSize({ width: 1000, height: 420 })
+  await ownerWithProject(page, 'Story')
+  for (let i = 0; i < 11; i++) await addChapter(page)
+  await page.getByRole('button', { name: 'All chapters' }).click()
+  const list = page.getByRole('menu', { name: 'All chapters' })
+  const box = (await list.boundingBox())!
+  expect(box.y).toBeGreaterThanOrEqual(0)
+  expect(box.y + box.height).toBeLessThanOrEqual(420)
+  const last = list.getByRole('menuitem', { name: 'Chapter 12' })
+  await last.scrollIntoViewIfNeeded()
+  await expect(list).toBeVisible()
+  await last.click()
+  await expect(page.getByRole('tab', { name: 'Chapter 12' })).toHaveAttribute('aria-selected', 'true')
+})

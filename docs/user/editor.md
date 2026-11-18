@@ -24,7 +24,7 @@ A project is split into chapters. Each chapter has a **tab** in the bar above th
 - **See every chapter:** `≡` at the start of the bar lists all chapters, including those whose tab you closed. The open one is in bold. Choose one to open it (its tab comes back if it was closed).
 - **Resize a tab:** drag the thin bar on the right edge of the tab. This is only how *you* see the tabs; it is not saved.
 
-Every menu opens above the canvas, next to its button, and stays inside the window. Escape, a click anywhere else, resizing the window or scrolling the tabs closes it.
+Every menu opens above the canvas, next to its button, and stays inside the window; a list longer than the window scrolls inside itself. Escape, a click anywhere else, resizing the window or scrolling the tabs closes it.
 
 ### Closing a tab is not deleting a chapter
 

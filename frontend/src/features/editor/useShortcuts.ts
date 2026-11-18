@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { selectAll, trashSelection } from './canvas/selectionActions'
+import { cutSelection, selectAll, trashSelection } from './canvas/selectionActions'
 import { useSelection } from './canvas/useSelection'
 import { shortcutFor, type ShortcutAction } from './model/shortcuts'
 import { edits } from './store/edits'
@@ -18,6 +18,7 @@ function run(action: ShortcutAction, chapterId: string | null): void {
     undo: () => void edits.undo(),
     redo: () => void edits.redo(),
     copy: () => edits.copy(nodeIds),
+    cut: () => void cutSelection(),
     paste: () => void (chapterId !== null && edits.paste(chapterId)),
     delete: () => void trashSelection(),
     // The search box of Task 13, when it is on the page.

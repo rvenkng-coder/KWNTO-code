@@ -1,4 +1,4 @@
-export type ShortcutAction = 'undo' | 'redo' | 'copy' | 'paste' | 'delete' | 'search' | 'selectAll'
+export type ShortcutAction = 'undo' | 'redo' | 'copy' | 'cut' | 'paste' | 'delete' | 'search' | 'selectAll'
 
 export interface KeyInput {
   key: string
@@ -32,7 +32,7 @@ function lookup(k: string, shift: boolean, mod: boolean): ShortcutAction | null 
   const prefix = mod ? 'm' : ''
   const suffix = shift ? 's' : ''
   const combo = prefix + suffix + k
-  const map: Record<string, ShortcutAction> = { mz: 'undo', msz: 'redo', my: 'redo', mc: 'copy', mv: 'paste', mk: 'search', ma: 'selectAll' }
+  const map: Record<string, ShortcutAction> = { mz: 'undo', msz: 'redo', my: 'redo', mx: 'cut', mc: 'copy', mv: 'paste', mk: 'search', ma: 'selectAll' }
   return map[combo] ?? null
 }
 

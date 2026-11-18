@@ -17,6 +17,8 @@ export interface EditorStore {
   /** Door calls in flight (create, update, remove); a screen warns before unload while > 0. */
   saving: number
   content: ContentState
+  /** Whether something was copied or cut in this tab (F4); Paste is disabled until then. */
+  hasClip: boolean
   open(projectId: string): Promise<void>
   close(): Promise<void>
   create<K extends CreatableKind>(kind: K, record: ContentRecords[K]): Promise<boolean>
@@ -31,6 +33,7 @@ export function createEditorStore(door: EditorDoor): StoreApi<EditorStore> {
     error: null,
     saving: 0,
     content: EMPTY_STATE,
+    hasClip: false,
     ...createSession(door, set),
     ...createEdits(door, set, get),
     dismissError() {

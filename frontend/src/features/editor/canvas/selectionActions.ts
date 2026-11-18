@@ -21,6 +21,14 @@ export async function trashSelection(): Promise<void> {
   })
 }
 
+/** Copies the selected nodes, then trashes them as one step labelled Cut. */
+export async function cutSelection(): Promise<void> {
+  const { nodeIds } = useSelection.getState()
+  if (nodeIds.length === 0) return
+  useSelection.getState().set([], null)
+  await edits.cut(nodeIds)
+}
+
 /** Selects every live node of the chapter. */
 export function selectAll(chapterId: string): void {
   useSelection.getState().set(liveNodes(editorStore.getState().content, chapterId).map((n) => n.id), null)

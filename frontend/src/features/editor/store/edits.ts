@@ -21,6 +21,8 @@ type Edits = {
   undo(): Promise<void>
   redo(): Promise<void>
   copy(nodeIds: string[]): void
+  /** Copies the nodes, then moves them to the trash as one step labelled Cut. */
+  cut(nodeIds: string[]): Promise<void>
   paste(chapterId: string): Promise<void>
   reset(): void
 }
@@ -150,13 +152,22 @@ function createWrites(store: StoreApi<EditorStore>, rec: Recorder): Pick<Edits, 
 }
 
 // Copy and paste (D11); a paste is one step.
-function createClipboard(store: StoreApi<EditorStore>, writes: Pick<Edits, 'create'>, group: Edits['group']): Pick<Edits, 'copy' | 'paste'> {
+function createClipboard(store: StoreApi<EditorStore>, writes: Pick<Edits, 'create' | 'update'>, group: Edits['group']): Pick<Edits, 'copy' | 'cut' | 'paste'> {
   let clip: Clip | null = null
   let pasteCount = 0
+  const copy = (nodeIds: string[]) => {
+    clip = copySelection(store.getState().content, nodeIds)
+    pasteCount = 0
+    store.setState({ hasClip: clip !== null })
+  }
   return {
-    copy(nodeIds) {
-      clip = copySelection(store.getState().content, nodeIds)
-      pasteCount = 0
+    copy,
+    async cut(nodeIds) {
+      copy(nodeIds)
+      if (clip === null) return
+      await group('Cut', async () => {
+        await Promise.all(nodeIds.map((id) => writes.update('nodes', id, { deleted: true }, 'Cut')))
+      })
     },
     async paste(chapterId) {
       const projectId = store.getState().content.project?.id

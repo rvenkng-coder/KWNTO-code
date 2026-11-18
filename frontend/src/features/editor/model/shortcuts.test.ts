@@ -55,3 +55,11 @@ test('Alt inside a text field returns null', () => {
   expect(shortcutFor({ ...no, key: 'k', ctrlKey: true, altKey: true }, true)).toBeNull()
   expect(shortcutFor({ ...no, key: 'k', metaKey: true, altKey: true }, true)).toBeNull()
 })
+
+// Protects: editor cards design goal 3: Ctrl/⌘+X cuts, and (like every shortcut but search) is left to the browser in a text field.
+test('Ctrl+X is cut outside a text field only', () => {
+  const no = { key: 'x', ctrlKey: false, metaKey: false, shiftKey: false, altKey: false }
+  expect(shortcutFor({ ...no, ctrlKey: true }, false)).toBe('cut')
+  expect(shortcutFor({ ...no, metaKey: true }, false)).toBe('cut')
+  expect(shortcutFor({ ...no, ctrlKey: true }, true)).toBeNull()
+})

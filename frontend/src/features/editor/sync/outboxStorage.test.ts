@@ -13,7 +13,8 @@ test('the memory outbox keeps order and moves failed entries', async () => {
   expect(seqs).toEqual([1, 2, 3])
   const all = await box.list('u1')
   await box.put({ ...all[0]!, offline: true })
-  await box.fail(all[1]!, 'nope')
+  const { fail } = box
+  await fail(all[1]!, 'nope')
   await box.remove([1])
   expect((await box.list('u1')).map((e) => e.seq)).toEqual([3])
   expect(await box.add(entry('u1', 'd'))).toBe(4)

@@ -25,6 +25,19 @@ export class BackendError extends Error {
   }
 }
 
+export const EDIT_CONFLICT = 'Someone else changed this while you were offline.'
+
+/** An offline edit met a teammate's change to the same attribute: the sync engine asks the person (D4). */
+export class EditConflict<R = unknown> extends BackendError {
+  server: R
+
+  constructor(server: R) {
+    super('conflict', 409, {}, EDIT_CONFLICT)
+    this.server = server
+    this.name = 'EditConflict'
+  }
+}
+
 export function toBackendError(err: unknown): BackendError {
   if (err instanceof BackendError) return err
 

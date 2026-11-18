@@ -63,19 +63,33 @@ export function createContent(pb: PocketBase) {
       }
     },
 
-    /** Sends only `changes`; a 409 is retried up to MAX_SAVE_TRIES times, then rejects with TOO_BUSY. */
+    /** One record, or null when it does not exist or cannot be seen (404). */
+    async get<K extends ContentKind>(kind: K, id: string): Promise<ContentRecords[K] | null> {
+      try {
+        return await wrapped(async () => fromRecord(kind, await pb.collection(kind).getOne(id)))
+      } catch (err) {
+        if (err instanceof BackendError && err.kind === 'not-found') return null
+        throw err
+      }
+    },
+
+    /**
+     * Sends only `changes`; a 409 is retried up to MAX_SAVE_TRIES times, then rejects with TOO_BUSY.
+     * With `shouldRetry`, a 409 whose current record it rejects stops at once with EditConflict.
+     */
     async update<K extends ContentKind>(
       kind: K,
       id: string,
       changes: Partial<EditableFields[K]>,
       baseVersion: number,
+      options: { shouldRetry?: (current: ContentRecords[K]) => boolean } = {},
     ): Promise<ContentRecords[K]> {
       const io: GuardedIO<ContentRecords[K]> = {
         read: () => wrapped(async () => fromRecord(kind, await pb.collection(kind).getOne(id))),
         write: (body, version) =>
           wrapped(async () => fromRecord(kind, await pb.collection(kind).update(id, { ...body, version }))),
       }
-      return guardedSave(io, toUpdateBody(kind, changes), baseVersion)
+      return guardedSave(io, toUpdateBody(kind, changes), baseVersion, options.shouldRetry)
     },
 
     /** Lines, cues and connections are deleted outright (undo re-creates them). */
@@ -83,9 +97,9 @@ export function createContent(pb: PocketBase) {
       await wrapped(() => pb.collection(kind).delete(id))
     },
 
-    /** Live changes of the project; resolves to a function that closes every subscription. */
-    subscribe(projectId: string, onEvent: (event: RemoteEvent) => void): Promise<() => Promise<void>> {
-      return subscribeProject(pb, projectId, onEvent)
+    /** Live changes of the project; `onReconnect` fires when the stream comes back. Resolves to a function that closes every subscription. */
+    subscribe(projectId: string, onEvent: (event: RemoteEvent) => void, onReconnect?: () => void): Promise<() => Promise<void>> {
+      return subscribeProject(pb, projectId, onEvent, onReconnect)
     },
   }
 }

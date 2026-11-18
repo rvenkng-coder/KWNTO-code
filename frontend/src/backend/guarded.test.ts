@@ -2,7 +2,7 @@
 // only its own fields, retry) ... bound the retries". A conflict is retried with the fresh
 // version and the caller's own body, at most 20 writes, and any other error stops at once.
 import { expect, test } from 'vitest'
-import { BackendError, type BackendErrorKind } from './errors'
+import { BackendError, EditConflict, type BackendErrorKind } from './errors'
 import { guardedSave, MAX_SAVE_TRIES, TOO_BUSY, type GuardedIO } from './guarded'
 
 type Rec = { version: number; title?: string }
@@ -63,4 +63,31 @@ test('errors other than a conflict are not retried', async () => {
   const gone = fakeIO(['conflict'], ['not-found'])
   await expect(guardedSave(gone.io, { x: 1 }, 0)).rejects.toMatchObject({ kind: 'not-found' })
   expect(gone.sent).toHaveLength(1)
+})
+
+// Protects: decision 0002 "or the conflict dialog": a 409 met by an offline edit that is a real conflict stops the retry and hands over the server's record.
+test('a retry stops when the caller sees a real conflict', async () => {
+  const server = { version: 5, title: 'C' }
+  const { io, sent, reads } = fakeIO(['conflict'], [server])
+
+  const error = await guardedSave(io, { title: 'B' }, 3, () => false).catch((e: unknown) => e)
+
+  expect(error).toBeInstanceOf(EditConflict)
+  expect((error as EditConflict<Rec>).server).toBe(server)
+  expect((error as EditConflict<Rec>).kind).toBe('conflict')
+  expect(sent).toHaveLength(1)
+  expect(reads()).toBe(1)
+})
+
+// Protects: online saves keep Plan 3's behaviour: without the option, or when the caller sees no conflict, the retry goes on.
+test('a retry goes on when the caller sees no conflict', async () => {
+  const saved = { version: 6, title: 'B' }
+  const { io, sent } = fakeIO(['conflict', saved], [{ version: 5, title: 'A' }])
+  expect(await guardedSave(io, { title: 'B' }, 3, () => true)).toBe(saved)
+  expect(sent.map((s) => s.version)).toEqual([3, 5])
+
+  const busy = fakeIO(['conflict'], [{ version: 1 }])
+  const error = await guardedSave(busy.io, { x: 1 }, 0).catch((e: unknown) => e)
+  expect(busy.sent).toHaveLength(MAX_SAVE_TRIES)
+  expect((error as Error).message).toBe(TOO_BUSY)
 })

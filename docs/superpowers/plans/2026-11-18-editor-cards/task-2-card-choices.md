@@ -48,24 +48,24 @@ export function linkChoice(choiceId: string, toId: string): boolean
 
 ## Checkpoint 2A: Card data
 
-- [ ] **Step 2A.1: Write the failing tests** in `flow.test.ts`:
+- [x] **Step 2A.1: Write the failing tests** in `flow.test.ts`:
   - **`a card lists every choice in order, empty ones as not linked`.** For a node with choices `Go` (to `b`), `` (empty, created later) and `Away` (to a node in chapter 2), `choices` is:
     1. `{ text: 'Go', linked: true, crossLink: null, untitled: false }`
     2. `{ text: 'Untitled', untitled: true, linked: false, crossLink: null }`
     3. `{ text: 'Away', linked: true, crossLink: { text: '→ Chapter 2: <title>' … } }`
   - **`a card shows two cues then a count`.** A node with cues audio `Rain`, lighting `Dim` and other `Fog`, in sort order, has `cues` equal to `[{ tag: 'Audio', text: 'Rain' }, { tag: 'Light', text: 'Dim' }]` and `moreCues` equal to 1.
   - **`edges leave from their choice's handle and empty choices draw none`.** `toFlowEdges` gives one edge per linked in-chapter choice, with `sourceHandle: 'choice-<id>'`, and none for the empty choice or the cross-chapter one.
-- [ ] **Step 2A.2: Run** `npx vitest run --project unit frontend/src/features/editor/model/flow.test.ts`. Expect a FAIL.
-- [ ] **Step 2A.3: Implement in `flow.ts`.**
+- [x] **Step 2A.2: Run** `npx vitest run --project unit frontend/src/features/editor/model/flow.test.ts`. Expect a FAIL.
+- [x] **Step 2A.3: Implement in `flow.ts`.**
   - **Grouping:** build the choices and cues in one pass per kind over the chapter's node ids, keeping the `PERF:` pattern of `linesByNode`. Add a `PERF:` comment for each new pass.
   - **Cues:** use `.slice(0, CUE_LINES)` and `moreCues = cues.length - CUE_LINES` (at least 0).
   - **Tags:** `CUE_TAG = { audio: 'Audio', lighting: 'Light', other: 'Other' }`.
   - **Cross-chapter text:** stays as `crossLinksByNode` builds it today.
-- [ ] **Step 2A.4: Run.** Expect a PASS. Close the checkpoint with one commit: `feat: card data lists choices and cues`.
+- [x] **Step 2A.4: Run.** Expect a PASS. Close the checkpoint with one commit: `feat: card data lists choices and cues`.
 
 ## Checkpoint 2B: Rows, handles and connecting
 
-- [ ] **Step 2B.1: Write the failing e2e tests** in `e2e/editor-choices.spec.ts`. Give each a `// Protects:` header. Use `ownerWithProject`, `readyCanvas`, `addNodeAt`, `card` and `waitForSave`. Choice rows are `card(page, id).getByTestId('choice-row')`.
+- [x] **Step 2B.1: Write the failing e2e tests** in `e2e/editor-choices.spec.ts`. Give each a `// Protects:` header. Use `ownerWithProject`, `readyCanvas`, `addNodeAt`, `card` and `waitForSave`. Choice rows are `card(page, id).getByTestId('choice-row')`.
   - **`a choice dragged from the plus connector appears as a row with its own line`**
     1. Take nodes `a` and `b`. `connectNodes(page, a, b)`.
     2. `a` has 1 `choice-row` with the text `Untitled`.
@@ -82,8 +82,8 @@ export function linkChoice(choiceId: string, toId: string): boolean
   - **`cues show on the card`**
     1. Add cues `Rain` (Audio), `Dim` (Lighting) and `Fog` (Other) to a node through the panel.
     2. The card shows `Audio`, `Rain`, `Light`, `Dim` and `+1 more`, and does not show `Fog`.
-- [ ] **Step 2B.2: Run** `npm run test:e2e -- e2e/editor-choices.spec.ts`. Expect a FAIL.
-- [ ] **Step 2B.3: Implement.**
+- [x] **Step 2B.2: Run** `npm run test:e2e -- e2e/editor-choices.spec.ts`. Expect a FAIL.
+- [x] **Step 2B.3: Implement.**
   - **`NodeCard`:**
     - **Each row** (`data-testid="choice-row"`) shows the text as a small pill, muted and italic when it is untitled, or the cross-chapter tag button for a `crossLink`. It has `<Handle type="source" position={Position.Right} id={choiceHandleId(id)} />` positioned on that row, hollow when `!linked`.
     - **Below the rows** is a "+" `<Handle type="source" id={NEW_CHOICE_HANDLE} data-testid="new-choice-handle" />`.
@@ -94,7 +94,7 @@ export function linkChoice(choiceId: string, toId: string): boolean
     - `NEW_CHOICE_HANDLE` checks `hasChoiceTo`, then `edits.create('connections', newChoice(projectId, from, to, new Date().toISOString()), 'Add choice')`.
     - `choice-<id>` calls `linkChoice(id, to)`, which checks `hasChoiceTo(s, from, to, id)`, then `edits.update('connections', id, { toNodeId: to }, 'Link choice')`.
   - **`connectNodes` helper:** drag `[data-node-id="<from>"] [data-testid="new-choice-handle"]`. Keep its doc comment true.
-- [ ] **Step 2B.4: Run** the new spec, then `npm run test:e2e -- e2e/editor-canvas.spec.ts e2e/editor-live.spec.ts e2e/editor-undo-paste.spec.ts e2e/editor-search-links.spec.ts`, and `npm run test:e2e -- --project perf-firefox --project perf-chromium --no-deps`, plus lint and typecheck. Expect a PASS. Close the checkpoint with one commit: `feat: choices and cues on the node card`.
+- [x] **Step 2B.4: Run** the new spec, then `npm run test:e2e -- e2e/editor-canvas.spec.ts e2e/editor-live.spec.ts e2e/editor-undo-paste.spec.ts e2e/editor-search-links.spec.ts`, and `npm run test:e2e -- --project perf-firefox --project perf-chromium --no-deps`, plus lint and typecheck. Expect a PASS. Close the checkpoint with one commit: `feat: choices and cues on the node card`.
 
 ## Test plan
 ### Cases

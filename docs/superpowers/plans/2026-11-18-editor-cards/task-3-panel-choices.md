@@ -35,7 +35,7 @@ export const useLinkMode: UseBoundStore<StoreApi<LinkMode>>
 
 ## Checkpoint 3A: The Choices section
 
-- [ ] **Step 3A.1: Write the failing e2e tests** in `e2e/editor-choices-panel.spec.ts`. Give each a `// Protects:` header. The panel is `getByTestId('editor-panel')`, and each choice there is `getByTestId('panel-choice')`.
+- [x] **Step 3A.1: Write the failing e2e tests** in `e2e/editor-choices-panel.spec.ts`. Give each a `// Protects:` header. The panel is `getByTestId('editor-panel')`, and each choice there is `getByTestId('panel-choice')`.
   - **`a choice can be written first and linked later`**
     1. Select `a` and click `Add choice`. Wait for the POST.
     2. The new choice's `Choice text` box is focused. Type `Open the door` and blur. Wait for the PATCH.
@@ -60,8 +60,8 @@ export const useLinkMode: UseBoundStore<StoreApi<LinkMode>>
   - **`linking to a node that already has the choice shows the message`**
     1. Take `a → b` linked and an empty choice of `a`. Click `Link` on the empty choice, then click `b`.
     2. The alert reads `This node already has a choice to New node.`, and the empty choice stays `Not linked`.
-- [ ] **Step 3A.2: Run** `npm run test:e2e -- e2e/editor-choices-panel.spec.ts`. Expect a FAIL.
-- [ ] **Step 3A.3: Implement.**
+- [x] **Step 3A.2: Run** `npm run test:e2e -- e2e/editor-choices-panel.spec.ts`. Expect a FAIL.
+- [x] **Step 3A.3: Implement.**
   - **`Choices`:**
     - A heading `Choices`, then one `ChoiceRow` per `choicesOf(content, node.id)`.
     - **`Add choice`** creates `newChoice(projectId, node.id, null, new Date().toISOString())` with `Add choice` and focuses the new row's text box (pass the new id to focus).
@@ -78,7 +78,7 @@ export const useLinkMode: UseBoundStore<StoreApi<LinkMode>>
       - `onPaneClick` calls `stop()`, and so does Escape on `window`.
       - The banner `LINK_BANNER` shows at the top centre of the canvas (`role="status"`).
     - **Unmount or a chapter change** calls `stop()`.
-- [ ] **Step 3A.4: Run** the new spec, then `npm run test:e2e -- e2e/editor-panel.spec.ts e2e/editor-choices.spec.ts`, plus lint and typecheck. Expect a PASS. Close the checkpoint with one commit: `feat: write, link and unlink choices in the panel`.
+- [x] **Step 3A.4: Run** the new spec, then `npm run test:e2e -- e2e/editor-panel.spec.ts e2e/editor-choices.spec.ts`, plus lint and typecheck. Expect a PASS. Close the checkpoint with one commit: `feat: write, link and unlink choices in the panel`.
 
 ## Test plan
 ### Cases

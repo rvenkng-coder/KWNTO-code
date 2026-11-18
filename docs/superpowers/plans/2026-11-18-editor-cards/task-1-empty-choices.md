@@ -61,7 +61,7 @@ export function duplicateChoiceMessage(targetTitle: string): string   // `This n
 
 ## Checkpoint 1A: The migration and its rules
 
-- [ ] **Step 1A.1: Write the failing rule tests** in `tests/rules/connections.rules.test.ts`. Each gets a `// Protects:` comment naming the design's goal 1 and security.md section 2. Use the helpers already imported there (`memberProject`, `createNode`, `createProject`, `guardedUpdate`, `readAsAdmin`, `asUser`, `asAnonymous`, `createUser`, `expectCreateRefused`).
+- [x] **Step 1A.1: Write the failing rule tests** in `tests/rules/connections.rules.test.ts`. Each gets a `// Protects:` comment naming the design's goal 1 and security.md section 2. Use the helpers already imported there (`memberProject`, `createNode`, `createProject`, `guardedUpdate`, `readAsAdmin`, `asUser`, `asAnonymous`, `createUser`, `expectCreateRefused`).
   - **`a choice may be empty and be linked, re-linked and unlinked later`**
     1. A member creates `{ project, from_node: a, to_node: '' , label: 'Wait' }`. The create succeeds, and `to_node` is `''`.
     2. A guarded update `{ version: 0, to_node: b }` returns 200. Then `{ version: 1, to_node: c }` returns 200. Then `{ version: 2, to_node: '' }` returns 200.
@@ -76,19 +76,19 @@ export function duplicateChoiceMessage(targetTitle: string): string   // `This n
     1. Two empty choices from `a` are both created.
     2. A choice `a → b` is created. A second `a → b` create is refused.
     3. Re-linking an empty choice of `a` to `b` returns a non-200.
-- [ ] **Step 1A.2: Run** `npm run test:rules -- connections`. Expect a FAIL on the three new tests, while the existing three pass.
-- [ ] **Step 1A.3: Write `1794370200_open_choices.js`.** The up step finds the `connections` collection and:
+- [x] **Step 1A.2: Run** `npm run test:rules -- connections`. Expect a FAIL on the three new tests, while the existing three pass.
+- [x] **Step 1A.3: Write `1794370200_open_choices.js`.** The up step finds the `connections` collection and:
   - **`to_node`:** sets `required: false` and `cascadeDelete: false`, so a purged target leaves an empty choice.
   - **The pair index:** replaces `idx_connections_pair` with `CREATE UNIQUE INDEX idx_connections_pair ON connections (from_node, to_node) WHERE to_node != ''`.
   - **The create rule:** `IS_MEMBER + VERSION_UNSET + sameProject("from_node") + " && (@request.body.to_node:isset = false || @request.body.to_node = '' || @request.body.to_node.project = @request.body.project)"`.
   - **The update rule:** `IS_MEMBER + UPDATE_GUARDED + unset("from_node") + " && (@request.body.to_node:isset = false || @request.body.to_node = '' || @request.body.to_node.project = project)"`.
 
   Copy the `IS_MEMBER`, `VERSION_UNSET`, `UPDATE_GUARDED`, `sameProject` and `unset` fragments verbatim from the Plan 3 migration, and say so in a comment. The down step restores the Plan 3 field, index and rules exactly.
-- [ ] **Step 1A.4: Run** `npm run test:rules`. Expect all PASS, including `coverage.rules.test.ts`. Close the checkpoint with one commit: `feat: a choice may be empty and re-linked within its project`.
+- [x] **Step 1A.4: Run** `npm run test:rules`. Expect all PASS, including `coverage.rules.test.ts`. Close the checkpoint with one commit: `feat: a choice may be empty and re-linked within its project`.
 
 ## Checkpoint 1B: The door and the model
 
-- [ ] **Step 1B.1: Write the failing unit tests.**
+- [x] **Step 1B.1: Write the failing unit tests.**
   - **`choices.test.ts`:**
     - **`choicesOf lists a node's choices by when they were made, empty ones included`:**
       - Choices of `a` with `created` `…T10:00:02`, `…T10:00:01` (empty) and `…T10:00:01` (a larger id) come back in the order 01 (smaller id), 01 (larger id), 02.
@@ -107,8 +107,8 @@ export function duplicateChoiceMessage(targetTitle: string): string   // `This n
   - **`content-mappers.test.ts`:**
     - **`an empty to_node reads as null and created is ISO`:** the record `{ to_node: '', created: '2026-11-18 10:00:00.000Z', … }` gives `toNodeId: null` and `created: '2026-11-18T10:00:00.000Z'`.
     - **`a choice is created and unlinked with an empty to_node`:** `toCreateBody` of a choice with `toNodeId: null` has `to_node: ''` and no `created`. `toUpdateBody('connections', { toNodeId: null })` is `{ to_node: '' }`.
-- [ ] **Step 1B.2: Run** `npx vitest run --project unit frontend/src/features/editor/model frontend/src/backend/content-mappers.test.ts`. Expect a FAIL.
-- [ ] **Step 1B.3: Implement** the types, mappers and `liveConnections` as in Interfaces. `choicesOf` and `hasChoiceTo` are this exact text, which the Breaks table matches:
+- [x] **Step 1B.2: Run** `npx vitest run --project unit frontend/src/features/editor/model frontend/src/backend/content-mappers.test.ts`. Expect a FAIL.
+- [x] **Step 1B.3: Implement** the types, mappers and `liveConnections` as in Interfaces. `choicesOf` and `hasChoiceTo` are this exact text, which the Breaks table matches:
 
 ```ts
 export function choicesOf(s: ContentState, nodeId: string): Connection[] {
@@ -128,7 +128,7 @@ export function hasChoiceTo(s: ContentState, fromId: string, toId: string, excep
   3. `NodePicker.tsx` uses `hasChoiceTo` and `newChoice`.
   4. `clipboard.ts` copies a choice when its target is `null` or among the copied nodes.
   5. Add `created` to the fixtures.
-- [ ] **Step 1B.4: Run** `npm run lint`, `npm run typecheck`, `npm run test:unit` and `npm run test:e2e -- e2e/editor-canvas.spec.ts e2e/editor-search-links.spec.ts e2e/editor-undo-paste.spec.ts e2e/editor-live.spec.ts`. Expect a PASS: nothing the person sees has changed. Close the checkpoint with one commit: `feat: the editor reads choices that may be empty`.
+- [x] **Step 1B.4: Run** `npm run lint`, `npm run typecheck`, `npm run test:unit` and `npm run test:e2e -- e2e/editor-canvas.spec.ts e2e/editor-search-links.spec.ts e2e/editor-undo-paste.spec.ts e2e/editor-live.spec.ts`. Expect a PASS: nothing the person sees has changed. Close the checkpoint with one commit: `feat: the editor reads choices that may be empty`.
 
 ## Test plan
 ### Cases

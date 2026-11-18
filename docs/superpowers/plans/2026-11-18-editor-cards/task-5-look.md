@@ -34,14 +34,14 @@ This task gives the editor the prototype's cleaner look (design goal 4), through
 
 ## Checkpoint 5A: Tokens, cards and panels
 
-- [ ] **Step 5A.1: Write the failing e2e test** in `e2e/editor-look.spec.ts`, with a `// Protects:` header naming design goal 4 and both themes. The test is **`cards and panels use the soft look in both themes`**:
+- [x] **Step 5A.1: Write the failing e2e test** in `e2e/editor-look.spec.ts`, with a `// Protects:` header naming design goal 4 and both themes. The test is **`cards and panels use the soft look in both themes`**:
   1. Take a node with a choice and a cue, and select it.
   2. **For each theme** (toggle with the top-bar theme button):
      - **The card:** `getComputedStyle(card)` has `border-radius` of at least 12 px and a `box-shadow` other than `none`.
      - **The panel's `Choices` heading:** `text-transform` is `uppercase`.
      - **No scrolling:** `document.documentElement.scrollHeight` equals `innerHeight`.
-- [ ] **Step 5A.2: Run** `npm run test:e2e -- e2e/editor-look.spec.ts`. Expect a FAIL.
-- [ ] **Step 5A.3: Implement.**
+- [x] **Step 5A.2: Run** `npm run test:e2e -- e2e/editor-look.spec.ts`. Expect a FAIL.
+- [x] **Step 5A.3: Implement.**
   - **The card:**
     - `rounded-[var(--radius-lg)]`, `shadow-[var(--shadow-card)]` and the `--color-card` surface
     - the header tinted with the node colour, on the existing palette, which is the one allowed inline colour
@@ -51,7 +51,7 @@ This task gives the editor the prototype's cleaner look (design goal 4), through
     - cue tags in the accent colour
   - **Panels:** `Script`, `Cues` and `Choices` use `SectionLabel`, and secondary buttons use `.btn-quiet`.
   - **Rule:** no hex outside the tokens and `colors.ts`, and nothing copied from the prototype.
-- [ ] **Step 5A.4: Run** the new spec, then the whole e2e suite (`npm run test:e2e`), which includes the performance projects. Expect a PASS. Close the checkpoint with one commit: `feat: a cleaner look for cards and panels`.
+- [x] **Step 5A.4: Run** the new spec, then the whole e2e suite (`npm run test:e2e`), which includes the performance projects. Expect a PASS. Close the checkpoint with one commit: `feat: a cleaner look for cards and panels`.
 
 ## Test plan
 ### Cases

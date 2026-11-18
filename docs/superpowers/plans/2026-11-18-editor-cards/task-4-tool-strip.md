@@ -70,7 +70,7 @@ export function ToolButton(props: ToolButtonProps): JSX.Element
 
 ## Checkpoint 4A: Shortcut labels and Cut
 
-- [ ] **Step 4A.1: Write the failing unit tests.**
+- [x] **Step 4A.1: Write the failing unit tests.**
   - **`shortcutLabel.test.ts`, `shortcut labels read Ctrl on Windows and Linux and ⌘ on a Mac`:**
     - `shortcutLabel('X', false)` is `'Ctrl+X'`, and `shortcutLabel('X', true)` is `'⌘X'`.
     - `isMacPlatform('MacIntel')` is `true`, and `isMacPlatform('Linux x86_64')` is `false`.
@@ -78,8 +78,8 @@ export function ToolButton(props: ToolButtonProps): JSX.Element
     - `shortcutFor({ key: 'x', ctrlKey: true, … }, false)` is `'cut'`.
     - With `metaKey` instead, it is `'cut'`.
     - Inside a text field it is `null`.
-- [ ] **Step 4A.2: Run** `npx vitest run --project unit frontend/src/features/editor/model/shortcutLabel.test.ts frontend/src/features/editor/model/shortcuts.test.ts`. Expect a FAIL.
-- [ ] **Step 4A.3: Implement.** `shortcutLabel` is this exact text:
+- [x] **Step 4A.2: Run** `npx vitest run --project unit frontend/src/features/editor/model/shortcutLabel.test.ts frontend/src/features/editor/model/shortcuts.test.ts`. Expect a FAIL.
+- [x] **Step 4A.3: Implement.** `shortcutLabel` is this exact text:
 
 ```ts
 export function shortcutLabel(key: string, isMac: boolean): string {
@@ -92,11 +92,11 @@ export function shortcutLabel(key: string, isMac: boolean): string {
   - add `cut: () => void edits.cut(nodeIds)` in `useShortcuts`
   - write `edits.cut`
   - set `hasClip` in `copy` and `cut`
-- [ ] **Step 4A.4: Run.** Expect a PASS. Close the checkpoint with one commit: `feat: cut, and shortcut labels for each platform`.
+- [x] **Step 4A.4: Run.** Expect a PASS. Close the checkpoint with one commit: `feat: cut, and shortcut labels for each platform`.
 
 ## Checkpoint 4B: The strip and the panels
 
-- [ ] **Step 4B.1: Write the failing e2e tests** in `e2e/editor-tools.spec.ts`. Give each a `// Protects:` header. The strip is `getByTestId('tool-strip')`.
+- [x] **Step 4B.1: Write the failing e2e tests** in `e2e/editor-tools.spec.ts`. Give each a `// Protects:` header. The strip is `getByTestId('tool-strip')`.
   - **`each tool shows its shortcut in a tooltip`**
     1. For each pair, focus the button with that accessible name and expect `getByRole('tooltip')` to have that text:
        - `Add node`: `Add node (or double-click the canvas)`
@@ -123,8 +123,8 @@ export function shortcutLabel(key: string, isMac: boolean): string {
   - **`a long properties panel scrolls inside itself and the page does not scroll`**
     1. Give a node 40 script lines.
     2. `editor-panel` has `scrollHeight > clientHeight`, and `document.documentElement.scrollHeight` equals `innerHeight`.
-- [ ] **Step 4B.2: Run** `npm run test:e2e -- e2e/editor-tools.spec.ts`. Expect a FAIL.
-- [ ] **Step 4B.3: Implement.**
+- [x] **Step 4B.2: Run** `npm run test:e2e -- e2e/editor-tools.spec.ts`. Expect a FAIL.
+- [x] **Step 4B.3: Implement.**
   - **`ToolStrip`** (`data-testid="tool-strip"`) is a vertical column of `ToolButton`s at the left inside edge of the canvas, in the design's order. Each `hint` comes from `shortcutLabel(…, isMacPlatform(navigator.platform))`.
   - **Button state:**
     - Cut, Copy and Delete are disabled with no node selected.
@@ -138,7 +138,7 @@ export function shortcutLabel(key: string, isMac: boolean): string {
     - Remove the old Add node text button and hint.
   - **`ChapterTabs`:** first, a `ToolButton` with icon `panel`, named `Hide project panel` or `Show project panel` according to `shown`.
   - **`editor-add-node.spec.ts`:** replace only the hint assertion with focusing `Add node` and expecting the tooltip `Add node (or double-click the canvas)`.
-- [ ] **Step 4B.4: Run** the new spec, then `npm run test:e2e -- e2e/editor-add-node.spec.ts e2e/editor-tabs.spec.ts e2e/editor-undo-paste.spec.ts e2e/editor-canvas.spec.ts`, plus lint and typecheck. Expect a PASS. Close the checkpoint with one commit: `feat: tool strip, cut, area select and a collapsible left panel`.
+- [x] **Step 4B.4: Run** the new spec, then `npm run test:e2e -- e2e/editor-add-node.spec.ts e2e/editor-tabs.spec.ts e2e/editor-undo-paste.spec.ts e2e/editor-canvas.spec.ts`, plus lint and typecheck. Expect a PASS. Close the checkpoint with one commit: `feat: tool strip, cut, area select and a collapsible left panel`.
 
 ## Test plan
 ### Cases

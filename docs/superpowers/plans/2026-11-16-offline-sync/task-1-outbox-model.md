@@ -24,7 +24,7 @@ export function statusText(online: boolean, waiting: number): string | null
 export function failedText(count: number): string             // '1 change could not be saved', '<n> changes could not be saved'
 export function fieldLabel(kind: ContentKind, field: string): string
 // title 'Title', color 'Colour', x and y 'Position', deleted 'In trash', character 'Character', text 'Text', sortOrder 'Order',
-// type 'Cue type', label 'Choice text', name 'Name', startNodeId 'Start node', analyticsEnabled 'Analytics', position 'Tab order'; anything else: the field name
+// type 'Cue type', label 'Choice text', toNodeId 'Choice target', name 'Name', startNodeId 'Start node', analyticsEnabled 'Analytics', position 'Tab order'; anything else: the field name
 ```
 
 - Produces, `sync/outbox.ts` (checkpoint 1B):
@@ -93,7 +93,7 @@ Stop and report if you need to touch anything else.
 |---|---|---|---|---|---|
 | C1 | backoff | unit | `nextDelay` of 0, 1, 2, 3, 5, 6, 7, 50 | 1000, 1000, 2000, 4000, 16000, 30000, 30000, 30000 | frontend/src/features/editor/sync/outboxText.test.ts :: backoff doubles from one second and stops at thirty |
 | C2 | status and failed words | unit | `statusText` of (false, 0), (false, 1), (false, 12), (true, 3), (true, 0); `failedText` of 1 and 4 | `Offline`, `Offline, 1 change waiting`, `Offline, 12 changes waiting`, `Saving…`, `null`; `1 change could not be saved`, `4 changes could not be saved` | frontend/src/features/editor/sync/outboxText.test.ts :: the status words count changes |
-| C3 | field labels | unit | `fieldLabel('nodes','x')`, `('nodes','y')`, `('nodes','color')`, `('connections','label')`, `('cues','type')`, `('nodes','weird')` | `Position`, `Position`, `Colour`, `Choice text`, `Cue type`, `weird` | frontend/src/features/editor/sync/outboxText.test.ts :: each field has a readable label |
+| C3 | field labels | unit | `fieldLabel('nodes','x')`, `('nodes','y')`, `('nodes','color')`, `('connections','label')`, `('connections','toNodeId')`, `('cues','type')`, `('nodes','weird')` | `Position`, `Position`, `Colour`, `Choice text`, `Choice target`, `Cue type`, `weird` | frontend/src/features/editor/sync/outboxText.test.ts :: each field has a readable label |
 | C4 | merging waiting edits | unit | queue [update n1 title A→B (base 3)]; add update n1 title B→C and color; then the same with the first entry being sent; then with an update of n2 after the first | one entry: title C, color new, baseValues.title A, baseVersion 3; when sending: appended; with n2 in between: appended | frontend/src/features/editor/sync/outbox.test.ts :: an edit joins the last waiting edit of the same record only |
 | C5 | removes cancel waiting work | unit | queue [create line L, update L text]; add remove L; queue [update L (sending), update L]; add remove L | first: drop both, append nothing; second: drop only the not-sending update, append the remove | frontend/src/features/editor/sync/outbox.test.ts :: removing a record cancels its waiting edits but never one being sent |
 | C6 | overlay | unit | server state with node n1 title `Theirs` version 7 and color red; queue for this project [update n1 color blue, create line L, create line K (the server already has K with other text: my lost answer), remove line M] plus one entry of another project | n1 title `Theirs`, color blue, version 7; L present; K keeps the server's text; M gone; the other project's entry ignored | frontend/src/features/editor/sync/outbox.test.ts :: waiting edits are laid over fresh server data |

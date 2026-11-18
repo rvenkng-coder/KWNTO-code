@@ -8,7 +8,7 @@
 
 **Tech Stack:** React 19, TypeScript, Zustand 5, the browser's IndexedDB and Web Locks APIs (no wrapper library), `pocketbase` JS SDK 0.28, PocketBase 0.40.6, Vitest, Playwright. No new dependencies.
 
-**Spec:** [Design](../../specs/2026-11-11-kwnto-design.md) sections 4, 5, 6.7, 8b and 8c; [decision 0002](../../../decisions/0002-realtime-spike.md) findings E and G and "Requirements for Plans 3 and 4"; the [roadmap](../README.md) outline "4. Offline queue, sync and conflicts". Also binding: [engineering.md](../../../engineering.md) (section 9: "Never discard a queued edit"), [security.md](../../../security.md) section 7, [testing-strategy.md](../../../testing-strategy.md), [backend.md](../../../developer/backend.md) "Guarded writes" and "The backend door", [editor.md](../../../developer/editor.md). Executors read all of them, and the [editor core plan](../2026-11-14-editor-core/README.md) router, whose code this plan changes.
+**Spec:** [Design](../../specs/2026-11-11-kwnto-design.md) sections 4, 5, 6.7, 8b and 8c; [editor cards design](../../specs/2026-11-18-editor-cards-design.md) (choices: a `connections` record whose target may be empty); [decision 0002](../../../decisions/0002-realtime-spike.md) findings E and G and "Requirements for Plans 3 and 4"; the [roadmap](../README.md) outline "4. Offline queue, sync and conflicts". Also binding: [engineering.md](../../../engineering.md) (section 9: "Never discard a queued edit"), [security.md](../../../security.md) section 7, [testing-strategy.md](../../../testing-strategy.md), [backend.md](../../../developer/backend.md) "Guarded writes" and "The backend door", [editor.md](../../../developer/editor.md). Executors read all of them, and the [editor core plan](../2026-11-14-editor-core/README.md) router, whose code this plan changes.
 
 **Standard:** test-plan-v1
 
@@ -16,7 +16,7 @@
 
 Everything in the [Plan 1 router](../2026-11-11-foundation/README.md) "Global Constraints" still applies (zero cost, no new dependency, ask first, worktree, 300-line files, no `any`, deny by default, tests documented, prototype is reference only, secrets never in git, docs are part of done, Node 22, ports). Values this plan depends on:
 
-- **Worktree and branch:** `feat/offline-sync` in the sibling folder `../KWNTO-code-offline`, created from `feat/editor-core` at 2975e67 (Plan 3 is not merged yet and this plan changes its store). **Before Task 1 starts, Plan 3 must be `done`:** rebase this branch onto the finished `feat/editor-core` (or onto `main` once the developer has merged it), with the developer's approval (engineering 5: rewriting history). Tracking in `.planning/2026-11-16-offline-sync/progress.md` (columns from [PROGRESS-TEMPLATE.md](../PROGRESS-TEMPLATE.md)).
+- **Worktree and branch:** `feat/offline-sync` in the sibling folder `../KWNTO-code-offline`, created from `feat/editor-core` at 2975e67 and brought up to date by merging `main` at d8b50f5 (2026-11-18: Plan 3, the editor tabs plan and the editor cards plan, all `done`). Merge `main` again before a task if it has moved; never rebase this pushed branch without the developer's approval (engineering 5). Tracking in `.planning/2026-11-16-offline-sync/progress.md` (columns from [PROGRESS-TEMPLATE.md](../PROGRESS-TEMPLATE.md)).
 - **Every task ends with** `npm run check:task -- --task docs/superpowers/plans/2026-11-16-offline-sync/task-<n>-<name>.md --base <sha at task start> --built-by <local|strong>`, full output pasted in the report ([check-task.md](../../../developer/check-task.md)).
 - **Probes are written by the controller, not the implementer**, before a task is dispatched, in the folder its Test plan names.
 - **Strong model** for every task except the checkpoints marked otherwise (design 8c: "offline sync and conflicts" is strong-model work).
@@ -29,7 +29,8 @@ Everything in the [Plan 1 router](../2026-11-11-foundation/README.md) "Global Co
   - Status: `Offline` (nothing waiting), `Offline, 1 change waiting`, `Offline, <n> changes waiting`, `Saving…` (online with entries waiting), nothing when online and the outbox is empty.
   - Failed: `<n> change could not be saved` / `<n> changes could not be saved`, button `Show`; each row shows the server's message and a `Dismiss` button.
   - Conflict dialog heading `Someone else changed this while you were offline`; one row per field `<label>`, `Yours: <value>`, `Theirs: <value>`; buttons `Keep mine` and `Keep theirs`. Deleted case heading: `Someone else deleted this <thing> while you were offline` (`<thing>`: `script line`, `cue`, `connection`).
-  - Sign-out with waiting edits: `<n> changes have not been saved yet. They will be saved the next time you sign in on this browser. Sign out anyway?` (`1 change has not been saved yet. It will be …` for one).
+  - Sign-out with waiting edits (D13, in the page, never `confirm()`): `<n> changes have not been saved yet. They will be saved the next time you sign in on this browser. Sign out anyway?` (`1 change has not been saved yet. It will be …` for one); buttons `Sign out anyway` and `Stay signed in`.
+  - Undo or redo while offline with changes waiting (D11): `Undo waits until you are back online and your changes are saved.`
 - **Migrations:** none. This plan adds no collection and changes no rule.
 
 ## Review Focus
@@ -42,7 +43,7 @@ The failure modes the spec implies that are most likely to bite a person, each p
 4. **Two tabs of the same browser do not send the same entry twice or out of order.** Only the tab holding the Web Lock sends. (Task 3 C7, Task 5 C4)
 5. **One refused entry does not block the queue forever** and is not silently dropped: it moves to the failed list with the server's message, the entries after it still go, and the person dismisses it. (Task 3 C5, Task 4 C11)
 
-Also covered, lower risk: backoff stops growing at 30 s and resets on the browser's `online` event (Task 1 C1, Task 3 C3); an edit of a different field made offline is merged without a dialog (Task 1 C7, Task 2 C7); a live event for a record with waiting edits keeps the waiting fields on screen (Task 4 C5).
+Also covered, lower risk: backoff stops growing at 30 s and resets on the browser's `online` event (Task 1 C1, Task 3 C3); an edit of a different field made offline is merged without a dialog (Task 1 C7, Task 2 C7); a live event for a record with waiting edits keeps the waiting fields on screen (Task 4 C5); a choice made offline to a target a teammate linked meanwhile is refused by the unique pair index and lands in the failed list (Task 5 Flow).
 
 ## Decisions made in this plan (please review)
 
@@ -60,8 +61,9 @@ The roadmap's "Decide first" items and calls where the spec is silent. Each is c
 | D8 | **A refused entry** (`invalid`, `forbidden`, `not-found` on an update of a project, chapter or node) leaves the outbox for the in-memory and stored **failed list** (object store `failed`, same database), its local change is undone from the server's copy, and the engine goes on with the next entry. The person dismisses each failed row. | 3, 4 |
 | D9 | **Two tabs:** every tab writes to the shared outbox; only the tab holding the Web Lock `kwnto-sync-<userId>` sends. Another tab takes over when the holder closes. | 3, 4 |
 | D10 | **Signing out** keeps the outbox (entries carry `userId`) and asks first when entries are waiting (copy above). Another account on the same browser never sends or sees them. Waiting edits on a shared computer are readable by anyone with the browser profile: an accepted risk while internal, added to security.md section 10. | 4 |
-| D11 | **Promise of `editorStore.update` / `create` / `remove`:** unchanged from Plan 3. It resolves `true` when the server accepted the edit and `false` when the server refused it, so Plan 3's undo still records a step only after a write succeeds. Offline, it stays pending until the edit is sent; after a reload the promise is gone and only the outbox remains. Undo of an offline edit is therefore available once it has synced (documented in the user guide). | 4 |
+| D11 | **Promise of `editorStore.update` / `create` / `remove`:** unchanged from Plan 3. It resolves `true` when the server accepted the edit and `false` when the server refused it, so Plan 3's undo still records a step only after a write succeeds. Offline, it stays pending until the edit is sent; after a reload the promise is gone and only the outbox remains. Plan 3's `edits.undo` and `redo` first wait for every write in flight (`settle` in `store/edits.ts`), which offline would never end, so **while offline with changes waiting, undo and redo do nothing and show the D11 message**; they work again once the outbox is empty or the connection is back. Documented in the user guide. | 4 |
 | D12 | **The conflict dialog is modal and stops the engine** until it is answered, so no later entry of that record is sent on a wrong base. One dialog per entry; the non-conflicting fields of that entry are sent with whichever choice. | 3, 4 |
+| D13 | **No browser pop-ups** (the developer listed `prompt()` and `confirm()` as UI problems on 2026-11-18): the sign-out question and the conflict dialog are drawn in the page (`role="alertdialog"` and `role="dialog"`), with the theme tokens. | 4 |
 
 ## File structure
 

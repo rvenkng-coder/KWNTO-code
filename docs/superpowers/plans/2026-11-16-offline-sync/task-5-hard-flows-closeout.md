@@ -45,6 +45,6 @@ Design 8b asks for "produce a conflict and confirm the keep-mine/keep-theirs pro
 ### Breaks
 none
 ### Flow
-C5 above if a Funnel host exists. Then, in Firefox and Chromium, two people on one project for ten minutes: one switches the network off and on several times while both write; force at least one conflict of each kind (field, position, deleted line) and choose each answer once. Record every surprise in `progress.md` and `findings.md`; each is fixed in 5A's way or carried in the roadmap.
+C5 above if a Funnel host exists. Then, in Firefox and Chromium, two people on one project for ten minutes: one switches the network off and on several times while both write; force at least one conflict of each kind (field, position, deleted line) and choose each answer once; offline, link a choice to a node a teammate links to from the same card meanwhile (the unique pair index refuses it: it must land in the failed list with the server's message). Watch for the card re-mount loop carried from Plan 3 (roadmap, "Carried over from Plan 3"): if a card keeps re-mounting after a chapter switch, save a Playwright trace or the browser's performance recording before anything else, and record it in `findings.md`. Record every surprise in `progress.md` and `findings.md`; each is fixed in 5A's way or carried in the roadmap.
 ### Evidence
 The full output of `npm run check:task`, the 10-times repeat run, the break-once runs of Step 2, and the Flow record (with C5's result or the note that it moved to Plan 6).

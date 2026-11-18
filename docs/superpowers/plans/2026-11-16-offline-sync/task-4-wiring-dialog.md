@@ -9,7 +9,7 @@ Puts the outbox into the app: the real IndexedDB storage (D1), one engine per si
 
 **Files:**
 - Create: `frontend/src/features/editor/sync/indexedDbOutbox.ts`, `frontend/src/features/editor/sync/syncStore.ts`, `frontend/src/features/editor/sync/syncLifecycle.ts`, `frontend/src/features/editor/sync/syncLifecycle.test.ts`, `frontend/src/features/editor/sync/SyncStatus.tsx`, `frontend/src/features/editor/sync/FailedList.tsx`, `frontend/src/features/editor/sync/ConflictDialog.tsx`, `frontend/src/features/editor/store/editorSync.ts`, `frontend/src/features/editor/store/editorSync.test.ts`, `e2e/editor-offline.spec.ts`, `e2e/helpers/offline.ts`
-- Modify: `frontend/src/features/editor/store/editorStore.ts`, `editorEdits.ts`, `editorSession.ts` (in `store/`); the top bar of Plan 3 Task 1 (`frontend/src/features/shell/TopBar.tsx`: `SyncStatus`, and the sign-out confirm); `frontend/src/features/editor/EditorScreen.tsx` (mounts `ConflictDialog`); `e2e/helpers/admin.ts` (`adminRecord`); `docs/user/editor.md` ("Working offline"); `docs/developer/editor.md` ("How an edit travels" rewritten for the outbox)
+- Modify: `frontend/src/features/editor/store/editorStore.ts`, `editorEdits.ts`, `editorSession.ts`, `edits.ts`, `edits.test.ts` (in `store/`; D11); the top bar (`frontend/src/features/shell/TopBar.tsx`: `SyncStatus`, and the in-page sign-out question of D13); `frontend/src/features/editor/EditorScreen.tsx` (mounts `ConflictDialog`); `e2e/helpers/admin.ts` (`adminRecord`); `docs/user/editor.md` ("Working offline"); `docs/developer/editor.md` ("How an edit travels" rewritten for the outbox)
 
 **Interfaces:**
 - Consumes: `createSyncEngine`, `SyncEngine`, `SyncHooks`, `SyncSnapshot`, `LOCK_PREFIX` (Task 3); `OutboxStorage`, `createMemoryOutbox`, `overlay`, `statusText`, `failedText`, `fieldLabel` (Task 1); `content.get`, `subscribe(..., onReconnect)` (Task 2); `backend.auth.onChange`, `backend.auth.current` (Plan 2); `editorStore`, `restoreFields` logic of `editorEdits.ts` (Plan 3 Task 8).
@@ -37,8 +37,9 @@ export function directSync(door: EditorDoor): EditorSyncPort   // an engine on a
 export function appSync(): EditorSyncPort                      // the app's: follows syncLifecycle
 ```
 
+  `store/edits.ts` (Plan 3): `createEdits(store, flush, undoPaused: () => string | null = () => null)`; `undo` and `redo` start with `const paused = undoPaused()` and the line `if (paused !== null) return store.setState({ error: paused })` (B3), before `settle`. The app's `edits` passes `undoPausedBy(appSync())` from `editorSync.ts`: `export const UNDO_PAUSED = 'Undo waits until you are back online and your changes are saved.'` and `export function undoPausedBy(port: EditorSyncPort): () => string | null` (the message while the snapshot is offline with `waiting > 0`, else `null`).
   `createEditorStore(door, sync?: EditorSyncPort)`: `sync` defaults to `directSync(door)`, so Plan 3's store tests run unchanged. `EditorDoor` gains `get`. `editorStore` is built with `appSync()`.
-- Screens: `SyncStatus` (`data-testid="sync-status"`, the `statusText`, and when `failed` is not empty the `failedText` with a `Show` button opening `FailedList`, one row per entry: `fieldLabel`s, the message, `Dismiss`); `ConflictDialog` (`role="dialog"`, copy from the router; values shown as text; a colour as its name; `Position` as `x, y`).
+- Screens: `SyncStatus` (`data-testid="sync-status"`, the `statusText`, and when `failed` is not empty the `failedText` with a `Show` button opening `FailedList`, one row per entry: `fieldLabel`s, the message, `Dismiss`); `ConflictDialog` (`role="dialog"`, copy from the router; values shown as text; a colour as its name; `Position` as `x, y`; a `Choice target` as the target node's title, or `No target` for an empty choice).
 
 **If interrupted:** nothing leaves state outside the working tree. The e2e tests leave IndexedDB data only in Playwright's throwaway browser profiles.
 
@@ -51,16 +52,16 @@ export function appSync(): EditorSyncPort                      // the app's: fol
 
 ## Checkpoint 4B: The store goes through the outbox
 
-- [ ] **Step 5: Write the failing tests** C3 to C7 in `editorSync.test.ts` (a store from `createEditorStore` with Plan 3's fake door plus `get`, and a port built on `createSyncEngine` with a memory outbox the test can pre-fill).
+- [ ] **Step 5: Write the failing tests** C3 to C7 in `editorSync.test.ts` and C13 in `edits.test.ts` (a store from `createEditorStore` with Plan 3's fake door plus `get`, and a port built on `createSyncEngine` with a memory outbox the test can pre-fill).
 - [ ] **Step 6: Run** `npx vitest run --project unit frontend/src/features/editor/store`. Expected: the new tests FAIL; Plan 3's `editorStore.test.ts` passes.
 - [ ] **Step 7: Implement.** `editorEdits.ts`: apply locally as today, then `sync.add` an entry (`baseVersion` and `baseValues` from the record before the edit; `snapshot` for lines, cues and connections); keep each edit's resolver and `before` by seq, resolve on `hooks.saved` / `hooks.refused`; a refusal with no `before` in memory (an entry from before a reload) takes `door.get`'s record, or drops the record when it is `null`. `editorSession.ts`: after the load, `overlay` with the snapshot's entries; every remote event is applied with `applyRemote` and then overlaid again, written as the line `content: overlay(applyRemote(st.content, event), waitingEntries())` (B2); on `onReconnect`, and when the snapshot's `online` turns from false to true, load again and overlay; when it turns to false, close the subscriptions (D6) and open them again on the way back.
 - [ ] **Step 8: Run** `npm run test:unit`. Expected: PASS. **Close checkpoint 4B** (commit `feat: editor edits go through the outbox`).
 
 ## Checkpoint 4C: Screens and flows
 
-- [ ] **Step 9: Write the failing tests** C8 to C12 in `e2e/editor-offline.spec.ts`. `e2e/helpers/offline.ts`: `goOffline(context)` and `goOnline(context)` (`context.setOffline`, then wait for `sync-status` to show or hide `Offline`). `adminRecord(collection, id)` in `e2e/helpers/admin.ts` reads a record as the admin.
+- [ ] **Step 9: Write the failing tests** C8 to C12 and C14 in `e2e/editor-offline.spec.ts`. `e2e/helpers/offline.ts`: `goOffline(context)` and `goOnline(context)` (`context.setOffline`, then wait for `sync-status` to show or hide `Offline`). `adminRecord(collection, id)` in `e2e/helpers/admin.ts` reads a record as the admin.
 - [ ] **Step 10: Run** `npm run test:e2e -- e2e/editor-offline.spec.ts`. Expected: FAIL.
-- [ ] **Step 11: Implement** `SyncStatus`, `FailedList`, `ConflictDialog`, the top-bar wiring and the sign-out confirm (`window.confirm` with the router's copy, only when `waiting > 0`).
+- [ ] **Step 11: Implement** `SyncStatus`, `FailedList`, `ConflictDialog`, the top-bar wiring and the in-page sign-out question (D13: `role="alertdialog"`, the router's copy, `Sign out anyway` and `Stay signed in`; only when `waiting > 0`).
 - [ ] **Step 12: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. Write "Working offline" in `docs/user/editor.md` (the indicator, what survives closing the tab, the dialog, the failed list, undo after sync, D10's shared-computer note) and the outbox in `docs/developer/editor.md`. **Close checkpoint 4C** (commit `feat: offline status, failed list and conflict dialog`).
 
 ## Test plan
@@ -78,13 +79,16 @@ export function appSync(): EditorSyncPort                      // the app's: fol
 | C9 | closing the tab offline keeps typed text | e2e | go offline; type a new title and close the page at once (`runBeforeUnload`); admin read shows the old title; go online; open a new page and the project | the new title on screen and, by `expect.poll`, on the server | e2e/editor-offline.spec.ts :: text typed just before closing an offline tab is not lost |
 | C10 | teammate's offline-time change appears | e2e | A and B (member) on one project; A offline; B renames N1 and adds a line to N2; A recolours N1; A online | A shows B's title with A's colour and B's new line without a reload; B shows A's colour | e2e/editor-offline.spec.ts :: after reconnecting a teammate's changes show and mine are kept |
 | C11 | refused change is shown, not lost | e2e | `page.route` answers the next node PATCH with 403 `{"message":"Not allowed."}`; rename a node; then rename another node | status `1 change could not be saved`; `Show` lists `Not allowed.`; the first node shows the server's title; the second rename saves; `Dismiss` clears the list | e2e/editor-offline.spec.ts :: a refused change goes to the failed list and later changes still save |
-| C12 | sign-out warns while changes wait | e2e | offline, one edit, click `Sign out`; dismiss the dialog | the dialog text is `1 change has not been saved yet. It will be saved the next time you sign in on this browser. Sign out anyway?`; still signed in | e2e/editor-offline.spec.ts :: signing out with waiting changes asks first |
+| C12 | sign-out warns while changes wait | e2e | offline, one edit, click `Sign out`; then `Stay signed in` | an `alertdialog` with `1 change has not been saved yet. It will be saved the next time you sign in on this browser. Sign out anyway?`; no browser dialog fires (`page.on('dialog')` fails the test); still signed in | e2e/editor-offline.spec.ts :: signing out with waiting changes asks first |
+| C13 | undo pauses offline | unit | `createEdits` with `undoPaused` returning `UNDO_PAUSED`; a recorded rename; `undo()`; then `undoPaused` returning `null` and `undo()` | first: no store write, store error `UNDO_PAUSED`, the step stays in the history; second: the rename is undone | frontend/src/features/editor/store/edits.test.ts :: undo waits while offline changes are waiting |
+| C14 | undo after reconnecting | e2e | offline, rename a node, Ctrl+Z; go online; wait for `sync-status` to clear; Ctrl+Z | first Ctrl+Z shows `Undo waits until you are back online and your changes are saved.` and keeps the new title; after sync the second restores the old title | e2e/editor-offline.spec.ts :: undo works again once offline changes are saved |
 ### Probes
 **Probe folder:** `tests/probes/2026-11-16-offline-sync/task-4/`
 ### Breaks
 | ID | File | Find | Replace | Tests |
 |---|---|---|---|---|
 | B1 | frontend/src/features/editor/sync/syncLifecycle.ts | `if (userId === currentUser) return` | `if (false) return` | frontend/src/features/editor/sync/syncLifecycle.test.ts |
+| B3 | frontend/src/features/editor/store/edits.ts | `if (paused !== null) return store.setState({ error: paused })` | `if (false) return store.setState({ error: paused })` | frontend/src/features/editor/store/edits.test.ts |
 | B2 | frontend/src/features/editor/store/editorSession.ts | `content: overlay(applyRemote(st.content, event), waitingEntries())` | `content: applyRemote(st.content, event)` | frontend/src/features/editor/store/editorSync.test.ts |
 ### Flow
 In Firefox and Chromium with the dev backend: open a project, switch the network off in the browser's developer tools, make ten edits of every kind (rename, recolour, move, lines, cues, connect, trash), watch the count, close the tab, reopen it online and check every edit. Record what you saw in `progress.md`.

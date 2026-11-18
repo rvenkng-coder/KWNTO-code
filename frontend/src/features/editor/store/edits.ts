@@ -131,9 +131,7 @@ function createRecorder(store: StoreApi<EditorStore>, flush: () => void, undoPau
         return play(taken, REDO_BLOCKED, taken === null ? null : { past: history.past, future: taken.history.future })
       })
     },
-    reset() {
-      history = EMPTY_HISTORY
-    },
+    reset: () => { history = EMPTY_HISTORY },
   }
 }
 

@@ -9,8 +9,8 @@ export const line = (id: string, over: Partial<ScriptLine> = {}): ScriptLine =>
   ({ id, projectId: 'p1', nodeId: 'n1', character: '', text: id, sortOrder: 1, version: 0, ...over })
 export const cue = (id: string, over: Partial<Cue> = {}): Cue =>
   ({ id, projectId: 'p1', nodeId: 'n1', type: 'other', text: id, sortOrder: 1, version: 0, ...over })
-export const connection = (id: string, from: string, to: string): Connection =>
-  ({ id, projectId: 'p1', fromNodeId: from, toNodeId: to, label: '', version: 0 })
+export const connection = (id: string, from: string, to: string | null, over: Partial<Connection> = {}): Connection =>
+  ({ id, projectId: 'p1', fromNodeId: from, toNodeId: to, label: '', created: '2026-11-18T10:00:00.000Z', version: 0, ...over })
 
 export function content(over: Partial<ProjectContent> = {}): ProjectContent {
   return {

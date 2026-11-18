@@ -91,3 +91,19 @@ A2 and A were repeated 5 times in both browsers with values unique to each run: 
 ## Decision
 
 **GO, with option 2 as a required change.** Delivery, load and isolation passed in both browsers, locally and through Funnel. The original per-attribute merge failed (A), and the version-guarded write fixes it: no accepted edit is lost and no edit is rejected without a retry path (A2: 100 of 100, both browsers, repeated). Plans 2 and later may start on the condition that the version guard and the 409 retry rule above are part of Plans 3 and 4. The developer chose this option; if the guard cannot be kept on every concurrently edited collection, this decision goes back to **NO-GO**.
+
+## Production check, Plan 3
+
+Date: 2026-11-16. The real collections and hook of the editor core plan (`backend/pb_hooks/content-guard.pb.js`, PocketBase 0.40.6), local Docker, Chromium and Firefox. This closes the two points the spike left unmeasured inside the app (the guard over Funnel is still Plan 6's).
+
+| Check | Result |
+|---|---|
+| More than two writers: four team members change `title`, `color`, `x` and `y` of one node at the same moment, each retrying on 409 as the client does, 10 rounds (`tests/rules/content-guard.rules.test.ts`, C1) | all four values kept in 10 of 10 rounds; version +4 every round |
+| Break check: the guard turned into a plain whole-record update | C1 fails in round 1 |
+| Break check: only the version check removed (fields still copied one by one onto a freshly read record) | C1 still passes, as Task 5 found: the version check is what protects a writer that copies whole records |
+| Two browsers, one node: a title typed in one, a drag in the other, both sent on the same version; the drag's PATCH is held until the title has saved, so it always meets a 409 (`e2e/editor-live.spec.ts`, C2) | both kept on both pages and after a reload; 10 of 10 per browser |
+| The 409 path seen by a person: every PATCH of a node answered 409 (C4) | 20 tries, then `Could not save: too many people are editing this at once. Try again.`; the title goes back; the teammate never sees the change; 10 of 10 per browser |
+
+**Found on the way:** live **create** events of nodes never arrived. The start-node hook ran the node's insert inside a transaction of its own, and PocketBase then sends no realtime create event for that record. Fixed in `projects.pb.js` (insert first, start node in its own transaction after) and pinned by a rule test; the same pattern on teams and projects is carried to Plan 7 (roadmap, "Carried over from Plan 3"). Delivery of updates and deletes, measured by the spike, was not affected.
+
+The decision stands: **GO with option 2**.

@@ -85,24 +85,24 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 12A: Shortcuts (local)
 
-- [ ] **Step 1: Write the failing tests** C1 to C3.
-- [ ] **Step 2: Run** `npx vitest run --project unit frontend/src/features/editor/model/shortcuts.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement `shortcuts.ts`.** The text-field rule is the line `if (inTextField) return action === 'search' ? action : null` (break B1).
-- [ ] **Step 4: Run** it. Expected: PASS. **Close checkpoint 12A** (commit `feat: editor shortcuts`).
+- [x] **Step 1: Write the failing tests** C1 to C3.
+- [x] **Step 2: Run** `npx vitest run --project unit frontend/src/features/editor/model/shortcuts.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement `shortcuts.ts`.** The text-field rule is the line `if (inTextField) return action === 'search' ? action : null` (break B1).
+- [x] **Step 4: Run** it. Expected: PASS. **Close checkpoint 12A** (commit `feat: editor shortcuts`).
 
 ## Checkpoint 12B: History and clipboard (pure)
 
-- [ ] **Step 5: Write the failing tests** C4 to C9.
-- [ ] **Step 6: Run** `npx vitest run --project unit frontend/src/features/editor/model`. Expected: the new tests FAIL.
-- [ ] **Step 7: Implement `history.ts` and `clipboard.ts`.** Keep the depth with `past.slice(-HISTORY_DEPTH)`, compare fields in `canApply` through one helper `sameValue(current[key], change.before[key])`, and keep connections with `ids.has(c.fromNodeId) && ids.has(c.toNodeId)` (breaks B2 to B4).
-- [ ] **Step 8: Run** them. Expected: PASS. **Close checkpoint 12B** (commit `feat: undo history and clipboard`).
+- [x] **Step 5: Write the failing tests** C4 to C9.
+- [x] **Step 6: Run** `npx vitest run --project unit frontend/src/features/editor/model`. Expected: the new tests FAIL.
+- [x] **Step 7: Implement `history.ts` and `clipboard.ts`.** Keep the depth with `past.slice(-HISTORY_DEPTH)`, compare fields in `canApply` through one helper `sameValue(current[key], change.before[key])`, and keep connections with `ids.has(c.fromNodeId) && ids.has(c.toNodeId)` (breaks B2 to B4).
+- [x] **Step 8: Run** them. Expected: PASS. **Close checkpoint 12B** (commit `feat: undo history and clipboard`).
 
 ## Checkpoint 12C: Wiring and flows
 
-- [ ] **Step 9: Write the failing tests** C10 (unit, `edits.test.ts` with a store made by `createEditorStore` on a fake door) and C11 to C14 (`e2e/editor-undo-paste.spec.ts`).
-- [ ] **Step 10: Run** them. Expected: FAIL.
-- [ ] **Step 11: Implement `edits.ts` and `useShortcuts.ts`**, and move every content change in the canvas, panel and chapter components onto `edits` (labels such as `Rename node`, `Move 3 nodes`, `Paste 2 nodes`). `useShortcuts` listens on `window`, decides with `shortcutFor` (text field: `input`, `textarea`, `select` or `contenteditable`), and calls `edits` or `useSelection`; `search` is handed to Task 13's search box (focus the element with `data-testid="search-input"` if present).
-- [ ] **Step 12: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. Add "Undo, copy and shortcuts" to `docs/user/editor.md` (with the D12 table) and the history rules to `docs/developer/editor.md`. **Close checkpoint 12C** (commit `feat: undo, redo, copy, paste and shortcuts`).
+- [x] **Step 9: Write the failing tests** C10 (unit, `edits.test.ts` with a store made by `createEditorStore` on a fake door) and C11 to C14 (`e2e/editor-undo-paste.spec.ts`).
+- [x] **Step 10: Run** them. Expected: FAIL.
+- [x] **Step 11: Implement `edits.ts` and `useShortcuts.ts`**, and move every content change in the canvas, panel and chapter components onto `edits` (labels such as `Rename node`, `Move 3 nodes`, `Paste 2 nodes`). `useShortcuts` listens on `window`, decides with `shortcutFor` (text field: `input`, `textarea`, `select` or `contenteditable`), and calls `edits` or `useSelection`; `search` is handed to Task 13's search box (focus the element with `data-testid="search-input"` if present).
+- [x] **Step 12: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. Add "Undo, copy and shortcuts" to `docs/user/editor.md` (with the D12 table) and the history rules to `docs/developer/editor.md`. **Close checkpoint 12C** (commit `feat: undo, redo, copy, paste and shortcuts`).
 
 ## Test plan
 ### Cases

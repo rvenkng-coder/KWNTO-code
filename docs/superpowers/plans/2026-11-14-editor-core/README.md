@@ -94,11 +94,11 @@ The roadmap's "Decide first" items and calls where the spec is silent. Each is c
 | 7 | [The content door](task-7-content-door.md) | strong | 5, 6 | 7A 7B 7C | done |
 | 8 | [Editor model and store](task-8-editor-model-store.md) | mid (8A local) | 7 | 8A 8B 8C | done |
 | 9 | [Projects, editor layout and chapters](task-9-projects-layout-chapters.md) | mid | 1, 8 | 9A 9B | done |
-| 10 | [The canvas](task-10-canvas.md) | strong (10A local) | 9 | 10A 10B 10C 10D | in progress |
-| 11 | [Properties panel](task-11-properties-panel.md) | mid (11A local) | 10 | 11A 11B 11C | not started |
-| 12 | [Undo/redo, copy/paste, shortcuts](task-12-undo-copy-shortcuts.md) | mid (12A local) | 11 | 12A 12B 12C | not started |
-| 13 | [Search and cross-chapter links](task-13-search-cross-links.md) | mid (13A local) | 10, 12 | 13A 13B | not started |
-| 14 | [Live editing end-to-end and close-out](task-14-live-editing-closeout.md) | strong | 1 to 13 | 14A 14B | not started |
+| 10 | [The canvas](task-10-canvas.md) | strong (10A local) | 9 | 10A 10B 10C 10D | done |
+| 11 | [Properties panel](task-11-properties-panel.md) | mid (11A local) | 10 | 11A 11B 11C | done |
+| 12 | [Undo/redo, copy/paste, shortcuts](task-12-undo-copy-shortcuts.md) | mid (12A local) | 11 | 12A 12B 12C | done |
+| 13 | [Search and cross-chapter links](task-13-search-cross-links.md) | mid (13A local) | 10, 12 | 13A 13B | done |
+| 14 | [Live editing end-to-end and close-out](task-14-live-editing-closeout.md) | strong | 1 to 13 | 14A 14B | done |
 
 **Status values:** `not started`, `in progress`, `awaiting review`, `done`. Tasks 1, 3, 4 and 5 have no dependency on each other; run tasks one at a time (implementers never run in parallel). The carried-over items (Tasks 1 to 4) go first, as the roadmap asks.
 

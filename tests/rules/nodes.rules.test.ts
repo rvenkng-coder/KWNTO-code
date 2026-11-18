@@ -123,7 +123,8 @@ test('nodes are trashed by members and purged only by the server', async () => {
   await expectRefused(admin.collection('script_lines').getOne(lineId))
   await expectRefused(admin.collection('cues').getOne(cue.id))
   await expectRefused(admin.collection('connections').getOne(out.id))
-  await expectRefused(admin.collection('connections').getOne(into.id))
+  // Editor cards design: a purged target leaves its choice empty instead of deleting it.
+  expect(await readAsAdmin('connections', into.id)).toMatchObject({ from_node: otherId, to_node: '' })
   expect(await readAsAdmin('projects', projectId)).toMatchObject({ start_node: '' })
   expect(await readAsAdmin('nodes', otherId)).toMatchObject({ version: 0 })
 })

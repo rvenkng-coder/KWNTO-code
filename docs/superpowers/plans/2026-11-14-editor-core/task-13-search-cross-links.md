@@ -41,17 +41,17 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 13A: Search (local)
 
-- [ ] **Step 1: Write the failing tests** C1 to C4 (build states with `fromContent`).
-- [ ] **Step 2: Run** `npx vitest run --project unit frontend/src/features/editor/model/search.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement `search.ts`.** Start `normalizeTitle` with `text.normalize('NFD')` and mark the group with `const starts = title.startsWith(q)` (breaks B1, B2).
-- [ ] **Step 4: Run** it. Expected: PASS. **Close checkpoint 13A** (commit `feat: node search`).
+- [x] **Step 1: Write the failing tests** C1 to C4 (build states with `fromContent`).
+- [x] **Step 2: Run** `npx vitest run --project unit frontend/src/features/editor/model/search.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement `search.ts`.** Start `normalizeTitle` with `text.normalize('NFD')` and mark the group with `const starts = title.startsWith(q)` (breaks B1, B2).
+- [x] **Step 4: Run** it. Expected: PASS. **Close checkpoint 13A** (commit `feat: node search`).
 
 ## Checkpoint 13B: Search box, picker, tags and jumps
 
-- [ ] **Step 5: Write the failing e2e tests** C5 to C7 in `e2e/editor-search-links.spec.ts`.
-- [ ] **Step 6: Run** `npm run test:e2e -- e2e/editor-search-links.spec.ts`. Expected: FAIL.
-- [ ] **Step 7: Implement** `useCanvasFocus`, `jump.ts`, `SearchBox`, `NodePicker`, the tags in `NodeCard` and the panel's link action and list.
-- [ ] **Step 8: Run** `npm run test:e2e`. Expected: PASS. Add "Search and links between chapters" to `docs/user/editor.md`. **Close checkpoint 13B** (commit `feat: search and cross-chapter links`).
+- [x] **Step 5: Write the failing e2e tests** C5 to C7 in `e2e/editor-search-links.spec.ts`.
+- [x] **Step 6: Run** `npm run test:e2e -- e2e/editor-search-links.spec.ts`. Expected: FAIL.
+- [x] **Step 7: Implement** `useCanvasFocus`, `jump.ts`, `SearchBox`, `NodePicker`, the tags in `NodeCard` and the panel's link action and list.
+- [x] **Step 8: Run** `npm run test:e2e`. Expected: PASS. Add "Search and links between chapters" to `docs/user/editor.md`. **Close checkpoint 13B** (commit `feat: search and cross-chapter links`).
 
 ## Test plan
 ### Cases

@@ -66,15 +66,15 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 10C: Canvas flows in the browser
 
-- [ ] **Step 9: Write the failing e2e tests** C8 to C11 in `e2e/editor-canvas.spec.ts` (use `ownerWithProject`).
-- [ ] **Step 10: Run** `npm run test:e2e -- e2e/editor-canvas.spec.ts`; fix until it passes; then `npm run test:e2e`. Expected: PASS.
-- [ ] **Step 11:** Add "Nodes and connections" to `docs/user/editor.md` (create, connect, move, start, end and unreachable markers, minimap). **Close checkpoint 10C** (commit `test: canvas flows`).
+- [x] **Step 9: Write the failing e2e tests** C8 to C11 in `e2e/editor-canvas.spec.ts` (use `ownerWithProject`).
+- [x] **Step 10: Run** `npm run test:e2e -- e2e/editor-canvas.spec.ts`; fix until it passes; then `npm run test:e2e`. Expected: PASS.
+- [x] **Step 11:** Add "Nodes and connections" to `docs/user/editor.md` (create, connect, move, start, end and unreachable markers, minimap). **Close checkpoint 10C** (commit `test: canvas flows`).
 
 ## Checkpoint 10D: Performance at 500 nodes and 5,000 lines
 
-- [ ] **Step 12: Write `e2e/helpers/seed.ts` and `e2e/editor-performance.spec.ts`** (C12): seed 500 nodes in one chapter on a 25 × 20 grid with 10 lines each and 499 connections; open the project; measure from `page.goto` to `data-ready="true"` with `data-node-count="500"`; then drag one node and count `PATCH` requests to `nodes` records. Test timeout 180 s for the seed.
-- [ ] **Step 13: Run** it 3 times per browser. Expected: every load under 3,000 ms and exactly 1 PATCH per drag. If the budget is missed, do not loosen it: profile, fix with `PERF:`-commented code, and if it still fails stop and report the numbers.
-- [ ] **Step 14: Write `docs/decisions/0003-canvas-performance.md`** (environment, the six load times, what was optimised and why) and the canvas section of `docs/developer/editor.md`. **Close checkpoint 10D** (commit `perf: canvas measured at 500 nodes`).
+- [x] **Step 12: Write `e2e/helpers/seed.ts` and `e2e/editor-performance.spec.ts`** (C12): seed 500 nodes in one chapter on a 25 × 20 grid with 10 lines each and 499 connections; open the project; measure from `page.goto` to `data-ready="true"` with `data-node-count="500"`; then drag one node and count `PATCH` requests to `nodes` records. Test timeout 180 s for the seed.
+- [x] **Step 13: Run** it 3 times per browser. Expected: every load under 3,000 ms and exactly 1 PATCH per drag. If the budget is missed, do not loosen it: profile, fix with `PERF:`-commented code, and if it still fails stop and report the numbers.
+- [x] **Step 14: Write `docs/decisions/0003-canvas-performance.md`** (environment, the six load times, what was optimised and why) and the canvas section of `docs/developer/editor.md`. **Close checkpoint 10D** (commit `perf: canvas measured at 500 nodes`).
 
 ## Test plan
 ### Cases

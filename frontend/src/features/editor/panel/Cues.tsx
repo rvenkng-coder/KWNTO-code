@@ -5,6 +5,7 @@ import { useEditor } from '../store/editorStore'
 import { edits } from '../store/edits'
 import { useSavedText } from '../store/useSavedText'
 import { insertRow, moveRow } from './rowActions'
+import { SectionLabel } from './SectionLabel'
 
 // The cues of one node (design 6.2): audio, lighting or other, each with a note. Media files are Plan 5.
 
@@ -23,8 +24,8 @@ function CueRow({ cue, isFirst, isLast, onMove }: CueRowProps) {
       <input className="field" aria-label="Cue text" placeholder="Cue" value={text}
         onChange={(e) => setText(e.target.value)} onBlur={flush} />
       <div className="flex gap-1">
-        <button type="button" className="btn" disabled={isFirst} onClick={() => onMove(-1)}>Move up</button>
-        <button type="button" className="btn" disabled={isLast} onClick={() => onMove(1)}>Move down</button>
+        <button type="button" className="btn-quiet" disabled={isFirst} onClick={() => onMove(-1)}>Move up</button>
+        <button type="button" className="btn-quiet" disabled={isLast} onClick={() => onMove(1)}>Move down</button>
         <button type="button" className="btn-danger" onClick={() => void edits.remove('cues', cue.id, 'Delete cue')}>Delete cue</button>
       </div>
     </li>
@@ -40,7 +41,7 @@ export function Cues({ projectId, nodeId }: { projectId: string; nodeId: string 
   }
   return (
     <section className="flex flex-col gap-2">
-      <h3 className="font-semibold">Cues</h3>
+      <SectionLabel>Cues</SectionLabel>
       <ol className="flex flex-col gap-2">
         {cues.map((cue, i) => (
           <CueRow key={cue.id} cue={cue} isFirst={i === 0} isLast={i === cues.length - 1}

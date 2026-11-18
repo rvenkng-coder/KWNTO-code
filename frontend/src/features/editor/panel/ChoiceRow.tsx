@@ -15,9 +15,9 @@ export function ChoiceRow({ choice, autoFocus }: { choice: Connection; autoFocus
         value={text} onChange={(e) => setText(e.target.value)} onBlur={flush} />
       <p className="text-muted">{linked ? `Linked → ${target?.title || 'Untitled'}` : 'Not linked'}</p>
       <div className="flex gap-1">
-        <button type="button" className="btn" onClick={() => useLinkMode.getState().start(choice.id)}>{linked ? 'Re-link' : 'Link'}</button>
+        <button type="button" className="btn-quiet" onClick={() => useLinkMode.getState().start(choice.id)}>{linked ? 'Re-link' : 'Link'}</button>
         {linked && (
-          <button type="button" className="btn" onClick={() => void edits.update('connections', choice.id, { toNodeId: null }, 'Unlink choice')}>Unlink</button>
+          <button type="button" className="btn-quiet" onClick={() => void edits.update('connections', choice.id, { toNodeId: null }, 'Unlink choice')}>Unlink</button>
         )}
         <button type="button" className="btn-danger" onClick={() => void edits.remove('connections', choice.id, 'Delete choice')}>Delete</button>
       </div>

@@ -50,8 +50,8 @@ export function ScriptLineRow({ line, allLines, focus, onFocused, onEnter, onBac
       <textarea ref={textRef} className="field" aria-label="Line text" placeholder="Line" rows={2} value={text}
         onChange={(e) => setText(e.target.value)} onBlur={flushText} onKeyDown={onKeyDown} />
       <div className="flex gap-1">
-        <button type="button" className="btn" disabled={isFirst} onClick={() => onMove(-1)}>Move up</button>
-        <button type="button" className="btn" disabled={isLast} onClick={() => onMove(1)}>Move down</button>
+        <button type="button" className="btn-quiet" disabled={isFirst} onClick={() => onMove(-1)}>Move up</button>
+        <button type="button" className="btn-quiet" disabled={isLast} onClick={() => onMove(1)}>Move down</button>
         <button type="button" className="btn-danger" onClick={onDelete}>Delete line</button>
       </div>
     </li>

@@ -5,6 +5,7 @@ import { NodePicker } from '../search/NodePicker'
 import { useEditor } from '../store/editorStore'
 import { edits } from '../store/edits'
 import { ChoiceRow } from './ChoiceRow'
+import { SectionLabel } from './SectionLabel'
 
 /** The node's choices in the order the card shows them (design goal 1), Add choice, and the cross-chapter picker. */
 export function Choices({ node }: { node: StoryNode }) {
@@ -18,7 +19,7 @@ export function Choices({ node }: { node: StoryNode }) {
   }
   return (
     <section className="flex flex-col gap-2">
-      <h3 className="font-semibold">Choices</h3>
+      <SectionLabel>Choices</SectionLabel>
       <ul className="flex flex-col gap-2">
         {list.map((c) => <ChoiceRow key={c.id} choice={c} autoFocus={c.id === focusId} />)}
       </ul>

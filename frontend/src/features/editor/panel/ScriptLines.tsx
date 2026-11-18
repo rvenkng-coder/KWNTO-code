@@ -5,6 +5,7 @@ import { useEditor } from '../store/editorStore'
 import { edits } from '../store/edits'
 import { insertRow, moveRow } from './rowActions'
 import { ScriptLineRow } from './ScriptLineRow'
+import { SectionLabel } from './SectionLabel'
 
 // The script lines of one node, in order (design 9c). Enter in a line adds one below it and
 // moves there; Backspace in an empty line deletes it and moves to the line above.
@@ -29,7 +30,7 @@ export function ScriptLines({ projectId, nodeId }: { projectId: string; nodeId: 
 
   return (
     <section className="flex flex-col gap-2">
-      <h3 className="font-semibold">Script</h3>
+      <SectionLabel>Script</SectionLabel>
       <ol className="flex flex-col gap-2">
         {lines.map((line, i) => (
           <ScriptLineRow

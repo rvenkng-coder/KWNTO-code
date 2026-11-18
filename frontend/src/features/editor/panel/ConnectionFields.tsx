@@ -2,6 +2,7 @@ import type { Connection } from '../../../backend'
 import { useSelection } from '../canvas/useSelection'
 import { edits } from '../store/edits'
 import { useSavedText } from '../store/useSavedText'
+import { SectionLabel } from './SectionLabel'
 
 /** A selected connection: its label (the choice text a player sees) and Delete connection. */
 export function ConnectionFields({ connection }: { connection: Connection }) {
@@ -12,7 +13,7 @@ export function ConnectionFields({ connection }: { connection: Connection }) {
   }
   return (
     <div className="flex flex-col gap-2">
-      <h3 className="font-semibold">Connection</h3>
+      <SectionLabel>Connection</SectionLabel>
       <label className="flex flex-col gap-1">
         <span>Choice text</span>
         <input className="field" value={label} onChange={(e) => setLabel(e.target.value)} onBlur={flush} />

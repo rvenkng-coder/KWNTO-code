@@ -87,7 +87,7 @@ function EditorFrame({ projectId, projectName, chapters, active }: FrameProps) {
       <ErrorBanner />
       <div className={`grid min-h-0 flex-1 gap-3 ${leftShown ? 'grid-cols-[14rem_1fr_16rem]' : 'grid-cols-[1fr_16rem]'}`}>
         {leftShown && (
-          <aside data-testid="editor-left" className="panel flex min-h-0 flex-col gap-3 overflow-y-auto">
+          <aside data-testid="editor-left" className="panel flex min-h-0 flex-col gap-3 overflow-y-auto rounded-[var(--radius-lg)]">
             <button type="button" className="btn self-start" onClick={() => navigate({ name: 'teams' })}>Back to teams</button>
             <InlineText
               value={projectName}
@@ -97,7 +97,7 @@ function EditorFrame({ projectId, projectName, chapters, active }: FrameProps) {
             />
           </aside>
         )}
-        <section data-testid="editor-canvas" className="panel flex min-h-0 min-w-0 flex-col gap-2 p-0">
+        <section data-testid="editor-canvas" className="panel flex min-h-0 min-w-0 flex-col gap-2 rounded-[var(--radius-lg)] p-0">
           <ChapterTabs projectId={projectId} chapters={chapters} activeId={activeId} />
           <div className="flex min-h-0 flex-1">
             <ToolStrip chapterId={activeId} />
@@ -106,7 +106,7 @@ function EditorFrame({ projectId, projectName, chapters, active }: FrameProps) {
               : <Canvas projectId={projectId} chapterId={active.id} />}
           </div>
         </section>
-        <aside data-testid="editor-panel" className="panel min-h-0 min-w-0 overflow-y-auto">
+        <aside data-testid="editor-panel" className="panel min-h-0 min-w-0 overflow-y-auto rounded-[var(--radius-lg)]">
           <PropertiesPanel />
         </aside>
       </div>

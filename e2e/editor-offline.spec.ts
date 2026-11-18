@@ -221,3 +221,24 @@ test('undo works again once offline changes are saved', async ({ page, context }
   await saved
   await expect(card(page, id)).toContainText('New node')
 })
+
+// Protects: D4, D12: a node renamed offline that a teammate renamed meanwhile asks the person, shows both titles, and keeps the choice.
+test('a title changed by both sides asks which to keep', async ({ browser }) => {
+  const { a, b, ctxA, ids } = await ownerAndMember(browser, 1)
+  const [n1] = ids as [string]
+  await goOffline(ctxA, a)
+  await rename(a, n1, 'Mine')
+  await rename(b, n1, 'Theirs')
+  await expect.poll(async () => (await adminRecord('nodes', n1)).title).toBe('Theirs')
+
+  await ctxA.setOffline(false)
+  const dialog = a.getByRole('dialog')
+  await expect(dialog).toContainText('Someone else changed this while you were offline')
+  await expect(dialog).toContainText('Yours: Mine')
+  await expect(dialog).toContainText('Theirs: Theirs')
+  await dialog.getByRole('button', { name: 'Keep mine' }).click()
+  await expect(dialog).toHaveCount(0)
+  await expect.poll(async () => (await adminRecord('nodes', n1)).title).toBe('Mine')
+  await expect(card(b, n1)).toContainText('Mine')
+  await expect(syncStatus(a)).toHaveCount(0)
+})

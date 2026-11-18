@@ -198,6 +198,7 @@ Read the security log (Collections, `security_events`, newest first; filter for 
 
 Known and accepted while the tool is internal (also listed in design section 12):
 - Account enumeration through the invite-by-email message: the "doesn't exist" message lets a signed-in owner discover which emails are registered (design section 5). Limited by the shared attempt limit and an `invite` log entry per attempt (section 3, invites). Before a public release, decide whether an invite to an unknown email should get the same answer as a known one.
+- Waiting offline edits (the outbox) live in the browser's IndexedDB, readable by anyone with the browser profile, and stay there after sign-out so they are sent at the next sign-in (offline sync plan D10). Entries carry the user id: another account on the same browser never sees or sends them. Accepted while internal; before a public release decide whether sign-out should offer to discard them.
 - Open sign-up on a public address, and the disk use of 2 GB per account.
 - PocketBase's single-server, SQLite limits.
 - Tailscale Funnel's bandwidth limits.

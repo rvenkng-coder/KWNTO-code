@@ -157,3 +157,17 @@ Two people can edit the same node at once: if you change its title while a teamm
 If very many people save the same thing at the same moment and your change still cannot get through after 20 tries, you see `Could not save: too many people are editing this at once. Try again.` Your change is taken back on your screen (nothing half-saved reaches your teammates); make it again.
 
 If the team's owner removes you from the team, the project stays on your screen until you reload or open it again; then you see `This project does not exist or you are not a member of its team.`
+
+## Working offline
+
+You can keep writing when the connection drops. Every change is saved in your browser first and sent from there, so nothing is lost if the connection fails or you close the tab.
+
+- **The indicator.** The top bar shows `Offline` when the browser has no connection, `Offline, 3 changes waiting` when changes are waiting to be sent, and `Saving…` while they are being sent after the connection came back. When everything is saved, nothing is shown.
+- **Closing the tab.** Changes that are waiting stay in your browser. Open the project again on the same browser and they are sent; they also show on your screen again on top of what your teammates did meanwhile.
+- **When you come back online.** The project is loaded again, so what your teammates did while you were away appears without a reload, and your waiting changes are sent in the order you made them.
+- **When a teammate changed the same thing.** If you and a teammate changed the same thing while you were offline (for example both renamed the same node), a window opens: `Someone else changed this while you were offline`. For each thing it shows `Yours` and `Theirs`; choose `Keep mine` or `Keep theirs`. Nothing else is sent until you choose. Changes to different things (you recoloured a node, they renamed it) are merged without asking. If a teammate deleted a script line, cue or connection you changed, the window says so, and `Keep mine` puts it back with your changes.
+- **A change that could not be saved.** If the server refuses a change, the top bar says `1 change could not be saved` with a `Show` button. The list gives what it was and the server's message; the change is taken back on your screen and the changes after it are still sent. `Dismiss` removes a row.
+- **Undo.** While you are offline with changes waiting, Undo and Redo do nothing and say `Undo waits until you are back online and your changes are saved.` They work again as soon as the changes are saved.
+- **Signing out.** If changes are waiting, you are asked first: `Sign out anyway` or `Stay signed in`. If you sign out anyway, they are kept in the browser and sent the next time you sign in on this browser.
+- **Shared computers.** Waiting changes are kept in the browser profile, so anyone who can open that profile can read them. On a shared computer, wait for `Saving…` to disappear before you sign out.
+- **Not covered.** Pictures and other files are not queued; they need a connection.

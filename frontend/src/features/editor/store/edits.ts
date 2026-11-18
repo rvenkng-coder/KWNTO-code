@@ -28,6 +28,15 @@ type Edits = {
   reset(): void
 }
 
+// D11: offline with changes waiting, undo and redo do nothing and say why.
+function pauseGate(store: StoreApi<EditorStore>, undoPaused: () => string | null) {
+  return (run: () => Promise<void>): Promise<void> | void => {
+    const paused = undoPaused()
+    if (paused !== null) return store.setState({ error: paused })
+    return run()
+  }
+}
+
 const isTrashable = (kind: CreatableKind): kind is 'chapters' | 'nodes' => kind === 'chapters' || kind === 'nodes'
 
 // The current values of the fields an update is about to change.
@@ -77,13 +86,7 @@ function createRecorder(store: StoreApi<EditorStore>, flush: () => void, undoPau
   let history: History = EMPTY_HISTORY
   let collecting: Change[] | null = null
   const inFlight = createInFlight(flush)
-
-  // D11: offline with changes waiting, undo and redo do nothing and say why.
-  const whenNotPaused = (run: () => Promise<void>): Promise<void> | void => {
-    const paused = undoPaused()
-    if (paused !== null) return store.setState({ error: paused })
-    return run()
-  }
+  const whenNotPaused = pauseGate(store, undoPaused)
 
   // Applies a step if every change still fits the state; otherwise skips it with `blocked`.
   async function play(taken: { history: History; step: Step } | null, blocked: string, skipped: History | null): Promise<void> {

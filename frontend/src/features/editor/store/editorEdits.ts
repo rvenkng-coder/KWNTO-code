@@ -53,67 +53,84 @@ function createWaiters() {
   }
 }
 
-export function createEdits(door: EditorDoor, sync: EditorSyncPort, set: Set, get: () => EditorStore): Pick<EditorStore, 'create' | 'update' | 'remove'> {
-  const edit = (change: (s: ContentState) => ContentState) => set((st) => ({ content: change(st.content) }))
-  const waiters = createWaiters()
-  const inProject = (entry: OutboxEntry) => get().content.project?.id === entry.projectId
+interface Ctx {
+  door: EditorDoor
+  set: Set
+  get: () => EditorStore
+  edit(change: (s: ContentState) => ContentState): void
+  waiters: ReturnType<typeof createWaiters>
+}
 
-  // The saved record replaces the local one only when its version is higher (ours echoes back equal).
-  function takeSaved(kind: ContentKind, saved: ContentRecords[ContentKind]): void {
-    edit((s) => (saved.version > (getRecord(s, kind, saved.id)?.version ?? -1) ? putRecord(s, kind, saved) : s))
-  }
+const inProject = (c: Ctx, entry: OutboxEntry) => c.get().content.project?.id === entry.projectId
 
-  // No copy of the change is left in memory (the page was reloaded): the server's copy is what is true.
-  async function showServerCopy(entry: OutboxEntry): Promise<void> {
-    const server = await door.get(entry.kind, entry.id).catch(() => undefined)
-    if (server === undefined || !inProject(entry)) return
-    edit((s) => (server === null ? dropRecord(s, entry.kind, entry.id) : putRecord(s, entry.kind, server)))
-  }
+// The saved record replaces the local one only when its version is higher (ours echoes back equal).
+function takeSaved(c: Ctx, kind: ContentKind, saved: ContentRecords[ContentKind]): void {
+  c.edit((s) => (saved.version > (getRecord(s, kind, saved.id)?.version ?? -1) ? putRecord(s, kind, saved) : s))
+}
 
-  const hooks: SyncHooks = {
+const showRecord = (kind: ContentKind, id: string, server: ContentRecords[ContentKind] | null) => (s: ContentState) =>
+  server === null ? dropRecord(s, kind, id) : putRecord(s, kind, server)
+
+// No copy of the change is left in memory (the page was reloaded): the server's copy is what is true.
+async function showServerCopy(c: Ctx, entry: OutboxEntry): Promise<void> {
+  const server = await c.door.get(entry.kind, entry.id).catch(() => undefined)
+  if (server === undefined || !inProject(c, entry)) return
+  c.edit(showRecord(entry.kind, entry.id, server))
+}
+
+function createHooks(c: Ctx): SyncHooks {
+  return {
     saved(entry, record) {
-      if (record !== null && inProject(entry)) takeSaved(entry.kind, record)
-      for (const w of waiters.take(entry.seq, true)) w.finish(true)
+      if (record !== null && inProject(c, entry)) takeSaved(c, entry.kind, record)
+      for (const w of c.waiters.take(entry.seq, true)) w.finish(true)
     },
     refused(entry: OutboxEntry, error: BackendError) {
-      const list = waiters.take(entry.seq, false)
-      if (list.length === 0) return void showServerCopy(entry)
+      const list = c.waiters.take(entry.seq, false)
+      if (list.length === 0) return void showServerCopy(c, entry)
       for (const w of [...list].reverse()) {
-        edit(w.undo)
+        c.edit(w.undo)
         w.finish(false)
       }
-      set({ error: errorMessage(error, SAVE_FAILED) })
+      c.set({ error: errorMessage(error, SAVE_FAILED) })
     },
     theirs(entry, server) {
-      if (inProject(entry)) edit((s) => (server === null ? dropRecord(s, entry.kind, entry.id) : putRecord(s, entry.kind, server)))
-      for (const w of waiters.take(entry.seq, false)) w.finish(false)
+      if (inProject(c, entry)) c.edit(showRecord(entry.kind, entry.id, server))
+      for (const w of c.waiters.take(entry.seq, false)) w.finish(false)
     },
   }
-  sync.register(hooks)
+}
 
-  // Hands one edit to the outbox; resolves true when the server accepted it, false when it was refused.
-  function submit(entry: EngineEntry, undo: (s: ContentState) => ContentState): Promise<boolean> {
-    set((st) => ({ saving: st.saving + 1 }))
+// Hands one edit to the outbox; resolves true when the server accepted it, false when it was refused.
+function createSubmit(c: Ctx, sync: EditorSyncPort) {
+  return (entry: EngineEntry, undo: (s: ContentState) => ContentState): Promise<boolean> => {
+    c.set((st) => ({ saving: st.saving + 1 }))
     return new Promise<boolean>((resolve) => {
       const waiter: Waiter = {
         undo,
         finish(ok) {
-          set((st) => ({ saving: st.saving - 1 }))
+          c.set((st) => ({ saving: st.saving - 1 }))
           resolve(ok)
         },
       }
-      const answered = (ok: boolean, w: Waiter) => (ok ? w.finish(true) : (edit(w.undo), w.finish(false)))
-      waiters.begin()
+      const answered = (ok: boolean, w: Waiter) => (ok ? w.finish(true) : (c.edit(w.undo), w.finish(false)))
+      c.waiters.begin()
       sync.add(entry).then(
-        (seq) => (seq === 0 ? waiter.finish(true) : waiters.attach(seq, waiter, answered)),
+        (seq) => (seq === 0 ? waiter.finish(true) : c.waiters.attach(seq, waiter, answered)),
         (err: unknown) => {
-          edit(undo)
-          set({ error: errorMessage(err, SAVE_FAILED) })
+          c.edit(undo)
+          c.set({ error: errorMessage(err, SAVE_FAILED) })
           waiter.finish(false)
         },
-      ).finally(() => waiters.end())
+      ).finally(() => c.waiters.end())
     })
   }
+}
+
+export function createEdits(door: EditorDoor, sync: EditorSyncPort, set: Set, get: () => EditorStore): Pick<EditorStore, 'create' | 'update' | 'remove'> {
+  const edit = (change: (s: ContentState) => ContentState) => set((st) => ({ content: change(st.content) }))
+  const c: Ctx = { door, set, get, edit, waiters: createWaiters() }
+  sync.register(createHooks(c))
+  const submit = createSubmit(c, sync)
 
   return {
     create(kind, record) {

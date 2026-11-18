@@ -20,114 +20,129 @@ function discard(close: Closer): void {
   if (close !== null) void close().catch(() => undefined)
 }
 
-export function createSession(door: EditorDoor, set: Set, sync: EditorSyncPort): Pick<EditorStore, 'open' | 'close'> {
-  let openToken = 0
-  let openProject: string | null = null
-  let closeSubscription: Closer = null
-  let watching = false
-  let wasOnline = true
+class Session {
+  private openToken = 0
+  private openProject: string | null = null
+  private closeSubscription: Closer = null
+  private watching = false
+  private wasOnline = true
+  private laidOver: OutboxEntry[] = []
+  // Live events that arrive while a load is under way wait here, and are applied on top of it (the version check drops stale ones).
+  private buffered: RemoteEvent[] | null = null
 
-  const waitingEntries = () => sync.snapshot()?.entries ?? []
+  private door: EditorDoor
+  private set: Set
+  private sync: EditorSyncPort
+
+  constructor(door: EditorDoor, set: Set, sync: EditorSyncPort) {
+    this.door = door
+    this.set = set
+    this.sync = sync
+  }
+
+  private waitingEntries = (): OutboxEntry[] => this.sync.snapshot()?.entries ?? []
 
   // Closing is not waited for: nothing the old project sends is applied once its token is stale.
-  function stopSubscription(): void {
-    const close = closeSubscription
-    closeSubscription = null
+  private stopSubscription(): void {
+    const close = this.closeSubscription
+    this.closeSubscription = null
     discard(close)
   }
 
-  // Live events that arrive while a load is under way wait here, and are applied on top of it (the version check drops stale ones).
-  let buffered: RemoteEvent[] | null = null
-  const onEventOf = (token: number) => (event: RemoteEvent) => {
-    if (token !== openToken) return
-    if (buffered !== null) buffered.push(event)
-    else set((st) => ({ content: overlay(applyRemote(st.content, event), waitingEntries()) }))
+  private onEventOf = (token: number) => (event: RemoteEvent) => {
+    if (token !== this.openToken) return
+    const { waitingEntries } = this
+    if (this.buffered !== null) this.buffered.push(event)
+    else this.set((st) => ({ content: overlay(applyRemote(st.content, event), waitingEntries()) }))
+  }
+
+  private finish(loaded: ProjectContent, events: RemoteEvent[]): ContentState {
+    return overlay(events.reduce(applyRemote, fromContent(loaded)), this.waitingEntries())
   }
 
   // Loads the project, and subscribes when asked.
-  async function fetchProject(projectId: string, token: number, subscribe: boolean): Promise<Fetched> {
-    buffered ??= []
-    const subscribed = subscribe ? door.subscribe(projectId, onEventOf(token), () => void reload(token)) : Promise.resolve(null)
-    const [loaded, sub] = await Promise.allSettled([door.load(projectId), subscribed])
-    const events = buffered ?? []
-    buffered = null
+  private async fetchProject(projectId: string, token: number, subscribe: boolean): Promise<Fetched> {
+    this.buffered ??= []
+    const subscribed = subscribe ? this.door.subscribe(projectId, this.onEventOf(token), () => void this.reload(token)) : Promise.resolve(null)
+    const [loaded, sub] = await Promise.allSettled([this.door.load(projectId), subscribed])
+    const events = this.buffered ?? []
+    this.buffered = null
     const close: Closer = sub.status === 'fulfilled' ? sub.value : null
     if (loaded.status === 'rejected') return { ok: false, reason: loaded.reason, close }
     if (sub.status === 'rejected') return { ok: false, reason: sub.reason, close }
-    return { ok: true, state: finish(loaded.value, events), close }
+    return { ok: true, state: this.finish(loaded.value, events), close }
   }
 
-  const finish = (loaded: ProjectContent, buffered: RemoteEvent[]): ContentState =>
-    overlay(buffered.reduce(applyRemote, fromContent(loaded)), waitingEntries())
-
   // The event stream came back (or the connection did): everything may have changed meanwhile.
-  async function reload(token: number): Promise<void> {
-    const projectId = openProject
-    if (projectId === null || token !== openToken) return
-    const result = await fetchProject(projectId, token, false)
-    if (token === openToken && result.ok) set((st) => ({ content: mergeNewer(st.content, result.state) }))
+  private async reload(token: number): Promise<void> {
+    const projectId = this.openProject
+    if (projectId === null || token !== this.openToken) return
+    const result = await this.fetchProject(projectId, token, false)
+    if (token === this.openToken && result.ok) this.set((st) => ({ content: mergeNewer(st.content, result.state) }))
   }
 
   // The connection is back after the live subscriptions were closed: subscribe again and load again.
-  async function reopen(token: number): Promise<void> {
-    const projectId = openProject
-    if (projectId === null || token !== openToken) return
-    const result = await fetchProject(projectId, token, true)
-    if (token !== openToken || !result.ok) return discard(result.close)
-    stopSubscription()
-    closeSubscription = result.close
-    set((st) => ({ content: mergeNewer(st.content, result.state) }))
+  private async reopen(token: number): Promise<void> {
+    const projectId = this.openProject
+    if (projectId === null || token !== this.openToken) return
+    const result = await this.fetchProject(projectId, token, true)
+    if (token !== this.openToken || !result.ok) return discard(result.close)
+    this.stopSubscription()
+    this.closeSubscription = result.close
+    this.set((st) => ({ content: mergeNewer(st.content, result.state) }))
   }
 
   // Waiting edits that were not known when the project loaded (the outbox was still being read) are laid over it now.
-  let laidOver: OutboxEntry[] = []
-  function layOver(entries: OutboxEntry[]): void {
-    if (entries === laidOver) return
-    laidOver = entries
-    if (entries.length > 0) set((st) => (st.status === 'ready' ? { content: overlay(st.content, entries) } : {}))
+  private layOver(entries: OutboxEntry[]): void {
+    if (entries === this.laidOver) return
+    this.laidOver = entries
+    if (entries.length > 0) this.set((st) => (st.status === 'ready' ? { content: overlay(st.content, entries) } : {}))
   }
 
   // D6: offline closes the live subscriptions; coming back opens them again and reloads.
   // Started by the first `open`, so building the store touches no browser API.
-  function watchConnection(): void {
-    if (watching) return
-    watching = true
-    wasOnline = sync.snapshot()?.online ?? true
-    sync.subscribe((snapshot) => {
+  private watchConnection(): void {
+    if (this.watching) return
+    this.watching = true
+    this.wasOnline = this.sync.snapshot()?.online ?? true
+    this.sync.subscribe((snapshot) => {
       const online = snapshot?.online ?? true
-      const changed = online !== wasOnline
-      wasOnline = online
-      if (openProject === null) return
-      if (!changed) return layOver(snapshot?.entries ?? [])
-      if (online) void reopen(openToken)
-      else stopSubscription()
+      const changed = online !== this.wasOnline
+      this.wasOnline = online
+      if (this.openProject === null) return
+      if (!changed) return this.layOver(snapshot?.entries ?? [])
+      if (online) void this.reopen(this.openToken)
+      else this.stopSubscription()
     })
   }
 
-  async function open(projectId: string): Promise<void> {
-    const token = ++openToken
-    openProject = projectId
-    watchConnection()
-    stopSubscription()
-    set({ status: 'loading', error: null, content: EMPTY_STATE })
-    const result = await fetchProject(projectId, token, true)
-    if (token !== openToken) return discard(result.close)
+  open = async (projectId: string): Promise<void> => {
+    const token = ++this.openToken
+    this.openProject = projectId
+    this.watchConnection()
+    this.stopSubscription()
+    this.set({ status: 'loading', error: null, content: EMPTY_STATE })
+    const result = await this.fetchProject(projectId, token, true)
+    if (token !== this.openToken) return discard(result.close)
     if (!result.ok) {
       discard(result.close)
-      set({ status: 'error', error: errorMessage(result.reason, OPEN_FAILED) })
+      this.set({ status: 'error', error: errorMessage(result.reason, OPEN_FAILED) })
       return
     }
-    closeSubscription = result.close
-    set({ status: 'ready', content: result.state })
+    this.closeSubscription = result.close
+    this.set({ status: 'ready', content: result.state })
   }
 
-  function close(): Promise<void> {
-    openToken++
-    openProject = null
-    stopSubscription()
-    set({ status: 'idle', error: null, saving: 0, content: EMPTY_STATE })
+  close = (): Promise<void> => {
+    this.openToken++
+    this.openProject = null
+    this.stopSubscription()
+    this.set({ status: 'idle', error: null, saving: 0, content: EMPTY_STATE })
     return Promise.resolve()
   }
+}
 
-  return { open, close }
+export function createSession(door: EditorDoor, set: Set, sync: EditorSyncPort): Pick<EditorStore, 'open' | 'close'> {
+  const session = new Session(door, set, sync)
+  return { open: session.open, close: session.close }
 }

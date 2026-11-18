@@ -53,7 +53,8 @@ test('the browser outbox keeps entries across a reload', async ({ page }) => {
     const a = await box.add(${entry('U', 'a')}); const b = await box.add(${entry('U', 'b')}); const c = await box.add(${entry('U', 'c')})
     await box.add(${entry('V', 'z')})
     const listed = await box.list('U')
-    await box.fail(listed[1], 'nope')
+    const { fail } = box
+    await fail(listed[1], 'nope')
     return [a, b, c]
   `)
   await page.reload()

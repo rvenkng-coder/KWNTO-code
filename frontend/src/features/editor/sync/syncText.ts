@@ -22,13 +22,15 @@ export function describeEntry(entry: OutboxEntry): string {
 
 type TitleOf = (nodeId: string) => string | undefined
 
+const isEmpty = (v: unknown): boolean => v === '' || v === null || v === undefined
+
 // One value as text: a colour as its name, a choice target as the node's title, `Position` as `x, y`.
 function show(field: string, source: Record<string, unknown>, titleOf: TitleOf): string {
-  if (field === 'x' || field === 'y') return `${String(source.x)}, ${String(source.y)}`
   const value = source[field]
-  if (field === 'toNodeId') return value === null || value === undefined ? 'No target' : titleOf(String(value)) ?? String(value)
+  if (field === 'x' || field === 'y') return `${String(source.x)}, ${String(source.y)}`
+  if (field === 'toNodeId') return isEmpty(value) ? 'No target' : (titleOf(String(value)) ?? String(value))
   if (field === 'deleted') return value === true ? 'In trash' : 'Not in trash'
-  return value === '' || value === null || value === undefined ? '(empty)' : String(value)
+  return isEmpty(value) ? '(empty)' : String(value)
 }
 
 export interface ConflictRow { label: string; yours: string; theirs: string }

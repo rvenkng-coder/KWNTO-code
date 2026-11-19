@@ -28,23 +28,23 @@ export function meterText(info: StorageInfo): string                         // 
 
 ## Checkpoint 4A: The list logic
 
-- [ ] **Step 1: Write the failing tests** C1 in `mediaList.test.ts`.
-- [ ] **Step 2: Run** `npx vitest run --project unit frontend/src/features/editor/media/mediaList.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** `mediaList.ts`. The echo rule is the line `if (list.some((m) => m.id === event.record.id)) return list` (B1).
-- [ ] **Step 4: Run** it. Expected: PASS. **Close checkpoint 4A** (commit `feat: media list helpers`).
+- [x] **Step 1: Write the failing tests** C1 in `mediaList.test.ts`.
+- [x] **Step 2: Run** `npx vitest run --project unit frontend/src/features/editor/media/mediaList.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** `mediaList.ts`. The echo rule is the line `if (list.some((m) => m.id === event.record.id)) return list` (B1).
+- [x] **Step 4: Run** it. Expected: PASS. **Close checkpoint 4A** (commit `feat: media list helpers`).
 
 ## Checkpoint 4B: The panel section
 
-- [ ] **Step 5: Write the failing tests** C2 to C9 in `e2e/editor-media.spec.ts`. `e2e/helpers/media.ts` holds `PNG_1PX` and `sampleBytes` for `setInputFiles({ name, mimeType, buffer })` (the same bytes as the rules helper; do not import across `tests/` and `e2e/`) and `setQuotaOverride(email, bytes)` through the admin API.
-- [ ] **Step 6: Run** `npm run test:e2e -- e2e/editor-media.spec.ts`. Expected: FAIL.
-- [ ] **Step 7: Implement** `useProjectMedia.ts`, `MediaSection.tsx`, `MediaItem.tsx`, `StorageMeter.tsx` and the two modified screens. Colours and spacing from the theme tokens only (Plan 3 D1). Media URLs come only from `backend.media.fileUrl`.
-- [ ] **Step 8: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. **Close checkpoint 4B** (commit `feat: media in the properties panel`).
+- [x] **Step 5: Write the failing tests** C2 to C9 in `e2e/editor-media.spec.ts`. `e2e/helpers/media.ts` holds `PNG_1PX` and `sampleBytes` for `setInputFiles({ name, mimeType, buffer })` (the same bytes as the rules helper; do not import across `tests/` and `e2e/`) and `setQuotaOverride(email, bytes)` through the admin API.
+- [x] **Step 6: Run** `npm run test:e2e -- e2e/editor-media.spec.ts`. Expected: FAIL.
+- [x] **Step 7: Implement** `useProjectMedia.ts`, `MediaSection.tsx`, `MediaItem.tsx`, `StorageMeter.tsx` and the two modified screens. Colours and spacing from the theme tokens only (Plan 3 D1). Media URLs come only from `backend.media.fileUrl`.
+- [x] **Step 8: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. **Close checkpoint 4B** (commit `feat: media in the properties panel`).
 
 ## Checkpoint 4C: Walk and close-out
 
-- [ ] **Step 9: Walk the Flow** below and record it in `progress.md`.
-- [ ] **Step 10: Update the docs** listed under **Files**.
-- [ ] **Step 11: Run** `npm test` and `npm run check:docs`. Expected: PASS. **Close checkpoint 4C** (commit `docs: close the media upload plan`). The whole-branch review follows; it is not part of this task.
+- [x] **Step 9: Walk the Flow** below and record it in `progress.md`.
+- [x] **Step 10: Update the docs** listed under **Files**.
+- [x] **Step 11: Run** `npm test` and `npm run check:docs`. Expected: PASS. **Close checkpoint 4C** (commit `docs: close the media upload plan`). The whole-branch review follows; it is not part of this task.
 
 ## Test plan
 ### Cases

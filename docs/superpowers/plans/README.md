@@ -10,7 +10,7 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 | 2 | [Accounts and teams](2026-11-12-accounts-teams/README.md) | 1 | 1 | done |
 | 3 | [Editor core](2026-11-14-editor-core/README.md) | 1 | 2 | done |
 | 4 | Offline queue, sync and conflicts | 1 | 3 | outline |
-| 5 | [Media upload, quota and strict file checks](2026-11-16-media-upload/README.md) | 1 | 3 | planned |
+| 5 | [Media upload, quota and strict file checks](2026-11-16-media-upload/README.md) | 1 | 3 | done |
 | 6 | Deployment | 1 | 2 (3 to 5 to test on) | outline |
 | 7 | Trash, share links, comments, presence, JSON import and export | 2 | 3, 4 | outline |
 | 8 | Export (PDF, Word, JPG, PNG) | 3 | 3 | outline |
@@ -46,6 +46,14 @@ Found while building the editor core (2026-11-14 to 2026-11-16) and left out of 
 | Live creates of teams and projects | A create hook that moves the record's own insert into a transaction (`e.app = txApp; e.next()`) makes PocketBase 0.40.6 send no realtime create event (found by Task 14 for nodes, fixed there). `teams.pb.js` and the project create hook in `projects.pb.js` still use it. Nothing subscribes to those creates today; a live team or project list (presence, Plan 7) would miss new ones. Restructure as the `nodes` hook does, with a rule test of the create event. | 7 |
 | Watch for a card re-mount loop | Once (Tasks 11 to 13 `npm test`), after switching back to Chapter 1 a node card kept re-mounting for 60 s ("element was detached from the DOM"). Not reproduced in 106 runs. If it shows again, capture a trace before rerunning. | 4 |
 | Hygiene checker false positives | `check:hygiene` reads `test.setTimeout(...)` and `test.info()` as new tests without a header, and `.fail` on any object (`fake.fail.next`) as Vitest's `.fail`. Match only test-defining calls. | tooling (next plan that touches it) |
+
+## Carried over from Plan 5
+
+Found while building media upload, quota and strict file checks (2026-11-16 to 2026-11-19). The source is `.planning/2026-11-16-media-upload/progress.md`.
+
+| Item | What and why | Plan |
+|---|---|---|
+| Upload progress bar | The PocketBase JS SDK's `fetch` does not report upload progress (D12). If large uploads through Funnel prove slow, add upload progress reporting or chunked uploading. | 6 |
 
 ## Later (developer decision, 2026-11-18)
 
@@ -119,10 +127,11 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 
 ### 6. Deployment
 **Carried in from Plan 2:** the rate limiter and trusted proxy, a real-mail walk, and the unknown-email timing note (see [Carried over from Plan 2](#carried-over-from-plan-2)).
+**Carried in from Plan 5:** large uploads through Funnel and the D12 upload progress-bar follow-up (see [Carried over from Plan 5](#carried-over-from-plan-5)).
 **Goal:** Docker Compose with PocketBase, Caddy and Tailscale Funnel; backups with a restore test; first-run guide; incident runbook finished.
 **Fixed already:** the admin dashboard and admin API paths are blocked on the public address, including `/api/kwnto/admin/` from Plan 2; non-root, no privileged mode, secrets in `.env`; PocketBase's built-in rate limiter is enabled (at least the `*:auth` rule, which covers auth-with-password), because the sign-in lockout cannot stop guesses sent in parallel (see [security.md](../../security.md) section 3); data in volumes; real-time checked through Funnel; total disk-usage warning.
 **Decide first:** backup destination and default schedule; the SMTP setup guide (Gmail app password).
-**Risks:** Funnel bandwidth for video (fallback: Cloudflare Tunnel).
+**Risks:** Funnel bandwidth for video and large media uploads (fallback: Cloudflare Tunnel).
 
 ### 7. Trash, share links, comments, presence, JSON import and export
 **Carried in from Plan 3:** live creates of teams and projects (see [Carried over from Plan 3](#carried-over-from-plan-3)).

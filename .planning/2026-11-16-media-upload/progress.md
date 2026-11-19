@@ -9,6 +9,41 @@ Plan: docs/superpowers/plans/2026-11-16-media-upload/README.md. Branch `feat/med
 | 2026-11-18 | Task 1 | strong | Upload checks (pure helpers in media-check.js), C1 to C8 unit tests and probes pass, all breaks caught | clean | 0 | Task 2 |
 | 2026-11-19 | Task 2 | strong | Media collection migration, media create hook (magic bytes, quota, race check), safe download headers with nosniff and CSP, GET /api/kwnto/storage route. C1-C11 rule tests pass, 10/10 runs of C9 pass, check:task PASS | clean | 0 | Task 3 |
 | 2026-11-19 | Task 3 | strong | Media types, file tokens, early upload check, media door against live PB. C1-C7 pass, B1-B2 caught, probes 4/4 passed, check:task PASS | clean | 0 | Task 4 |
+| 2026-11-19 | Task 4 | strong | Media in properties panel, audio/video players, thumbnails, quota meter, inline delete confirm, e2e C1-C10 pass, B1 caught, probes 4/4 passed, check:task PASS | clean | 0 | Whole-branch review |
+
+## Task 4 Report: Media in the properties panel and close-out
+
+### Checkpoints
+- **4A: The list logic**
+  - Pure list helpers implemented in `frontend/src/features/editor/media/mediaList.ts` (`applyMediaEvent`, `mediaOf`, `meterText`).
+  - Unit test C1 passed in `mediaList.test.ts`. Break B1 caught by `run-breaks`. Probes 4/4 passed. Commit `570ee2b`.
+- **4B: The panel section**
+  - Implemented `useProjectMedia.ts` with Zustand store, `MediaSection.tsx`, `MediaItem.tsx`, and `StorageMeter.tsx`.
+  - Wired `MediaSection` into `NodeFields.tsx` (between `Cues` and `Choices`), and `useProjectMedia` into `EditorScreen.tsx`.
+  - Configured thumbnail support (`thumbs: ["100x100"]`) in PocketBase collection migration `1794380000_media.js`.
+  - Written comprehensive Playwright e2e test suite `e2e/editor-media.spec.ts` (C2-C9) across Chromium and Firefox.
+  - Resolved panel scroll overflow containment and component complexity limits. Commit `f00e921`.
+- **4C: Walk and close-out**
+  - Walked the Flow in Chromium and Firefox: attached multiple files to multiple nodes, switched nodes, confirmed proper node filtering via `mediaOf`, trashed node with media (files hidden from view, meter stays unchanged), restored with undo (files reappear), deleted media with inline confirmation (no browser dialog popups, space freed immediately, meter updated), confirmed quota rejection when admin lowers override limit.
+  - Updated documentation: `docs/user/editor.md` (Media section), `docs/security.md` (section 4 & malicious upload), `docs/test-plan.md` (marked covered), `docs/superpowers/plans/README.md` (marked Plan 5 done, added carried over item to Plan 6), `docs/superpowers/plans/2026-11-16-media-upload/README.md` (all tasks done).
+  - All unit tests (614 passed), rules tests, and e2e tests (177 passed) pass cleanly.
+
+### check:task Output
+```
+PASS plan
+PASS lint
+PASS typecheck
+PASS unit
+PASS layers: rules: not required by this task's test plan; e2e: passed; container: not required by this task's test plan
+PASS hygiene
+PASS quality: check:quality: ok
+PASS coverage: 10 cases point at tests that exist
+PASS breaks: run-breaks: 1 caught
+PASS probes: probes: 4 of 4 passed
+INFO review: Review required: no (built by a strong model; the plan's own per-task review applies); escape rate 0 of 0 local tasks
+
+check:task: PASS
+```
 
 ## Task 3 Report: The media door
 

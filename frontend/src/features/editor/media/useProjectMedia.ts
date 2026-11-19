@@ -35,6 +35,80 @@ function extractErrorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err)
 }
 
+async function openProjectMedia(
+  projectId: string,
+  set: (fn: (s: MediaStoreState) => Partial<MediaStoreState>) => void,
+): Promise<() => void> {
+  set(() => ({ projectId, error: null }))
+  try {
+    const [mediaList, storageInfo, token] = await Promise.all([
+      backend.media.list(projectId),
+      backend.media.storage(),
+      backend.media.fileToken(),
+    ])
+    set(() => ({ media: mediaList, storage: storageInfo, fileToken: token }))
+  } catch (err) {
+    set(() => ({ error: extractErrorMessage(err) }))
+  }
+
+  return backend.media.subscribe(projectId, async (event) => {
+    set((s) => ({ media: applyMediaEvent(s.media, event) }))
+    try {
+      const storageInfo = await backend.media.storage()
+      set(() => ({ storage: storageInfo }))
+    } catch {
+      // storage refresh failure does not block live events
+    }
+  })
+}
+
+async function uploadProjectMedia(
+  nodeId: string,
+  file: File,
+  get: () => MediaStoreState,
+  set: (fn: (s: MediaStoreState) => Partial<MediaStoreState>) => void,
+): Promise<void> {
+  const { storage, projectId } = get()
+  if (!projectId) return
+
+  if (storage) {
+    const problem = earlyProblem({ name: file.name, size: file.size }, storage)
+    if (problem) {
+      set(() => ({ error: problem }))
+      return
+    }
+  }
+
+  set((s) => ({ uploading: [...s.uploading, file.name], error: null }))
+  try {
+    const created = await backend.media.upload(projectId, nodeId, file)
+    set((s) => ({ media: applyMediaEvent(s.media, { action: 'create', record: created }) }))
+    const [storageInfo, token] = await Promise.all([
+      backend.media.storage(),
+      backend.media.fileToken(),
+    ])
+    set(() => ({ storage: storageInfo, fileToken: token }))
+  } catch (err) {
+    set(() => ({ error: extractErrorMessage(err) }))
+  } finally {
+    set((s) => ({ uploading: s.uploading.filter((name) => name !== file.name) }))
+  }
+}
+
+async function removeProjectMedia(
+  m: Media,
+  set: (fn: (s: MediaStoreState) => Partial<MediaStoreState>) => void,
+): Promise<void> {
+  try {
+    await backend.media.remove(m.id)
+    set((s) => ({ media: applyMediaEvent(s.media, { action: 'delete', record: m }) }))
+    const storageInfo = await backend.media.storage()
+    set(() => ({ storage: storageInfo }))
+  } catch (err) {
+    set(() => ({ error: extractErrorMessage(err) }))
+  }
+}
+
 export const useMediaStore = create<MediaStoreState>((set, get) => ({
   projectId: null,
   media: [],
@@ -42,83 +116,11 @@ export const useMediaStore = create<MediaStoreState>((set, get) => ({
   uploading: [],
   error: null,
   fileToken: null,
-
-  setError(error) {
-    set({ error })
-  },
-
-  async open(projectId: string) {
-    set({ projectId, error: null })
-    try {
-      const [mediaList, storageInfo, token] = await Promise.all([
-        backend.media.list(projectId),
-        backend.media.storage(),
-        backend.media.fileToken(),
-      ])
-      set({ media: mediaList, storage: storageInfo, fileToken: token })
-    } catch (err) {
-      set({ error: extractErrorMessage(err) })
-    }
-
-    const unsub = await backend.media.subscribe(projectId, async (event) => {
-      set((s) => ({ media: applyMediaEvent(s.media, event) }))
-      try {
-        const storageInfo = await backend.media.storage()
-        set({ storage: storageInfo })
-      } catch {
-        // storage refresh failure does not block live events
-      }
-    })
-
-    return unsub
-  },
-
-  close() {
-    set({ projectId: null, media: [], storage: null, uploading: [], error: null, fileToken: null })
-  },
-
-  async upload(nodeId: string, file: File) {
-    const { storage, projectId } = get()
-    if (!projectId) return
-
-    if (storage) {
-      const problem = earlyProblem({ name: file.name, size: file.size }, storage)
-      if (problem) {
-        set({ error: problem })
-        return
-      }
-    }
-
-    set((s) => ({
-      uploading: [...s.uploading, file.name],
-      error: null,
-    }))
-
-    try {
-      const created = await backend.media.upload(projectId, nodeId, file)
-      set((s) => ({ media: applyMediaEvent(s.media, { action: 'create', record: created }) }))
-      const [storageInfo, token] = await Promise.all([
-        backend.media.storage(),
-        backend.media.fileToken(),
-      ])
-      set({ storage: storageInfo, fileToken: token })
-    } catch (err) {
-      set({ error: extractErrorMessage(err) })
-    } finally {
-      set((s) => ({ uploading: s.uploading.filter((name) => name !== file.name) }))
-    }
-  },
-
-  async remove(m: Media) {
-    try {
-      await backend.media.remove(m.id)
-      set((s) => ({ media: applyMediaEvent(s.media, { action: 'delete', record: m }) }))
-      const storageInfo = await backend.media.storage()
-      set({ storage: storageInfo })
-    } catch (err) {
-      set({ error: extractErrorMessage(err) })
-    }
-  },
+  setError: (error) => set({ error }),
+  open: (projectId) => openProjectMedia(projectId, set),
+  close: () => set({ projectId: null, media: [], storage: null, uploading: [], error: null, fileToken: null }),
+  upload: (nodeId, file) => uploadProjectMedia(nodeId, file, get, set),
+  remove: (m) => removeProjectMedia(m, set),
 }))
 
 export function useProjectMedia(projectId: string | null): {

@@ -54,7 +54,7 @@ export function MediaSection({ node }: { node: StoryNode }) {
           accept=".wav,.mp3,.mov,.mp4,.jpg,.jpeg,.png"
           disabled={!isOnline}
           onChange={handleFileChange}
-          className="sr-only"
+          className="hidden"
         />
       </label>
 

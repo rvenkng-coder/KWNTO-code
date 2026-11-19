@@ -174,7 +174,7 @@ test('deleting a file asks first and frees its space', async ({ page }) => {
 })
 
 // Protects: Review Focus live updates: teammate sees upload and delete live without reload.
-test('a teammate sees it live', async ({ page, browser }) => {
+test("a teammate's upload and delete appear without a reload", async ({ page, browser }) => {
   const { a, b } = await ownerAndMember(page, browser)
   const nodeId = await addNodeAt(a, 40, 60)
   await expect(card(b, nodeId)).toBeVisible()

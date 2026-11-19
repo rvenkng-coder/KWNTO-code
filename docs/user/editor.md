@@ -111,7 +111,8 @@ Select one node and the panel on the right shows it:
   - **Enter** in a line adds a new line below it and puts the cursor there. **Shift+Enter** starts a new paragraph inside the same line.
   - **Backspace** in a line whose character and text are both empty deletes it and moves the cursor to the line above.
   - **Move up** and **Move down** change the order; **Delete line** removes one.
-- **Cues:** notes for sound, light or anything else, each with a type (`audio`, `lighting`, `other`) and a note. **Add cue**, **Move up**, **Move down** and **Delete cue** work as for lines. (Attaching sound or video files comes later.)
+- **Cues:** notes for sound, light or anything else, each with a type (`audio`, `lighting`, `other`) and a note. **Add cue**, **Move up**, **Move down** and **Delete cue** work as for lines.
+- **Media:** attach audio, video and images to a node. Audio and video play in place with player controls, and images show as thumbnails (see [Media](#media) below).
 
 - **Choices:** one block for each choice of the node, in the order the card shows them. Each has its **Choice text**, a status (`Linked → <target>` or `Not linked`), **Link** or **Re-link**, **Unlink** (when linked) and **Delete**. **Add choice** adds an empty one. **Link to another chapter** (below) adds a choice to a node elsewhere.
 
@@ -157,3 +158,14 @@ Two people can edit the same node at once: if you change its title while a teamm
 If very many people save the same thing at the same moment and your change still cannot get through after 20 tries, you see `Could not save: too many people are editing this at once. Try again.` Your change is taken back on your screen (nothing half-saved reaches your teammates); make it again.
 
 If the team's owner removes you from the team, the project stays on your screen until you reload or open it again; then you see `This project does not exist or you are not a member of its team.`
+
+## Media
+
+You can attach audio, video and images to a node. They appear in the properties panel under **Media**:
+
+- **Allowed types:** audio (WAV, MP3), video (MOV, MP4) and images (JPEG, PNG).
+- **Add media:** choose **Add media** to upload a file. The server checks the file's real type (by its first bytes, not just its extension), size limits and your quota.
+- **In-place playback:** audio and video play right in the panel with controls, and images show thumbnail previews.
+- **Quota & storage meter:** the meter shows how much storage you have used out of your total quota (e.g. `Storage: 1 KB of 2.0 GB used`). Trashed nodes still count toward your quota until purged.
+- **Delete media:** choose **Delete** on an item. The panel asks for confirmation (`Delete <title>? This cannot be undone.`). Deleting frees the storage space immediately. There is no undo for deleted media.
+- **Offline:** uploads require an active internet connection. When offline, **Add media** is disabled and a message explains that uploads need a connection.

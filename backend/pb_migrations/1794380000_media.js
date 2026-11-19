@@ -16,7 +16,7 @@ migrate((app) => {
       { name: "project", type: "relation", required: true, collectionId: projects.id, maxSelect: 1, cascadeDelete: true },
       { name: "node", type: "relation", required: true, collectionId: nodes.id, maxSelect: 1, cascadeDelete: true },
       { name: "uploader", type: "relation", required: true, collectionId: users.id, maxSelect: 1, cascadeDelete: false },
-      { name: "file", type: "file", required: true, protected: true, maxSelect: 1, maxSize: 1073741824 },
+      { name: "file", type: "file", required: true, protected: true, maxSelect: 1, maxSize: 1073741824, thumbs: ["100x100"] },
       { name: "title", type: "text", max: 120 },
       { name: "kind", type: "select", values: ["audio", "video", "image"], maxSelect: 1 },
       { name: "size_bytes", type: "number", onlyInt: true, min: 0 },

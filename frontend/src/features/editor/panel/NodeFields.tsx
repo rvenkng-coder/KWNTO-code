@@ -6,6 +6,7 @@ import { edits } from '../store/edits'
 import { useSavedText } from '../store/useSavedText'
 import { Choices } from './Choices'
 import { Cues } from './Cues'
+import { MediaSection } from '../media/MediaSection.tsx'
 import { ScriptLines } from './ScriptLines'
 
 const COLOR_NAMES = Object.keys(NODE_COLORS) as NodeColor[]
@@ -42,6 +43,7 @@ export function NodeFields({ node }: { node: StoryNode }) {
         : <button type="button" className="btn self-start" onClick={makeStart}>Make start node</button>}
       <ScriptLines projectId={node.projectId} nodeId={node.id} />
       <Cues projectId={node.projectId} nodeId={node.id} />
+      <MediaSection node={node} />
       <Choices node={node} />
     </div>
   )

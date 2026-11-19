@@ -9,6 +9,7 @@ import { InlineText } from './chapters/InlineText'
 import { visibleTabs } from './chapters/tabsView'
 import { useTabsView } from './chapters/useTabsView'
 import { ErrorBanner } from './ErrorBanner'
+import { useProjectMedia } from './media/useProjectMedia.ts'
 import { liveChapters } from './model/state'
 import { PropertiesPanel } from './panel/PropertiesPanel'
 import { editorStore, useEditor } from './store/editorStore'
@@ -121,6 +122,7 @@ export function EditorScreen({ projectId, chapterId }: { projectId: string; chap
   const chapters = useMemo(() => liveChapters(content), [content])
   const active = chapters.find((c) => c.id === chapterId) ?? null
   useOpenProject(projectId)
+  useProjectMedia(projectId)
   useFirstTabRedirect(projectId, chapters, active)
   useFlushOnLeave(projectId, chapterId)
   useShortcuts(active === null ? null : active.id)

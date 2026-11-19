@@ -2,6 +2,7 @@ import { createBackend, type Backend } from './client'
 
 export { createBackend, type Backend }
 export type * from './content-types'
+export type * from './media-types'
 export { MAX_SAVE_TRIES, TOO_BUSY } from './guarded'
 
 let _backend: Backend | undefined
@@ -26,6 +27,10 @@ export const backend: Backend = {
   get content() {
     if (!_backend) _backend = createBackend()
     return _backend.content
+  },
+  get media() {
+    if (!_backend) _backend = createBackend()
+    return _backend.media
   },
   async health() {
     if (!_backend) _backend = createBackend()

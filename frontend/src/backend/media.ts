@@ -5,101 +5,98 @@ import type { Media, MediaEvent, MediaKind, StorageInfo } from './media-types.ts
 
 const VALID_KINDS: readonly MediaKind[] = ['audio', 'video', 'image']
 
+function str(v: unknown): string {
+  return typeof v === 'string' ? v : ''
+}
+
 export function fromMediaRecord(row: Record<string, unknown>): Media {
-  const kind = String(row.kind ?? '') as MediaKind
+  const kind = str(row.kind) as MediaKind
   if (!VALID_KINDS.includes(kind)) {
     throw new Error(`Unknown kind: ${row.kind}`)
   }
   return {
-    id: String(row.id ?? ''),
-    projectId: String(row.project ?? ''),
-    nodeId: String(row.node ?? ''),
-    uploaderId: String(row.uploader ?? ''),
-    title: String(row.title ?? ''),
+    id: str(row.id),
+    projectId: str(row.project),
+    nodeId: str(row.node),
+    uploaderId: str(row.uploader),
+    title: str(row.title),
     kind,
-    sizeBytes: Number(row.size_bytes ?? 0),
-    fileName: String(row.file ?? ''),
-    created: String(row.created ?? ''),
+    sizeBytes: typeof row.size_bytes === 'number' ? row.size_bytes : 0,
+    fileName: str(row.file),
+    created: str(row.created),
   }
+}
+
+async function wrapped<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn()
+  } catch (err) {
+    throw toBackendError(err)
+  }
+}
+
+function buildUploadFormData(projectId: string, nodeId: string, uploaderId: string | undefined, file: File): FormData {
+  const formData = new FormData()
+  formData.append('project', projectId)
+  formData.append('node', nodeId)
+  if (uploaderId) {
+    formData.append('uploader', uploaderId)
+  }
+  formData.append('file', file)
+  return formData
+}
+
+function subscribeMedia(pb: PocketBase, projectId: string, onEvent: (e: MediaEvent) => void) {
+  const filter = pb.filter('project = {:project}', { project: projectId })
+  return pb.collection('media').subscribe(
+    '*',
+    (e) => {
+      if (e.action === 'create' || e.action === 'delete') {
+        onEvent({
+          action: e.action,
+          record: fromMediaRecord(e.record as unknown as Record<string, unknown>),
+        })
+      }
+    },
+    { filter },
+  )
 }
 
 export function createMedia(pb: PocketBase) {
   const tokenCache = createFileTokens(() => pb.files.getToken())
 
-  async function wrapped<T>(fn: () => Promise<T>): Promise<T> {
-    try {
-      return await fn()
-    } catch (err) {
-      throw toBackendError(err)
-    }
-  }
-
   return {
-    async list(projectId: string): Promise<Media[]> {
-      return wrapped(async () => {
+    list: (projectId: string): Promise<Media[]> =>
+      wrapped(async () => {
         const rows = await pb.collection('media').getFullList({
           filter: pb.filter('project = {:project}', { project: projectId }),
           sort: 'created',
         })
         return rows.map((r) => fromMediaRecord(r as unknown as Record<string, unknown>))
-      })
-    },
+      }),
 
-    async upload(projectId: string, nodeId: string, file: File): Promise<Media> {
-      return wrapped(async () => {
-        const userId = pb.authStore.record?.id
-        const formData = new FormData()
-        formData.append('project', projectId)
-        formData.append('node', nodeId)
-        if (userId) {
-          formData.append('uploader', userId)
-        }
-        formData.append('file', file)
-
-        const record = await pb.collection('media').create(formData)
+    upload: (projectId: string, nodeId: string, file: File): Promise<Media> =>
+      wrapped(async () => {
+        const data = buildUploadFormData(projectId, nodeId, pb.authStore.record?.id, file)
+        const record = await pb.collection('media').create(data)
         return fromMediaRecord(record as unknown as Record<string, unknown>)
-      })
-    },
+      }),
 
-    async remove(id: string): Promise<void> {
-      return wrapped(async () => {
+    remove: (id: string): Promise<void> =>
+      wrapped(async () => {
         await pb.collection('media').delete(id)
-      })
-    },
+      }),
 
-    async storage(): Promise<StorageInfo> {
-      return wrapped(async () => {
-        return await pb.send<StorageInfo>('/api/kwnto/storage', { method: 'GET' })
-      })
-    },
+    storage: (): Promise<StorageInfo> => wrapped(() => pb.send<StorageInfo>('/api/kwnto/storage', { method: 'GET' })),
 
-    fileUrl(media: Media, token: string, thumb?: '100x100'): string {
+    fileUrl: (media: Media, token: string, thumb?: '100x100'): string => {
       const options = thumb ? { token, thumb } : { token }
       return pb.files.getURL({ id: media.id, collectionName: 'media' }, media.fileName, options)
     },
 
-    async fileToken(): Promise<string> {
-      return wrapped(async () => {
-        return await tokenCache.get()
-      })
-    },
+    fileToken: (): Promise<string> => wrapped(() => tokenCache.get()),
 
-    async subscribe(projectId: string, onEvent: (e: MediaEvent) => void): Promise<() => Promise<void>> {
-      return wrapped(async () => {
-        const filter = pb.filter('project = {:project}', { project: projectId })
-        return await pb.collection('media').subscribe(
-          '*',
-          (e) => {
-            if (e.action === 'create' || e.action === 'delete') {
-              onEvent({
-                action: e.action,
-                record: fromMediaRecord(e.record as unknown as Record<string, unknown>),
-              })
-            }
-          },
-          { filter },
-        )
-      })
-    },
+    subscribe: (projectId: string, onEvent: (e: MediaEvent) => void): Promise<() => Promise<void>> =>
+      wrapped(() => subscribeMedia(pb, projectId, onEvent)),
   }
 }

@@ -49,17 +49,17 @@ export function earlyProblem(file: { name: string; size: number }, info: Storage
 
 ## Checkpoint 3A: Mapping, tokens and the early check (unit)
 
-- [ ] **Step 1: Write the failing tests** C1 to C3.
-- [ ] **Step 2: Run** `npx vitest run --project unit frontend/src/backend/media.test.ts frontend/src/backend/file-tokens.test.ts frontend/src/features/editor/media/uploadCheck.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** `media-types.ts`, `fromMediaRecord`, `file-tokens.ts`, `uploadCheck.ts`. Write the reuse test as `if (cached !== null && now() - cached.at < TOKEN_REUSE_MS) return cached.token` (B1) and the quota test as `if (info.usedBytes + file.size > info.quotaBytes)` (B2).
-- [ ] **Step 4: Run** them. Expected: PASS. **Close checkpoint 3A** (commit `feat: media types, file tokens and the early upload check`).
+- [x] **Step 1: Write the failing tests** C1 to C3.
+- [x] **Step 2: Run** `npx vitest run --project unit frontend/src/backend/media.test.ts frontend/src/backend/file-tokens.test.ts frontend/src/features/editor/media/uploadCheck.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** `media-types.ts`, `fromMediaRecord`, `file-tokens.ts`, `uploadCheck.ts`. Write the reuse test as `if (cached !== null && now() - cached.at < TOKEN_REUSE_MS) return cached.token` (B1) and the quota test as `if (info.usedBytes + file.size > info.quotaBytes)` (B2).
+- [x] **Step 4: Run** them. Expected: PASS. **Close checkpoint 3A** (commit `feat: media types, file tokens and the early upload check`).
 
 ## Checkpoint 3B: The door against a live PocketBase
 
-- [ ] **Step 5: Write the failing tests** C4 to C7 in `tests/rules/media-door.rules.test.ts`, through `createBackend(PB_URL)` (a `File` made from `sampleBytes`; Node 22 has `File`).
-- [ ] **Step 6: Run** `npm run test:rules -- tests/rules/media-door.rules.test.ts`. Expected: FAIL (`backend.media` undefined).
-- [ ] **Step 7: Implement** `media.ts` and wire it into `createBackend` and the lazy `backend` in `index.ts`. `subscribe` filters by project as `realtime.ts` does.
-- [ ] **Step 8: Run** `npm run test:rules` and `npm run test:unit`. Expected: PASS. Update `backend.md`. **Close checkpoint 3B** (commit `feat: the media door`).
+- [x] **Step 5: Write the failing tests** C4 to C7 in `tests/rules/media-door.rules.test.ts`, through `createBackend(PB_URL)` (a `File` made from `sampleBytes`; Node 22 has `File`).
+- [x] **Step 6: Run** `npm run test:rules -- tests/rules/media-door.rules.test.ts`. Expected: FAIL (`backend.media` undefined).
+- [x] **Step 7: Implement** `media.ts` and wire it into `createBackend` and the lazy `backend` in `index.ts`. `subscribe` filters by project as `realtime.ts` does.
+- [x] **Step 8: Run** `npm run test:rules` and `npm run test:unit`. Expected: PASS. Update `backend.md`. **Close checkpoint 3B** (commit `feat: the media door`).
 
 ## Test plan
 ### Cases

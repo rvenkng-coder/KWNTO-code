@@ -178,6 +178,10 @@ A killed Playwright run can leave Vite listening on port `5174`; the next run th
 
 Starts `compose.prod.yaml` with `compose.edge-test.yaml` (Caddy and PocketBase, no Tailscale) and tests the public address: Caddy on `127.0.0.1:8094` (`EDGE_URL`), PocketBase direct on `127.0.0.1:8095` (`EDGE_ADMIN_URL`, set-up calls only; never send an app request to it). It builds `dist/` first if it is missing, and removes the stack with `down -v` afterwards. Helpers are in `tests/container/helpers/edge.ts`. Run it alone with `npx vitest run --project container tests/container/edge.test.ts`. Ports in use across the repo: `8090` dev, `8091` test, `8092` spike, `8093` container test, `8094` and `8095` edge test.
 
+### Backup test (`tests/container/backup.test.ts`)
+
+Starts `compose.prod.yaml` with `compose.backup-test.yaml` (project `kwnto-backup-test`): the same ports as the edge test (`8094`, `8095`), so the two files run one at a time (the container project already does). Data lives in the named volume `kwnto-backup-test-data` and backups in a temporary host folder (`KWNTO_BACKUP_DIR`); both are removed afterwards. It runs `deploy/backup-now.sh` (C1, also checking that the password never shows in `ps`) and `deploy/restore.sh` (C2 to C4: data, media file and admin password come back; a missing or non-zip file is refused; without `--yes` it asks first). Helpers are in `tests/container/helpers/backup.ts`. Run it alone with `npx vitest run --project container tests/container/backup.test.ts`. If a killed run left things behind: `docker compose -f compose.prod.yaml -f compose.backup-test.yaml down -v` and `docker volume rm -f kwnto-backup-test-data`.
+
 ---
 
 ## Pre-commit Hook: Secret Scan

@@ -82,7 +82,7 @@ KWNTO is an **internal tool** for now. Some risks are knowingly accepted for tha
 ## 7. Data protection
 
 - **Trash:** deleted projects, chapters and nodes stay recoverable for 30 days (admin setting), then are removed for good.
-- **Backups:** a script or command runs scheduled backups to a configurable destination. After the trash period, recovery is a backup restore by the admin. **Test the restore, not just the backup.** (planned)
+- **Backups:** in production PocketBase runs its own scheduled backup every day at 02:00 UTC and keeps the last 7 (written by the production settings migration, so the admin can change both in the dashboard afterwards). Backups are plain zip files in the host folder `KWNTO_BACKUP_DIR` (default `./backups`), mounted into the container, so the admin can copy them off the VM or point the folder at a NAS mount. `deploy/backup-now.sh` makes one on demand. A zip holds the database, the uploaded media files and the admin account; protect it like a secret. After the trash period, recovery is a backup restore by the admin (`deploy/restore.sh`, section 9 control 8). **Test the restore, not just the backup:** the container test `tests/container/backup.test.ts` backs up a stack, damages it, restores into a fresh volume and checks that the data, the media file and the admin password are back.
 - **Offline edits** queue locally in the browser's IndexedDB (an outbox) and are never discarded: an entry leaves it only when the server accepted it, the server refused it (it then shows in the failed list until the person dismisses it), or the person chose `Keep theirs`. Sync conflicts ask which version to keep (design section 6.7). Entries carry the user id, so another account on the same browser never sees or sends them; signing out with waiting edits asks first and keeps them for the next sign-in. The outbox is readable by anyone with the browser profile (section 10).
 
 ## 8. Logging
@@ -186,9 +186,19 @@ Share links do not exist yet (decision D9). This entry is written when the `shar
 - **Undo:** set another password the same way.
 - **Not for app accounts:** the `pocketbase superuser upsert` command in [backend.md](developer/backend.md#how-the-admin-is-created) resets an **admin** (dashboard) password only; it does not touch app accounts.
 
-### 8. Restore from a backup (arrives with the deployment plan)
+### 8. Restore from a backup
 
-Scheduled backups and the restore procedure are built and tested by the deployment plan (section 7). This entry is written then.
+- **When:** data is lost or damaged and the 30-day trash cannot bring it back (a project deleted for good, a bad change by the admin, a damaged database). A restore replaces **everything** (database, media files and the admin account) with the state at the time of the backup; whatever people did after that backup is lost. It works even when the app will not start.
+- **Steps:** on the VM, in the folder with the repository, pick a backup in the backups folder (`KWNTO_BACKUP_DIR`, default `./backups`; the newest `*.zip` is the latest). Optionally keep a copy of the current state first with `deploy/backup-now.sh`, if the app still runs. Then:
+
+  ```sh
+  deploy/restore.sh ./backups/<file>.zip
+  ```
+
+  It asks `This replaces ALL data with <file>. Type RESTORE to continue:`; anything else stops it with nothing changed. It stops the `pocketbase` container, empties the `kwnto-data` volume, unzips the backup into it as the PocketBase user, starts `pocketbase` again and prints `Restored from <file>` once the server answers. A missing file or a file that is not a zip is refused (exit 2) before anything is touched.
+- **Confirm:** the script printed `Restored from ...`. Then, by hand: sign in to the dashboard over the tailnet with the admin password **from the time of the backup**, check Collections (`teams`, `projects`), and open a project in the app on the public address. Open a node with an uploaded image or file and check that it loads.
+- **Undo:** a restore cannot be undone by itself. If you made a copy of the current state first (see Steps), restore that zip the same way. Everyone's app sessions from after the backup may no longer be valid; people sign in again.
+- **If it fails:** the script prints the reason; `docker compose -f compose.prod.yaml logs pocketbase` shows the server's side. The backup zip itself is never changed.
 
 ### Afterwards
 

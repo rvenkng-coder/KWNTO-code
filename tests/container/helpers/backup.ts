@@ -47,10 +47,10 @@ export function runScript(script: string, args: string[], input: string, extraEn
 export const backupNow = (email: string, password: string, pb = 'http://127.0.0.1:8095'): ScriptResult =>
   runScript('deploy/backup-now.sh', [], `${email}\n${password}\n`, { PB: pb })
 
-export function restore(args: string[], input = '', extraEnv: Record<string, string> = {}): ScriptResult {
+export function restore(dir: string, args: string[], input = ''): ScriptResult {
   return runScript('deploy/restore.sh', args, input, {
     KWNTO_COMPOSE_FILES: COMPOSE_FILES.join(' '),
     KWNTO_DATA_VOLUME: BACKUP_VOLUME,
-    ...extraEnv,
+    KWNTO_BACKUP_DIR: dir, // compose needs it to read the files, as on the VM
   })
 }

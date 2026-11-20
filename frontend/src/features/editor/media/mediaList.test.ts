@@ -62,7 +62,7 @@ describe('mediaList', () => {
       allowedTypes: ['wav', 'mp3', 'mov', 'mp4', 'jpeg', 'png'],
       isLead: false,
     }
-    expect(meterText(info)).toBe('Storage: 1 KB of 2.0 GB used')
+    expect(meterText(info)).toBe('Team storage: 1 KB of 2.0 GB used')
   })
 })
 

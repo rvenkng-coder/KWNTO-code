@@ -128,7 +128,7 @@ test('over the quota an upload is refused and nothing is deleted', async ({ page
   await saved
 
   await expect(mediaItems(page)).toHaveCount(1)
-  await expect(storageMeter(page)).toHaveText('Storage: 1 KB of 1 KB used')
+  await expect(storageMeter(page)).toHaveText('Team storage: 1 KB of 1 KB used')
 
   // Second upload pushes over quota
   await input.setInputFiles({ name: 'second.png', mimeType: 'image/png', buffer: PNG_1PX })
@@ -137,11 +137,14 @@ test('over the quota an upload is refused and nothing is deleted', async ({ page
   )
   await expect(mediaItems(page)).toHaveCount(1)
   await expect(mediaItems(page).first()).toContainText('first.png')
-  await expect(storageMeter(page)).toHaveText('Storage: 1 KB of 1 KB used')
+  await expect(storageMeter(page)).toHaveText('Team storage: 1 KB of 1 KB used')
 })
 
-// Protects: D8: deleting asks confirmation inline (no dialog pop-ups) and frees storage.
-test('deleting a file asks first and frees its space', async ({ page }) => {
+const removedItems = (page: Page) => panel(page).getByTestId('removed-media-item')
+
+// Protects: D8 and the lead's storage rule: removing asks first (inline), hides the file, keeps
+// its space used; the lead then restores it or deletes it for good, which frees the space.
+test('removing a file hides it and only deleting for good frees its space', async ({ page }) => {
   await setupNode(page)
   page.on('dialog', () => {
     throw new Error('Browser dialog fired unexpectedly')
@@ -154,27 +157,51 @@ test('deleting a file asks first and frees its space', async ({ page }) => {
   await input.setInputFiles({ name: 'a.png', mimeType: 'image/png', buffer: PNG_1PX })
   await saved
   await expect(mediaItems(page)).toHaveCount(1)
+  const meterWithFile = await storageMeter(page).textContent()
 
   const item = mediaItems(page).first()
-  await item.getByRole('button', { name: 'Delete' }).click()
-  await expect(item).toContainText('Delete a.png? This cannot be undone.')
+  await item.getByRole('button', { name: 'Remove' }).click()
+  await expect(item).toContainText('Remove a.png from this node? The team lead can bring it back.')
 
-  // Cancel keeping file
+  // Cancel keeps the file
   await item.getByRole('button', { name: 'Cancel' }).click()
   await expect(mediaItems(page)).toHaveCount(1)
 
-  // Confirm delete
-  const deleted = waitForSave(page, 'media', 'DELETE')
-  await item.getByRole('button', { name: 'Delete' }).click()
-  await item.getByRole('button', { name: 'Delete' }).click()
-  await deleted
-
+  // Confirm: it leaves the node but still uses the lead's storage
+  const removed = waitForSave(page, 'media', 'PATCH')
+  await item.getByRole('button', { name: 'Remove' }).click()
+  await item.getByRole('button', { name: 'Remove' }).click()
+  await removed
   await expect(mediaItems(page)).toHaveCount(0)
+  await expect(removedItems(page)).toHaveCount(1)
+  await expect(storageMeter(page)).toHaveText(meterWithFile ?? '')
+
+  // The lead restores it
+  const restored = waitForSave(page, 'media', 'PATCH')
+  await removedItems(page).first().getByRole('button', { name: 'Restore' }).click()
+  await restored
+  await expect(mediaItems(page)).toHaveCount(1)
+  await expect(removedItems(page)).toHaveCount(0)
+
+  // Remove again, then delete for good (asks first): the space is freed
+  await mediaItems(page).first().getByRole('button', { name: 'Remove' }).click()
+  const removedAgain = waitForSave(page, 'media', 'PATCH')
+  await mediaItems(page).first().getByRole('button', { name: 'Remove' }).click()
+  await removedAgain
+  const removedItem = removedItems(page).first()
+  await removedItem.getByRole('button', { name: 'Delete for good' }).click()
+  await expect(removedItem).toContainText('Delete a.png for good? This cannot be undone.')
+  const deleted = waitForSave(page, 'media', 'DELETE')
+  await removedItem.getByRole('button', { name: 'Delete for good' }).click()
+  await deleted
+  await expect(removedItems(page)).toHaveCount(0)
   await expect(storageMeter(page)).toHaveText(meterBefore ?? '')
 })
 
-// Protects: Review Focus live updates: teammate sees upload and delete live without reload.
-test("a teammate's upload and delete appear without a reload", async ({ page, browser }) => {
+// Protects: Review Focus live updates and the lead's storage rule: a member's upload shows live,
+// the member's removal hides it live, only the lead sees it as removed, and the member never
+// gets a delete or restore control.
+test("a teammate's upload and removal appear without a reload, and only the lead can delete", async ({ page, browser }) => {
   const { a, b } = await ownerAndMember(page, browser)
   const nodeId = await addNodeAt(a, 40, 60)
   await expect(card(b, nodeId)).toBeVisible()
@@ -189,19 +216,24 @@ test("a teammate's upload and delete appear without a reload", async ({ page, br
   await panel(b).getByLabel('Add media').setInputFiles({ name: 'b.png', mimeType: 'image/png', buffer: PNG_1PX })
   await saved
 
-  // Owner a sees it live
+  // Owner a sees it live, on the lead's meter too
   await expect(mediaItems(a)).toHaveCount(1)
   await expect(mediaItems(a).first()).toContainText('b.png')
+  await expect(storageMeter(b)).toHaveText(await storageMeter(a).textContent() ?? '')
 
-  // Member b deletes it
-  const deleted = waitForSave(b, 'media', 'DELETE')
+  // Member b removes it
+  const removed = waitForSave(b, 'media', 'PATCH')
   const bItem = mediaItems(b).first()
-  await bItem.getByRole('button', { name: 'Delete' }).click()
-  await bItem.getByRole('button', { name: 'Delete' }).click()
-  await deleted
+  await bItem.getByRole('button', { name: 'Remove' }).click()
+  await bItem.getByRole('button', { name: 'Remove' }).click()
+  await removed
 
-  // Owner a sees it gone live
+  // Owner a sees it leave the node and appear in the removed list; the member sees no removed list
   await expect(mediaItems(a)).toHaveCount(0)
+  await expect(removedItems(a)).toHaveCount(1)
+  await expect(mediaItems(b)).toHaveCount(0)
+  await expect(removedItems(b)).toHaveCount(0)
+  await expect(panel(b).getByRole('button', { name: /Delete|Restore/ })).toHaveCount(0)
 })
 
 // Protects: D9: uploads wait for connection; disabled and offline copy shown.

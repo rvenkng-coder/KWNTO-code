@@ -30,5 +30,5 @@ export function removedOf(list: Media[], nodeId: string): Media[] {
 export function meterText(info: StorageInfo): string {
   const used = formatSize(info.usedBytes)
   const quota = formatSize(info.quotaBytes)
-  return `Storage: ${used} of ${quota} used`
+  return `Team storage: ${used} of ${quota} used`
 }

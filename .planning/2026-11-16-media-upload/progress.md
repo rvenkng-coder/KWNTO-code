@@ -10,6 +10,7 @@ Plan: docs/superpowers/plans/2026-11-16-media-upload/README.md. Branch `feat/med
 | 2026-11-19 | Task 2 | strong | Media collection migration, media create hook (magic bytes, quota, race check), safe download headers with nosniff and CSP, GET /api/kwnto/storage route. C1-C11 rule tests pass, 10/10 runs of C9 pass, check:task PASS | clean | 0 | Task 3 |
 | 2026-11-19 | Task 3 | strong | Media types, file tokens, early upload check, media door against live PB. C1-C7 pass, B1-B2 caught, probes 4/4 passed, check:task PASS | clean | 0 | Task 4 |
 | 2026-11-19 | Task 4 | strong | Media in properties panel, audio/video players, thumbnails, quota meter, inline delete confirm, e2e C1-C10 pass, B1 caught, probes 4/4 passed, check:task PASS | clean | 0 | Whole-branch review |
+| 2026-11-20 | Whole-branch review | strong | Review found 10 issues; fixed 1-6 and 9 (token refresh, stale-project writes, subscribe first, reader close, explicit over-quota throw, quota fallback only on no rows, same-name uploads). Developer decision: storage belongs to the team lead (quota on the owner, members remove, owner restores or deletes, optional `uploader`); see the plan amendment. Rules, unit and e2e tests updated. Not fixed: issue 10 (stale pre-check), flaky race ordering. Commits 2d99bab, 8eca531 | found 9 | 0 | Developer review |
 
 ## Task 4 Report: Media in the properties panel and close-out
 

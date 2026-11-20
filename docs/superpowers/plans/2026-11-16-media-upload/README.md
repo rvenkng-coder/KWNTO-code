@@ -92,6 +92,16 @@ Names and signatures shared between tasks are in each task file's **Interfaces**
 
 **Closing a checkpoint** follows the Plan 1 router, "Rules while working". Replace its `<date>-foundation` with `2026-11-16-media-upload`.
 
+## Amendment 2026-11-20: storage belongs to the team lead
+
+Decided by the developer during the whole-branch review. It replaces the parts of the plan below; the decision text above is kept as it was built.
+
+- **Quota (replaces line 24, goal 5, the quota part of D1):** every `media` row in the projects of a team owner counts against **that owner's** quota (their `user_limits` override or the default), whoever uploaded it, in every project, removed or not. The race re-check adds up the owner's rows, not the uploader's.
+- **Fields (amends D3):** `uploader` is optional (who uploaded; cleared when that account is deleted, so a member leaving or being deleted never strands or frees files). New `removed_at` (date). The update rule is `IS_MEMBER`, guarded by a hook: a member may only set `removed_at`; only the owner clears it (restore).
+- **Who deletes (replaces D8):** a member can only **remove** a file (hide it for everyone; its space stays used). The team owner sees "Removed by the team" in the panel and can **restore** it or **delete it for good** (asks first, no `confirm()`, then the space is freed). `deleteRule` is owner only.
+- **Storage route:** `GET /api/kwnto/storage?project=<id>` returns the owner's usage and quota for the project, plus `isLead`; a non-member gets 404. The meter reads "Team storage: ...".
+- Migration `1794380100_media_team_quota.js`; design 5, 6.8 and 9, the ERD and backend.md are updated.
+
 ## Done when
 
 - `npm test` passes on a clean clone with Docker running, and `npm run check:task` passed for every task (output in the reports).

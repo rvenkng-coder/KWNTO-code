@@ -15,9 +15,9 @@ KWNTO is an **internal tool** for now. Some risks are knowingly accepted for tha
 - Every collection has explicit access rules. No rule means no access.
 - A person reaches a project only through **team membership** or a **valid, unrevoked share link**.
 - Share links: view, comment or edit; live or snapshot; revocable. View links work without an account. Comment and edit links require sign-in. An edit link grants one project only, never the team.
-- Tokens are long and random, so they cannot be guessed. A revoked link stops working at once, including its media.
+- Tokens are 40 characters from `A-Za-z0-9`, about 238 bits, made only by the server (`$security.randomStringWithAlphabet`), and always looked up as a bound parameter. A revoked link stops working at once, including its media. **Built (plan 7 Task 3):** view and comment links are never read through collection rules but through routes under `/api/kwnto/share/{token}` that check the token on every request; an unknown token, a revoked link and a link of a trashed project all get the same 404 with the same body (no oracle). An edit link makes a `link_grants` row (verified sign-in), and the content rules accept that one row (`link.revoked = false`, `permission = 'edit'`, same project, all in one row) next to team membership; the owner-only rules (trash a project, delete media for good) are untouched. Snapshot links are view-only. No rule is public.
 - Only the team owner can remove members, regenerate or disable the join code, delete projects or delete the team.
-- **Test requirement:** every collection has backend rule tests as different users (member, outsider, signed-out, link holders). **A test fails if any collection has no tested rule. (planned)**
+- **Test requirement:** every collection has backend rule tests as different users (member, outsider, signed-out, link holders). **A test fails if any collection has no tested rule.**
 
 ## 3. Accounts and sign-in
 
@@ -174,9 +174,18 @@ If it prints anything other than `eyJ`, the email or password was wrong. **A pas
 - **Confirm:** a sign-up is refused with "Sign-up is closed." (status 403); `security_events` has a `settings` entry with `registration_open` changed from `true` to `false`. Unwanted accounts already made: block them (control 3) or delete them in Collections, `users`.
 - **Undo:** turn `registration_open` back on and **Save changes**.
 
-### 6. Revoke all share links (arrives with plan 7)
+### 6. Revoke all share links
 
-Share links do not exist yet (decision D9). This entry is written when the `share_links` collection is built (Roadmap plan 7).
+- **When:** a share link may have leaked or been misused and you cannot tell which one. It stops every link of every project at once: view, comment and edit, live and snapshot. Edit-link holders lose access to the project's content at once (their saves are refused and their live events stop); team members are not affected.
+- **Steps:** with `$TOKEN` from above:
+
+  ```sh
+  printf 'header = "Authorization: %s"\n' "$TOKEN" \
+    | curl -s -i -X POST "$PB/api/kwnto/admin/share-links/revoke-all" --config -
+  ```
+
+- **Confirm:** the answer is `HTTP/1.1 200 OK` with `{"count":N}`, the number of links that were still live. In Collections, `security_events`, the newest entry is `admin` with `detail.action` `revoke-all-links` and `detail.count`. Opening an old link now shows "This link is not valid or was revoked."
+- **Undo:** none: make new links. A revoked link cannot be revived.
 
 ### 7. Reset a password by hand
 

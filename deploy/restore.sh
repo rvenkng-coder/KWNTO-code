@@ -24,11 +24,19 @@ if [ ! -f "$FILE" ]; then
   exit 2
 fi
 # A zip starts with "PK".
-if [ "$(head -c 2 "$FILE")" != "PK" ]; then
+if [ "$(head -c 2 -- "$FILE")" != "PK" ]; then
   echo "Not a zip file: $FILE" >&2
   exit 2
 fi
-ABS="$(cd "$(dirname "$FILE")" && pwd)/$(basename "$FILE")"
+ABS="$(cd "$(dirname -- "$FILE")" && pwd)/$(basename -- "$FILE")"
+
+# Integrity check BEFORE anything is stopped or emptied: a cut-off or empty zip starts with "PK" too.
+# A throwaway container of the same image (it has unzip), nothing mounted but the zip.
+if ! docker run --rm --user 10001:10001 --entrypoint sh -v "$ABS:/restore/backup.zip:ro" "$IMAGE" \
+  -c 'unzip -tq /restore/backup.zip' >/dev/null 2>&1; then
+  echo "Backup is damaged: $FILE" >&2
+  exit 2
+fi
 
 if [ "$YES" -ne 1 ]; then
   printf 'This replaces ALL data with %s. Type RESTORE to continue: ' "$FILE"
@@ -46,16 +54,19 @@ fi
 docker compose $COMPOSE_FILES stop pocketbase
 
 # Runs as uid 10001 (the user PocketBase runs as), so the restored files belong to it.
-docker run --rm --user 10001:10001 --entrypoint sh \
+if ! docker run --rm --user 10001:10001 --entrypoint sh \
   -v "$VOLUME:/pb/pb_data" -v "$ABS:/restore/backup.zip:ro" "$IMAGE" \
-  -c 'find /pb/pb_data -mindepth 1 -delete && unzip -q /restore/backup.zip -d /pb/pb_data'
+  -c 'find /pb/pb_data -mindepth 1 -delete && unzip -q /restore/backup.zip -d /pb/pb_data'; then
+  echo "Restore failed after the data folder was emptied; pocketbase is stopped. Run the restore again with a good backup." >&2
+  exit 1
+fi
 
 # shellcheck disable=SC2086
 docker compose $COMPOSE_FILES start pocketbase
 
-# shellcheck disable=SC2086
 i=0
 while [ "$i" -lt 60 ]; do
+  # shellcheck disable=SC2086
   if docker compose $COMPOSE_FILES exec -T pocketbase wget -qO- http://127.0.0.1:8090/api/health >/dev/null 2>&1; then
     echo "Restored from $FILE"
     exit 0

@@ -54,7 +54,7 @@ Stop and report if you need to touch anything else.
 ## Checkpoint 6C: The indicator
 
 - [ ] **Step 8: Write the failing tests** C4 in `presenceModel.test.ts` and C5, C6 in `e2e/presence.spec.ts`; run, expect FAIL.
-- [ ] **Step 9: Implement** the door, the model (`nowMs - seenAt[r.id] < timeoutMs`, B2; own rows dropped by `r.userId !== selfId`, B3), the hook and `EditingBadge` (text `editingLabel`, `data-testid="editing-badge"`; on the card a small line under the title; in the panel beside the field).
+- [ ] **Step 9: Implement** the door, the model (`nowMs - seenAt[r.id]! < timeoutMs`, B2; own rows dropped by `r.userId !== selfId`, B3), the hook and `EditingBadge` (text `editingLabel`, `data-testid="editing-badge"`; on the card a small line under the title; in the panel beside the field).
 - [ ] **Step 10: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. Update the docs. **Close checkpoint 6C** (commit `feat: someone-is-editing indicator`).
 
 ## Test plan
@@ -73,7 +73,7 @@ Stop and report if you need to touch anything else.
 | ID | File | Find | Replace | Tests |
 |---|---|---|---|---|
 | B1 | backend/pb_hooks/lib/presence.js | `const windowMs = timeoutSeconds * 2 * 1000` | `const windowMs = timeoutSeconds * 1000` | tests/hooks/presence.unit.test.ts |
-| B2 | frontend/src/features/presence/presenceModel.ts | `nowMs - seenAt[r.id] < timeoutMs` | `nowMs - seenAt[r.id] <= timeoutMs * 2` | frontend/src/features/presence/presenceModel.test.ts |
+| B2 | frontend/src/features/presence/presenceModel.ts | `nowMs - seenAt[r.id]! < timeoutMs` | `nowMs - seenAt[r.id]! <= timeoutMs * 2` | frontend/src/features/presence/presenceModel.test.ts |
 | B3 | frontend/src/features/presence/presenceModel.ts | `r.userId !== selfId` | `true` | frontend/src/features/presence/presenceModel.test.ts |
 ### Flow
 In Firefox and Chromium side by side: edit the same node's title, a line and a choice label in turn; drop one browser's network for 20 s; close a tab. Record what you saw in `progress.md`.

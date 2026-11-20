@@ -17,6 +17,8 @@ function fakeDoor(pages: ProjectContent[]) {
   const loads: string[] = []
   const heldLoads: Array<(c: ProjectContent) => void> = []
   let holdNext = false
+  const heldSubs: Array<() => void> = []
+  let holdSub = false
   const reconnects: Array<() => void> = []
   const events: Array<(e: RemoteEvent) => void> = []
   let server: StoryNode | null = null
@@ -31,13 +33,16 @@ function fakeDoor(pages: ProjectContent[]) {
     subscribe: (_id, onEvent, onReconnect) => {
       events.push(onEvent)
       if (onReconnect !== undefined) reconnects.push(onReconnect)
-      return Promise.resolve(async () => {})
+      const ready = async () => {}
+      if (!holdSub) return Promise.resolve(ready)
+      holdSub = false
+      return new Promise<() => Promise<void>>((resolve) => heldSubs.push(() => resolve(ready)))
     },
     create: ((_kind: string, record: unknown) => Promise.resolve(record)) as EditorDoor['create'],
     update: ((...args: unknown[]) => new Promise<StoryNode>((resolve, reject) => updates.push({ args, resolve, reject }))) as EditorDoor['update'],
     remove: () => Promise.resolve(),
   }
-  return { door, updates, loads, reconnects, events, heldLoads, holdNextLoad: () => { holdNext = true }, setServer: (n: StoryNode) => { server = n } }
+  return { door, updates, loads, reconnects, events, heldLoads, heldSubs, holdNextSub: () => { holdSub = true }, holdNextLoad: () => { holdNext = true }, setServer: (n: StoryNode) => { server = n } }
 }
 
 // A store on a real sync engine over a memory outbox the test can pre-fill.
@@ -181,4 +186,20 @@ test('a record I removed while a reload was under way stays removed', async () =
   s.fake.heldLoads[0]!(withLine())
   await settle()
   expect(s.store.getState().content.lines.L).toBeUndefined()
+})
+
+// Protects: finding E: after the connection comes back the live subscription is open before the project is loaded, so a teammate's save cannot fall between the two.
+test('after coming back online the subscription is open before the project is loaded', async () => {
+  const s = await setup([content({ nodes: [n1()] }), content({ nodes: [n1()] })])
+  await open(s)
+  s.engine.setOnline(false)
+  await settle()
+  s.fake.holdNextSub()
+  s.engine.setOnline(true)
+  await settle()
+  expect(s.fake.heldSubs).toHaveLength(1)
+  expect(s.fake.loads).toHaveLength(1)
+  s.fake.heldSubs[0]!()
+  await settle()
+  expect(s.fake.loads).toHaveLength(2)
 })

@@ -64,11 +64,14 @@ class Session {
   }
 
   // Loads the project, and subscribes when asked.
-  private async fetchProject(projectId: string, token: number, subscribe: boolean): Promise<Fetched> {
+  private async fetchProject(projectId: string, token: number, subscribe: boolean, subscribeFirst = false): Promise<Fetched> {
     this.buffered ??= []
     if (this.loading++ === 0) this.touched.clear()
     const subscribed = subscribe ? this.door.subscribe(projectId, this.onEventOf(token), () => void this.reload(token)) : Promise.resolve(null)
-    const [loaded, sub] = await Promise.allSettled([this.door.load(projectId), subscribed])
+    // After a reconnect the subscription is open before the load is asked for, so a save cannot fall between the two.
+    const load = () => this.door.load(projectId)
+    const loading = subscribeFirst ? subscribed.then(load, load) : load()
+    const [loaded, sub] = await Promise.allSettled([loading, subscribed])
     const events = this.buffered ?? []
     this.buffered = null
     this.loading--
@@ -91,7 +94,7 @@ class Session {
   private async reopen(token: number): Promise<void> {
     const projectId = this.openProject
     if (projectId === null || token !== this.openToken) return
-    const result = await this.fetchProject(projectId, token, true)
+    const result = await this.fetchProject(projectId, token, true, true)
     if (token !== this.openToken || !result.ok) return discard(result.close)
     this.stopSubscription()
     this.closeSubscription = result.close

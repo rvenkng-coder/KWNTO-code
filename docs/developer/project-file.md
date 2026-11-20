@@ -39,7 +39,7 @@ Ids are the original ones. They are only keys: **import gives every record a new
 
 ## Limits
 
-`FILE_LIMITS` in the library: 5,242,880 bytes (5 MB); 200 chapters, 2,000 nodes, 20,000 lines, 10,000 cues, 10,000 connections; text lengths as above (the collections' own maximums, read from the migrations). A text length counts characters, not bytes. An id is at most 100 characters.
+`FILE_LIMITS` in the library: 5,242,880 bytes (5 MB); 200 chapters, 2,000 nodes, 20,000 lines, 10,000 cues, 10,000 connections, 2,000 media entries; text lengths as above (the collections' own maximums, read from the migrations). A text length counts characters, not bytes. An id is at most 100 characters.
 
 ## Problem messages
 
@@ -58,9 +58,17 @@ Ids are the original ones. They are only keys: **import gives every record a new
 | `too many <list> (<count>, at most <limit>)` | The elements of that list are then not checked one by one |
 | `<path> is not a <chapter\|node> in the file` | A reference (`nodes[].chapter`, `lines[].node`, `cues[].node`, `connections[].from`, `connections[].to`, `project.startNode`, `media[].node`) to an id the file does not hold |
 | `duplicate id "<id>" in <list>` | |
-| `unknown key "<key>" in <path>` | The path is `the file`, `project` or an element such as `nodes[0]`. A `__proto__` key made by `JSON.parse` is refused like any other; only fixed keys are ever copied, into fresh objects |
+| `unknown key "<key>" in <path>` | The path is `the file`, `project` or an element such as `nodes[0]`. The key is echoed cut to 50 characters. A `__proto__` key made by `JSON.parse` is refused like any other; only fixed keys are ever copied, into fresh objects |
 
 If the file passes but the database still refuses a record (for example two connections between the same two nodes, which the pair index forbids), the whole import is rolled back and answers 400 `This file is not a KWNTO project: a record in it was refused`. Nothing is created.
+
+## Choices to trashed nodes
+
+A choice whose target is trashed is exported with `to: null`, like an empty choice, and keeps its text. A node may have several such choices: the unique pair index on `connections` covers only choices that have a target (`WHERE to_node != ''`, migration 1794370200), so they import. Pinned by `tests/rules/project-file.edge.rules.test.ts`.
+
+## Code layout
+
+`lib/project-file.js` only joins four files: `project-file-limits.js` (`FILE_LIMITS` and the value lists), `project-file-build.js` (`buildProjectFile`), `project-file-validate.js` (`validateProjectFile`) and `project-file-plan.js` (`importPlan` and the route helpers). Each is under 300 lines.
 
 ## Routes
 

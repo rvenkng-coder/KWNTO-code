@@ -28,6 +28,10 @@ routerAdd("GET", "/api/kwnto/projects/{id}/export", (e) => {
       records = loadProjectRecords(e.app, projectId)
     }
   } catch (error) {
+    // Only "no such project" is a 404; any other failure is a real error and must not be hidden.
+    if (!String(error).includes("no rows")) {
+      throw error
+    }
     records = null
   }
   if (records === null) {

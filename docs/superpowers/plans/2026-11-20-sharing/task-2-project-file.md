@@ -56,6 +56,8 @@ module.exports = { FILE_LIMITS, buildProjectFile, validateProjectFile, importPla
 - [x] **Step 10: Implement** the door, `ExportButton` (downloads through an object URL, revoked after the click) and `ImportProject` (a labelled file input; the server's message in `role="alert"`; on success opens the new project).
 - [x] **Step 11: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. Update the docs. **Close checkpoint 2C** (commit `feat: export and import buttons`).
 
+Note beside C6 and C9 in the Test plan: the wire message ends with a full stop (PocketBase appends it when a message has none), and the tests compare with it, for example `This file is not a KWNTO project: it is not JSON.`
+
 ## Test plan
 ### Cases
 | ID | Behaviour | Layer | Input | Expected | Test |
@@ -74,8 +76,8 @@ module.exports = { FILE_LIMITS, buildProjectFile, validateProjectFile, importPla
 ### Breaks
 | ID | File | Find | Replace | Tests |
 |---|---|---|---|---|
-| B1 | backend/pb_hooks/lib/project-file.js | `if (!nodeIds.has(c.from))` | `if (false)` | tests/hooks/project-file.unit.test.ts |
-| B2 | backend/pb_hooks/lib/project-file.js | `if (list.length > limit)` | `if (list.length > limit + 1)` | tests/hooks/project-file.unit.test.ts |
+| B1 | backend/pb_hooks/lib/project-file-validate.js | `if (!nodeIds.has(c.from))` | `if (false)` | tests/hooks/project-file.unit.test.ts |
+| B2 | backend/pb_hooks/lib/project-file-validate.js | `if (list.length > limit)` | `if (list.length > limit + 1)` | tests/hooks/project-file.unit.test.ts |
 | B3 | frontend/src/backend/projectFiles.ts | `file.size > MAX_IMPORT_BYTES` | `file.size > MAX_IMPORT_BYTES * 2` | frontend/src/backend/projectFiles.test.ts |
 ### Flow
 In Firefox and Chromium: export a real project, open the file in a text editor (readable, no internal fields), import it into another team, compare by eye. Record what you saw in `progress.md`.

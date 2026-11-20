@@ -201,3 +201,21 @@ test('names and sizes the routes rely on', () => {
   expect(utf8Length('€')).toBe(3)
   expect(utf8Length('😀')).toBe(4)
 })
+
+// Protects the messages shown to a person: an unknown key is echoed cut to 50 characters, so
+// a hostile file cannot fill the alert with its own text.
+test('an unknown key is echoed cut to 50 characters', () => {
+  const key = 'k'.repeat(200)
+  const problems = problemsOf(edited((f) => { (f.nodes as Json[])[0][key] = 1 }))
+  expect(problems[0]).toBe(`unknown key "${'k'.repeat(50)}" in nodes[0]`)
+})
+
+// Protects the limits (design 10): the media list is metadata only but still bounded, at
+// 2,000 entries, with the same message as the other lists.
+test('too many media entries are refused', () => {
+  expect(FILE_LIMITS.media).toBe(2000)
+  const media = Array.from({ length: FILE_LIMITS.media + 1 }, (_, i) => ({ id: `m${i}`, node: 'n1', title: '', kind: 'audio' }))
+  expect(problemsOf(edited((f) => { f.media = media }))[0]).toBe(`too many media (${FILE_LIMITS.media + 1}, at most ${FILE_LIMITS.media})`)
+  const ok = Array.from({ length: FILE_LIMITS.media }, (_, i) => ({ id: `m${i}`, node: 'n1', title: '', kind: 'audio' }))
+  expect(validateProjectFile(edited((f) => { f.media = ok }), FILE_LIMITS).ok).toBe(true)
+})

@@ -53,6 +53,23 @@ async function storedDeletedAt(collection: string, id: string): Promise<string> 
   return String((await readAsAdmin(collection, id)).deleted_at)
 }
 
+// A node trashed 31 days ago, made straight through the admin API (only the server's own
+// stamp is trusted on a member's request, so a member cannot make one). With the default 30
+// days the job must delete it. It goes in the last stage of the job (nodes), so once it is
+// gone the whole job has run: a test that expects other trash to be KEPT waits for this
+// first, and so cannot pass before the job ran.
+async function expiredSentinel(projectId: string, chapterId: string): Promise<string> {
+  const longAgo = new Date(Date.now() - 31 * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ')
+  const node = await (await asAdmin()).collection('nodes').create({
+    project: projectId, chapter: chapterId, title: 'sentinel', color: 'slate', x: 0, y: 0, deleted_at: longAgo,
+  })
+  return node.id
+}
+
+async function jobHasRun(sentinelId: string): Promise<void> {
+  await expect.poll(() => exists('nodes', sentinelId), { message: 'the purge did not finish', timeout: 4000 }).toBe(false)
+}
+
 // Starts the job. PocketBase answers at once, so the tests wait for the effect themselves.
 async function runJob(): Promise<void> {
   await (await asAdmin()).crons.run(JOB)
@@ -74,10 +91,10 @@ test('a trash time sent by the browser is replaced by the server\'s', async () =
   const stamped = new Date(String((await storedDeletedAt('nodes', nodeId))).replace(' ', 'T')).getTime()
   expect(Math.abs(Date.now() - stamped)).toBeLessThan(10_000)
 
+  const sentinel = await expiredSentinel(projectId, chapterId)
   await setRetentionDays(30)
   await runJob()
-  // The job answers at once; give the background run time to finish before looking.
-  await new Promise((resolve) => setTimeout(resolve, 1500))
+  await jobHasRun(sentinel)
   expect(await exists('nodes', nodeId), 'a node trashed a moment ago was purged').toBe(true)
 })
 
@@ -137,7 +154,7 @@ test('the purge deletes expired trash with its contents and files', async () => 
 
   await setRetentionDays(0)
   await runJob()
-  await expect.poll(() => exists('nodes', set.nodeN), { message: 'the purge did not finish', timeout: 8000 }).toBe(false)
+  await expect.poll(() => exists('nodes', set.nodeN), { message: 'the purge did not finish', timeout: 4000 }).toBe(false)
 
   expect(await exists('chapters', set.chapterA)).toBe(false)
   expect(await exists('nodes', set.nodeA)).toBe(false)
@@ -159,9 +176,10 @@ test('the purge deletes expired trash with its contents and files', async () => 
 test('the purge keeps trash younger than the retention', async () => {
   const set = await trashedSet()
 
+  const sentinel = await expiredSentinel(set.projectId, set.chapterB)
   await setRetentionDays(30)
   await runJob()
-  await new Promise((resolve) => setTimeout(resolve, 1500))
+  await jobHasRun(sentinel)
 
   expect(await exists('chapters', set.chapterA)).toBe(true)
   expect(await exists('nodes', set.nodeA)).toBe(true)
@@ -186,6 +204,8 @@ test('members restore chapters and nodes and only the owner restores a project',
   expect(await setDeletedAt(member, 'chapters', chapterB, new Date().toISOString())).toBe(200)
   expect(await setDeletedAt(outsider, 'nodes', nodeId, '')).not.toBe(200)
   expect(await storedDeletedAt('nodes', nodeId)).not.toBe('')
+  expect(await setDeletedAt(outsider, 'chapters', chapterB, '')).not.toBe(200)
+  expect(await storedDeletedAt('chapters', chapterB)).not.toBe('')
   expect(await setDeletedAt(member, 'nodes', nodeId, '')).toBe(200)
   expect(await setDeletedAt(member, 'chapters', chapterB, '')).toBe(200)
   expect(await storedDeletedAt('nodes', nodeId)).toBe('')
@@ -193,6 +213,7 @@ test('members restore chapters and nodes and only the owner restores a project',
 
   expect(await setDeletedAt(owner, 'projects', projectId, new Date().toISOString())).toBe(200)
   expect(await setDeletedAt(member, 'projects', projectId, '')).not.toBe(200)
+  expect(await setDeletedAt(outsider, 'projects', projectId, '')).not.toBe(200)
   expect(await storedDeletedAt('projects', projectId)).not.toBe('')
   expect(await setDeletedAt(owner, 'projects', projectId, '')).toBe(200)
   expect(await storedDeletedAt('projects', projectId)).toBe('')

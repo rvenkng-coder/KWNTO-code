@@ -35,7 +35,7 @@ export function ProjectList({ teamId, isOwner, onTrashed }: { teamId: string; is
                 type="button"
                 className="btn-danger"
                 onClick={() => {
-                  if (confirm(`Move "${p.name}" to the trash?`)) void trash(p).then(onTrashed)
+                  if (confirm(`Move "${p.name}" to the trash?`)) void trash(p).then((ok) => ok && onTrashed?.())
                 }}
               >
                 Move to trash

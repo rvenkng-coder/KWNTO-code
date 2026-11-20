@@ -90,7 +90,7 @@ The roadmap's "Decide first" items and calls where the spec is silent. Each is c
 
 | # | Task | Tier | Depends on | Checkpoints | Status |
 |---|---|---|---|---|---|
-| 1 | [Trash: server time, restore and the purge](task-1-trash.md) | strong (1A local) | Plans 3, 4 | 1A 1B 1C | awaiting review |
+| 1 | [Trash: server time, restore and the purge](task-1-trash.md) | strong (1A local) | Plans 3, 4 | 1A 1B 1C | done |
 | 2 | [Project files: export and import](task-2-project-file.md) | strong (2A mid) | 1 | 2A 2B 2C | not started |
 | 3 | [Share links on the server](task-3-share-server.md) | strong | 2 | 3A 3B 3C | not started |
 | 4 | [Sharing screens and the read-only viewer](task-4-share-screens.md) | mid | 3 | 4A 4B 4C | not started |

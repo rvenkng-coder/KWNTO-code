@@ -112,3 +112,23 @@ test('only the owner sees trashed projects and restores them', async ({ page, br
   await expect(memberPage.getByTestId('team-trash')).toHaveCount(0)
   await memberPage.close()
 })
+
+// Protects: a project trash the server refuses keeps its error on screen; the list must not
+// reload (and so wipe the alert) as if the trash had worked.
+test('a failed project trash keeps its error message', async ({ page }) => {
+  await ownerWithProject(page, 'Story')
+  await page.getByRole('button', { name: 'Back to teams' }).click()
+  await openTeam(page, 'Crew')
+  await expect(page.getByTestId('project-list')).toHaveAttribute('data-loaded', 'true')
+  await page.route('**/api/collections/projects/records/*', (route) =>
+    route.request().method() === 'PATCH'
+      ? route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ message: 'Boom', data: {} }) })
+      : route.continue())
+  page.once('dialog', (d) => d.accept())
+  await page.getByRole('button', { name: 'Move to trash' }).click()
+  await expect(page.getByTestId('project-list').getByRole('alert')).toBeVisible()
+  // A reload of the list would remount it; give that a moment to happen, then look again.
+  await page.waitForResponse((r) => r.url().includes('/api/collections/projects/records') && r.request().method() === 'GET').catch(() => undefined)
+  await expect(page.getByTestId('project-list').getByRole('alert')).toBeVisible()
+  await expect(page.getByTestId('project-list')).toContainText('Story')
+})

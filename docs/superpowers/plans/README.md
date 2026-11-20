@@ -33,8 +33,8 @@ Found by the whole-branch review and the scripted walk of Task 10 (2026-11-13), 
 
 | Item | What and why |
 |---|---|
-| Rate limiter and trusted proxy | **Done in Plan 6**: Task 2 (production settings migration; `tests/container/production.test.ts` C2 to C6, including a spoofed `X-Forwarded-For`). Whether Funnel passes the visitor's IP is **open**, case C4 of the walk. |
-| Real mail | **Moved, open**: Plan 6 wrote the Gmail setup ([deployment guide](../../admin/deployment.md#mail-gmail-app-password)) and the mail-link screens (Task 3, tested with real tokens), but nobody has received a real mail yet: case C5 of the walk, test-plan M10 and M11. |
+| Rate limiter and trusted proxy | **Done in Plan 6**: Task 2 (production settings migration; `tests/container/production.test.ts` C2 to C6, including a spoofed `X-Forwarded-For`). Funnel passing the visitor's IP: case C4 of the walk reported passed by the developer on 2026-11-21 (the address itself was not recorded). |
+| Real mail | **Done**: Plan 6 wrote the Gmail setup ([deployment guide](../../admin/deployment.md#mail-gmail-app-password)) and the mail-link screens (Task 3, tested with real tokens), and the developer reported on 2026-11-21 that real mails arrive and work: case C5 of the walk, test-plan M10 and M11. |
 | Unknown-email timing | **Done in Plan 6**: one line in `docs/security.md` section 10 (accepted while internal; re-judge before going public). |
 
 ## Carried over from Plan 3
@@ -61,7 +61,7 @@ Found while building the offline sync plan (2026-11-18 to 2026-11-20) and left o
 | Offline grouped edits share one undo step | An offline "Add line" or "Add chapter" keeps its undo group open until the server answers, so later offline edits join it and one Ctrl+Z after reconnecting undoes them together. No data is lost. Needs a decision on when an undo step closes. | 7 |
 | Smaller review findings | Page-close warning while an edit is still being stored; a saved echo repainting over a later waiting edit; no `navigator.locks` (every tab sends); a non-PocketBase 200 counted as saved; focus in the conflict dialog; IndexedDB unavailable refuses edits; quadratic outbox reads for large queues; a fast account switch. See the final-review lines of `.planning/2026-11-16-offline-sync/progress.md`. | 7 |
 | Retry right after the server returns | After a server outage a waiting edit is retried on the backoff (1, 2, 4 ... 30 s), so it saved about 10 s after the proxy came back (2026-11-20 check). The event stream reconnecting (`PB_CONNECT`) could trigger an immediate retry. | 7 |
-| Confirm the reconnect behind the public Funnel address | Checked through `tailscale serve` (tailnet only) on 2026-11-20, see decision 0002; repeat the two checks once behind the public address (test-plan M12). **Open, case C6 of Plan 6's walk.** | 6 (walk) |
+| Confirm the reconnect behind the public Funnel address | Checked through `tailscale serve` (tailnet only) on 2026-11-20, see decision 0002; repeated behind the public address: **done**, case C6 of Plan 6's walk reported passed on 2026-11-21 (test-plan M12). | 6 (walk) |
 | Hand walk of the Flow | The developer walked the app by hand (2026-11-19 and 2026-11-20), not following the written Flow, and found two bugs (stopped backend refused edits; a line added offline vanished after reconnecting), both fixed. The written walk (every conflict kind, both browsers) was not done as such; the e2e specs `editor-offline` and `editor-conflicts` cover those cases. Repeat with M8 and M9. | developer, with M8 and M9 |
 
 ## Carried over from Plan 5
@@ -74,13 +74,13 @@ Found while building media upload, quota and strict file checks (2026-11-16 to 2
 
 ## Carried over from Plan 6
 
-Plan 6 is built and checked; the manual walk on the real VM (the guide's "first walk", cases C1 to C7) is the developer's and is not done yet. The source is `.planning/2026-11-20-deployment/progress.md`.
+Plan 6 is built and checked. The developer walked the guide's "first walk" on the real VM up to C6 and reported on 2026-11-21 that it works over the internet (no per-case detail recorded). Only C7 (backup and restore on the VM) is left. The source is `.planning/2026-11-20-deployment/progress.md`.
 
 | Item | What and why | Plan |
 |---|---|---|
-| Upload progress or chunked upload (D13) | **To decide after the walk.** Add it if case C3 (a 150 MB MP4 through Funnel) takes over 3 minutes or fails, and re-judge the Cloudflare Tunnel fallback. Nothing is built until then. | after the walk |
-| The visitor's IP behind Funnel (D6) | If case C4 shows `ip` is not the visitor's public address, the per-IP limits are global: move to Cloudflare Tunnel or find another way to pass the IP. Written in security.md section 10. | after the walk |
-| The walk itself | Cases C1 to C7 and the guide fixes from a first run from an empty folder; test-plan M10, M11 and M12 stay `open` until then. | developer |
+| Upload progress or chunked upload (D13) | **C3 reported passed on 2026-11-21 (time not recorded), so nothing is added now.** The rule stays: add it if case C3 (a 150 MB MP4 through Funnel) takes over 3 minutes or fails, and re-judge the Cloudflare Tunnel fallback. Nothing is built until then. | after the walk |
+| The visitor's IP behind Funnel (D6) | Case C4 was reported passed on 2026-11-21. If a later check shows `ip` is not the visitor's public address, the per-IP limits are global: move to Cloudflare Tunnel or find another way to pass the IP. Written in security.md section 10. | after the walk |
+| The walk itself | C1 to C6 done (2026-11-21, as reported). C7 (backup and restore on the VM) is still to do, then mark Plan 6 `done`. | developer |
 
 ## Later (developer decision, 2026-11-18)
 

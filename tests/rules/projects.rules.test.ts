@@ -128,3 +128,23 @@ test('the start node must belong to the project', async () => {
   expect(moved.status).toBe(200)
   expect(await readAsAdmin('projects', projectId)).toMatchObject({ start_node: second, version: version + 1 })
 })
+
+// Protects the offline-sync carry-over of plan 3 (plan 7 Task 7, D15): a project a member
+// makes reaches a teammate's open list as a live `create` event, and its settings row and
+// `Chapter 1` still exist.
+test('projects: a new project arrives as a live create event with its settings and first chapter', async () => {
+  const { owner, member, teamId } = await memberProject()
+  const watcher = await asUser(owner)
+  const events: string[] = []
+  await watcher.collection('projects').subscribe('*', (e) => events.push(`${e.action}:${String(e.record.name)}`))
+
+  const made = await (await asUser(member)).collection('projects').create({ team: teamId, name: 'Live project' })
+  await expect.poll(() => events, { timeout: 4000 }).toContain('create:Live project')
+  await watcher.collection('projects').unsubscribe('*')
+
+  const admin = await asAdmin()
+  const filter = admin.filter('project = {:p}', { p: made.id })
+  expect(await admin.collection('project_settings').getFullList({ filter })).toHaveLength(1)
+  const chapters = await admin.collection('chapters').getFullList({ filter })
+  expect(chapters.map((c) => [c.title, c.position])).toEqual([['Chapter 1', 1]])
+})

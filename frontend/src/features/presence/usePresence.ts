@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { create } from 'zustand'
+import { useSync } from '../editor/sync/syncStore'
 import { backend, type PresenceEvent, type PresenceRow } from '../../backend'
 
 // Who is editing what (plan 7 D14). The store holds the rows this browser has received and when
@@ -44,9 +45,13 @@ function receive(e: PresenceEvent): void {
   })
 }
 
-// Follows the project's rows and keeps the clock for "fresh" moving.
+// Follows the project's rows and keeps the clock for "fresh" moving. The subscription is closed
+// while the editor is offline, as the project's own is: a stream kept open by presence alone
+// changes how the editor reconnects (see useNodeComments).
 function useFollowRows(projectId: string): void {
+  const online = useSync((s) => s?.online ?? true)
   useEffect(() => {
+    if (!online) return
     let cancelled = false
     let close: () => Promise<void> = () => Promise.resolve()
     backend.appSettings.get().then((s) => usePresenceStore.setState({ timeoutMs: s.presenceTimeoutSeconds * 1000 })).catch(() => undefined)
@@ -59,9 +64,9 @@ function useFollowRows(projectId: string): void {
       cancelled = true
       clearInterval(tick)
       void close()
-      usePresenceStore.setState({ rows: {}, seenAt: {}, focus: null })
+      usePresenceStore.setState({ rows: {}, seenAt: {} })
     }
-  }, [projectId])
+  }, [projectId, online])
 }
 
 // Reports the focused field at once and every 10 s; removes the row shortly after focus leaves
@@ -91,6 +96,7 @@ function useReportFocus(projectId: string): void {
     return () => {
       window.removeEventListener('pagehide', hide)
       hide()
+      usePresenceStore.setState({ focus: null })
     }
   }, [projectId])
 }

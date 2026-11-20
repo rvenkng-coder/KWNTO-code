@@ -140,3 +140,21 @@ test('teams: an injection string in a filter returns nothing', async () => {
   const pb = await asUser(someone)
   await expectNoRows(pb, 'teams', pb.filter('id = {:n}', { n: `' OR 1=1 --` }))
 })
+
+// Protects the offline-sync carry-over of plan 3 (plan 7 Task 7, D15): a team made by a person
+// reaches that person's open lists as a live `create` event (PocketBase sends it only when the
+// team's own insert is not inside a transaction of ours), and its owner row and settings row
+// still exist.
+test('teams: a new team arrives as a live create event with its rows', async () => {
+  const owner = await createUser()
+  const pb = await asUser(owner)
+  const events: string[] = []
+  await pb.collection('teams').subscribe('*', (e) => events.push(`${e.action}:${String(e.record.name)}`))
+
+  const created = await pb.collection('teams').create({ name: 'Live team', owner: owner.id })
+  await expect.poll(() => events, { timeout: 4000 }).toContain('create:Live team')
+  await pb.collection('teams').unsubscribe('*')
+
+  expect(await teamRows('team_members', created.id)).toHaveLength(1)
+  expect(await teamRows('team_settings', created.id)).toHaveLength(1)
+})

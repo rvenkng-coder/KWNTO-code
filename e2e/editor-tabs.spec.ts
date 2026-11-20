@@ -69,7 +69,7 @@ test('the All chapters list opens a closed tab', async ({ page }) => {
   await expect(page.getByRole('tab', { name: 'Chapter 2' })).toHaveCount(0)
   await page.getByRole('button', { name: 'All chapters' }).click()
   const list = page.getByRole('menu', { name: 'All chapters' })
-  await expect(list.getByRole('menuitem')).toHaveText(['Chapter 1', 'Chapter 2'])
+  await expect(list.getByRole('menuitem')).toHaveText(['Chapter 1', 'Chapter 2', 'Trash'])
   await expect(list.getByRole('menuitem', { name: 'Chapter 1' })).toHaveAttribute('aria-current', 'true')
   await list.getByRole('menuitem', { name: 'Chapter 2' }).click()
   await expect(page.getByRole('tab', { name: 'Chapter 2' })).toBeVisible()

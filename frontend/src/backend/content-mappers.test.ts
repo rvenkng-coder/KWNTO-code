@@ -11,7 +11,7 @@ test('records map to editor types', () => {
     id: 'n1', project: 'p1', chapter: 'c1', title: 'Gate', color: 'blue', x: 10, y: 20,
     deleted_at: '2026-11-16 09:00:00.000Z', version: 2, created: 'x', updated: 'y',
   })
-  expect(node).toEqual({ id: 'n1', projectId: 'p1', chapterId: 'c1', title: 'Gate', color: 'blue', x: 10, y: 20, deleted: true, version: 2 })
+  expect(node).toEqual({ id: 'n1', projectId: 'p1', chapterId: 'c1', title: 'Gate', color: 'blue', x: 10, y: 20, deleted: true, deletedAt: '2026-11-16T09:00:00.000Z', version: 2 })
 
   const line = fromRecord('script_lines', { id: 'l1', project: 'p1', node: 'n1', text: 'Hello', sort_order: 1.5, version: 0 })
   expect(line).toEqual({ id: 'l1', projectId: 'p1', nodeId: 'n1', character: '', text: 'Hello', sortOrder: 1.5, version: 0 })

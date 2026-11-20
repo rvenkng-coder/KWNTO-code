@@ -3,7 +3,7 @@ services:
     build: ./backend
     image: kwnto-pocketbase:dev
     ports:
-      - "127.0.0.1:8091:8090"
+      - "127.0.0.1:${KWNTO_PB_PORT:-8091}:8090"
     environment:
       # Test-only credentials; the data is discarded with the container.
       KWNTO_ADMIN_EMAIL: admin@example.test

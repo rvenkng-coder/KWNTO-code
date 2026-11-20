@@ -209,7 +209,8 @@ function handleMediaUpdate(e) {
     throw new BadRequestError("Media can only be removed or restored.")
   }
   const restoring = changed.includes("removed_at") && e.record.getString("removed_at") === ""
-  if (restoring && getTeamOwnerId(e.app, e.record.getString("project")) !== e.auth.id) {
+  // The admin (a superuser, who skips the rules) may restore too.
+  if (restoring && !e.hasSuperuserAuth() && getTeamOwnerId(e.app, e.record.getString("project")) !== e.auth.id) {
     throw new ForbiddenError("Only the team lead can restore media.")
   }
   e.next()

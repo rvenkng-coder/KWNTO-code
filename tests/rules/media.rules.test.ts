@@ -225,6 +225,27 @@ describe('media rules and collection', () => {
     expect(kept.size_bytes).toBe(67)
   })
 
+  // Protects: a lead with no limits row gets the default quota, and the admin can restore media (C15)
+  test('a lead with no limits row gets the default quota and the admin can restore', async () => {
+    const { owner, member, projectId, chapterId } = await memberProject()
+    const nodeId = await createNode(owner, projectId, chapterId)
+    const admin = await asAdmin()
+    const row = await admin.collection('user_limits').getFirstListItem(admin.filter('user = {:u}', { u: owner.id }))
+    await admin.collection('user_limits').delete(row.id)
+
+    const res = await uploadMedia(member, { project: projectId, node: nodeId }, { name: 'a.png', bytes: PNG_1PX })
+    expect(res.status).toBe(200)
+    const record = await res.json()
+
+    const storage = await rawSend((await asUser(member)).authStore.token, `/api/kwnto/storage?project=${projectId}`)
+    expect(storage.status).toBe(200)
+    expect((await storage.json()).quotaBytes).toBe(2147483648)
+
+    await (await asUser(member)).collection('media').update(record.id, { removed_at: '2026-11-20 08:00:00.000Z' })
+    const restored = await admin.collection('media').update(record.id, { removed_at: '' })
+    expect(restored.removed_at).toBe('')
+  })
+
   // Protects: deleting a team removes its media (C11)
   test('deleting a team removes its media', async () => {
     const { owner, teamId, projectId, chapterId } = await memberProject()

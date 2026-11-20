@@ -1,4 +1,4 @@
-import { useEffect, useState, type ChangeEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import type { StoryNode } from '../../../backend/index.ts'
 import { MediaItem } from './MediaItem.tsx'
 import { mediaOf, removedOf } from './mediaList.ts'
@@ -37,8 +37,12 @@ export function MediaSection({ node }: { node: StoryNode }) {
 
   const isOnline = useOnline()
 
-  // An error belongs to the node it happened on.
+  // An error belongs to the node it happened on. Moving to another node clears it; the first
+  // render does not, so an error from opening the project stays visible.
+  const shownNodeId = useRef(node.id)
   useEffect(() => {
+    if (shownNodeId.current === node.id) return
+    shownNodeId.current = node.id
     useMediaStore.getState().setError(null)
   }, [node.id])
 

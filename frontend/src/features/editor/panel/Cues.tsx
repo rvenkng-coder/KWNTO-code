@@ -3,6 +3,8 @@ import type { Cue, CueType } from '../../../backend'
 import { cuesOf } from '../model/state'
 import { useEditor } from '../store/editorStore'
 import { edits } from '../store/edits'
+import { EditingBadge } from '../../presence/EditingBadge'
+import { presenceFocus } from '../../presence/usePresence'
 import { useSavedText } from '../store/useSavedText'
 import { insertRow, moveRow } from './rowActions'
 import { SectionLabel } from './SectionLabel'
@@ -15,14 +17,19 @@ interface CueRowProps { cue: Cue; isFirst: boolean; isLast: boolean; onMove(by: 
 
 function CueRow({ cue, isFirst, isLast, onMove }: CueRowProps) {
   const [text, setText, flush] = useSavedText('cues', cue.id, 'text', cue.text)
+  const marks = presenceFocus(cue.nodeId, `cue:${cue.id}`)
   return (
     <li data-testid="cue-row" className="flex flex-col gap-1 border-b border-border pb-2">
       <select className="field" aria-label="Cue type" value={cue.type}
         onChange={(e) => void edits.update('cues', cue.id, { type: e.target.value as CueType }, 'Change cue type')}>
         {CUE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
       </select>
+      <EditingBadge nodeId={cue.nodeId} field={`cue:${cue.id}`} />
       <input className="field" aria-label="Cue text" placeholder="Cue" value={text}
-        onChange={(e) => setText(e.target.value)} onBlur={flush} />
+        onChange={(e) => setText(e.target.value)} onFocus={marks.onFocus} onBlur={() => {
+          marks.onBlur()
+          flush()
+        }} />
       <div className="flex gap-1">
         <button type="button" className="btn-quiet" disabled={isFirst} onClick={() => onMove(-1)}>Move up</button>
         <button type="button" className="btn-quiet" disabled={isLast} onClick={() => onMove(1)}>Move down</button>

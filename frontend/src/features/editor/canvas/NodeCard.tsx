@@ -1,5 +1,6 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react'
 import { memo } from 'react'
+import { EditingBadge } from '../../presence/EditingBadge'
 import { useCommentStore } from '../../comments/useNodeComments'
 import { countLabel } from '../../comments/commentList'
 import { useTheme } from '../../shell/theme'
@@ -86,7 +87,10 @@ function NodeCardView({ id, data, selected }: NodeProps<CardNode>) {
       {/* The header tint is node data from the palette (colors.ts), the one allowed inline colour. */}
       <div className="flex items-center justify-between gap-1 px-3 py-2"
         style={{ background: `color-mix(in srgb, ${tint} 24%, var(--color-card))`, borderTop: `3px solid ${tint}` }}>
-        <span className="truncate font-semibold">{data.title || 'Untitled'}</span>
+        <span className="flex min-w-0 flex-col">
+          <span className="truncate font-semibold">{data.title || 'Untitled'}</span>
+          <EditingBadge nodeId={id} />
+        </span>
         <span className="flex items-center gap-1"><CommentBadge nodeId={id} /><Badges marker={data.marker} /></span>
       </div>
       <div className="flex flex-col gap-0.5 px-3 py-2 text-[13px]">

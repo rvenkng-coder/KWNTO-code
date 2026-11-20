@@ -40,22 +40,22 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 6A: The cut-off
 
-- [ ] **Step 1: Write the failing test** C1 in `tests/hooks/presence.unit.test.ts`.
-- [ ] **Step 2: Run** `npx vitest run --project unit tests/hooks/presence.unit.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** `staleCutoffIso` (the multiplier line `const windowMs = timeoutSeconds * 2 * 1000`, B1).
-- [ ] **Step 4: Run** it. Expected: PASS. **Close checkpoint 6A** (commit `feat: presence cut-off`).
+- [x] **Step 1: Write the failing test** C1 in `tests/hooks/presence.unit.test.ts`.
+- [x] **Step 2: Run** `npx vitest run --project unit tests/hooks/presence.unit.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** `staleCutoffIso` (the multiplier line `const windowMs = timeoutSeconds * 2 * 1000`, B1).
+- [x] **Step 4: Run** it. Expected: PASS. **Close checkpoint 6A** (commit `feat: presence cut-off`).
 
 ## Checkpoint 6B: The collection
 
-- [ ] **Step 5: Write the failing tests** C2 and C3 in `tests/rules/presence.rules.test.ts`; run, expect FAIL.
-- [ ] **Step 6: Write** the migration and `presence.pb.js` (the name hook, as Task 5's, and the job).
-- [ ] **Step 7: Run** `npm run test:rules`. Open the create rule once: C2 must fail; restore. Expected: PASS. **Close checkpoint 6B** (commit `feat: presence collection and cleanup`).
+- [x] **Step 5: Write the failing tests** C2 and C3 in `tests/rules/presence.rules.test.ts`; run, expect FAIL.
+- [x] **Step 6: Write** the migration and `presence.pb.js` (the name hook, as Task 5's, and the job).
+- [x] **Step 7: Run** `npm run test:rules`. Open the create rule once: C2 must fail; restore. Expected: PASS. **Close checkpoint 6B** (commit `feat: presence collection and cleanup`).
 
 ## Checkpoint 6C: The indicator
 
-- [ ] **Step 8: Write the failing tests** C4 in `presenceModel.test.ts` and C5, C6 in `e2e/presence.spec.ts`; run, expect FAIL.
-- [ ] **Step 9: Implement** the door, the model (`nowMs - seenAt[r.id]! < timeoutMs`, B2; own rows dropped by `r.userId !== selfId`, B3), the hook and `EditingBadge` (text `editingLabel`, `data-testid="editing-badge"`; on the card a small line under the title; in the panel beside the field).
-- [ ] **Step 10: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. Update the docs. **Close checkpoint 6C** (commit `feat: someone-is-editing indicator`).
+- [x] **Step 8: Write the failing tests** C4 in `presenceModel.test.ts` and C5, C6 in `e2e/presence.spec.ts`; run, expect FAIL.
+- [x] **Step 9: Implement** the door, the model (`nowMs - seenAt[r.id]! < timeoutMs`, B2; own rows dropped by `r.userId !== selfId`, B3), the hook and `EditingBadge` (text `editingLabel`, `data-testid="editing-badge"`; on the card a small line under the title; in the panel beside the field).
+- [x] **Step 10: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. Update the docs. **Close checkpoint 6C** (commit `feat: someone-is-editing indicator`).
 
 ## Test plan
 ### Cases

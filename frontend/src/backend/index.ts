@@ -5,6 +5,7 @@ export type * from './content-types'
 export type * from './media-types'
 export type * from './share-types'
 export type * from './comment-types'
+export type * from './presence-types'
 export { MAX_COMMENT_LENGTH } from './comment-types'
 export type { AppSettings } from './appSettings'
 export { MAX_IMPORT_BYTES } from './projectFiles'
@@ -53,6 +54,10 @@ export const backend: Backend = {
   get comments() {
     if (!_backend) _backend = createBackend()
     return _backend.comments
+  },
+  get presence() {
+    if (!_backend) _backend = createBackend()
+    return _backend.presence
   },
   async health() {
     if (!_backend) _backend = createBackend()

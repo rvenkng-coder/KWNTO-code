@@ -174,6 +174,8 @@ Two people can edit the same node at once: if you change its title while a teamm
 
 If very many people save the same thing at the same moment and your change still cannot get through after 20 tries, you see `Could not save: too many people are editing this at once. Try again.` Your change is taken back on your screen (nothing half-saved reaches your teammates); make it again.
 
+**Who is editing what.** While a teammate has a field of a node selected (its title, a script line, a cue or a choice), you see `<name> is editing` under the node's title on its card and beside that field in the panel; with several people it reads `Ana and Ben are editing` or `Ana and 2 others are editing`. It goes away when they leave the field, close the project or the tab (within about 30 seconds if their browser could not say so). You never see your own name. It is a hint, not a lock: you can still edit the same field, and both changes are kept as described above. Nothing is sent while you are offline.
+
 If the team's owner removes you from the team, the project stays on your screen until you reload or open it again; then you see `This project does not exist or you are not a member of its team.`
 
 ## Comments

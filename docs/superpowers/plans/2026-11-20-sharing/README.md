@@ -95,7 +95,7 @@ The roadmap's "Decide first" items and calls where the spec is silent. Each is c
 | 3 | [Share links on the server](task-3-share-server.md) | strong | 2 | 3A 3B 3C | done |
 | 4 | [Sharing screens and the read-only viewer](task-4-share-screens.md) | mid | 3 | 4A 4B 4C | awaiting review |
 | 5 | [Comments](task-5-comments.md) | strong (5C mid) | 3 | 5A 5B 5C | awaiting review |
-| 6 | [Presence](task-6-presence.md) | strong (6A local) | 3 | 6A 6B 6C | not started |
+| 6 | [Presence](task-6-presence.md) | strong (6A local) | 3 | 6A 6B 6C | awaiting review |
 | 7 | [Carried over from Plans 3 and 4](task-7-carried-over.md) | strong | Plans 3, 4 | 7A 7B 7C | not started |
 | 8 | [Close-out](task-8-closeout.md) | mid | 1 to 7 | 8A | not started |
 

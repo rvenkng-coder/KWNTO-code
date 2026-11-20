@@ -11,6 +11,7 @@ import { useTabsView } from './chapters/useTabsView'
 import { ErrorBanner } from './ErrorBanner'
 import { useProjectMedia } from './media/useProjectMedia.ts'
 import { CommentsLoader } from '../comments/CommentsLoader'
+import { PresenceLoader } from '../presence/PresenceLoader'
 import { liveChapters } from './model/state'
 import { PropertiesPanel } from './panel/PropertiesPanel'
 import { editorStore, useEditor } from './store/editorStore'
@@ -141,6 +142,7 @@ export function EditorScreen({ projectId, chapterId }: { projectId: string; chap
   const projectName = content.project === null ? '' : content.project.name
   return (
     <>
+      <PresenceLoader projectId={projectId} />
       <CommentsLoader projectId={projectId} teamId={content.project === null ? '' : content.project.teamId} />
       <EditorFrame projectId={projectId} teamId={content.project === null ? '' : content.project.teamId} projectName={projectName} chapters={chapters} active={active} />
     </>

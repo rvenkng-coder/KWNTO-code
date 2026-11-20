@@ -8,6 +8,8 @@ import { Choices } from './Choices'
 import { Cues } from './Cues'
 import { MediaSection } from '../media/MediaSection.tsx'
 import { ScriptLines } from './ScriptLines'
+import { EditingBadge } from '../../presence/EditingBadge'
+import { presenceFocus } from '../../presence/usePresence'
 import { CommentsSection } from '../../comments/CommentsSection'
 
 const COLOR_NAMES = Object.keys(NODE_COLORS) as NodeColor[]
@@ -35,8 +37,12 @@ export function NodeFields({ node }: { node: StoryNode }) {
   return (
     <div className="flex flex-col gap-3">
       <label className="flex flex-col gap-1">
-        <span>Title</span>
-        <input className="field" value={title} onChange={(e) => setTitle(e.target.value)} onBlur={flush} />
+        <span className="flex items-baseline gap-2">Title <EditingBadge nodeId={node.id} field="title" /></span>
+        <input className="field" value={title} onChange={(e) => setTitle(e.target.value)} {...presenceFocus(node.id, 'title')}
+          onBlur={() => {
+            presenceFocus(node.id, 'title').onBlur()
+            flush()
+          }} />
       </label>
       <ColorSwatches node={node} />
       {isStart

@@ -9,6 +9,7 @@ import { createAppSettings } from './appSettings'
 import { createProjectFiles } from './projectFiles'
 import { createShares } from './shares'
 import { createComments } from './comments'
+import { createPresence } from './presence'
 
 export interface Backend {
   health(): Promise<boolean>
@@ -22,6 +23,7 @@ export interface Backend {
   projectFiles: ReturnType<typeof createProjectFiles>
   shares: ReturnType<typeof createShares>
   comments: ReturnType<typeof createComments>
+  presence: ReturnType<typeof createPresence>
 }
 
 export function createBackend(baseUrl?: string): Backend {
@@ -49,5 +51,6 @@ export function createBackend(baseUrl?: string): Backend {
     projectFiles: createProjectFiles(pb),
     shares: createShares(pb),
     comments: createComments(pb),
+    presence: createPresence(pb),
   }
 }

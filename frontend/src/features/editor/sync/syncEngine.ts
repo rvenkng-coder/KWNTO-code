@@ -3,6 +3,7 @@ import { BackendError } from '../../../backend/errors'
 import { planAdd, type NewEntry, type OutboxEntry } from './outbox'
 import { nextDelay } from './outboxText'
 import type { FailedEntry, OutboxStorage } from './outboxStorage'
+import { deliverAnswer, type Answer } from './syncAnswers'
 import { mineEntry, theirsEntry } from './syncResolve'
 import { createSender, type Outcome } from './syncSend'
 
@@ -10,6 +11,7 @@ import { createSender, type Outcome } from './syncSend'
 // order, one request at a time, only in the tab holding the Web Lock, backing off while the
 // server cannot be reached. Everything it touches is injected.
 
+export type { Answer }
 export const LOCK_PREFIX = 'kwnto-sync-'
 const NO_COPY = 'The record was deleted and no copy of your change is left to restore it.'
 
@@ -30,11 +32,6 @@ export interface SyncDeps {
   lock(name: string, run: () => Promise<void>): Promise<void>
   channel: { post(message?: Answer): void; listen(fn: (message?: Answer) => void): () => void }
 }
-/** What happened to one outbox entry. The tab that sends tells every tab, because each tab holds the promises of its own edits. */
-export type Answer =
-  | { seq: number; type: 'saved'; record: ContentRecords[ContentKind] | null }
-  | { seq: number; type: 'refused'; message: string }
-  | { seq: number; type: 'theirs'; server: ContentRecords[ContentKind] | null }
 /** What a caller gives `add`: the engine fills the user, the offline flag and the time. */
 export type EngineEntry = NewEntry extends infer E ? (E extends NewEntry ? Omit<E, 'userId' | 'offline' | 'made'> : never) : never
 export interface SyncEngine {
@@ -175,7 +172,7 @@ class Engine implements SyncEngine {
   private announce(entry: OutboxEntry | undefined, answer: Answer, error?: BackendError): void {
     const known = entry ?? this.mine.get(answer.seq)
     this.mine.delete(answer.seq)
-    if (known !== undefined) this.deliver(known, answer, error)
+    if (known !== undefined) deliverAnswer(this.deps.hooks, known, answer, error)
     this.deps.channel.post(answer)
   }
 
@@ -184,14 +181,7 @@ class Engine implements SyncEngine {
     const entry = this.mine.get(answer.seq)
     if (entry === undefined) return
     this.mine.delete(answer.seq)
-    this.deliver(entry, answer)
-  }
-
-  private deliver(entry: OutboxEntry, answer: Answer, error?: BackendError): void {
-    const { hooks } = this.deps
-    if (answer.type === 'saved') hooks.saved(entry, answer.record)
-    else if (answer.type === 'theirs') hooks.theirs(entry, answer.server)
-    else hooks.refused(entry, error ?? new BackendError('invalid', 0, {}, answer.message))
+    deliverAnswer(this.deps.hooks, entry, answer)
   }
 
   add(partial: EngineEntry): Promise<number> {
@@ -279,7 +269,9 @@ class Engine implements SyncEngine {
         await this.sendNext()
       } while (this.again)
     } catch {
-      // Storage failed (the page is closing): nothing was answered, so the entries are still stored and are sent next time.
+      // Storage failed (the page is closing): nothing was answered, so the entries are still stored. Try again later.
+      this.sendingSeq = null
+      this.backOff()
     } finally {
       this.loop = null
     }
@@ -337,13 +329,22 @@ class Engine implements SyncEngine {
     tell()
   }
 
+  // Time to try again. With nothing left to send there is nothing to find out, so the server counts as reachable again
+  // (the live connection then reopens); otherwise the next send finds out.
+  private retryOrClear(): void {
+    if (this.queue.length > 0 || this.adding > 0) return this.wake()
+    this.serverDown = false
+    this.attempt = 0
+    this.publish()
+  }
+
   private backOff(): void {
     this.serverDown = true
     this.attempt += 1
     const delay = nextDelay(this.attempt)
     this.timer = this.deps.clock.setTimeout(() => {
       this.timer = null
-      this.wake()
+      this.retryOrClear()
     }, delay)
   }
 }

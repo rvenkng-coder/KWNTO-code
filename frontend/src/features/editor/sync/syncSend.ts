@@ -28,14 +28,23 @@ function toBackendError(err: unknown): BackendError {
 
 const isIdTaken = (error: BackendError): boolean => error.kind === 'invalid' && error.fields.id !== undefined
 
+// Worth another try later, not a refusal: the server cannot be reached, the rate limiter said slow down (429),
+// or the server failed (5xx, for example a busy database).
+const isTransient = (error: BackendError): boolean => error.kind === 'unreachable' || error.kind === 'locked' || error.status >= 500
+
 function failure(error: BackendError): Outcome {
-  return error.kind === 'unreachable' ? { type: 'unreachable' } : { type: 'refused', error }
+  return isTransient(error) ? { type: 'unreachable' } : { type: 'refused', error }
 }
 
 export function createSender(door: SyncDoor): (entry: OutboxEntry) => Promise<Outcome> {
   // The create reached the server and its answer was lost: the id exists in this project, so it is done.
   async function confirmCreated(entry: Extract<OutboxEntry, { op: 'create' }>): Promise<Outcome> {
-    const found = await door.get(entry.kind, entry.id)
+    let found: Awaited<ReturnType<SyncDoor['get']>>
+    try {
+      found = await door.get(entry.kind, entry.id)
+    } catch (err) {
+      return failure(toBackendError(err))
+    }
     if (found !== null && 'projectId' in found && found.projectId === entry.projectId) return { type: 'saved', record: found }
     return { type: 'refused', error: new BackendError('invalid', 400, { id: 'in use' }, 'That id is already used by another record.') }
   }

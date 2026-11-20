@@ -109,3 +109,32 @@ INFO review: Review required: no (built by a strong model; the plan's own per-ta
 
 check:task: PASS
 ```
+
+## Whole-branch review follow-up (2026-11-20): check:task
+
+Run against Task 4's file with `--base 5dd6f9c` (the commit before the review fixes), built by strong. The `hygiene` step reports six `lost-test` entries. They are deliberate renames from the developer's decision that storage belongs to the team lead (a member removes, only the lead restores or deletes for good); each has a replacement test. The developer (reviewer) accepted the renames on 2026-11-20. `check:task` has no allow-list for this, so its verdict stays FAIL on that step alone. The two Task 4 probes (`probe-media-of`, `probe-meter-text`) were updated with the developer's approval: fixtures gain `removedAt` and `isLead`, and the meter label is `Team storage:`.
+
+```
+PASS plan
+PASS lint
+PASS typecheck
+PASS unit
+PASS layers: rules: not required by this task's test plan; e2e: passed; container: not required by this task's test plan
+FAIL hygiene
+PASS quality: check:quality: ok
+PASS coverage: 10 cases point at tests that exist
+PASS breaks: run-breaks: 1 caught
+PASS probes: probes: 4 of 4 passed
+INFO review: Review required: no (built by a strong model; the plan's own per-task review applies); escape rate 0 of 0 local tasks
+
+FAIL hygiene:
+  e2e/editor-media.spec.ts: lost-test: test "deleting a file asks first and frees its space" is gone (removed, or renamed: the reviewer decides)
+  e2e/editor-media.spec.ts: lost-test: test "a teammate's upload and delete appear without a reload" is gone (removed, or renamed: the reviewer decides)
+  tests/rules/media-door.rules.test.ts: lost-test: test "removing a file frees its space at once" is gone (removed, or renamed: the reviewer decides)
+  tests/rules/media-door.rules.test.ts: lost-test: test "teammates see uploads and deletes live and outsiders do not" is gone (removed, or renamed: the reviewer decides)
+  tests/rules/media.rules.test.ts: lost-test: test "media is never edited and only members delete it" is gone (removed, or renamed: the reviewer decides)
+  tests/rules/media.rules.test.ts: lost-test: test "the storage route tells a person only their own usage and limits" is gone (removed, or renamed: the reviewer decides)
+
+check:task: FAIL (1 steps)
+```
+

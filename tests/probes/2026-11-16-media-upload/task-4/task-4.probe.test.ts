@@ -13,6 +13,7 @@ function makeMedia(id: string, nodeId: string, created: string): Media {
     sizeBytes: 100,
     fileName: `f_${id}.png`,
     created,
+    removedAt: '',
   }
 }
 
@@ -69,10 +70,11 @@ describe('task 4 probes: media list manipulation and meter display', () => {
       quotaBytes: 2147483648,
       maxBytes: { audio: 50 * 1048576, video: 200 * 1048576, image: 50 * 1048576 },
       allowedTypes: ['wav', 'mp3', 'mov', 'mp4', 'jpeg', 'png'],
+      isLead: false,
     }
-    expect(meterText(info)).toBe('Storage: 1 KB of 2.0 GB used')
+    expect(meterText(info)).toBe('Team storage: 1 KB of 2.0 GB used')
 
     const zeroInfo: StorageInfo = { ...info, usedBytes: 0 }
-    expect(meterText(zeroInfo)).toBe('Storage: 0 KB of 2.0 GB used')
+    expect(meterText(zeroInfo)).toBe('Team storage: 0 KB of 2.0 GB used')
   })
 })

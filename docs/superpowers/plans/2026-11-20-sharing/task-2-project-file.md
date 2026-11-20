@@ -38,10 +38,10 @@ module.exports = { FILE_LIMITS, buildProjectFile, validateProjectFile, importPla
 
 ## Checkpoint 2A: Format and validator
 
-- [ ] **Step 1: Write the failing tests** C1 and C2 in `tests/hooks/project-file.unit.test.ts` and C3 in `tests/hooks/project-file.import.unit.test.ts`.
-- [ ] **Step 2: Run** `npx vitest run --project unit tests/hooks/project-file.unit.test.ts tests/hooks/project-file.import.unit.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** `lib/project-file.js`. Reference checks use a `Set` of the file's own ids per list (B1: `if (!nodeIds.has(c.from))`); count checks `if (list.length > limit)` (B2); unknown keys are refused by comparing against a fixed key list per record kind (B3: the `__proto__` case must still be refused). Write `docs/developer/project-file.md`.
-- [ ] **Step 4: Run** it. Expected: PASS. **Close checkpoint 2A** (commit `feat: the project file format and validator`).
+- [x] **Step 1: Write the failing tests** C1 and C2 in `tests/hooks/project-file.unit.test.ts` and C3 in `tests/hooks/project-file.import.unit.test.ts`.
+- [x] **Step 2: Run** `npx vitest run --project unit tests/hooks/project-file.unit.test.ts tests/hooks/project-file.import.unit.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** `lib/project-file.js`. Reference checks use a `Set` of the file's own ids per list (B1: `if (!nodeIds.has(c.from))`); count checks `if (list.length > limit)` (B2); unknown keys are refused by comparing against a fixed key list per record kind (B3: the `__proto__` case must still be refused). Write `docs/developer/project-file.md`.
+- [x] **Step 4: Run** it. Expected: PASS. **Close checkpoint 2A** (commit `feat: the project file format and validator`).
 
 ## Checkpoint 2B: The routes
 

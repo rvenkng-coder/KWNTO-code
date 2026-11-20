@@ -52,9 +52,9 @@ module.exports = { FILE_LIMITS, buildProjectFile, validateProjectFile, importPla
 
 ## Checkpoint 2C: The buttons
 
-- [ ] **Step 9: Write the failing tests** C7 in `projectFiles.test.ts` and C8, C9 in `e2e/project-file.spec.ts`; run, expect FAIL.
-- [ ] **Step 10: Implement** the door, `ExportButton` (downloads through an object URL, revoked after the click) and `ImportProject` (a labelled file input; the server's message in `role="alert"`; on success opens the new project).
-- [ ] **Step 11: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. Update the docs. **Close checkpoint 2C** (commit `feat: export and import buttons`).
+- [x] **Step 9: Write the failing tests** C7 in `projectFiles.test.ts` and C8, C9 in `e2e/project-file.spec.ts`; run, expect FAIL.
+- [x] **Step 10: Implement** the door, `ExportButton` (downloads through an object URL, revoked after the click) and `ImportProject` (a labelled file input; the server's message in `role="alert"`; on success opens the new project).
+- [x] **Step 11: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. Update the docs. **Close checkpoint 2C** (commit `feat: export and import buttons`).
 
 ## Test plan
 ### Cases

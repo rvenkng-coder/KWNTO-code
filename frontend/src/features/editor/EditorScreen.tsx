@@ -15,6 +15,7 @@ import { PropertiesPanel } from './panel/PropertiesPanel'
 import { editorStore, useEditor } from './store/editorStore'
 import { edits } from './store/edits'
 import { pendingEdits, shouldWarnOnLeave } from './store/pendingEdits'
+import { ExportButton } from '../projectFile/ExportButton'
 import { useLeftPanel } from './useLeftPanel'
 import { useShortcuts } from './useShortcuts'
 
@@ -97,6 +98,7 @@ function EditorFrame({ projectId, projectName, chapters, active }: FrameProps) {
               className="text-left text-lg font-semibold"
               onCommit={(name) => void edits.update('projects', projectId, { name }, 'Rename project')}
             />
+            <ExportButton projectId={projectId} />
           </aside>
         )}
         <section data-testid="editor-canvas" className="panel flex min-h-0 min-w-0 flex-col gap-2 rounded-[var(--radius-lg)] p-0">

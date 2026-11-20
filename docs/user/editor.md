@@ -150,6 +150,14 @@ Projects, chapters and nodes you move to the trash stay there for 30 days (the a
 - **Projects:** the team owner sees a **Trash** section under the projects list, with **Restore** for each trashed project. Members do not see it.
 - The time counts from when the server received the change, not from your computer's clock. A node you trash while offline starts its 30 days when you are back online.
 
+## Export and import a project
+
+A project can be saved to a file and made again from it, in this team or another one (for a backup, to move a project, or to keep a copy before a big change).
+
+- **Export:** in the editor, choose **Export project file** under the project name in the left panel. The browser saves `<project name>.kwnto.json`. It is plain text you can open in any editor: the project name, its chapters, nodes (title, colour, place), script lines, cues and choices. It holds nothing internal (no team, accounts or versions). Things in the trash are left out, and so are the media files: only their names and kinds are listed, so an imported project has no media.
+- **Import:** on the team's page, under the projects list, choose **Import project** and pick a `.json` file. Any verified member of the team can do this. A new project named `<name> (imported)` is made and opens. The original is not changed, and you can import the same file again for another copy.
+- **If the file is refused:** the page says why, for example `This file is not a KWNTO project: format must be "kwnto-project".` or `This file is larger than the 5 MB import limit.` Nothing is created. Files must be 5 MB or smaller, with at most 200 chapters, 2,000 nodes, 20,000 lines, 10,000 cues and 10,000 choices.
+
 ## Search and links between chapters
 
 **Search** sits in the top bar while a project is open (Ctrl+K, ⌘+K on a Mac, puts the cursor there). Type part of a node's title: capitals, accents and extra spaces do not matter, so `cafe` finds `Café Scene`. Results show `Title · Chapter`, titles that start with what you typed first. Pick one with the arrow keys and Enter, or click it: the editor opens that chapter (also when its tab was closed), selects the node and moves the canvas to it. Escape closes the list. Nodes in the trash and untitled nodes are not found.

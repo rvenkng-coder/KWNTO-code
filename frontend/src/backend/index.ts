@@ -4,6 +4,7 @@ export { createBackend, type Backend }
 export type * from './content-types'
 export type * from './media-types'
 export type { AppSettings } from './appSettings'
+export { MAX_IMPORT_BYTES } from './projectFiles'
 export { MAX_SAVE_TRIES, TOO_BUSY } from './guarded'
 export { EDIT_CONFLICT, EditConflict } from './errors'
 
@@ -37,6 +38,10 @@ export const backend: Backend = {
   get appSettings() {
     if (!_backend) _backend = createBackend()
     return _backend.appSettings
+  },
+  get projectFiles() {
+    if (!_backend) _backend = createBackend()
+    return _backend.projectFiles
   },
   async health() {
     if (!_backend) _backend = createBackend()

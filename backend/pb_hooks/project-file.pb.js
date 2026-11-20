@@ -36,7 +36,10 @@ routerAdd("GET", "/api/kwnto/projects/{id}/export", (e) => {
 
   const file = buildProjectFile(records, new Date().toISOString().replace("T", " "))
   e.response.header().set("Content-Disposition", `attachment; filename="${downloadName(records.project.name)}"`)
-  return e.json(200, file)
+  // Written with JSON.stringify, not e.json(): e.json() serialises a JS object through Go and
+  // shuffles its keys, and the file should read in the documented order.
+  e.response.header().set("Content-Type", "application/json; charset=UTF-8")
+  return e.string(200, JSON.stringify(file))
 }, $apis.requireAuth("users"))
 
 routerAdd("POST", "/api/kwnto/teams/{id}/import", (e) => {

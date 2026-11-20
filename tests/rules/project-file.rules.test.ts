@@ -84,6 +84,9 @@ test('only members export a project', async () => {
   expect(reply.status).toBe(200)
   expect(reply.headers.get('content-disposition')).toBe('attachment; filename="Test-project.kwnto.json"')
   const file = (await reply.json()) as File
+  // Readable in a text editor: the keys come in the documented order, and a node's keys too.
+  expect(Object.keys(file)).toEqual(['format', 'version', 'exportedAt', 'project', 'chapters', 'nodes', 'lines', 'cues', 'connections', 'media'])
+  expect(Object.keys(file.nodes[0])).toEqual(['id', 'chapter', 'title', 'color', 'x', 'y'])
   expect(file.format).toBe('kwnto-project')
   expect(file.version).toBe(1)
   expect(file.project.name).toBe('Test project')

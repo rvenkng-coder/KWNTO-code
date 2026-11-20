@@ -6,6 +6,7 @@ import { createProjects } from './projects'
 import { createContent } from './content'
 import { createMedia } from './media'
 import { createAppSettings } from './appSettings'
+import { createProjectFiles } from './projectFiles'
 
 export interface Backend {
   health(): Promise<boolean>
@@ -16,6 +17,7 @@ export interface Backend {
   content: ReturnType<typeof createContent>
   media: ReturnType<typeof createMedia>
   appSettings: ReturnType<typeof createAppSettings>
+  projectFiles: ReturnType<typeof createProjectFiles>
 }
 
 export function createBackend(baseUrl?: string): Backend {
@@ -40,5 +42,6 @@ export function createBackend(baseUrl?: string): Backend {
     content: createContent(pb),
     media: createMedia(pb),
     appSettings: createAppSettings(pb),
+    projectFiles: createProjectFiles(pb),
   }
 }

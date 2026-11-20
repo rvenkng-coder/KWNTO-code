@@ -8,6 +8,7 @@ import { TeamTrash } from '../trash/TeamTrash'
 import { InviteForm } from './InviteForm'
 import { MemberList, JoinCodeRow } from './TeamParts'
 import { errorMessage } from '../errorMessage'
+import { ImportProject } from '../projectFile/ImportProject'
 
 interface TeamDetailProps {
   teamId: string
@@ -122,6 +123,7 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
       {error && <p data-testid="form-error" role="alert">{error}</p>}
       <MemberList members={members} isOwner={isOwner} loaded={loaded} onRemove={handleRemoveMember} />
       {team !== null && <ProjectList key={`projects-${projectsVersion}`} teamId={teamId} isOwner={isOwner} onTrashed={refreshProjects} />}
+      {team !== null && <ImportProject teamId={teamId} />}
       {team !== null && isOwner && <TeamTrash key={`trash-${projectsVersion}`} teamId={teamId} onRestored={refreshProjects} />}
       {isOwner && (
         <OwnerPanel

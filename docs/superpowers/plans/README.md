@@ -12,7 +12,7 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 | 4 | [Offline queue, sync and conflicts](2026-11-16-offline-sync/README.md) | 1 | 3 | done |
 | 5 | [Media upload, quota and strict file checks](2026-11-16-media-upload/README.md) | 1 | 3 | done |
 | 6 | Deployment | 1 | 2 (3 to 5 to test on) | outline |
-| 7 | Trash, share links, comments, presence, JSON import and export | 2 | 3, 4 | outline |
+| 7 | [Trash, share links, comments, presence, JSON import and export](2026-11-20-sharing/README.md) | 2 | 3, 4 | planned |
 | 8 | Export (PDF, Word, JPG, PNG) | 3 | 3 | outline |
 | 9 | Player Mode | 4 | 3 | outline |
 | 10 | Path analytics | 5 | 9 | outline |
@@ -151,7 +151,7 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 **Decide first:** backup destination and default schedule; the SMTP setup guide (Gmail app password).
 **Risks:** Funnel bandwidth for video and large media uploads (fallback: Cloudflare Tunnel).
 
-### 7. Trash, share links, comments, presence, JSON import and export
+### 7. Trash, share links, comments, presence, JSON import and export (planned; [detailed plan](2026-11-20-sharing/README.md))
 **Carried in from Plan 3:** live creates of teams and projects (see [Carried over from Plan 3](#carried-over-from-plan-3)).
 **Goal:** the second build step in design section 11: trash and restore (30 days, scheduled purge), share links (view, comment, edit; live, snapshot; revocable), comments, presence with heartbeat, project JSON import and export.
 **Fixed already:** "revoke all share links" is an incident control (security.md section 9) added to the Plan 2 runbook when `share_links` exists; view links work without an account and include media; comment and edit links need sign-in and the verified flag; JSON import is untrusted input, validated by schema with size limits (a `zod` dependency needs a decision record first).

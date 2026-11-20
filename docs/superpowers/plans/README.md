@@ -9,7 +9,7 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 | 1 | [Foundation and real-time spike](2026-11-11-foundation/README.md) | 1 | none | done |
 | 2 | [Accounts and teams](2026-11-12-accounts-teams/README.md) | 1 | 1 | done |
 | 3 | [Editor core](2026-11-14-editor-core/README.md) | 1 | 2 | done |
-| 4 | [Offline queue, sync and conflicts](2026-11-16-offline-sync/README.md) | 1 | 3 | in progress |
+| 4 | [Offline queue, sync and conflicts](2026-11-16-offline-sync/README.md) | 1 | 3 | done |
 | 5 | Media upload, quota and strict file checks | 1 | 3 | outline |
 | 6 | Deployment | 1 | 2 (3 to 5 to test on) | outline |
 | 7 | Trash, share links, comments, presence, JSON import and export | 2 | 3, 4 | outline |
@@ -49,6 +49,8 @@ Found while building the editor core (2026-11-14 to 2026-11-16) and left out of 
 
 ## Carried over from Plan 4
 
+The whole-branch review (2026-11-20) found eight problems, all fixed with tests (answers to cancelled edits and to every tab, retry on 429 and 5xx, session check after a reconnect, the offline state and conflict shown in every tab, a stalled send loop, a stuck `Offline`, offline paste). What it left open is below and in the ledger; the main items:
+
 Found while building the offline sync plan (2026-11-18 to 2026-11-20) and left out of it on purpose. The source is `.planning/2026-11-16-offline-sync/progress.md`.
 
 | Item | What and why | Plan |
@@ -56,6 +58,8 @@ Found while building the offline sync plan (2026-11-18 to 2026-11-20) and left o
 | `Offline` shows only after an attempt | The top bar says `Offline` when the browser reports it or when a send finds the server unreachable. With the backend down and no edit made, nothing detects it; a dropped live connection does not change the status. Make the status follow the event stream. | 7 |
 | Opening a project needs the server | Edits are queued, reads are not: opening a project, switching teams, signing in or reloading fail while the backend is down. A read cache is a design decision (design 6.7 queues edits only). | developer decision |
 | Waiting edits are readable in the browser profile | Accepted while internal (security.md section 10, offline sync plan D10). Before a public release decide whether sign-out should offer to discard them. | 6 (before going public) |
+| Offline grouped edits share one undo step | An offline "Add line" or "Add chapter" keeps its undo group open until the server answers, so later offline edits join it and one Ctrl+Z after reconnecting undoes them together. No data is lost. Needs a decision on when an undo step closes. | 7 |
+| Smaller review findings | Page-close warning while an edit is still being stored; a saved echo repainting over a later waiting edit; no `navigator.locks` (every tab sends); a non-PocketBase 200 counted as saved; focus in the conflict dialog; IndexedDB unavailable refuses edits; quadratic outbox reads for large queues; a fast account switch. See the final-review lines of `.planning/2026-11-16-offline-sync/progress.md`. | 7 |
 | Retry right after the server returns | After a server outage a waiting edit is retried on the backoff (1, 2, 4 ... 30 s), so it saved about 10 s after the proxy came back (2026-11-20 check). The event stream reconnecting (`PB_CONNECT`) could trigger an immediate retry. | 7 |
 | Confirm the reconnect behind the public Funnel address | Checked through `tailscale serve` (tailnet only) on 2026-11-20, see decision 0002; repeat the two checks once behind the public address (test-plan M12). | 6 |
 | Hand walk of the Flow | The developer walked the app by hand (2026-11-19 and 2026-11-20), not following the written Flow, and found two bugs (stopped backend refused edits; a line added offline vanished after reconnecting), both fixed. The written walk (every conflict kind, both browsers) was not done as such; the e2e specs `editor-offline` and `editor-conflicts` cover those cases. Repeat with M8 and M9. | developer, with M8 and M9 |
@@ -117,7 +121,7 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 **Decide first:** how the guarded write hook is shared between collections; the decimal `sort_order` scheme for lines; undo history depth; `project_settings` (created with each project, rows made by a hook as in Plan 2).
 **Risks:** performance at 500 nodes and 5,000 lines (measured fine on the backend side, not yet on the canvas); the 409 retry path.
 
-### 4. Offline queue, sync and conflicts (in progress; [detailed plan](2026-11-16-offline-sync/README.md))
+### 4. Offline queue, sync and conflicts (done; [detailed plan](2026-11-16-offline-sync/README.md))
 **Carried in from Plan 3:** the card re-mount watch (see [Carried over from Plan 3](#carried-over-from-plan-3)).
 **Goal:** edits go to IndexedDB first, sync later; keep-mine/keep-theirs on conflict; an "offline, N changes waiting" indicator.
 **Fixed already:** events missed while disconnected are not replayed, so refetch after every reconnect (finding E); `updated` alone is not a version, use the counter (finding G); queued writes carry the version they were based on. Confirm reconnect behaviour once through Funnel.

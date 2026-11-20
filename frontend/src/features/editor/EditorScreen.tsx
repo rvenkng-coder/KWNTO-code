@@ -16,6 +16,7 @@ import { editorStore, useEditor } from './store/editorStore'
 import { edits } from './store/edits'
 import { pendingEdits, shouldWarnOnLeave } from './store/pendingEdits'
 import { ExportButton } from '../projectFile/ExportButton'
+import { MemberOnly } from '../share/MemberOnly'
 import { ShareButton } from '../share/ShareButton'
 import { useLeftPanel } from './useLeftPanel'
 import { useShortcuts } from './useShortcuts'
@@ -99,8 +100,10 @@ function EditorFrame({ projectId, teamId, projectName, chapters, active }: Frame
               className="text-left text-lg font-semibold"
               onCommit={(name) => void edits.update('projects', projectId, { name }, 'Rename project')}
             />
-            <ExportButton projectId={projectId} />
-            <ShareButton projectId={projectId} teamId={teamId} projectName={projectName} />
+            <MemberOnly teamId={teamId}>
+              <ExportButton projectId={projectId} />
+              <ShareButton projectId={projectId} projectName={projectName} />
+            </MemberOnly>
           </aside>
         )}
         <section data-testid="editor-canvas" className="panel flex min-h-0 min-w-0 flex-col gap-2 rounded-[var(--radius-lg)] p-0">

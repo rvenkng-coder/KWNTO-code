@@ -141,6 +141,11 @@ test('an edit link lets a non-member edit that one project', async ({ page, brow
   await expect(holder.getByTestId('shared-with-me')).toContainText('Story')
   await expect(holder.getByTestId('team-list').getByRole('button')).toHaveCount(0)
   await expect(holder.getByRole('button', { name: 'Move to trash' })).toHaveCount(0)
+
+  await holder.goto(address)
+  await expect(card(holder, gate)).toBeVisible()
+  await expect(holder.getByRole('button', { name: 'Share' })).toHaveCount(0)
+  await expect(holder.getByRole('button', { name: 'Export project file' })).toHaveCount(0)
 })
 
 // Protects Review Focus 1: when the owner revokes an edit link while the holder has the editor

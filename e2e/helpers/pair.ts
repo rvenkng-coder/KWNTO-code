@@ -40,3 +40,14 @@ export async function ownerAndMember(browser: Browser, count: number) {
   return { a, b, ctxA, ids }
 }
 
+
+/** Drags a card by (dx, dy) screen pixels with the mouse and releases it. */
+export async function dragBy(page: Page, id: string, dx: number, dy: number): Promise<void> {
+  const box = await card(page, id).boundingBox()
+  if (box === null) throw new Error('card not on screen')
+  await page.mouse.move(box.x + 40, box.y + 10)
+  await page.mouse.down()
+  await page.mouse.move(box.x + 40 + dx / 2, box.y + 10 + dy / 2, { steps: 10 })
+  await page.mouse.move(box.x + 40 + dx, box.y + 10 + dy, { steps: 10 })
+  await page.mouse.up()
+}

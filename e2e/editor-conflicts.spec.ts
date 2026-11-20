@@ -4,9 +4,9 @@
 // and two tabs of one browser send each waiting change once.
 import { expect, test, type Page } from '@playwright/test'
 import { adminPB, adminRecord } from './helpers/admin'
-import { addNodeAt, card, openProject, ownerWithProject, readyCanvas } from './helpers/editor'
+import { addNodeAt, card, connectNodes, openProject, ownerWithProject, readyCanvas } from './helpers/editor'
 import { goOffline, goOnline, syncStatus } from './helpers/offline'
-import { colourButton, ownerAndMember, panel, rename } from './helpers/pair'
+import { colourButton, dragBy, ownerAndMember, panel, rename } from './helpers/pair'
 import { openTeam } from './helpers/ui'
 
 const lineText = (page: Page) => panel(page).getByTestId('line-row').first().getByLabel('Line text')
@@ -130,4 +130,47 @@ test('two tabs of one browser send each waiting change once', async ({ page, con
     await card(p, n1).click()
     await expect(panel(p).getByTestId('line-row')).toHaveCount(1)
   }
+})
+
+// Protects: D4: x and y are one attribute, `Position`: a node moved offline that a teammate moved meanwhile asks once, with both positions.
+test('a node moved by both sides asks about its position once', async ({ browser }) => {
+  const { a, b, ctxA, ids } = await ownerAndMember(browser, 1)
+  const [n1] = ids as [string]
+  await goOffline(ctxA, a)
+  await dragBy(a, n1, 200, 0)
+  await expect(syncStatus(a)).toContainText('waiting')
+  await dragBy(b, n1, 0, 150)
+  await expect.poll(async () => Number((await adminRecord('nodes', n1)).y)).toBeGreaterThan(100)
+
+  await ctxA.setOffline(false)
+  const dialog = a.getByRole('dialog')
+  await expect(dialog).toContainText('Position')
+  await expect(dialog.getByText('Position', { exact: true })).toHaveCount(1)
+  await expect(dialog).toContainText('Yours:')
+  await expect(dialog).toContainText('Theirs:')
+  await dialog.getByRole('button', { name: 'Keep theirs' }).click()
+  await expect(dialog).toHaveCount(0)
+  await expect(syncStatus(a)).toHaveCount(0)
+  const server = await adminRecord('nodes', n1)
+  expect(Number(server.y)).toBeGreaterThan(100)
+  expect(Number(server.x)).toBeLessThan(150)
+})
+
+// Protects: design 6.7, review focus 5: a choice linked offline to a node a teammate linked to from the same card meanwhile is refused by the unique pair index: it is taken back, listed as failed with the server's message, and nothing else is blocked.
+test('a choice refused by the unique pair index lands in the failed list', async ({ browser }) => {
+  const { a, b, ctxA, ids } = await ownerAndMember(browser, 2)
+  const [n1, n2] = ids as [string, string]
+  await goOffline(ctxA, a)
+  await a.locator(`[data-node-id="${n1}"] [data-testid="new-choice-handle"]`).dragTo(a.locator(`[data-node-id="${n2}"] .react-flow__handle.target`))
+  await expect(syncStatus(a)).toContainText('waiting')
+  await connectNodes(b, n1, n2)
+
+  await ctxA.setOffline(false)
+  await expect(syncStatus(a)).toContainText('1 change could not be saved')
+  await syncStatus(a).getByRole('button', { name: 'Show' }).click()
+  await expect(syncStatus(a).getByRole('button', { name: 'Dismiss' })).toBeVisible()
+  await expect(card(a, n1).getByTestId('choice-row')).toHaveCount(1)
+  await expect(card(b, n1).getByTestId('choice-row')).toHaveCount(1)
+  await syncStatus(a).getByRole('button', { name: 'Dismiss' }).click()
+  await expect(syncStatus(a)).toHaveCount(0)
 })

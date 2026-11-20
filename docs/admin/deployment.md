@@ -39,9 +39,15 @@ git clone git@github.com:<owner>/<repo>.git kwnto
 
 Whichever you pick, step 4 of First run continues from the folder `kwnto`.
 
-## First run
+## Set up Tailscale and Funnel
 
-1. **Tailscale access policy.** In the Tailscale admin console open Access controls and make sure these two entries exist (merge them into your file; do not replace it). The first lets you tag the machine, the second lets that tag use Funnel:
+Funnel is what makes the app reachable from the internet. You do not install Tailscale on the VM itself: the `tailscale` container in `compose.prod.yaml` joins your tailnet as its own machine (named `TS_HOSTNAME`, default `kwnto`) and publishes Caddy through Funnel. What you set up here is the account side: the tailnet, the permission for Funnel, and an auth key. The VM only needs `/dev/net/tun` (`ls -l /dev/net/tun`); if it is missing, see the `TS_USERSPACE` fallback under First run.
+
+Funnel has fixed rules that this setup relies on: it serves only ports 443, 8443 and 10000, and only over HTTPS with a `*.ts.net` name. KWNTO publishes port 443 through Funnel (the app) and keeps port 8443 (the admin dashboard) inside your tailnet.
+
+1. **A tailnet.** Sign in at <https://login.tailscale.com> (a personal account is enough). Install Tailscale on the laptop or phone you will use to reach the admin dashboard, and sign in to the same tailnet, so that device can open `https://<host>:8443/_/` later.
+2. **MagicDNS and HTTPS certificates.** In the admin console open the DNS page. Make sure **MagicDNS** is on, then under **HTTPS Certificates** press **Enable HTTPS**. Note the **tailnet name** shown there (for example `tail1234.ts.net`). Enabling HTTPS publishes your machine names in a public certificate log; use a machine name that does not reveal anything private (`kwnto` is fine).
+3. **Tag and Funnel permission.** Open Access controls. Merge these two entries into your policy file (do not replace the file). The first lets you tag the machine, the second lets that tag use Funnel:
 
    ```json
    "tagOwners": {
@@ -52,8 +58,31 @@ Whichever you pick, step 4 of First run continues from the folder `kwnto`.
    ]
    ```
 
-2. **Auth key.** Settings, Keys, Generate auth key: **Reusable off**, **Tags** `tag:kwnto`, a short expiry. Copy the key (it starts with `tskey-auth-`); it is shown once. It is only used the first time the container joins; the container's state is kept in a volume afterwards.
-3. **Your public address.** It is `https://<TS_HOSTNAME>.<tailnet name>`, where the tailnet name is shown on the console's DNS page (for example `tail1234.ts.net`). With `TS_HOSTNAME=kwnto` that is `https://kwnto.tail1234.ts.net`. You need it now, because PocketBase writes it into its settings on its first start.
+   Save. A policy with an error is refused with a message; fix it there. If your policy already has a `nodeAttrs` list, add the one object to it instead of making a second list.
+4. **Auth key.** Settings, Keys, Generate auth key: **Reusable off**, **Tags** `tag:kwnto`, a short expiry, and leave **Ephemeral** off (an ephemeral machine disappears when it goes offline). Copy the key (it starts with `tskey-auth-`); it is shown once. It is only used the first time the container joins; the container's login is then kept in the `kwnto-tailscale` volume, so the key can expire afterwards. Put it in `.env` as `TS_AUTHKEY` (First run, step 4) and nowhere else.
+5. **Your public address.** It is `https://<TS_HOSTNAME>.<tailnet name>`. With `TS_HOSTNAME=kwnto` and the tailnet name `tail1234.ts.net` that is `https://kwnto.tail1234.ts.net`. **Check first that no machine called `kwnto` already exists** in the Machines page: if one does, the new container is named `kwnto-1` and the address you wrote in `KWNTO_PUBLIC_URL` is wrong. Remove the old machine (its menu, Delete) or pick another `TS_HOSTNAME`.
+
+### Check it after the first start
+
+Run these on the VM, in the folder `kwnto`, once `docker compose -f compose.prod.yaml up -d --build` has finished:
+
+```sh
+docker compose -f compose.prod.yaml exec tailscale tailscale status
+docker compose -f compose.prod.yaml exec tailscale tailscale serve status
+```
+
+- `tailscale status` should list the machine as connected, and the admin console's Machines page should show it with the tag `tag:kwnto`.
+- (The exact wording of these outputs differs between Tailscale versions, and this section has not yet been walked on the real VM.) `tailscale serve status` should show `https://<host>` (Funnel **on**) proxying to `http://caddy:8080` and `https://<host>:8443` (tailnet only) proxying to `http://pocketbase:8090`.
+- From a device that is **not** on your tailnet (a phone on mobile data with Tailscale off), open `https://<host>`: the sign-in screen loads. The first time can take a minute or two while the HTTPS certificate is issued and the public DNS name spreads; wait before you assume it is broken.
+- From a device that **is** on your tailnet, `https://<host>:8443/_/` shows the admin dashboard sign-in. From the phone off the tailnet, the same address must not answer.
+
+If a step fails, see "Troubleshooting": the usual causes are an expired or reused auth key, Funnel not allowed for the tag (part 3), HTTPS certificates not enabled (part 2) and a hostname that became `kwnto-1` (part 5). After changing the policy or the key, `docker compose -f compose.prod.yaml logs tailscale` says what Tailscale thinks. If the key was wrong, make a new one, put it in `.env`, then `docker compose -f compose.prod.yaml down`, remove the volume `kwnto-tailscale` (and only that one: `docker volume ls`, the name ends in `kwnto-tailscale`) and `up -d` again.
+
+## First run
+
+1. **Tailscale access policy.** Done in [Set up Tailscale and Funnel](#set-up-tailscale-and-funnel), part 3 (the tag and the Funnel permission).
+2. **Auth key.** Part 4 of the same section. You need the key (`tskey-auth-...`) for `TS_AUTHKEY` below.
+3. **Your public address.** Part 5 of the same section. You need it for `KWNTO_PUBLIC_URL` below, because PocketBase writes it into its settings on its first start.
 4. **Clone and fill `.env`:**
 
    ```sh
@@ -73,7 +102,7 @@ Whichever you pick, step 4 of First run continues from the folder `kwnto`.
    | `KWNTO_PUBLIC_URL` | The address from step 3, starting with `https://`, for example `https://kwnto.example.ts.net`. A trailing slash is removed. The container refuses to start (exit 64) without it. |
    | `KWNTO_MAX_REQUEST_MB` | Largest upload body Caddy accepts, in MB. Leave empty for 1024. |
    | `KWNTO_BACKUP_DIR` | The host folder for backups. Leave empty for `./backups`; or a NAS mount, created and owned as above. |
-   | `TS_AUTHKEY` | The key from step 2. |
+   | `TS_AUTHKEY` | The key from step 2 (Set up Tailscale and Funnel, part 4). |
    | `TS_HOSTNAME` | The machine name in your tailnet, for example `kwnto`. Empty means `kwnto`. |
 
    `.env` is never committed. Protect it like a password (`chmod 600 .env`).

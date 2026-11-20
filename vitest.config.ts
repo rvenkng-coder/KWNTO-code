@@ -39,6 +39,8 @@ export const containerConfig = mergeConfig(base, defineConfig({
     include: ['tests/container/**/*.test.ts'],
     exclude: [...configDefaults.exclude, PROBES],
     testTimeout: 180_000,
+    // edge.test.ts and production.test.ts each start the same compose stack (one project name, fixed ports).
+    fileParallelism: false,
   },
 }))
 

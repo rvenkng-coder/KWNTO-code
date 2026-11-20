@@ -74,6 +74,10 @@ All four join the network `kwnto-edge` (subnet `172.30.0.0/24`; `tailscale` has 
 
 `compose.edge-test.yaml` (used with `-f compose.prod.yaml -f compose.edge-test.yaml`) is the test override: no `web` or `tailscale`, in-memory data, the test admin, the host's `dist/` as the web app, Caddy on `127.0.0.1:8094` (limit 2 MB) and PocketBase direct on `127.0.0.1:8095` for the tests' admin set-up calls only. If a run was killed, `docker compose -f compose.prod.yaml -f compose.edge-test.yaml down -v` cleans up.
 
+## Production settings
+
+Migration `1794390000_production_settings.js` writes the production-only settings once per data folder, and only when `KWNTO_PRODUCTION=1` (the dev and test backends are untouched): `meta.appURL` (from `KWNTO_PUBLIC_URL`) and `appName`, the rate limiter (`*:auth` 2 per 3 s, `/api/kwnto/teams/` 10 per 60 s, `/api/` 300 per 10 s), the trusted proxy (`X-Forwarded-For`, `useLeftmostIP` off) and the backup schedule (`0 2 * * *`, keep 7). The values come from the pure `backend/pb_hooks/lib/production-settings.js`. `entrypoint.sh` exits 64 when the flag is on and `KWNTO_PUBLIC_URL` does not start with `https://`. Admin edits in the dashboard are never reverted. The JS property names are the Go field names in camel case (`settings.rateLimits.rules`, `settings.trustedProxy.useLeftmostIP`, `settings.backups.cronMaxKeep`, `settings.meta.appURL`). To try it, run the edge test stack with `KWNTO_PRODUCTION=1 KWNTO_PUBLIC_URL=https://kwnto.example.ts.net`.
+
 ## Tests and the test backend
 
 - `npm run test:container` builds the image and tests it with real containers (port `8093`, volume `kwnto-container-test`). It removes its own left-overs first, so it is safe to run again after a killed run.

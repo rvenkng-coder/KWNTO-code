@@ -1,9 +1,13 @@
 const ID = /^[a-z0-9]{15}$/
+// A mail link carries a JWT: three URL-safe parts joined by dots.
+const TOKEN = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/
 
 export type Route =
   | { name: 'teams' }
   | { name: 'team'; teamId: string }
   | { name: 'project'; projectId: string; chapterId: string | null }
+  | { name: 'verify'; token: string }
+  | { name: 'reset'; token: string }
 
 const FALLBACK: Route = { name: 'teams' }
 
@@ -25,8 +29,15 @@ function parseProject(parts: string[]): Route | undefined {
   return undefined
 }
 
+function parseMailLink(parts: string[]): Route | undefined {
+  const name = parts[0]
+  if ((name !== 'verify' && name !== 'reset') || parts.length !== 2) return undefined
+  const token = parts[1]!
+  return token.length <= 2048 && TOKEN.test(token) ? { name, token } : undefined
+}
+
 function parseSegments(parts: string[]): Route {
-  return parseTeam(parts) ?? parseProject(parts) ?? FALLBACK
+  return parseTeam(parts) ?? parseProject(parts) ?? parseMailLink(parts) ?? FALLBACK
 }
 
 export function parseRoute(hash: string): Route {
@@ -48,6 +59,10 @@ export function routeToHash(route: Route): string {
       return '#/'
     case 'team':
       return `#/team/${route.teamId}`
+    case 'verify':
+      return `#/verify/${route.token}`
+    case 'reset':
+      return `#/reset/${route.token}`
     case 'project':
       if (route.chapterId !== null) return `#/project/${route.projectId}/chapter/${route.chapterId}`
       return `#/project/${route.projectId}`

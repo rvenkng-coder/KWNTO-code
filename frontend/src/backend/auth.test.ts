@@ -187,3 +187,26 @@ test('signIn result and current() are the same object', async () => {
   const result = await auth.signIn('a@b.test', 'pass')
   expect(auth.current()).toBe(result)
 })
+
+// Protects Plan 6 D9 / C2: the mail-link screens finish verification and reset through the SDK with
+// exactly the token and passwords given, and a refusal (the password rules) reaches the screen as a
+// BackendError of kind invalid carrying the server's message.
+test('the door confirms verification and resets through the SDK', async () => {
+  const confirmVerification = vi.fn().mockResolvedValue(true)
+  const confirmPasswordReset = vi.fn().mockResolvedValue(true)
+  const pb = {
+    authStore: { token: '', record: null, clear: vi.fn(), onChange: vi.fn() },
+    collection: (name: string) => (name === 'users' ? { confirmVerification, confirmPasswordReset } : {}),
+  } as unknown as PocketBase
+  const auth = createAuth(pb)
+  await auth.confirmVerification('t')
+  expect(confirmVerification).toHaveBeenCalledExactlyOnceWith('t')
+  await auth.confirmPasswordReset('t', 'p', 'q')
+  expect(confirmPasswordReset).toHaveBeenCalledExactlyOnceWith('t', 'p', 'q')
+
+  const failure = new ClientResponseError({ status: 400, response: { message: 'Password must ...' } })
+  confirmPasswordReset.mockRejectedValue(failure)
+  confirmVerification.mockRejectedValue(failure)
+  await expect(auth.confirmPasswordReset('t', 'p', 'q')).rejects.toMatchObject({ name: 'BackendError', kind: 'invalid', message: 'Password must ...' })
+  await expect(auth.confirmVerification('t')).rejects.toMatchObject({ kind: 'invalid', message: 'Password must ...' })
+})

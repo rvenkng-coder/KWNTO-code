@@ -72,6 +72,27 @@ async function requestPasswordReset(
   }
 }
 
+async function confirmVerification(pb: PocketBase, token: string): Promise<void> {
+  try {
+    await pb.collection('users').confirmVerification(token)
+  } catch (err) {
+    throw toBackendError(err)
+  }
+}
+
+async function confirmPasswordReset(
+  pb: PocketBase,
+  token: string,
+  password: string,
+  passwordConfirm: string,
+): Promise<void> {
+  try {
+    await pb.collection('users').confirmPasswordReset(token, password, passwordConfirm)
+  } catch (err) {
+    throw toBackendError(err)
+  }
+}
+
 async function doSignIn(
   pb: PocketBase,
   cached: { value: AuthUser | null },
@@ -168,6 +189,14 @@ export function createAuth(pb: PocketBase) {
 
     async requestPasswordReset(email: string): Promise<void> {
       await requestPasswordReset(pb, email)
+    },
+
+    async confirmVerification(token: string): Promise<void> {
+      await confirmVerification(pb, token)
+    },
+
+    async confirmPasswordReset(token: string, password: string, passwordConfirm: string): Promise<void> {
+      await confirmPasswordReset(pb, token, password, passwordConfirm)
     },
 
     onChange(

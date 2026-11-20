@@ -54,7 +54,7 @@ Every tab keeps the promises of its own edits, so the answers must reach every t
 
 ### Undo while offline (D11)
 
-`edits.undo` and `redo` first wait for every write in flight, which offline would never end. While the engine is offline and `waiting > 0` (an edit still being stored counts), they do nothing and set `UNDO_PAUSED` as the store's `error`; `undoPausedBy(appSync())` decides. Plan 3's step is recorded only after the write succeeds, so after the sync the undo works again.
+`edits.undo` and `redo` first wait for every write in flight, which offline would never end. While the engine is offline and `waiting > 0` (an edit still being stored counts), they do nothing and set `UNDO_PAUSED` as the store's `error`; `undoPausedBy(appSync())` decides. Plan 3's step is recorded only after the write succeeds, so after the sync the undo works again. A node trashed while offline reaches the trash with the server's time when the queued edit is sent (Plan 7: the guard hook replaces `deleted_at`); nothing else changes for the queue.
 
 ### The store's port (`store/editorSync.ts`)
 

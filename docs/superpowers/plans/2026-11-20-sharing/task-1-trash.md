@@ -55,10 +55,10 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 1B: The server
 
-- [ ] **Step 5: Write the failing tests** C2 to C5 in `tests/rules/trash.rules.test.ts` (the job is run with the admin's `POST /api/crons/purge_trash`; retention set through the admin with restore in `afterEach`).
-- [ ] **Step 6: Run** `npm run test:rules -- tests/rules/trash.rules.test.ts`. Expected: FAIL.
-- [ ] **Step 7: Implement** the stamp in the guard, `trash.pb.js` and `app-settings.pb.js`.
-- [ ] **Step 8: Run** `npm run test:rules`. Expected: PASS, including every existing content and offline door test (a trash made offline is now stamped at send time; say so in `docs/developer/editor.md` "Undo while offline" if it changes anything there). **Close checkpoint 1B** (commit `feat: server-stamped trash and the nightly purge`).
+- [x] **Step 5: Write the failing tests** C2 to C5 in `tests/rules/trash.rules.test.ts` (the job is run with the admin's `POST /api/crons/purge_trash`; retention set through the admin with restore in `afterEach`).
+- [x] **Step 6: Run** `npm run test:rules -- tests/rules/trash.rules.test.ts`. Expected: FAIL.
+- [x] **Step 7: Implement** the stamp in the guard, `trash.pb.js` and `app-settings.pb.js`.
+- [x] **Step 8: Run** `npm run test:rules`. Expected: PASS, including every existing content and offline door test (a trash made offline is now stamped at send time; say so in `docs/developer/editor.md` "Undo while offline" if it changes anything there). **Close checkpoint 1B** (commit `feat: server-stamped trash and the nightly purge`).
 
 ## Checkpoint 1C: Restoring
 

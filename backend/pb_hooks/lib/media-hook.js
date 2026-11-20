@@ -143,8 +143,10 @@ function handleMediaCreate(e) {
   verifyRaceQuota(e, deps, prep)
 }
 
-function handleFileDownload(e) {
-  const name = e.servedName || e.servedPath || ""
+// The headers every served media file carries (Plan 5 D6): the right type from the file's
+// extension, no sniffing, and a policy that lets a file show nothing but itself. Also used by
+// the share routes, which serve media without going through the file download request.
+function applyDownloadHeaders(response, name) {
   const dot = name.lastIndexOf(".")
   const ext = dot !== -1 ? name.slice(dot + 1).toLowerCase() : ""
   const contentTypes = {
@@ -158,13 +160,17 @@ function handleFileDownload(e) {
   }
   const contentType = contentTypes[ext]
   if (contentType) {
-    e.requestEvent.response.header().set("Content-Type", contentType)
+    response.header().set("Content-Type", contentType)
   }
-  e.requestEvent.response.header().set("X-Content-Type-Options", "nosniff")
-  e.requestEvent.response.header().set(
+  response.header().set("X-Content-Type-Options", "nosniff")
+  response.header().set(
     "Content-Security-Policy",
     "default-src 'none'; img-src 'self'; media-src 'self'; sandbox"
   )
+}
+
+function handleFileDownload(e) {
+  applyDownloadHeaders(e.requestEvent.response, e.servedName || e.servedPath || "")
   e.next()
 }
 
@@ -230,6 +236,7 @@ function handleMediaUpdate(e) {
 }
 
 module.exports = {
+  applyDownloadHeaders,
   handleMediaCreate,
   handleFileDownload,
   handleMediaUpdate,

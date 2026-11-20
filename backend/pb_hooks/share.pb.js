@@ -14,3 +14,23 @@ onRecordCreate((e) => {
   }
   e.next()
 }, "share_links")
+
+// The routes. Every token is looked up as a bound parameter. A view link and a comment link
+// are read through these routes with the app's privileges (plan 7 D2); an edit link is
+// joined here and then works through the content rules.
+
+routerAdd("GET", "/api/kwnto/share/{token}", (e) => {
+  return require(`${__hooks}/lib/share-routes.js`).handleOpen(e)
+})
+
+routerAdd("POST", "/api/kwnto/share/{token}/join", (e) => {
+  return require(`${__hooks}/lib/share-routes.js`).handleJoin(e)
+})
+
+routerAdd("GET", "/api/kwnto/share/{token}/media/{mediaId}", (e) => {
+  return require(`${__hooks}/lib/share-routes.js`).handleMedia(e)
+})
+
+routerAdd("POST", "/api/kwnto/share-links/{id}/republish", (e) => {
+  return require(`${__hooks}/lib/share-routes.js`).handleRepublish(e)
+}, $apis.requireAuth("users"))

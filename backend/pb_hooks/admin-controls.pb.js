@@ -110,3 +110,9 @@ onRecordUpdate((e) => {
     return record.getString(name)
   }
 }, "system_access", "system_storage", "system_behavior", "user_limits", "user_status")
+
+// Incident control 6 (docs/security.md section 9): every share link stops working at once.
+// A revoked link cannot be un-revoked; people make new links afterwards.
+routerAdd("POST", "/api/kwnto/admin/share-links/revoke-all", (e) => {
+  return require(`${__hooks}/lib/share-routes.js`).handleRevokeAll(e)
+}, $apis.requireSuperuserAuth())

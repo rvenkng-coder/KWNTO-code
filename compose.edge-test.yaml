@@ -2,6 +2,8 @@
 # Use with: docker compose -f compose.prod.yaml -f compose.edge-test.yaml up -d --build --wait
 # Ports (all on 127.0.0.1): 8094 Caddy (the public address), 8095 PocketBase direct
 # (the stand-in for the tailnet port of D5; tests use it for admin set-up calls only).
+# A project name of its own, so this stack never collides with compose.test.yaml (same folder, same service name).
+name: kwnto-edge-test
 services:
   web:
     profiles: [never-enabled]

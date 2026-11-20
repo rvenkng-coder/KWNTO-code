@@ -57,6 +57,7 @@ const BLOCKED: { method: string; path: string; body?: string }[] = [
 
 // Protects security.md 6 and Review Focus 3: no admin path reaches PocketBase on the public address, under any spelling.
 describe('admin paths', () => {
+  // One row per spelling; a failure message names the method and path.
   test.each(BLOCKED)('every admin path is not found on the public address', async ({ method, path, body }) => {
     const res = await raw(path, {
       method,

@@ -36,6 +36,8 @@ services:
       KWNTO_PUBLIC_URL: ${KWNTO_PUBLIC_URL:-}
     volumes:
       - kwnto-data:/pb/pb_data
+      # Scheduled and manual backups land in a plain host folder (D10); copy it off the VM or point it at a NAS mount.
+      - ${KWNTO_BACKUP_DIR:-./backups}:/pb/pb_data/backups
       - kwnto-web:/pb/pb_public:ro
     depends_on:
       web:

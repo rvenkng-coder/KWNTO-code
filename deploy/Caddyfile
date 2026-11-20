@@ -1,0 +1,46 @@
+# The public address (plan 6 D2, D3, D4, D6). Tailscale terminates TLS and reaches this on :8080.
+{
+	admin off
+	auto_https off
+	servers {
+		# Forwarding headers are trusted only from the Tailscale container (fixed address in compose.prod.yaml).
+		trusted_proxies static 172.30.0.2/32
+		client_ip_headers X-Forwarded-For
+	}
+}
+
+:8080 {
+	log {
+		output stdout
+		format json
+	}
+
+	request_body {
+		max_size {$KWNTO_MAX_REQUEST_MB:1024}MB
+	}
+
+	# Dashboard, admin routes and the schema API are never public (security.md 6).
+	# Caddy's path matcher is case-insensitive and cleans // and %5F before matching.
+	@blocked {
+		path /_ /_/* /api/kwnto/admin/* /api/collections/_superusers/* /api/settings* /api/backups* /api/logs* /api/crons* /api/collections/import
+	}
+	# The schema API: the list, one collection, and truncate. Records stay open (they have their own rules).
+	@schema path_regexp (?i)^/+api/+collections(/*|/+[^/]+/*|/+[^/]+/+truncate)$
+	respond @blocked "Not found" 404
+	respond @schema "Not found" 404
+
+	header {
+		# Set only when absent: PocketBase's stricter headers on /api/files/ stay (plan 5 D6).
+		?Content-Security-Policy "default-src 'self'; img-src 'self' blob: data:; media-src 'self' blob:; style-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+		?X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		X-Frame-Options DENY
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+
+	reverse_proxy pocketbase:8090 {
+		header_up X-Forwarded-For {client_ip}
+	}
+}

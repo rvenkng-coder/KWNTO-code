@@ -154,6 +154,8 @@ test('the purge deletes expired trash with its contents and files', async () => 
   expect(await exists('chapters', set.chapterB)).toBe(true)
 })
 
+// Protects D11: nothing inside the retention window is purged, so a job that runs too early or
+// reads the setting wrongly cannot take work that can still be restored.
 test('the purge keeps trash younger than the retention', async () => {
   const set = await trashedSet()
 

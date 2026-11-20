@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { SearchBox } from '../editor/search/SearchBox'
 import { useEditor } from '../editor/store/editorStore'
+import { ConflictDialog } from '../editor/sync/ConflictDialog'
 import { TopBar } from './TopBar'
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -8,6 +9,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const projectOpen = useEditor((s) => s.status === 'ready')
   return (
     <div className={projectOpen ? 'flex h-screen flex-col overflow-hidden' : 'min-h-screen'}>
+      <ConflictDialog />
       <TopBar search={projectOpen ? <SearchBox /> : null} />
       <main className={projectOpen ? 'flex min-h-0 flex-1 flex-col p-3' : 'mx-auto max-w-5xl p-4'}>{children}</main>
     </div>

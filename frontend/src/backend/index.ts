@@ -3,6 +3,7 @@ import { createBackend, type Backend } from './client'
 export { createBackend, type Backend }
 export type * from './content-types'
 export { MAX_SAVE_TRIES, TOO_BUSY } from './guarded'
+export { EDIT_CONFLICT, EditConflict } from './errors'
 
 let _backend: Backend | undefined
 

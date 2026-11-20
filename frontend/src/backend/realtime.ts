@@ -30,17 +30,29 @@ function subscribeKind(pb: PocketBase, kind: ContentKind, projectId: string, onE
   return pb.collection(kind).subscribe('*', deliver, { filter })
 }
 
+// `PB_CONNECT` reaches every subscriber each time the event stream (re)connects (pocketbase 0.28).
+function subscribeConnect(pb: PocketBase, onReconnect?: () => void): Promise<Unsubscribe> {
+  let connects = pb.realtime.isConnected ? 1 : 0
+  return pb.realtime.subscribe('PB_CONNECT', () => {
+    connects++
+    if (connects > 1) onReconnect?.()
+  })
+}
+
 /** Opens the seven subscriptions one after another; resolves to a function that closes them all. */
 export async function subscribeProject(
   pb: PocketBase,
   projectId: string,
   onEvent: (event: RemoteEvent) => void,
+  onReconnect?: () => void,
 ): Promise<Unsubscribe> {
   const opened: Unsubscribe[] = []
   const closeAll = async () => {
     await Promise.allSettled(opened.map((close) => close()))
   }
   try {
+    // First, so the first connect is seen and counted; the SDK calls it again after every automatic reconnect.
+    if (onReconnect !== undefined) opened.push(await subscribeConnect(pb, onReconnect))
     for (const kind of KINDS) opened.push(await subscribeKind(pb, kind, projectId, onEvent))
   } catch (err) {
     await closeAll()

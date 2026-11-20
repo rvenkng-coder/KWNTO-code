@@ -30,11 +30,35 @@ Lines, cues and chapter tabs carry a decimal order. Inserting between two neighb
 
 ## How an edit travels
 
-1. A screen calls `update(kind, id, changes)` (or `create`, `remove`) on the store.
-2. The store changes `content` at once and raises `saving`.
-3. The door (`backend.content`) sends only the changed fields with the record's local `version` as the base. The server hook compares versions (decision 0002). On a 409 the door re-reads and retries by itself, up to 20 times.
-4. On success the saved record replaces the local one **only if its version is higher**. On a refusal the fields of that edit go back to what they were (a later edit of another field stays) and `error` holds the message; the method resolves `false`.
-5. The server's change event for our own save comes back through the subscription. Its version is not newer than the local copy, so `applyRemote` ignores it. A teammate's change has a higher version and is applied; a delete drops the record; an event of another project is ignored.
+1. A screen calls `update(kind, id, changes)` (or `create`, `remove`) on the store (through `edits`, so it lands in the undo history).
+2. The store changes `content` at once and raises `saving`, then hands the edit to the **outbox** (`store/editorEdits.ts`): `sync.add` with the version and the **values** of the fields before the edit (`baseVersion`, `baseValues`), and for lines, cues and connections the whole record after it (`snapshot`, used to re-create a record a teammate deleted). The edit's promise stays pending.
+3. `sync/syncEngine.ts` writes the entry to IndexedDB first (`indexedDbOutbox.ts`, database `kwnto-outbox`; `add` resolves after the transaction completed). The first storage call is made at once, so text flushed on `pagehide` reaches IndexedDB before the page goes. An update joins the last waiting entry of the same record (`planAdd` in `sync/outbox.ts`); a remove cancels the waiting work on that record. Only the tab holding the Web Lock `kwnto-sync-<userId>` merges and sends; another tab only appends.
+4. The engine sends entries in `seq` order, one request at a time, through the door (`backend.content`). The door sends the changed fields with the entry's `baseVersion` and handles a 409 by itself (online edits retry silently, up to 20 times). An entry leaves the outbox only when the server answered. Then `hooks.saved` resolves the edit's promise `true`, and the saved record replaces the local one **only if its version is higher**.
+5. `unreachable` puts the entry back (marked `offline`), the engine goes offline and tries again after 1, 2, 4 ... 30 seconds; the window's `online` event tries at once. A refusal (`invalid`, `forbidden`, other) moves the entry to the failed list (`failed` store) and `hooks.refused` takes the fields of that edit back (a later edit of another field stays); the promise resolves `false` and `error` holds the message. After a page reload there is no copy in memory, so the server's copy is fetched (`door.get`) and shown.
+6. An entry marked `offline` (made while offline, or whose send found the server unreachable) that meets a 409 is checked by `classifyConflict` (design D4): a real conflict stops the engine and opens `ConflictDialog`; `Keep mine` re-sends it on the server's version, `Keep theirs` drops the conflicting fields and still sends the fields of the entry that did not conflict (`hooks.theirs` puts the server's record on screen).
+7. The server's change event for our own save comes back through the subscription. Its version is not newer than the local copy, so `applyRemote` ignores it. A teammate's change has a higher version and is applied; a delete drops the record; an event of another project is ignored. **Every record that arrives from the server is laid over again with the waiting entries (`overlay`)**, so my waiting edit stays on top of a teammate's change.
+
+### Several tabs (D9)
+
+Every tab keeps the promises of its own edits, so the answers must reach every tab. The tab that sends tells all tabs through the BroadcastChannel (`syncAnswers.ts`, `TabMessage`): `saved`, `refused` and `theirs` per `seq`, and `saved` with no record for an edit that a later remove cancelled (it never reached the server, which is what the person asked for). A tab that does not send also shows what the sending tab tells it (`state`: the server is unreachable, a conflict waits) and relays the person's answer to it (`resolve`); a tab that opens later asks (`hello`). `syncTabs.ts` holds `TabLink` and `writeEntry`.
+
+### When a send fails
+
+`unreachable`, 429 and 5xx are "try again later": the entry waits and is retried on the backoff, it is not refused. A 404 without a server message is a proxy with no route (Tailscale serve switched off), not a missing record. A refusal (any other error) goes to the failed list. After a reconnect the session is refreshed first (`refreshSession`); if it has ended nothing is sent and the entries stay stored for the next sign-in. With nothing left to send, the engine counts the server as reachable again when the backoff timer fires.
+
+### Offline and reconnect (`store/editorSession.ts`)
+
+- The window's `offline` event puts the engine offline; the session closes the live subscriptions. When the engine is online again the session subscribes again and loads the project again; the SDK's `PB_CONNECT` arriving a second time (`onReconnect` of the door) loads it again without resubscribing.
+- A load that arrives over a screen that already holds a record in a higher version keeps the higher one (`mergeNewer`): the load may have been read before my own save landed. Live events that arrive during the load wait and are applied on top of it.
+- Waiting entries that the engine only reads from IndexedDB after the project loaded are laid over the project when the snapshot reports them.
+
+### Undo while offline (D11)
+
+`edits.undo` and `redo` first wait for every write in flight, which offline would never end. While the engine is offline and `waiting > 0` (an edit still being stored counts), they do nothing and set `UNDO_PAUSED` as the store's `error`; `undoPausedBy(appSync())` decides. Plan 3's step is recorded only after the write succeeds, so after the sync the undo works again.
+
+### The store's port (`store/editorSync.ts`)
+
+`createEditorStore(door, sync?)`: `sync` is an `EditorSyncPort`. The app's store uses `appSync()` (the engine of whoever is signed in, from `sync/syncStore.ts`, built on first use so importing the store touches no browser API); tests use `directSync(door)` (an engine on a memory outbox, always online) or `portOf(engine, register)` on an engine they built. The status line, failed list and dialog read `useSync(selector)`.
 
 ## Text fields: the save path
 
@@ -42,7 +66,7 @@ Text in the properties panel (`panel/`) does not go to the store on every keystr
 
 - A new keystroke in the same field cancels the waiting save and starts the 800 ms wait again (`TEXT_SAVE_DELAY_MS`), so only the newest text is sent, once.
 - `flush(key)` sends at once: on blur, before Enter adds a line, and when the field unmounts (another node selected, the row deleted).
-- `EditorScreen` calls `pendingEdits.flushAll()` when the selection, chapter or project changes, when it unmounts and on `pagehide`. On `beforeunload` it flushes and then asks the browser to warn while `shouldWarnOnLeave(pendingEdits.size(), saving)`, that is while a save is still in flight.
+- `EditorScreen` calls `pendingEdits.flushAll()` when the selection, chapter or project changes, when it unmounts and on `pagehide`. On `beforeunload` it flushes and asks the browser to warn only while text is still unsent (`shouldWarnOnLeave(pendingEdits.size(), 0)`): a save in flight is safe in the outbox and is sent again if the page goes.
 - A teammate's value replaces the local text only while nothing of ours is waiting for that field, so a live event never overwrites what someone is typing.
 
 Character, colour, cue type, order and delete are not text: they go straight to the store. New lines and cues get their `sortOrder` from `insertAt`, moves from `placeAt` (D4); `panel/ordering.ts` turns a placement into the writes, and after a renumber only the records whose order changed are sent.

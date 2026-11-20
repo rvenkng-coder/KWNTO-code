@@ -2,7 +2,7 @@
 
 One detailed plan per subsystem, written when the plan before it lands (the real-time spike showed why: its result changed the data model). This page is the one place that shows what is done, what is next and what is only an outline. The build order comes from [design section 11](../specs/2026-11-11-kwnto-design.md); the deadline is the last week of November 2026.
 
-**Status values:** `done`, `in progress`, `awaiting developer walk` (built and checked, waiting for the developer's manual run on real infrastructure; `check:plan` does not validate status words), `planned` (detailed plan written, not started), `outline` (no detailed plan yet).
+**Status values:** `done`, `in progress`, `awaiting developer review` (built and checked, waiting for the developer's manual run on real infrastructure; `check:plan` does not validate status words), `planned` (detailed plan written, not started), `outline` (no detailed plan yet).
 
 | # | Plan | Design build step | Depends on | Status |
 |---|---|---|---|---|
@@ -11,7 +11,7 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 | 3 | [Editor core](2026-11-14-editor-core/README.md) | 1 | 2 | done |
 | 4 | [Offline queue, sync and conflicts](2026-11-16-offline-sync/README.md) | 1 | 3 | done |
 | 5 | [Media upload, quota and strict file checks](2026-11-16-media-upload/README.md) | 1 | 3 | done |
-| 6 | [Deployment](2026-11-20-deployment/README.md) | 1 | 2 (3 to 5 to test on) | awaiting developer walk |
+| 6 | [Deployment](2026-11-20-deployment/README.md) | 1 | 2 (3 to 5 to test on) | awaiting developer review |
 | 7 | Trash, share links, comments, presence, JSON import and export | 2 | 3, 4 | outline |
 | 8 | Export (PDF, Word, JPG, PNG) | 3 | 3 | outline |
 | 9 | Player Mode | 4 | 3 | outline |
@@ -74,13 +74,13 @@ Found while building media upload, quota and strict file checks (2026-11-16 to 2
 
 ## Carried over from Plan 6
 
-Plan 6 is built and checked. The developer walked the guide's "first walk" on the real VM up to C6 and reported on 2026-11-21 that it works over the internet (no per-case detail recorded). Only C7 (backup and restore on the VM) is left. The source is `.planning/2026-11-20-deployment/progress.md`.
+Plan 6 is built and checked. The developer walked the guide's "first walk" on the real VM up to C6 and reported on 2026-11-21 that it works over the internet (no per-case detail recorded). C7 (backup and restore on the VM) was then run on 2026-11-21 and passed. The source is `.planning/2026-11-20-deployment/progress.md`.
 
 | Item | What and why | Plan |
 |---|---|---|
 | Upload progress or chunked upload (D13) | **C3 reported passed on 2026-11-21 (time not recorded), so nothing is added now.** The rule stays: add it if case C3 (a 150 MB MP4 through Funnel) takes over 3 minutes or fails, and re-judge the Cloudflare Tunnel fallback. Nothing is built until then. | after the walk |
 | The visitor's IP behind Funnel (D6) | Case C4 was reported passed on 2026-11-21. If a later check shows `ip` is not the visitor's public address, the per-IP limits are global: move to Cloudflare Tunnel or find another way to pass the IP. Written in security.md section 10. | after the walk |
-| The walk itself | C1 to C6 done (2026-11-21, as reported). C7 (backup and restore on the VM) is still to do, then mark Plan 6 `done`. | developer |
+| The walk itself | C1 to C7 done (2026-11-21). Mark Plan 6 `done` when the developer has reviewed the branch. | developer |
 
 ## Later (developer decision, 2026-11-18)
 
@@ -152,7 +152,7 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 **Decide first:** where the byte check runs (hook on upload request) and how a refused upload reports which limit it hit.
 **Risks:** large uploads through Funnel; quota race when two uploads arrive together.
 
-### 6. Deployment (awaiting developer walk; [detailed plan](2026-11-20-deployment/README.md))
+### 6. Deployment (awaiting developer review; [detailed plan](2026-11-20-deployment/README.md))
 **Carried in from Plan 2:** the rate limiter and trusted proxy, a real-mail walk, and the unknown-email timing note (see [Carried over from Plan 2](#carried-over-from-plan-2)).
 **Carried in from Plan 4:** repeat the reconnect check behind the public Funnel address (test-plan M12).
 **Carried in from Plan 5:** large uploads through Funnel and the D12 upload progress-bar follow-up (see [Carried over from Plan 5](#carried-over-from-plan-5)).

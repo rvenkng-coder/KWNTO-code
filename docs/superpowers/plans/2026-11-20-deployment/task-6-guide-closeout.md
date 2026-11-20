@@ -25,8 +25,8 @@ Design 7b and 8: deployment instructions are a deliverable, and real-time must b
 ## Checkpoint 6B: The walk on the VM (developer)
 
 - [x] **Step 3 (developer):** follow the guide from an empty VM folder, word for word, and note every place it was wrong or unclear; fix the guide for each (commit `docs: deployment guide fixes from the first run`).
-- [ ] **Step 4 (developer):** run the Flow below and record each case's result in `progress.md` with the date and browser.
-- [ ] **Step 5:** update security.md, test-plan.md (M10, M11, M12 `done <date>` or `open` with what failed) from the record. If C4 found that Funnel does not pass the visitor's IP, write the known gap in security.md section 10 and a roadmap item. If C3 took over 3 minutes or failed, add D13's roadmap item. **Close checkpoint 6B** (commit `docs: deployment walked on the VM`).
+- [x] **Step 4 (developer):** run the Flow below and record each case's result in `progress.md` with the date and browser.
+- [x] **Step 5:** update security.md, test-plan.md (M10, M11, M12 `done <date>` or `open` with what failed) from the record. If C4 found that Funnel does not pass the visitor's IP, write the known gap in security.md section 10 and a roadmap item. If C3 took over 3 minutes or failed, add D13's roadmap item. **Close checkpoint 6B** (commit `docs: deployment walked on the VM`).
 
 ## Checkpoint 6C: Close-out
 

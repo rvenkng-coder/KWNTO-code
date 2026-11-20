@@ -4,26 +4,29 @@
 // in a project becomes its start node. Model hooks, so they hold for every way a project
 // or node is made: the API, the admin dashboard and server code.
 
-// The project, its settings and its first chapter are saved in one transaction, so no
-// project exists without them. As in teams.pb.js: PocketBase 0.40.6 does not wrap a
-// record create in a transaction, so it is opened here and the project's own insert
-// (e.next()) is moved into it by pointing the event at the transaction's app.
+// The project's own insert (e.next()) stays outside a transaction of ours, so PocketBase
+// sends the live create event (see the nodes hook below); its settings row and first chapter
+// are saved together in a transaction of their own. If that fails, the project is deleted
+// again and the error goes on, so no project exists without them.
 onRecordCreate((e) => {
-  e.app.runInTransaction((txApp) => {
-    e.app = txApp
-    e.next()
+  e.next()
+  try {
+    e.app.runInTransaction((txApp) => {
+      const settings = new Record(txApp.findCollectionByNameOrId("project_settings"))
+      settings.set("project", e.record.id)
+      settings.set("analytics_enabled", false)
+      txApp.save(settings)
 
-    const settings = new Record(txApp.findCollectionByNameOrId("project_settings"))
-    settings.set("project", e.record.id)
-    settings.set("analytics_enabled", false)
-    txApp.save(settings)
-
-    const chapter = new Record(txApp.findCollectionByNameOrId("chapters"))
-    chapter.set("project", e.record.id)
-    chapter.set("title", "Chapter 1")
-    chapter.set("position", 1)
-    txApp.save(chapter)
-  })
+      const chapter = new Record(txApp.findCollectionByNameOrId("chapters"))
+      chapter.set("project", e.record.id)
+      chapter.set("title", "Chapter 1")
+      chapter.set("position", 1)
+      txApp.save(chapter)
+    })
+  } catch (err) {
+    e.app.delete(e.record)
+    throw err
+  }
 }, "projects")
 
 // Plan D7: a node made in a project with no start node becomes it, and the project's

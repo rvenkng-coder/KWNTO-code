@@ -30,10 +30,10 @@ export const STREAM_GRACE_MS = 3000
 
 ## Checkpoint 7A: Live creates of teams and projects
 
-- [ ] **Step 1: Write the failing tests** C1 and C2 (new tests in the two rules files: a subscription opened before the create receives a `create` event, and the related rows exist).
-- [ ] **Step 2: Run** `npm run test:rules -- tests/rules/teams.rules.test.ts tests/rules/projects.rules.test.ts`. Expected: FAIL (no create event arrives).
-- [ ] **Step 3: Restructure** both hooks as the `nodes` hook in `projects.pb.js` is (Plan 3 Task 14), with the compensating delete. The delete path has no automated test (forcing the related step to fail would need test-only code in a hook, which is not allowed); say in the report how you checked it by reading, and keep it to the two lines `e.app.delete(e.record)` and `throw err`.
-- [ ] **Step 4: Run** `npm run test:rules`. Expected: PASS. **Close checkpoint 7A** (commit `fix: new teams and projects arrive as live create events`).
+- [x] **Step 1: Write the failing tests** C1 and C2 (new tests in the two rules files: a subscription opened before the create receives a `create` event, and the related rows exist).
+- [x] **Step 2: Run** `npm run test:rules -- tests/rules/teams.rules.test.ts tests/rules/projects.rules.test.ts`. Expected: FAIL (no create event arrives).
+- [x] **Step 3: Restructure** both hooks as the `nodes` hook in `projects.pb.js` is (Plan 3 Task 14), with the compensating delete. The delete path has no automated test (forcing the related step to fail would need test-only code in a hook, which is not allowed); say in the report how you checked it by reading, and keep it to the two lines `e.app.delete(e.record)` and `throw err`.
+- [x] **Step 4: Run** `npm run test:rules`. Expected: PASS. **Close checkpoint 7A** (commit `fix: new teams and projects arrive as live create events`).
 
 ## Checkpoint 7B: Offline status and an immediate retry
 

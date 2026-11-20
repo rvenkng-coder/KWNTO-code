@@ -54,12 +54,21 @@ function fieldErrors(response: object): Record<string, string> {
   return fields
 }
 
+// A proxy in front of a stopped backend answers 502, 503 or 504; the dev proxy may answer a bare 500 with no body.
+// PocketBase's own errors always carry a JSON `message`, so a 500 without one did not come from it.
+const GATEWAY_STATUSES: ReadonlySet<number> = new Set([502, 503, 504])
+
+function isGatewayFailure(status: number, hasMessage: boolean): boolean {
+  return GATEWAY_STATUSES.has(status) || (status === 500 && !hasMessage)
+}
+
 function fromResponseError(err: ClientResponseError): BackendError {
   const response = err.response ?? {}
-  const message = (response as { message?: string }).message ?? 'Request failed'
+  const text = (response as { message?: string }).message
+  const message = text ?? 'Request failed'
   const kind = STATUS_KINDS[err.status]
   if (kind === undefined) {
-    if (err.status === 0 || err.isAbort) return new BackendError('unreachable', 0, {}, 'The server cannot be reached.')
+    if (err.status === 0 || err.isAbort || isGatewayFailure(err.status, text !== undefined)) return new BackendError('unreachable', 0, {}, 'The server cannot be reached.')
     return new BackendError('unknown', err.status, {}, message)
   }
   return new BackendError(kind, err.status, kind === 'invalid' ? fieldErrors(response) : {}, message)

@@ -243,3 +243,19 @@ test('a title changed by both sides asks which to keep', async ({ browser }) => 
   await expect(card(b, n1)).toContainText('Mine')
   await expect(syncStatus(a)).toHaveCount(0)
 })
+
+// Protects: design 6.7: a stopped backend (a proxy answering 502) is offline, not a refusal: the edit stays on screen and waits, then saves when the server is back.
+test('a stopped backend keeps the edit waiting and saves it when the server returns', async ({ page }) => {
+  const [id] = await projectWithNodes(page, 1) as [string]
+  const down = '**/api/collections/nodes/records/*'
+  await page.route(down, (route) => route.fulfill({ status: 502, contentType: 'text/plain', body: 'Bad Gateway' }))
+  await rename(page, id, 'While down')
+  await expect(syncStatus(page)).toContainText('Offline, 1 change waiting')
+  await expect(syncStatus(page)).not.toContainText('could not be saved')
+  await expect(card(page, id)).toContainText('While down')
+  expect((await adminRecord('nodes', id)).title).toBe('New node')
+
+  await page.unroute(down)
+  await expect(syncStatus(page)).toHaveCount(0, { timeout: 15_000 })
+  expect((await adminRecord('nodes', id)).title).toBe('While down')
+})

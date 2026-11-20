@@ -28,8 +28,13 @@ export interface SyncDeps {
   userId: string; door: SyncDoor; storage: OutboxStorage; hooks: SyncHooks
   clock: { now(): number; setTimeout(fn: () => void, ms: number): unknown; clearTimeout(handle: unknown): void }
   lock(name: string, run: () => Promise<void>): Promise<void>
-  channel: { post(): void; listen(fn: () => void): () => void }
+  channel: { post(message?: Answer): void; listen(fn: (message?: Answer) => void): () => void }
 }
+/** What happened to one outbox entry. The tab that sends tells every tab, because each tab holds the promises of its own edits. */
+export type Answer =
+  | { seq: number; type: 'saved'; record: ContentRecords[ContentKind] | null }
+  | { seq: number; type: 'refused'; message: string }
+  | { seq: number; type: 'theirs'; server: ContentRecords[ContentKind] | null }
 /** What a caller gives `add`: the engine fills the user, the offline flag and the time. */
 export type EngineEntry = NewEntry extends infer E ? (E extends NewEntry ? Omit<E, 'userId' | 'offline' | 'made'> : never) : never
 export interface SyncEngine {
@@ -54,6 +59,8 @@ class Engine implements SyncEngine {
   private started = false
   private sendingSeq: number | null = null
   private adding = 0
+  // The edits this tab made that have no answer yet, by seq: their promises live in this tab.
+  private mine = new Map<number, OutboxEntry>()
   private conflict: PendingConflict | null = null
   private attempt = 0
   private timer: unknown = null
@@ -112,8 +119,11 @@ class Engine implements SyncEngine {
   start(): void {
     if (this.started) return
     this.started = true
-    this.unlisten = this.deps.channel.listen(() => {
-      this.refreshQuietly().then(() => this.wake())
+    this.unlisten = this.deps.channel.listen((message) => {
+      this.refreshQuietly().then(() => {
+        if (message !== undefined) this.receive(message)
+        this.wake()
+      })
     })
     void this.refreshQuietly()
     this.lockDone = this.deps.lock(LOCK_PREFIX + this.deps.userId, () => this.holdLock())
@@ -161,6 +171,29 @@ class Engine implements SyncEngine {
     this.timer = null
   }
 
+  // Tells this tab's store and, through the channel, every other tab. `entry` is undefined when only another tab knows it.
+  private announce(entry: OutboxEntry | undefined, answer: Answer, error?: BackendError): void {
+    const known = entry ?? this.mine.get(answer.seq)
+    this.mine.delete(answer.seq)
+    if (known !== undefined) this.deliver(known, answer, error)
+    this.deps.channel.post(answer)
+  }
+
+  // An answer from the tab that sends: it concerns me only when the edit was made here.
+  private receive(answer: Answer): void {
+    const entry = this.mine.get(answer.seq)
+    if (entry === undefined) return
+    this.mine.delete(answer.seq)
+    this.deliver(entry, answer)
+  }
+
+  private deliver(entry: OutboxEntry, answer: Answer, error?: BackendError): void {
+    const { hooks } = this.deps
+    if (answer.type === 'saved') hooks.saved(entry, answer.record)
+    else if (answer.type === 'theirs') hooks.theirs(entry, answer.server)
+    else hooks.refused(entry, error ?? new BackendError('invalid', 0, {}, answer.message))
+  }
+
   add(partial: EngineEntry): Promise<number> {
     // Counted as waiting from this moment, so undo and the sign-out question see an edit that is still being stored.
     this.adding++
@@ -168,7 +201,9 @@ class Engine implements SyncEngine {
     return this.exclusive(async () => {
       try {
         const entry = { ...partial, userId: this.deps.userId, offline: !this.current.online, made: this.deps.clock.now() } as NewEntry
-        return await this.store(entry)
+        const seq = await this.store(entry)
+        if (seq > 0 && !this.mine.has(seq)) this.mine.set(seq, { ...entry, seq } as OutboxEntry)
+        return seq
       } finally {
         this.adding--
         await this.refresh()
@@ -195,6 +230,8 @@ class Engine implements SyncEngine {
       seq = await storage.add(plan.append)
     }
     await storage.remove(plan.drop)
+    // Edits the new one cancelled never reach the server; that is what the person asked for, so they are answered as done.
+    for (const dropped of plan.drop) this.announce(this.queue.find((q) => q.seq === dropped), { seq: dropped, type: 'saved', record: null })
     return seq
   }
 
@@ -210,7 +247,7 @@ class Engine implements SyncEngine {
     const { conflict } = this
     if (conflict === null) return
     await this.exclusive(async () => {
-      const { storage, hooks } = this.deps
+      const { storage } = this.deps
       const mine = choice === 'mine' ? mineEntry(conflict) : null
       // Keep theirs still sends the fields that did not conflict (D12).
       const replacement = choice === 'mine' ? mine : theirsEntry(conflict)
@@ -218,9 +255,10 @@ class Engine implements SyncEngine {
       else if (choice === 'theirs') await storage.remove([conflict.entry.seq])
       else await storage.fail(conflict.entry, NO_COPY)
       this.conflict = null
-      if (choice === 'theirs') hooks.theirs(conflict.entry, conflict.server)
-      else if (mine === null) hooks.refused(conflict.entry, new BackendError('invalid', 0, {}, NO_COPY))
       await this.refresh()
+      const { entry } = conflict
+      if (choice === 'theirs') this.announce(entry, { seq: entry.seq, type: 'theirs', server: conflict.server })
+      else if (mine === null) this.announce(entry, { seq: entry.seq, type: 'refused', message: NO_COPY })
     })
     this.deps.channel.post()
     this.wake()
@@ -276,28 +314,27 @@ class Engine implements SyncEngine {
   }
 
   private async settle(entry: OutboxEntry, outcome: Outcome): Promise<void> {
-    const { storage, hooks } = this.deps
+    const { storage } = this.deps
     this.sendingSeq = null
-    let tell: () => void = () => undefined
+    let tell: () => void = () => this.deps.channel.post()
     if (outcome.type === 'unreachable') {
       await storage.put({ ...entry, offline: true })
       this.backOff()
     } else if (outcome.type === 'saved') {
       this.markReachable()
       await storage.remove([entry.seq])
-      tell = () => hooks.saved(entry, outcome.record)
+      tell = () => this.announce(entry, { seq: entry.seq, type: 'saved', record: outcome.record })
     } else if (outcome.type === 'conflict') {
       this.markReachable()
       this.conflict = { entry, server: outcome.server, fields: outcome.fields, deleted: outcome.deleted }
     } else {
       this.markReachable()
       await storage.fail(entry, outcome.error.message)
-      tell = () => hooks.refused(entry, outcome.error)
+      tell = () => this.announce(entry, { seq: entry.seq, type: 'refused', message: outcome.error.message }, outcome.error)
     }
     await this.refresh()
     // After the refresh: whoever hears the answer sees a snapshot without the entry that was just answered.
     tell()
-    this.deps.channel.post()
   }
 
   private backOff(): void {

@@ -211,7 +211,7 @@ describe('refusals, conflicts, two tabs', () => {
     await settle()
     expect(shared.door.calls.map((c) => c.id)).toEqual(['n1', 'n2', 'n3'])
     expect(a.log.saved).toHaveLength(3)
-    expect(b.log.saved).toHaveLength(0)
+    expect(b.log.saved).toHaveLength(3)
     await a.engine.stop()
     await b.engine.add(upd('n4', { title: 'B' }, { title: 'A' }))
     await settle()

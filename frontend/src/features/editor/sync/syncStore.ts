@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react'
 import { backend } from '../../../backend'
 import { createHookRegistry } from './hookRegistry'
 import { createIndexedDbOutbox } from './indexedDbOutbox'
-import { createSyncEngine, type SyncDeps, type SyncEngine, type SyncSnapshot } from './syncEngine'
+import { createSyncEngine, type Answer, type SyncDeps, type SyncEngine, type SyncSnapshot } from './syncEngine'
 import { createSyncLifecycle, type SyncLifecycle } from './syncLifecycle'
 
 // The app's sync engine (offline sync plan Task 4): one per signed-in account, on IndexedDB, the
@@ -19,11 +19,12 @@ const browserLock: SyncDeps['lock'] = (name, run) =>
 function browserChannel(): SyncDeps['channel'] {
   const bc = new BroadcastChannel('kwnto-outbox')
   return {
-    post: () => bc.postMessage('changed'),
+    post: (message) => bc.postMessage(message ?? 'changed'),
     listen(fn) {
-      bc.addEventListener('message', fn)
+      const onMessage = (e: MessageEvent<Answer | 'changed'>) => fn(e.data === 'changed' ? undefined : e.data)
+      bc.addEventListener('message', onMessage)
       return () => {
-        bc.removeEventListener('message', fn)
+        bc.removeEventListener('message', onMessage)
         bc.close()
       }
     },

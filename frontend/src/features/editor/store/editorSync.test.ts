@@ -218,3 +218,16 @@ test('a save that lands while the project is opening shows once the load arrives
   await opening
   expect(s.store.getState().content.nodes.n1).toMatchObject({ title: 'Mine', version: 5 })
 })
+
+// Protects: D11: an edit that a later remove cancelled does not stay pending: its promise resolves and the saving counter returns to 0, so undo is not stuck waiting for it.
+test('a remove that cancels a waiting create leaves nothing pending', async () => {
+  const s = await setup([content({ nodes: [n1()] })])
+  await open(s)
+  s.engine.setOnline(false)
+  const created = s.store.getState().create('script_lines', line('L', { nodeId: 'n1' }))
+  await settle()
+  const removed = s.store.getState().remove('script_lines', 'L')
+  const both = await Promise.race([Promise.all([created, removed]), new Promise<string>((r) => setTimeout(() => r('pending'), 300))])
+  expect(both).toEqual([true, true])
+  expect(s.store.getState().saving).toBe(0)
+})

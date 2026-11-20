@@ -3,6 +3,8 @@ import { BackendError, EditConflict } from '../../../backend/errors'
 import { TOO_BUSY } from '../../../backend/guarded'
 import { line, node } from '../model/fixtures'
 import { settle, sharedParts, tab } from './fakes'
+import { createMemoryOutbox } from './outboxStorage'
+import { createSyncEngine } from './syncEngine'
 import type { SyncEngine } from './syncEngine'
 
 type Add = Parameters<SyncEngine['add']>[0]
@@ -252,4 +254,43 @@ test('an edit that is still being stored already counts as waiting', async () =>
   expect(t.engine.snapshot().waiting).toBe(1)
   await stored
   expect(t.engine.snapshot().waiting).toBe(1)
+})
+
+// Protects: D12: Keep theirs drops only the conflicting fields; the other fields of the same waiting entry are still sent, on the server's version.
+test('keep theirs still sends the fields that did not conflict', async () => {
+  const t = await started()
+  t.engine.setOnline(false)
+  await t.engine.add(upd('n1', { title: 'B' }, { title: 'A' }))
+  await t.engine.add(upd('n1', { color: 'red' }, { color: 'blue' }))
+  let first = true
+  t.door.on('update', (c) => {
+    if (first) { first = false; throw new EditConflict(node('n1', { title: 'Theirs', color: 'blue', version: 9 })) }
+    return node(c.id, { version: 10 })
+  })
+  t.engine.setOnline(true)
+  await settle()
+  expect(t.engine.snapshot().conflict).toMatchObject({ fields: ['title'] })
+  await t.engine.resolve('theirs')
+  await settle()
+  expect(t.door.calls).toHaveLength(2)
+  expect(t.door.calls[1]!.args[0]).toEqual({ color: 'red' })
+  expect(t.door.calls[1]!.args[1]).toBe(9)
+  expect(t.log.theirs).toHaveLength(1)
+  expect(t.engine.snapshot().waiting).toBe(0)
+})
+
+// Protects: a storage that fails (the page is closing and its IndexedDB connection is gone) must not raise an unhandled rejection from the engine's background work.
+test('a failing storage does not leave an unhandled rejection', async () => {
+  const storage = createMemoryOutbox()
+  const broken = { ...storage, list: () => Promise.reject(new Error('closed database')), failed: () => Promise.reject(new Error('closed database')) }
+  const t = tab(sharedParts())
+  const engine = createSyncEngine({
+    userId: 'u1', door: t.door.door, storage: broken, hooks: { saved() {}, refused() {}, theirs() {} },
+    clock: t.clock, lock: (_n, run) => run(), channel: { post() {}, listen: () => () => {} },
+  })
+  engine.start()
+  await settle()
+  engine.setOnline(true)
+  await settle()
+  expect(engine.snapshot().waiting).toBe(0)
 })

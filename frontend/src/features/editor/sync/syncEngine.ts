@@ -3,7 +3,7 @@ import { BackendError } from '../../../backend/errors'
 import { planAdd, type NewEntry, type OutboxEntry } from './outbox'
 import { nextDelay } from './outboxText'
 import type { FailedEntry, OutboxStorage } from './outboxStorage'
-import { mineEntry } from './syncResolve'
+import { mineEntry, theirsEntry } from './syncResolve'
 import { createSender, type Outcome } from './syncSend'
 
 // The one loop that sends outbox entries (offline sync plan Task 3, D2, D7 to D9, D12): in seq
@@ -113,10 +113,15 @@ class Engine implements SyncEngine {
     if (this.started) return
     this.started = true
     this.unlisten = this.deps.channel.listen(() => {
-      void this.exclusive(() => this.refresh()).then(() => this.wake())
+      this.refreshQuietly().then(() => this.wake())
     })
-    void this.exclusive(() => this.refresh())
+    void this.refreshQuietly()
     this.lockDone = this.deps.lock(LOCK_PREFIX + this.deps.userId, () => this.holdLock())
+  }
+
+  // Background reads must not raise an unhandled rejection: a closing page loses its IndexedDB connection, the entries stay stored.
+  private refreshQuietly(): Promise<void> {
+    return this.exclusive(() => this.refresh()).catch(() => undefined)
   }
 
   private holdLock(): Promise<void> {
@@ -207,7 +212,9 @@ class Engine implements SyncEngine {
     await this.exclusive(async () => {
       const { storage, hooks } = this.deps
       const mine = choice === 'mine' ? mineEntry(conflict) : null
-      if (mine !== null) await storage.put(mine)
+      // Keep theirs still sends the fields that did not conflict (D12).
+      const replacement = choice === 'mine' ? mine : theirsEntry(conflict)
+      if (replacement !== null) await storage.put(replacement)
       else if (choice === 'theirs') await storage.remove([conflict.entry.seq])
       else await storage.fail(conflict.entry, NO_COPY)
       this.conflict = null
@@ -233,6 +240,8 @@ class Engine implements SyncEngine {
         this.again = false
         await this.sendNext()
       } while (this.again)
+    } catch {
+      // Storage failed (the page is closing): nothing was answered, so the entries are still stored and are sent next time.
     } finally {
       this.loop = null
     }

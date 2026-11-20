@@ -2,24 +2,14 @@
 // finding E): the outbox keeps entries across a reload, edits made offline wait and are saved
 // when the connection returns, a teammate's changes show after a reconnect, a refused change is
 // shown and not lost, signing out and undo say what is waiting.
-import { expect, test, type Browser, type Page } from '@playwright/test'
-import { adminRecord, uniqueEmail } from './helpers/admin'
-import { addNodeAt, card, createProject, openProject, ownerWithProject, readyCanvas, waitForSave } from './helpers/editor'
+import { expect, test, type Page } from '@playwright/test'
+import { adminRecord } from './helpers/admin'
+import { addNodeAt, card, openProject, ownerWithProject, readyCanvas, waitForSave } from './helpers/editor'
 import { goOffline, goOnline, syncStatus } from './helpers/offline'
-import { createTeam, enableJoinCode, joinWithCode, openTeam, signUpVerifyAndSignIn } from './helpers/ui'
+import { colourButton, ownerAndMember, panel, rename, titleField } from './helpers/pair'
+import { openTeam } from './helpers/ui'
 
 const mod = process.platform === 'darwin' ? 'Meta' : 'Control'
-const panel = (page: Page) => page.getByTestId('editor-panel')
-const titleField = (page: Page) => panel(page).getByLabel('Title', { exact: true })
-const colourButton = (page: Page, colour: string) => panel(page).getByRole('button', { name: `Colour ${colour}` })
-
-// Selects a node and types a new title, leaving the field so the edit is made.
-async function rename(page: Page, id: string, title: string): Promise<void> {
-  await card(page, id).click()
-  await titleField(page).fill(title)
-  await titleField(page).blur()
-}
-
 /** A project with `count` nodes in a row, as its owner. */
 async function projectWithNodes(page: Page, count: number): Promise<string[]> {
   await ownerWithProject(page, 'Story')
@@ -114,31 +104,6 @@ test('text typed just before closing an offline tab is not lost', async ({ page,
   await expect(card(next, id)).toContainText('Typed in a hurry')
   await expect.poll(async () => (await adminRecord('nodes', id)).title).toBe('Typed in a hurry')
 })
-
-/** The owner (page `a`, own context) and a member (page `b`) with the project `Story` open and `count` nodes made by the owner. */
-async function ownerAndMember(browser: Browser, count: number) {
-  const ctxA = await browser.newContext()
-  const a = await ctxA.newPage()
-  await a.goto('/')
-  await signUpVerifyAndSignIn(a, uniqueEmail(), 'Owner')
-  await createTeam(a, 'Crew')
-  await openTeam(a, 'Crew')
-  const code = await enableJoinCode(a)
-  await createProject(a, 'Story')
-  const ctxB = await browser.newContext()
-  const b = await ctxB.newPage()
-  await b.goto('/')
-  await signUpVerifyAndSignIn(b, uniqueEmail(), 'Member')
-  await joinWithCode(b, code, 'Crew')
-  await openTeam(b, 'Crew')
-  await openProject(b, 'Story')
-  await openProject(a, 'Story')
-  await readyCanvas(a, 0)
-  const ids: string[] = []
-  for (let i = 0; i < count; i++) ids.push(await addNodeAt(a, 40 + i * 260, 60))
-  await readyCanvas(b, count)
-  return { a, b, ctxA, ids }
-}
 
 // Protects: review focus 3: after reconnecting, a teammate's changes made meanwhile appear and my waiting edits still show on top.
 test('after reconnecting a teammate\'s changes show and mine are kept', async ({ browser }) => {

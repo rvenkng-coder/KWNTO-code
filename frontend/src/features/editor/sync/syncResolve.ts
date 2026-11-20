@@ -20,3 +20,16 @@ export function mineEntry(conflict: PendingConflict): OutboxEntry | null {
   for (const field of conflict.fields) baseValues[field] = valueOf(server as ContentRecords[ContentKind], field)
   return { ...entry, baseVersion: server.version, baseValues }
 }
+
+/**
+ * What is left to send after `Keep theirs` (D12): the fields of an update that did not conflict, on the
+ * server's version. Null when nothing is left (a remove, a deleted record, or every field conflicted).
+ */
+export function theirsEntry(conflict: PendingConflict): OutboxEntry | null {
+  const { entry, server } = conflict
+  if (entry.op !== 'update' || conflict.deleted || server === null) return null
+  const rest = Object.keys(entry.changes).filter((f) => !conflict.fields.includes(f))
+  if (rest.length === 0) return null
+  const pickOf = (from: Record<string, unknown>) => Object.fromEntries(rest.map((f) => [f, from[f]]))
+  return { ...entry, changes: pickOf(entry.changes), baseValues: pickOf(entry.baseValues), baseVersion: server.version }
+}

@@ -22,10 +22,10 @@
 	# Dashboard, admin routes and the schema API are never public (security.md 6).
 	# Caddy's path matcher is case-insensitive and cleans // and %5F before matching.
 	@blocked {
-		path /_ /_/* /api/kwnto/admin/* /api/collections/_superusers/* /api/settings* /api/backups* /api/logs* /api/crons* /api/collections/import
+		path /_ /_/* /api/kwnto/admin/* /api/collections/_superusers/* /api/collections/pbc_3142635823 /api/collections/pbc_3142635823/* /api/settings* /api/backups* /api/logs* /api/crons* /api/collections/import
 	}
 	# The schema API: the list, one collection, and truncate. Records stay open (they have their own rules).
-	@schema path_regexp (?i)^/+api/+collections(/*|/+[^/]+/*|/+[^/]+/+truncate)$
+	@schema path_regexp (?i)^/+api/+collections(/*|/+[^/]+/*|/+[^/]+/+truncate/*)$
 	respond @blocked "Not found" 404
 	respond @schema "Not found" 404
 

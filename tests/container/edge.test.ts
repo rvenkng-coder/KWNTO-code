@@ -39,6 +39,14 @@ const BLOCKED: { method: string; path: string; body?: string }[] = [
     path: '/api/collections/_superusers/auth-with-password',
     body: JSON.stringify({ identity: 'admin@example.test', password: ADMIN_PASSWORD }),
   },
+  // The superusers collection is also reachable by its id (pbc_3142635823 in PocketBase 0.40.6).
+  {
+    method: 'POST',
+    path: '/api/collections/pbc_3142635823/auth-with-password',
+    body: JSON.stringify({ identity: 'admin@example.test', password: ADMIN_PASSWORD }),
+  },
+  { method: 'GET', path: '/api/collections/pbc_3142635823' },
+  { method: 'DELETE', path: '/api/collections/users/truncate/' },
   { method: 'GET', path: '/api/settings' },
   { method: 'GET', path: '/api/backups' },
   { method: 'GET', path: '/api/logs' },

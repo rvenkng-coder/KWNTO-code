@@ -88,7 +88,7 @@ The roadmap's "Decide first" items and calls where the spec is silent. Each is c
 | 2 | [Door: read, conflict-aware update, reconnect](task-2-door-conflicts.md) | strong | Plan 3 | 2A 2B | done |
 | 3 | [The sync engine](task-3-sync-engine.md) | strong | 1, 2 | 3A 3B | done |
 | 4 | [Wiring, status, conflict dialog](task-4-wiring-dialog.md) | strong | 3 | 4A 4B 4C | done |
-| 5 | [Hard flows and close-out](task-5-hard-flows-closeout.md) | strong | 1 to 4 | 5A 5B | not started |
+| 5 | [Hard flows and close-out](task-5-hard-flows-closeout.md) | strong | 1 to 4 | 5A 5B | awaiting review |
 
 **Status values:** `not started`, `in progress`, `awaiting review`, `done`. Tasks 1 and 2 have no dependency on each other; run tasks one at a time (implementers never run in parallel).
 

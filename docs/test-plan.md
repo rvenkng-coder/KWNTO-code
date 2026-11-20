@@ -57,4 +57,4 @@ Design sections 8 and 8b make this the developer's sign-off sheet. A person runs
 | M9 | Every feature in design section 6 tried by hand in Chrome | 8 | open |
 | M10 | A real verification email arrives and its link verifies the account (once SMTP exists, Plan 6) | Plan 2 | open |
 | M11 | A real password-reset email arrives, also for an address typed with capitals, and its link sets the new password (once SMTP exists, Plan 6) | Plan 2 | open |
-| M12 | Reconnect through Tailscale Funnel: with the app behind Funnel, drop one laptop's network for 10 seconds while a teammate edits; after reconnecting the teammate's edit appears within a few seconds without a reload and the edits made during the drop are saved | 6.7 | open |
+| M12 | Reconnect through Tailscale Funnel: with the app behind Funnel, drop one laptop's network for 10 seconds while a teammate edits; after reconnecting the teammate's edit appears within a few seconds without a reload and the edits made during the drop are saved (done 2026-11-20 through `tailscale serve` on the tailnet: passed; repeat once behind the public Funnel address in Plan 6) | 6.7 | open (public Funnel) |

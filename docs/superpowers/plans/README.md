@@ -56,6 +56,8 @@ Found while building the offline sync plan (2026-11-18 to 2026-11-20) and left o
 | `Offline` shows only after an attempt | The top bar says `Offline` when the browser reports it or when a send finds the server unreachable. With the backend down and no edit made, nothing detects it; a dropped live connection does not change the status. Make the status follow the event stream. | 7 |
 | Opening a project needs the server | Edits are queued, reads are not: opening a project, switching teams, signing in or reloading fail while the backend is down. A read cache is a design decision (design 6.7 queues edits only). | developer decision |
 | Waiting edits are readable in the browser profile | Accepted while internal (security.md section 10, offline sync plan D10). Before a public release decide whether sign-out should offer to discard them. | 6 (before going public) |
+| Retry right after the server returns | After a server outage a waiting edit is retried on the backoff (1, 2, 4 ... 30 s), so it saved about 10 s after the proxy came back (2026-11-20 check). The event stream reconnecting (`PB_CONNECT`) could trigger an immediate retry. | 7 |
+| Confirm the reconnect behind the public Funnel address | Checked through `tailscale serve` (tailnet only) on 2026-11-20, see decision 0002; repeat the two checks once behind the public address (test-plan M12). | 6 |
 | Hand walk of the Flow | The ten-minute two-person walk (network off and on several times, every kind of conflict) was covered by the e2e specs `editor-offline` and `editor-conflicts` (field, position, deleted line, refused choice, two tabs, stopped backend), not by a person. | developer, with M8 and M9 |
 
 ## Later (developer decision, 2026-11-18)
@@ -129,7 +131,7 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 **Risks:** large uploads through Funnel; quota race when two uploads arrive together.
 
 ### 6. Deployment
-**Carried in from Plan 2:** the rate limiter and trusted proxy, a real-mail walk, and the unknown-email timing note (see [Carried over from Plan 2](#carried-over-from-plan-2)).
+**Carried in from Plan 2:** the rate limiter and trusted proxy, a real-mail walk, and the unknown-email timing note (see [Carried over from Plan 2](#carried-over-from-plan-2)). **Carried in from Plan 4:** repeat the reconnect check behind the public Funnel address (test-plan M12).
 **Goal:** Docker Compose with PocketBase, Caddy and Tailscale Funnel; backups with a restore test; first-run guide; incident runbook finished.
 **Fixed already:** the admin dashboard and admin API paths are blocked on the public address, including `/api/kwnto/admin/` from Plan 2; non-root, no privileged mode, secrets in `.env`; PocketBase's built-in rate limiter is enabled (at least the `*:auth` rule, which covers auth-with-password), because the sign-in lockout cannot stop guesses sent in parallel (see [security.md](../../security.md) section 3); data in volumes; real-time checked through Funnel; total disk-usage warning.
 **Decide first:** backup destination and default schedule; the SMTP setup guide (Gmail app password).

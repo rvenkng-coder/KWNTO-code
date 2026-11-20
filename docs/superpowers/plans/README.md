@@ -58,7 +58,7 @@ Found while building the offline sync plan (2026-11-18 to 2026-11-20) and left o
 | Waiting edits are readable in the browser profile | Accepted while internal (security.md section 10, offline sync plan D10). Before a public release decide whether sign-out should offer to discard them. | 6 (before going public) |
 | Retry right after the server returns | After a server outage a waiting edit is retried on the backoff (1, 2, 4 ... 30 s), so it saved about 10 s after the proxy came back (2026-11-20 check). The event stream reconnecting (`PB_CONNECT`) could trigger an immediate retry. | 7 |
 | Confirm the reconnect behind the public Funnel address | Checked through `tailscale serve` (tailnet only) on 2026-11-20, see decision 0002; repeat the two checks once behind the public address (test-plan M12). | 6 |
-| Hand walk of the Flow | The ten-minute two-person walk (network off and on several times, every kind of conflict) was covered by the e2e specs `editor-offline` and `editor-conflicts` (field, position, deleted line, refused choice, two tabs, stopped backend), not by a person. | developer, with M8 and M9 |
+| Hand walk of the Flow | The developer walked the app by hand (2026-11-19 and 2026-11-20), not following the written Flow, and found two bugs (stopped backend refused edits; a line added offline vanished after reconnecting), both fixed. The written walk (every conflict kind, both browsers) was not done as such; the e2e specs `editor-offline` and `editor-conflicts` cover those cases. Repeat with M8 and M9. | developer, with M8 and M9 |
 
 ## Later (developer decision, 2026-11-18)
 

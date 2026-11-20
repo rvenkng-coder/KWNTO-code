@@ -3,7 +3,7 @@ import { navigate } from '../shell/useRoute'
 import { useProjects } from './useProjects'
 
 /** A team's projects (design 5): any member creates and opens them, only the owner trashes them. */
-export function ProjectList({ teamId, isOwner }: { teamId: string; isOwner: boolean }) {
+export function ProjectList({ teamId, isOwner, onTrashed }: { teamId: string; isOwner: boolean; onTrashed?: () => void }) {
   const { projects, loaded, error, create, trash } = useProjects(teamId)
   const [name, setName] = useState('')
 
@@ -35,7 +35,7 @@ export function ProjectList({ teamId, isOwner }: { teamId: string; isOwner: bool
                 type="button"
                 className="btn-danger"
                 onClick={() => {
-                  if (confirm(`Move "${p.name}" to the trash?`)) void trash(p)
+                  if (confirm(`Move "${p.name}" to the trash?`)) void trash(p).then(onTrashed)
                 }}
               >
                 Move to trash

@@ -99,7 +99,7 @@ test('a slow load of a project that was left is ignored', async () => {
   const openA = store.getState().open('A')
   const openB = store.getState().open('B')
   await Promise.resolve()
-  fake.loads[1]?.resolve(content({ project: { id: 'B', teamId: 't', name: 'B', startNodeId: null, deleted: false, version: 0 }, nodes: [] }))
+  fake.loads[1]?.resolve(content({ project: { id: 'B', teamId: 't', name: 'B', startNodeId: null, deleted: false, deletedAt: null, version: 0 }, nodes: [] }))
   fake.subscribes[1]?.ready.resolve(async () => {})
   await openB
   fake.loads[0]?.resolve(content({ nodes: [node('fromA')] }))

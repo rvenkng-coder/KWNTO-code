@@ -8,10 +8,12 @@ interface AllChaptersMenuProps {
   activeId: string | null
   /** Reopens the chapter's tab if it is closed and shows it. */
   onShow(id: string): void
+  /** Opens the project's trash (a last item, Plan 7). */
+  onTrash(): void
 }
 
 /** "≡" at the start of the tab bar: every chapter; the open one is marked current (decision E3). */
-export function AllChaptersMenu({ chapters, activeId, onShow }: AllChaptersMenuProps) {
+export function AllChaptersMenu({ chapters, activeId, onShow, onTrash }: AllChaptersMenuProps) {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const close = useCallback(() => setAnchor(null), [])
   return (
@@ -43,6 +45,17 @@ export function AllChaptersMenu({ chapters, activeId, onShow }: AllChaptersMenuP
               {c.title}
             </button>
           ))}
+          <button
+            type="button"
+            role="menuitem"
+            className="btn border-t border-border text-left"
+            onClick={() => {
+              close()
+              onTrash()
+            }}
+          >
+            Trash
+          </button>
         </Popover>
       )}
     </>

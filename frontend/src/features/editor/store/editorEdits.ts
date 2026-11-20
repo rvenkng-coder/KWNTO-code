@@ -143,7 +143,10 @@ export function createEdits(door: EditorDoor, sync: EditorSyncPort, set: Set, ge
       const projectId = get().content.project?.id
       if (before === undefined || projectId === undefined) return Promise.resolve(false)
       const keys = Object.keys(changes)
-      const after = { ...before, ...changes }
+      // The server stamps the trash time (plan 7 D11); until it answers, a record that just
+      // changed its trash state has no time here (the trash lists it as "just now").
+      const stamp = 'deleted' in changes ? { deletedAt: null } : {}
+      const after = { ...before, ...changes, ...stamp }
       edit((s) => putRecord(s, kind, after))
       const snapshot = REMOVABLE.has(kind) ? (after as ContentRecords[RemovableKind]) : null
       return submit(

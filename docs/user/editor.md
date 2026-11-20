@@ -9,7 +9,7 @@ A project is one script. Every project belongs to a team.
 - **Make one:** open the team, type a name under **Projects** and choose **New project**. Any member can do this.
 - **Open one:** choose its name. The editor opens with one chapter, `Chapter 1`.
 - **Rename one:** in the editor, double-click the project name at the top of the left panel, type, and press Enter.
-- **Move to trash:** only the team owner sees **Move to trash** next to a project. The project leaves the list. (The trash screen, to restore or delete for good, comes later.)
+- **Move to trash:** only the team owner sees **Move to trash** next to a project. The project leaves the list and appears under **Trash** below it (see "Trash" below).
 - **Delete the team:** deleting a team also deletes its projects. The question names how many: `Delete this team and its 2 projects?`
 
 If you open a project you are not allowed to see (a link from someone else's team, or a project that no longer exists), the editor says so and offers **Back to teams**. It shows nothing of the project.
@@ -140,6 +140,15 @@ Undo never overwrites a teammate's work. If someone else has changed the same th
 | Ctrl+A | Select every node in the chapter |
 
 While you type in a field, only Ctrl+K is the editor's; the other keys work as usual in the field (Ctrl+Z there undoes your typing).
+
+## Trash
+
+Projects, chapters and nodes you move to the trash stay there for 30 days (the admin can change this), then they are removed for good together with their lines, cues and media files. A choice that pointed at a removed node stays, with no target.
+
+- **Chapters and nodes:** open `≡` (All chapters) at the start of the chapter bar and choose **Trash** (the last item). Each row shows the chapter or node, how long is left (`30 days left`, `1 day left`, `Removed tonight`) and **Restore**. Restoring is an ordinary edit, so **Undo** reverses it, and it also works offline.
+- **A node of a trashed chapter** says `Restore the chapter <title> first.`: restore the chapter and the node comes back with it.
+- **Projects:** the team owner sees a **Trash** section under the projects list, with **Restore** for each trashed project. Members do not see it.
+- The time counts from when the server received the change, not from your computer's clock. A node you trash while offline starts its 30 days when you are back online.
 
 ## Search and links between chapters
 

@@ -62,10 +62,10 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 1C: Restoring
 
-- [ ] **Step 9: Write the failing tests** C6 in `trashList.test.ts` and C7 to C9 in `e2e/trash.spec.ts`.
-- [ ] **Step 10: Run** `npx vitest run --project unit frontend/src/features/trash/trashList.test.ts` and `npm run test:e2e -- e2e/trash.spec.ts`. Expected: FAIL.
-- [ ] **Step 11: Implement** the mapper field, the door methods, `trashList.ts` (`daysLeft` ends in `Math.max(0, Math.ceil(...))`, B3), `TrashPanel` (opened from the `≡` menu's `Trash`; one row per trashed chapter and node, title, `trashLabel`, `Restore`; a node of a trashed chapter shows `Restore the chapter <title> first.` instead of the button) and `TeamTrash` (owner only, under the projects list; trashed projects, `trashLabel`, `Restore`). Restoring is an ordinary edit through the editor store, so it is undoable and queued offline like any other.
-- [ ] **Step 12: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. Update the docs. **Close checkpoint 1C** (commit `feat: trash panels and restore`).
+- [x] **Step 9: Write the failing tests** C6 in `trashList.test.ts` and C7 to C9 in `e2e/trash.spec.ts`.
+- [x] **Step 10: Run** `npx vitest run --project unit frontend/src/features/trash/trashList.test.ts` and `npm run test:e2e -- e2e/trash.spec.ts`. Expected: FAIL.
+- [x] **Step 11: Implement** the mapper field, the door methods, `trashList.ts` (`daysLeft` ends in `Math.max(0, Math.ceil(...))`, B3), `TrashPanel` (opened from the `≡` menu's `Trash`; one row per trashed chapter and node, title, `trashLabel`, `Restore`; a node of a trashed chapter shows `Restore the chapter <title> first.` instead of the button) and `TeamTrash` (owner only, under the projects list; trashed projects, `trashLabel`, `Restore`). Restoring is an ordinary edit through the editor store, so it is undoable and queued offline like any other.
+- [x] **Step 12: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. Update the docs. **Close checkpoint 1C** (commit `feat: trash panels and restore`).
 
 ## Test plan
 ### Cases

@@ -145,7 +145,7 @@ test('teams: an injection string in a filter returns nothing', async () => {
 // reaches that person's open lists as a live `create` event (PocketBase sends it only when the
 // team's own insert is not inside a transaction of ours), and its owner row and settings row
 // still exist.
-test('teams: a new team arrives as a live create event with its rows', async () => {
+test('a new team arrives as a live create event with its rows', async () => {
   const owner = await createUser()
   const pb = await asUser(owner)
   const events: string[] = []

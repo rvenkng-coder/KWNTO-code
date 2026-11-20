@@ -132,7 +132,7 @@ test('the start node must belong to the project', async () => {
 // Protects the offline-sync carry-over of plan 3 (plan 7 Task 7, D15): a project a member
 // makes reaches a teammate's open list as a live `create` event, and its settings row and
 // `Chapter 1` still exist.
-test('projects: a new project arrives as a live create event with its settings and first chapter', async () => {
+test('a new project arrives as a live create event with its settings and first chapter', async () => {
   const { owner, member, teamId } = await memberProject()
   const watcher = await asUser(owner)
   const events: string[] = []

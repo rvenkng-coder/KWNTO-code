@@ -78,6 +78,12 @@ All four join the network `kwnto-edge` (subnet `172.30.0.0/24`; `tailscale` has 
 
 Migration `1794390000_production_settings.js` writes the production-only settings once per data folder, and only when `KWNTO_PRODUCTION=1` (the dev and test backends are untouched): `meta.appURL` (from `KWNTO_PUBLIC_URL`) and `appName`, the rate limiter (`*:auth` 2 per 3 s, `/api/kwnto/teams/` 10 per 60 s, `/api/` 300 per 10 s), the trusted proxy (`X-Forwarded-For`, `useLeftmostIP` off) and the backup schedule (`0 2 * * *`, keep 7). The values come from the pure `backend/pb_hooks/lib/production-settings.js`. `entrypoint.sh` exits 64 when the flag is on and `KWNTO_PUBLIC_URL` does not start with `https://`. Admin edits in the dashboard are never reverted. The JS property names are the Go field names in camel case (`settings.rateLimits.rules`, `settings.trustedProxy.useLeftmostIP`, `settings.backups.cronMaxKeep`, `settings.meta.appURL`). To try it, run the edge test stack with `KWNTO_PRODUCTION=1 KWNTO_PUBLIC_URL=https://kwnto.example.ts.net`.
 
+## Mail templates
+
+Migration `1794390100_mail_links.js` sets the `users` collection's verification and reset templates (on every backend, not only production) so the links point into the app: `{APP_URL}/#/verify/{TOKEN}` and `{APP_URL}/#/reset/{TOKEN}`. PocketBase's defaults link to the dashboard (`/_/#/auth/...`), which the proxy blocks on the public address. The links open `VerifyEmailScreen` and `ResetPasswordScreen` (`frontend/src/features/auth/`), which `App.tsx` renders before the signed-in gate; they call `backend.auth.confirmVerification` and `confirmPasswordReset`. The token in a route must be JWT-shaped and at most 2048 characters (`routes.ts`). `{APP_URL}` comes from the Application URL setting, which production sets from `KWNTO_PUBLIC_URL`. The email-change template is not used and is left as is.
+
+**Tokens in tests.** A superuser cannot read the record's `tokenKey` or the collection's token secrets, but can write both. `e2e/helpers/tokens.ts` `mintToken(email, type)` sets them to known values and signs a token with `node:crypto` (HS256 over `tokenKey + secret`; claims `id`, `type`, `collectionId`, `email`, `exp`). It invalidates that user's current sessions (the session token uses `tokenKey` too), so mint before signing in.
+
 ## Tests and the test backend
 
 - `npm run test:container` builds the image and tests it with real containers (port `8093`, volume `kwnto-container-test`). It removes its own left-overs first, so it is safe to run again after a killed run.

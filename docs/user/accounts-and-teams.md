@@ -6,13 +6,17 @@ Go to **Sign up**, enter your email, name and a password (at least 10 characters
 
 ## Verify your email
 
-Open the link in the email we send you. If you need another copy, click **Resend verification email** on the Teams screen. Once your address is verified (the page picks this up when you return to it), you can create and join teams.
+Open the link in the email we send you. It opens a KWNTO page that says your email is verified; click **Go to KWNTO** and you can create and join teams, with no need to sign in again. If the page says the link is not valid or has expired, sign in and click **Resend verification email**. If you need another copy, click **Resend verification email** on the Teams screen. Once your address is verified (the page picks this up when you return to it), you can create and join teams.
 
 ## Sign in
 
 Go to **Sign in**, enter your email and password. If you forget your password, click **Forgot password?** — if that account exists, a reset link is sent.
 
 After three wrong passwords, you'll see "Try again after 5 minutes." and must wait.
+
+## Forgot your password
+
+On the **Sign in** screen, type your email and click **Forgot password?**. If that account exists, we send a link. The link opens a KWNTO page with two boxes, **New password** and **Repeat new password**. Type the same new password in both (at least 10 characters, with a letter and a number, and not a common password) and click **Set password**. If the page says the two passwords are not the same, retype them; if it shows the password rules, choose a stronger password. When it says your password was changed, click **Go to KWNTO** and sign in with the new password. A link works once and expires after 30 minutes; if it does not work, ask for a new one from the sign-in screen.
 
 ## Create a team
 

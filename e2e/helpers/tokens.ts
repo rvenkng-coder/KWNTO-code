@@ -6,7 +6,8 @@ import { adminPB } from './admin'
 // id, type, collectionId, email and exp. Neither key is readable through the API (tokenKey is a
 // hidden field and the collection's secret is never returned), but a superuser may SET both, so
 // the helper sets them to values it knows and signs with those. Setting them only invalidates
-// tokens issued earlier for that user and for that mail type; no new dependency (node:crypto).
+// tokens issued earlier for that user and for that mail type, and that user's sessions (the session
+// token is signed with tokenKey too), so mint before signing in; no new dependency (node:crypto).
 export type TokenType = 'verification' | 'passwordReset'
 
 const SECRET_FIELD = { verification: 'verificationToken', passwordReset: 'passwordResetToken' } as const

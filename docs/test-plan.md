@@ -35,10 +35,13 @@ Which test layers must cover each feature, and how far each feature is. The laye
 | Export (PDF, Word, JPG, PNG) | 6.5 | unit, manual | not started | 8 |
 | Look and feel (light and dark, theme toggle, layout) | 6.6 | e2e, manual M1 and M2 (signed 2026-11-18) | covered | 3 |
 | Offline queue, sync and conflicts: `e2e/editor-offline.spec.ts`, `e2e/editor-conflicts.spec.ts` | 6.7 | unit, rules, e2e | covered | 4 |
+| Deployment (proxy, headers, rate limits, backups and restore, storage warning) | 7b, 7c | container, rules, unit, manual | covered | 6 |
 | Trash and recovery (30 days, restore, purge) | 6.8 | unit, rules, e2e | not started | 7 |
 | Share links (view, comment, edit; live, snapshot; revoke) | 5, 6.9 | rules, e2e | not started | 7 |
 | Project JSON import and export | 8b | unit, e2e | not started | 7 |
 | Project activity history | 6.9 | to be decided | not started | later (no plan) |
+
+The Deployment row is `covered` for its container, rules and unit layers. Its manual cases are **open**: M10, M11 and M12 below wait for the developer's walk on the real VM (Plan 6, [deployment guide](admin/deployment.md#the-first-walk-for-the-developer), cases C5 and C6), and so do C1 to C4 and C7 of that walk. Plan 6 is `awaiting developer walk` in the roadmap, not `done`.
 
 ## Manual sign-off checklist
 
@@ -55,6 +58,6 @@ Design sections 8 and 8b make this the developer's sign-off sheet. A person runs
 | M7 | PNG export: map legible | 6.5, 8b | open |
 | M8 | Every feature in design section 6 tried by hand in Firefox | 8 | open |
 | M9 | Every feature in design section 6 tried by hand in Chrome | 8 | open |
-| M10 | A real verification email arrives and its link verifies the account (once SMTP exists, Plan 6) | Plan 2 | open |
-| M11 | A real password-reset email arrives, also for an address typed with capitals, and its link sets the new password (once SMTP exists, Plan 6) | Plan 2 | open |
-| M12 | Reconnect through Tailscale Funnel: with the app behind Funnel, drop one laptop's network for 10 seconds while a teammate edits; after reconnecting the teammate's edit appears within a few seconds without a reload and the edits made during the drop are saved (done 2026-11-20 through `tailscale serve` on the tailnet: passed; repeat once behind the public Funnel address in Plan 6) | 6.7 | open (public Funnel) |
+| M10 | A real verification email arrives and its link verifies the account (Plan 6 wrote the guide and the screens; waiting for the developer's walk on the real VM, case C5) | Plan 2 | open |
+| M11 | A real password-reset email arrives, also for an address typed with capitals, and its link sets the new password (Plan 6 wrote the guide and the screens; waiting for the developer's walk on the real VM, case C5) | Plan 2 | open |
+| M12 | Reconnect through Tailscale Funnel: with the app behind Funnel, drop one laptop's network for 10 seconds while a teammate edits; after reconnecting the teammate's edit appears within a few seconds without a reload and the edits made during the drop are saved (done 2026-11-20 through `tailscale serve` on the tailnet: passed; repeat once behind the public Funnel address: waiting for the developer's walk on the real VM, Plan 6 case C6) | 6.7 | open (public Funnel) |

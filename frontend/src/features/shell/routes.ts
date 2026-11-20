@@ -1,9 +1,11 @@
 const ID = /^[a-z0-9]{15}$/
+const TOKEN = /^[A-Za-z0-9]{40}$/
 
 export type Route =
   | { name: 'teams' }
   | { name: 'team'; teamId: string }
   | { name: 'project'; projectId: string; chapterId: string | null }
+  | { name: 'share'; token: string }
 
 const FALLBACK: Route = { name: 'teams' }
 
@@ -25,8 +27,13 @@ function parseProject(parts: string[]): Route | undefined {
   return undefined
 }
 
+function parseShare(parts: string[]): Route | undefined {
+  if (parts[0] !== 's' || parts.length !== 2) return undefined
+  return TOKEN.test(parts[1]!) ? { name: 'share', token: parts[1]! } : undefined
+}
+
 function parseSegments(parts: string[]): Route {
-  return parseTeam(parts) ?? parseProject(parts) ?? FALLBACK
+  return parseTeam(parts) ?? parseProject(parts) ?? parseShare(parts) ?? FALLBACK
 }
 
 export function parseRoute(hash: string): Route {
@@ -48,6 +55,8 @@ export function routeToHash(route: Route): string {
       return '#/'
     case 'team':
       return `#/team/${route.teamId}`
+    case 'share':
+      return `#/s/${route.token}`
     case 'project':
       if (route.chapterId !== null) return `#/project/${route.projectId}/chapter/${route.chapterId}`
       return `#/project/${route.projectId}`

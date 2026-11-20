@@ -71,3 +71,14 @@ test('extra segments after a project or chapter route fall back to teams', () =>
 test('project chapter without an id falls back to teams', () => {
   expect(parseRoute('#/project/abcdefghijk0123/chapter')).toEqual({ name: 'teams' })
 })
+
+// Protects D8: a share address carries a 40-character token of letters and digits and
+// nothing else; a short token, a long one or one with another character is not a share route.
+test('a share hash needs a 40-character token', () => {
+  const token = 'aB3'.repeat(13) + 'x'
+  expect(token).toHaveLength(40)
+  expect(parseRoute(`#/s/${token}`)).toEqual({ name: 'share', token })
+  expect(routeToHash({ name: 'share', token })).toBe(`#/s/${token}`)
+  expect(parseRoute(`#/s/${token.slice(1)}`)).toEqual({ name: 'teams' })
+  expect(parseRoute(`#/s/${token.slice(1)}-`)).toEqual({ name: 'teams' })
+})

@@ -3,6 +3,7 @@ import { createBackend, type Backend } from './client'
 export { createBackend, type Backend }
 export type * from './content-types'
 export type * from './media-types'
+export type * from './share-types'
 export type { AppSettings } from './appSettings'
 export { MAX_IMPORT_BYTES } from './projectFiles'
 export { MAX_SAVE_TRIES, TOO_BUSY } from './guarded'
@@ -42,6 +43,10 @@ export const backend: Backend = {
   get projectFiles() {
     if (!_backend) _backend = createBackend()
     return _backend.projectFiles
+  },
+  get shares() {
+    if (!_backend) _backend = createBackend()
+    return _backend.shares
   },
   async health() {
     if (!_backend) _backend = createBackend()

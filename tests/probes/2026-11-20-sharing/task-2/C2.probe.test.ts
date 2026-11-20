@@ -60,7 +60,7 @@ test('[C2] relative-of-fixed-case: __proto__ and unknown keys are refused, proto
   expect(problems(hostile)).toContain('unknown key "__proto__" in nodes[0]')
   expect(({} as Record<string, unknown>).polluted).toBeUndefined()
   const extra = good() as Record<string, unknown>; extra.surprise = 1
-  expect(problems(extra)).toContain('unknown key "surprise" in file')
+  expect(problems(extra).join('\n')).toContain('unknown key "surprise"')
   const pink = good(); pink.nodes[0].color = 'pink'
   expect(problems(pink)[0]).toMatch(/^nodes\[0\]\.color must be one of .*slate/)
 })

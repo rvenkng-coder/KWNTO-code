@@ -11,6 +11,34 @@ Examples use `kwnto.example.ts.net` for the public address and `admin@example.co
 - A **Gmail account with 2-step verification** on, for outgoing mail (verification and password-reset mails). Without it the app works but those mails are not sent (see "Mail").
 - Free disk space: the images, the built app and the uploaded media. The default storage warning is at 20 GB of uploads (see "When the disk fills").
 
+## Getting the code onto the VM
+
+The repository is private, so the VM needs a way to read it. It needs only the files, not the history: the build ignores `.git`. Pick one.
+
+**A. Read-only deploy key (best for a VM you keep).** Run on the VM:
+
+```sh
+ssh-keygen -t ed25519 -f ~/.ssh/kwnto_deploy -N "" -C "kwnto-deploy@<vm name>"
+printf 'Host github.com\n  IdentityFile ~/.ssh/kwnto_deploy\n  IdentitiesOnly yes\n' >> ~/.ssh/config
+ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
+cat ~/.ssh/kwnto_deploy.pub
+```
+
+Copy the line `cat` prints. In GitHub open the repository, Settings, Deploy keys, Add deploy key (only a repository admin sees this page). Give it a title, paste the line and leave **Allow write access** off. Then check it and clone:
+
+```sh
+ssh -T git@github.com        # "Hi <owner>/<repo>! You've successfully authenticated, but GitHub does not provide shell access."
+git clone git@github.com:<owner>/<repo>.git kwnto
+```
+
+`git pull` in that folder later updates it (see Updating). The private key never leaves the VM and never goes into the repository.
+
+**B. Fine-grained access token.** In GitHub, Settings, Developer settings, Personal access tokens, Fine-grained tokens: choose this repository only and read-only **Contents**. Run `git clone https://github.com/<owner>/<repo>.git kwnto` and paste the token when it asks for the password. Do not put the token in the clone address, because it would stay in your shell history and in `.git/config`.
+
+**C. Copy the files, no GitHub access from the VM.** On your own machine, in the repository, run `git archive --format=tar.gz -o kwnto.tar.gz <branch>`, then `scp kwnto.tar.gz <user>@<vm address>:`, and on the VM `mkdir kwnto && tar -xzf kwnto.tar.gz -C kwnto`. To update, send a new archive and unpack it over the folder (keep `.env`, `backups/` and the Docker volumes; they are not in the archive). There is no `git pull` with this option, so "Updating" below starts from the unpack step.
+
+Whichever you pick, step 4 of First run continues from the folder `kwnto`.
+
 ## First run
 
 1. **Tailscale access policy.** In the Tailscale admin console open Access controls and make sure these two entries exist (merge them into your file; do not replace it). The first lets you tag the machine, the second lets that tag use Funnel:
@@ -24,12 +52,12 @@ Examples use `kwnto.example.ts.net` for the public address and `admin@example.co
    ]
    ```
 
-2. **Auth key.** Settings, Keys, Generate auth key: **Reusable off**, **Pre-approved** on, **Tags** `tag:kwnto`, a short expiry. Copy the key (it starts with `tskey-auth-`); it is shown once. It is only used the first time the container joins; the container's state is kept in a volume afterwards.
+2. **Auth key.** Settings, Keys, Generate auth key: **Reusable off**, **Tags** `tag:kwnto`, a short expiry. Copy the key (it starts with `tskey-auth-`); it is shown once. It is only used the first time the container joins; the container's state is kept in a volume afterwards.
 3. **Your public address.** It is `https://<TS_HOSTNAME>.<tailnet name>`, where the tailnet name is shown on the console's DNS page (for example `tail1234.ts.net`). With `TS_HOSTNAME=kwnto` that is `https://kwnto.tail1234.ts.net`. You need it now, because PocketBase writes it into its settings on its first start.
 4. **Clone and fill `.env`:**
 
    ```sh
-   git clone <the repository address> kwnto
+   # the code is already in the folder "kwnto" (see "Getting the code onto the VM")
    cd kwnto
    cp .env.example .env
    mkdir -p backups && sudo chown 10001:10001 backups
@@ -147,7 +175,7 @@ deploy/restore.sh ./backups/<file>.zip
 ## Updating
 
 1. Make a backup first, as in [Backups](#backups) (`PB=http://$PB_IP:8090 deploy/backup-now.sh`).
-2. Update:
+2. Update (with option C of "Getting the code onto the VM", unpack the new archive instead of `git pull`):
 
 ```sh
 git pull

@@ -59,6 +59,10 @@ export const backend: Backend = {
     if (!_backend) _backend = createBackend()
     return _backend.presence
   },
+  get realtime() {
+    if (!_backend) _backend = createBackend()
+    return _backend.realtime
+  },
   async health() {
     if (!_backend) _backend = createBackend()
     return _backend.health()

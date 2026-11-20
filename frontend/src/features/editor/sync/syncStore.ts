@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { backend } from '../../../backend'
+import { isOffline } from './connectionStatus'
 import { createHookRegistry } from './hookRegistry'
 import { createIndexedDbOutbox } from './indexedDbOutbox'
 import { createSyncEngine, type TabMessage, type SyncDeps, type SyncEngine, type SyncSnapshot } from './syncEngine'
@@ -33,6 +34,74 @@ function browserChannel(): SyncDeps['channel'] {
 
 let built: SyncLifecycle | undefined
 
+const PROBE_MS = 1000
+const PROBE_WAIT_MS = 2000
+
+// Opens the live stream on its own for a moment: true when the server answers with its connect
+// event. The health route would not do: a stream that is blocked while the server is up must stay "down".
+function streamAnswers(): Promise<boolean> {
+  return new Promise((resolve) => {
+    const source = new EventSource('/api/realtime')
+    const done = (ok: boolean) => {
+      clearTimeout(timer)
+      source.close()
+      resolve(ok)
+    }
+    const timer = setTimeout(() => done(false), PROBE_WAIT_MS)
+    source.addEventListener('PB_CONNECT', () => done(true))
+    source.addEventListener('error', () => done(false))
+  })
+}
+
+// Tells the engine whether the connection is usable (plan 7 Task 7). Besides the browser's own
+// online and offline events it follows the live stream: when the stream drops and stays down for
+// three seconds the engine is told "offline", so the top bar says so without an edit having to
+// fail first. Once the editor is offline it closes its subscriptions, so no event can say the
+// stream is back; while it is down a probe opens the stream once a second, and a connect ends it.
+function watchConnection(lifecycle: SyncLifecycle): void {
+  let streamUp = true
+  let downSince: number | null = null
+  let told: boolean | null = null
+  let probe: ReturnType<typeof setInterval> | null = null
+
+  const evaluate = () => {
+    const online = !isOffline(navigator.onLine, streamUp, downSince, Date.now())
+    if (online === told) return
+    told = online
+    lifecycle.current()?.setOnline(online)
+  }
+  const stopProbe = () => {
+    if (probe !== null) clearInterval(probe)
+    probe = null
+  }
+  const check = () => {
+    evaluate()
+    if (told !== false || !navigator.onLine) return
+    void streamAnswers().then((ok) => {
+      if (!ok || streamUp) return
+      streamUp = true
+      downSince = null
+      stopProbe()
+      evaluate()
+    })
+  }
+  backend.realtime.onConnectionChange((connected) => {
+    streamUp = connected
+    downSince = connected ? null : (downSince ?? Date.now())
+    if (connected) stopProbe()
+    else probe ??= setInterval(check, PROBE_MS)
+    evaluate()
+  })
+  window.addEventListener('online', () => {
+    told = null
+    evaluate()
+  })
+  window.addEventListener('offline', () => {
+    told = null
+    evaluate()
+  })
+}
+
 function build(): SyncLifecycle {
   const storage = createIndexedDbOutbox()
   const onUser = (listener: (userId: string | null) => void) => {
@@ -48,8 +117,7 @@ function build(): SyncLifecycle {
     engine.setOnline(navigator.onLine)
     return engine
   })
-  window.addEventListener('online', () => lifecycle.current()?.setOnline(true))
-  window.addEventListener('offline', () => lifecycle.current()?.setOnline(false))
+  watchConnection(lifecycle)
   return lifecycle
 }
 

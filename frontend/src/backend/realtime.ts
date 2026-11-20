@@ -30,12 +30,51 @@ function subscribeKind(pb: PocketBase, kind: ContentKind, projectId: string, onE
   return pb.collection(kind).subscribe('*', deliver, { filter })
 }
 
+// Who wants to hear that the live stream connected or dropped (plan 7 Task 7). One list per client;
+// it is fed only by an open project subscription, so a drop with nothing subscribed is never reported.
+type ConnectionListener = (connected: boolean) => void
+const listenersOf = new WeakMap<PocketBase, Set<ConnectionListener>>()
+
+function listeners(pb: PocketBase): Set<ConnectionListener> {
+  let set = listenersOf.get(pb)
+  if (set === undefined) {
+    set = new Set()
+    listenersOf.set(pb, set)
+  }
+  return set
+}
+
+const announce = (pb: PocketBase, connected: boolean): void => listeners(pb).forEach((l) => l(connected))
+
+/** Whether the live stream is up, for the sync status: `true` on every connect, `false` when it drops. */
+export function createRealtime(pb: PocketBase) {
+  return {
+    onConnectionChange(listener: ConnectionListener): () => void {
+      listeners(pb).add(listener)
+      return () => {
+        listeners(pb).delete(listener)
+      }
+    },
+  }
+}
+
 // `PB_CONNECT` reaches every subscriber each time the event stream (re)connects (pocketbase 0.28).
+// The same subscription feeds the connection listeners, and `onDisconnect` (the SDK's drop callback)
+// is set while it is open.
 function subscribeConnect(pb: PocketBase, onReconnect?: () => void): Promise<Unsubscribe> {
   let connects = pb.realtime.isConnected ? 1 : 0
+  const mine = (active: string[]) => {
+    if (active.length > 0) announce(pb, false)
+  }
+  pb.realtime.onDisconnect = mine
   return pb.realtime.subscribe('PB_CONNECT', () => {
     connects++
+    announce(pb, true)
     if (connects > 1) onReconnect?.()
+  }).then((close) => async () => {
+    // Another subscription may have opened meanwhile (React opens one twice in development): leave its callback.
+    if (pb.realtime.onDisconnect === mine) pb.realtime.onDisconnect = undefined
+    await close()
   })
 }
 

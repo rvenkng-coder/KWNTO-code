@@ -9,6 +9,8 @@ import type { EditorDoor } from './editorStore'
 
 export interface EditorSyncPort {
   add: SyncEngine['add']
+  /** The live connection came back: send what waits on the backoff at once. */
+  retryNow(): void
   snapshot(): SyncSnapshot | null
   subscribe(fn: (s: SyncSnapshot | null) => void): () => void
   register(hooks: SyncHooks): () => void
@@ -20,6 +22,7 @@ export const UNDO_PAUSED = 'Undo waits until you are back online and your change
 export function portOf(engine: SyncEngine, register: EditorSyncPort['register']): EditorSyncPort {
   return {
     add: (entry) => engine.add(entry),
+    retryNow: () => engine.retryNow(),
     snapshot: () => engine.snapshot(),
     subscribe: (fn) => engine.subscribe(fn),
     register,
@@ -46,6 +49,7 @@ export function appSync(): EditorSyncPort {
       const engine = syncLifecycle.current()
       return engine === null ? Promise.reject(new Error(NO_SESSION)) : engine.add(entry)
     },
+    retryNow: () => syncLifecycle.current()?.retryNow(),
     snapshot: currentSnapshot,
     subscribe: (fn) => subscribeSnapshot(() => fn(currentSnapshot())),
     register: registerHooks,

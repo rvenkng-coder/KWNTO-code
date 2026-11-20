@@ -67,7 +67,11 @@ class Session {
   private async fetchProject(projectId: string, token: number, subscribe: boolean, subscribeFirst = false): Promise<Fetched> {
     this.buffered ??= []
     if (this.loading++ === 0) this.touched.clear()
-    const subscribed = subscribe ? this.door.subscribe(projectId, this.onEventOf(token), () => void this.reload(token)) : Promise.resolve(null)
+    const subscribed = subscribe ? this.door.subscribe(projectId, this.onEventOf(token), () => {
+      // The stream is back: anything waiting on the backoff goes now, and the project is read again.
+      this.sync.retryNow()
+      void this.reload(token)
+    }) : Promise.resolve(null)
     // After a reconnect the subscription is open before the load is asked for, so a save cannot fall between the two.
     const load = () => this.door.load(projectId)
     const loading = subscribeFirst ? subscribed.then(load, load) : load()

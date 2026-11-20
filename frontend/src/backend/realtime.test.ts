@@ -1,6 +1,6 @@
 import type PocketBase from 'pocketbase'
 import { expect, test } from 'vitest'
-import { subscribeProject } from './realtime'
+import { createRealtime, subscribeProject } from './realtime'
 
 // A fake pb: records the callbacks of collection subscriptions and of realtime.subscribe('PB_CONNECT').
 function fakePb(isConnected = false) {
@@ -57,4 +57,29 @@ test('no reconnect callback, no connect subscription', async () => {
   const { pb, listeners } = fakePb()
   await subscribeProject(pb, 'p1', () => {})
   expect(listeners()).toBe(0)
+})
+
+// Protects plan 7 D15: listeners hear `true` on every connect and `false` when the stream drops
+// while the project's subscriptions are open; a drop with nothing subscribed is ignored; several
+// listeners are allowed; and nothing arrives after the subscription is closed or a listener left.
+test('connection listeners hear connects and drops only while subscribed', async () => {
+  const { pb, connect, closed } = fakePb()
+  const realtime = createRealtime(pb)
+  const heard: string[] = []
+  const off = realtime.onConnectionChange((up) => heard.push(`a:${up}`))
+  realtime.onConnectionChange((up) => heard.push(`b:${up}`))
+  const close = await subscribeProject(pb, 'p1', () => {}, () => {})
+  connect()
+  const drop = (pb as unknown as { realtime: { onDisconnect?: (subs: string[]) => void } }).realtime.onDisconnect
+  drop?.(['x'])
+  drop?.([])
+  expect(heard).toEqual(['a:true', 'b:true', 'a:false', 'b:false'])
+  off()
+  connect()
+  expect(heard.slice(4)).toEqual(['b:true'])
+  await close()
+  expect(closed).toContain('PB_CONNECT')
+  connect()
+  expect((pb as unknown as { realtime: { onDisconnect?: unknown } }).realtime.onDisconnect).toBeUndefined()
+  expect(heard).toHaveLength(5)
 })

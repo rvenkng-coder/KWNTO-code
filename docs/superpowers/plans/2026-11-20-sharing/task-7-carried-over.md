@@ -37,10 +37,10 @@ export const STREAM_GRACE_MS = 3000
 
 ## Checkpoint 7B: Offline status and an immediate retry
 
-- [ ] **Step 5: Write the failing tests** C3 in `connectionStatus.test.ts`, C4 in the engine's test file (fake clock: an entry on the 30 s backoff, `retryNow`, it is sent at once), C5 and C6 in `e2e/editor-offline.spec.ts` (stop the event stream with `page.route('**/api/realtime', (r) => r.abort())` and close the open stream, without `setOffline`).
-- [ ] **Step 6: Run** `npx vitest run --project unit frontend/src/features/editor/sync` and `npm run test:e2e -- e2e/editor-offline.spec.ts`. Expected: FAIL.
-- [ ] **Step 7: Implement** `isOffline` (the grace test is `nowMs - downSinceMs >= STREAM_GRACE_MS`, B1), `onConnectionChange`, `retryNow`, the wiring in `syncStore.ts` (a 1 s check while the stream is down) and the call in `editorSession.ts`.
-- [ ] **Step 8: Run** them and every existing offline and conflict spec in both browsers. Expected: PASS. **Close checkpoint 7B** (commit `fix: offline follows the live connection and reconnect retries at once`).
+- [x] **Step 5: Write the failing tests** C3 in `connectionStatus.test.ts`, C4 in the engine's test file (fake clock: an entry on the 30 s backoff, `retryNow`, it is sent at once), C5 and C6 in `e2e/editor-offline.spec.ts` (stop the event stream with `page.route('**/api/realtime', (r) => r.abort())` and close the open stream, without `setOffline`).
+- [x] **Step 6: Run** `npx vitest run --project unit frontend/src/features/editor/sync` and `npm run test:e2e -- e2e/editor-offline.spec.ts`. Expected: FAIL.
+- [x] **Step 7: Implement** `isOffline` (the grace test is `nowMs - downSinceMs >= STREAM_GRACE_MS`, B1), `onConnectionChange`, `retryNow`, the wiring in `syncStore.ts` (a 1 s check while the stream is down) and the call in `editorSession.ts`.
+- [x] **Step 8: Run** them and every existing offline and conflict spec in both browsers. Expected: PASS. **Close checkpoint 7B** (commit `fix: offline follows the live connection and reconnect retries at once`).
 
 ## Checkpoint 7C: The offline undo group
 
@@ -56,11 +56,11 @@ export const STREAM_GRACE_MS = 3000
 | C1 | a new team arrives live | rules | a user subscribes to `teams` and creates a team | a `create` event for it arrives; the owner row and settings row exist | tests/rules/teams.rules.test.ts :: a new team arrives as a live create event with its rows |
 | C2 | a new project arrives live | rules | a teammate subscribes to `projects`; a member creates a project | a `create` event arrives; `project_settings` and `Chapter 1` exist | tests/rules/projects.rules.test.ts :: a new project arrives as a live create event with its settings and first chapter |
 | C3 | when the engine counts as offline | unit | `(false, true, null, t)`; `(true, true, null, t)`; `(true, false, t - 2999, t)`; `(true, false, t - 3000, t)`; `(true, false, null, t)` | true; false; false; true; false | frontend/src/features/editor/sync/connectionStatus.test.ts :: a dropped live connection counts as offline after three seconds |
-| C4 | retry now | unit | an entry failed twice as unreachable (next try in 4 s on the fake clock); `retryNow()` | sent at once; a further failure waits 1 s (the backoff restarted) | frontend/src/features/editor/sync/syncEngine.test.ts :: retryNow sends a waiting edit at once |
-| C5 | `Offline` without a send | e2e | the editor open, no edit made; the event stream is cut while the browser stays online | the top bar shows `Offline` within 5 s; after the stream is let through again it clears without a reload | e2e/editor-offline.spec.ts :: a dropped live connection shows Offline without an edit |
-| C6 | the waiting edit goes at once | e2e | backend requests blocked; rename a node (waits); unblock and let the stream reconnect | the rename is saved within 3 s of the reconnect (not on the 30 s backoff) | e2e/editor-offline.spec.ts :: a waiting edit is sent as soon as the connection is back |
+| C4 | retry now | unit | an entry failed twice as unreachable (next try in 4 s on the fake clock); `retryNow()` | sent at once; a further failure waits 1 s (the backoff restarted) | frontend/src/features/editor/sync/syncEngineRetries.test.ts :: retryNow sends a waiting edit at once |
+| C5 | `Offline` without a send | e2e | the editor open, no edit made; the event stream is cut while the browser stays online | the top bar shows `Offline` within 5 s; after the stream is let through again it clears without a reload | e2e/editor-offline-connection.spec.ts :: a dropped live connection shows Offline without an edit |
+| C6 | the waiting edit goes at once | e2e | backend requests blocked; rename a node (waits); unblock and let the stream reconnect | the rename is saved within 3 s of the reconnect (not on the 30 s backoff) | e2e/editor-offline-connection.spec.ts :: a waiting edit is sent as soon as the connection is back |
 | C7 | the group closes when stored | unit | offline: `group('Add line', ...)` whose create is stored but not answered; then an `update` rename; `undo()` once | two steps in history; the one undo takes back only the rename | frontend/src/features/editor/store/edits.test.ts :: an offline group closes when its edits are stored |
-| C8 | offline undo steps | e2e | offline: `Add line`, type in it, rename the node; back online and saved; Ctrl+Z once | only the rename is undone; the line and its text stay | e2e/editor-offline.spec.ts :: edits made offline undo one step at a time after reconnecting |
+| C8 | offline undo steps | e2e | offline: `Add line`, type in it, rename the node; back online and saved; Ctrl+Z once | only the rename is undone; the line and its text stay | e2e/editor-offline-connection.spec.ts :: edits made offline undo one step at a time after reconnecting |
 ### Probes
 **Probe folder:** `tests/probes/2026-11-20-sharing/task-7/`
 ### Breaks

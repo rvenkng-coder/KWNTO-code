@@ -5,6 +5,13 @@ const require = createRequire(import.meta.url)
 const { productionSettings } = require('../../../../backend/pb_hooks/lib/production-settings.js') as {
   productionSettings: (env: Record<string, string | undefined>) => unknown
 }
+type Settings = {
+  meta: unknown
+  rateLimits: { enabled: boolean; rules: unknown[] }
+  trustedProxy: { headers: string[] }
+  backups: unknown
+}
+const settings = (env: Record<string, string | undefined>) => productionSettings(env) as Settings
 
 const ok = { KWNTO_PRODUCTION: '1', KWNTO_PUBLIC_URL: 'https://kwnto.example.ts.net' }
 
@@ -28,7 +35,7 @@ test('[C1] malformed-input: urls that are not https are refused with the exact m
 
 // Protects: the URL is normalised (one trailing slash dropped) and the values are the D7/D6/D10 ones.
 test('[C1] boundary-inputs: the full settings object, in order, with the url normalised', () => {
-  const r = productionSettings(ok) as any
+  const r = settings(ok)
   expect(r.meta).toEqual({ appURL: 'https://kwnto.example.ts.net', appName: 'KWNTO' })
   expect(r.rateLimits).toEqual({
     enabled: true,
@@ -40,16 +47,16 @@ test('[C1] boundary-inputs: the full settings object, in order, with the url nor
   })
   expect(r.trustedProxy).toEqual({ headers: ['X-Forwarded-For'], useLeftmostIP: false })
   expect(r.backups).toEqual({ cron: '0 2 * * *', cronMaxKeep: 7 })
-  expect((productionSettings({ ...ok, KWNTO_PUBLIC_URL: 'https://kwnto.example.ts.net/' }) as any).meta.appURL).toBe('https://kwnto.example.ts.net')
+  expect((settings({ ...ok, KWNTO_PUBLIC_URL: 'https://kwnto.example.ts.net/' }).meta as { appURL: string }).appURL).toBe('https://kwnto.example.ts.net')
 })
 
 // Protects: two calls never share state a caller could mutate.
 test('[C1] idempotence: calling twice returns equal, independent objects', () => {
-  const a = productionSettings(ok) as any
-  const b = productionSettings(ok) as any
+  const a = settings(ok)
+  const b = settings(ok)
   expect(a).toEqual(b)
   a.rateLimits.rules.pop()
   a.trustedProxy.headers.push('X-Real-IP')
-  expect((productionSettings(ok) as any).rateLimits.rules).toHaveLength(3)
-  expect((productionSettings(ok) as any).trustedProxy.headers).toEqual(['X-Forwarded-For'])
+  expect(settings(ok).rateLimits.rules).toHaveLength(3)
+  expect(settings(ok).trustedProxy.headers).toEqual(['X-Forwarded-For'])
 })

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { backend } from '../../backend'
+import { confirmEmail } from './confirmEmail'
 
 export const VERIFY_SUCCESS = 'Your email is verified. You can now create and join teams.'
 export const VERIFY_FAILURE = 'This verification link is not valid or has expired. Sign in and ask for a new one.'
@@ -15,14 +16,7 @@ export function VerifyEmailScreen({ token }: { token: string }) {
   useEffect(() => {
     if (started.current) return
     started.current = true
-    backend.auth
-      .confirmVerification(token)
-      .then(async () => {
-        // Signed in: the stored session still says "not verified"; fetch the new flag so the gate lifts.
-        if (backend.auth.current()) await backend.auth.refresh()
-        setOutcome('done')
-      })
-      .catch(() => setOutcome('failed'))
+    void confirmEmail(backend.auth, token).then(setOutcome)
   }, [token])
 
   return (

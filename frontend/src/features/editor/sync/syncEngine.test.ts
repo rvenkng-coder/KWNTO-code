@@ -294,3 +294,18 @@ test('a failing storage does not leave an unhandled rejection', async () => {
   await settle()
   expect(engine.snapshot().waiting).toBe(0)
 })
+
+// Protects: design 6.7: a plain 404 with no server message (a proxy with no route, Tailscale serve switched off) is "cannot be reached" for the engine: an update waits, and a remove is not counted as already done.
+test('a proxy answering a bare 404 keeps updates and removes waiting', async () => {
+  const t = await started()
+  const bare = () => { throw new BackendError('not-found', 404, {}, 'Request failed') }
+  t.door.on('update', bare)
+  t.door.on('remove', bare)
+  t.door.on('get', bare)
+  await t.engine.add(upd('n1', { title: 'B' }, { title: 'A' }))
+  await t.engine.add({ projectId: 'p1', op: 'remove', kind: 'script_lines', id: 'l1', record: line('l1') })
+  await settle()
+  expect(t.engine.snapshot()).toMatchObject({ online: false, waiting: 2, failed: [] })
+  expect(t.log.refused).toHaveLength(0)
+  expect(t.log.saved).toHaveLength(0)
+})

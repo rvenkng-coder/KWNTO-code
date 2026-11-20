@@ -1,4 +1,4 @@
-import { BackendError, EditConflict, toBackendError } from '../../../backend/errors'
+import { BackendError, EditConflict, toBackendError as backendError } from '../../../backend/errors'
 import type { ContentKind, ContentRecords, EditableFields, RemovableKind } from '../../../backend'
 import { classifyConflict, type OutboxEntry } from './outbox'
 import type { SyncDoor } from './syncEngine'
@@ -14,6 +14,17 @@ export type Outcome =
 
 const REMOVABLE: ReadonlySet<ContentKind> = new Set<RemovableKind>(['script_lines', 'cues', 'connections'])
 const DELETED: Outcome = { type: 'conflict', server: null, fields: [], deleted: true }
+
+// The door's default message when the server's answer carried none. PocketBase's own 404 always has a message, so a 404
+// without one came from a proxy with no route (Tailscale serve switched off): the server cannot be reached, and the
+// record is not "gone" (a remove must not count as done, an update must not be refused).
+const NO_SERVER_MESSAGE = 'Request failed'
+
+function toBackendError(err: unknown): BackendError {
+  const error = backendError(err)
+  const proxyNotFound = error.kind === 'not-found' && error.status === 404 && error.message === NO_SERVER_MESSAGE
+  return proxyNotFound ? new BackendError('unreachable', 0, {}, 'The server cannot be reached.') : error
+}
 
 const isIdTaken = (error: BackendError): boolean => error.kind === 'invalid' && error.fields.id !== undefined
 

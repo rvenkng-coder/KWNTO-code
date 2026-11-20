@@ -4,6 +4,9 @@ services:
     image: kwnto-pocketbase:dev
     ports:
       - "127.0.0.1:8091:8090"
+    # Lets the rule tests point PocketBase's SMTP setting at a fake mail server on the host.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       # Test-only credentials; the data is discarded with the container.
       KWNTO_ADMIN_EMAIL: admin@example.test

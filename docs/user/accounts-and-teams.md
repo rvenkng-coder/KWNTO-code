@@ -2,7 +2,7 @@
 
 ## Sign up
 
-Go to **Sign up**, enter your email, name and a password (at least 10 characters, with a letter and a number). You'll see a message to check your email for a verification link.
+Go to **Sign up**, enter your email, name and a password (at least 10 characters, with a letter and a number). You'll see a message to check your email for a verification link; the mail is sent right away (look in spam if it is not there after a minute or two).
 
 ## Verify your email
 

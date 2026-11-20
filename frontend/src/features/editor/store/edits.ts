@@ -186,12 +186,14 @@ function createClipboard(store: StoreApi<EditorStore>, writes: Pick<Edits, 'crea
       const p = buildPaste(clip, { projectId, chapterId }, ++pasteCount, () => newId())
       const label = p.nodes.length === 1 ? 'Paste 1 node' : `Paste ${p.nodes.length} nodes`
       await group(label, async () => {
-        for (const n of p.nodes) await writes.create('nodes', n, label)
+        // Every record is handed to the outbox at once, in this order (nodes, then what hangs on them): the outbox sends
+        // strictly in order, and offline nothing may wait for an answer before the next record is stored.
         await Promise.all([
+          ...p.nodes.map((n) => writes.create('nodes', n, label)),
           ...p.lines.map((l) => writes.create('script_lines', l, label)),
           ...p.cues.map((c) => writes.create('cues', c, label)),
+          ...p.connections.map((c) => writes.create('connections', c, label)),
         ])
-        await Promise.all(p.connections.map((c) => writes.create('connections', c, label)))
       })
     },
   }

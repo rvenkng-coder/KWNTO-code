@@ -6,6 +6,7 @@ import { createMemoryOutbox, type OutboxStorage } from '../sync/outboxStorage'
 import { createSyncEngine } from '../sync/syncEngine'
 import { settle } from '../sync/fakes'
 import { portOf } from './editorSync'
+import { createEdits } from './edits'
 import { createEditorStore, type EditorDoor } from './editorStore'
 import { createHookRegistry } from '../sync/hookRegistry'
 
@@ -230,4 +231,18 @@ test('a remove that cancels a waiting create leaves nothing pending', async () =
   const both = await Promise.race([Promise.all([created, removed]), new Promise<string>((r) => setTimeout(() => r('pending'), 300))])
   expect(both).toEqual([true, true])
   expect(s.store.getState().saving).toBe(0)
+})
+
+// Protects: design 6.7 "nothing is lost if you close the tab": a paste made offline stores every pasted record in the outbox at once, not only the first node.
+test('an offline paste stores every pasted record in the outbox', async () => {
+  const s = await setup([content({ nodes: [node('a'), node('b')], lines: [line('la', { nodeId: 'a' }), line('lb', { nodeId: 'b' })] })])
+  await open(s)
+  const edits = createEdits(s.store, () => {})
+  s.engine.setOnline(false)
+  edits.copy(['a', 'b'])
+  void edits.paste('c1')
+  await settle()
+  const kinds = (await s.storage.list('u1')).map((e) => `${e.op} ${e.kind}`)
+  expect(kinds.filter((k) => k === 'create nodes')).toHaveLength(2)
+  expect(kinds.filter((k) => k === 'create script_lines')).toHaveLength(2)
 })

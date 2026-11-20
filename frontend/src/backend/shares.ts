@@ -15,6 +15,22 @@ function byUsefulness(a: ShareLink, b: ShareLink): number {
   return Number(a.revoked) - Number(b.revoked) || b.created.localeCompare(a.created)
 }
 
+function mediaUrl(baseUrl: string, token: string, mediaId: string, thumb: boolean): string {
+  const base = `${baseUrl.replace(/\/$/, '')}/api/kwnto/share/${encodeURIComponent(token)}/media/${encodeURIComponent(mediaId)}`
+  return thumb ? `${base}?thumb=100x100` : base
+}
+
+async function fetchMedia(pb: PocketBase, url: string): Promise<Blob> {
+  const response = await fetch(url, { headers: { Authorization: pb.authStore.token } })
+  if (!response.ok) throw toBackendError(new Error('Media removed'))
+  return response.blob()
+}
+
+async function editGrants(pb: PocketBase): Promise<Grant[]> {
+  const rows = await pb.collection('link_grants').getFullList({ filter: "permission = 'edit'", sort: '-created' })
+  return rows.map((row) => ({ projectId: String(row.project), projectName: String(row.project_name), permission: row.permission as SharePermission }))
+}
+
 /** Share links (design 5): members make and revoke them; anyone opens one through the server's routes. */
 export function createShares(pb: PocketBase) {
   async function wrapped<T>(fn: () => Promise<T>): Promise<T> {
@@ -63,26 +79,12 @@ export function createShares(pb: PocketBase) {
     },
 
     /** Works in `<img>` and `<audio>` for view links; a comment link needs `mediaBlob` (the browser cannot add a header). */
-    mediaUrl(token: string, mediaId: string, thumb = false): string {
-      const base = `${pb.baseURL.replace(/\/$/, '')}${route(token)}/media/${encodeURIComponent(mediaId)}`
-      return thumb ? `${base}?thumb=100x100` : base
-    },
+    mediaUrl: (token: string, mediaId: string, thumb = false): string => mediaUrl(pb.baseURL, token, mediaId, thumb),
 
     /** The media of a comment link, fetched with the caller's token. */
-    async mediaBlob(token: string, mediaId: string): Promise<Blob> {
-      return wrapped(async () => {
-        const response = await fetch(this.mediaUrl(token, mediaId), { headers: { Authorization: pb.authStore.token } })
-        if (!response.ok) throw toBackendError(new Error('Media removed'))
-        return response.blob()
-      })
-    },
+    mediaBlob: (token: string, mediaId: string): Promise<Blob> => wrapped(() => fetchMedia(pb, mediaUrl(pb.baseURL, token, mediaId, false))),
 
     /** Edit grants only: comment links are reopened through the link itself. */
-    async myGrants(): Promise<Grant[]> {
-      return wrapped(async () => {
-        const rows = await pb.collection('link_grants').getFullList({ filter: "permission = 'edit'", sort: '-created' })
-        return rows.map((row) => ({ projectId: String(row.project), projectName: String(row.project_name), permission: row.permission as SharePermission }))
-      })
-    },
+    myGrants: (): Promise<Grant[]> => wrapped(() => editGrants(pb)),
   }
 }

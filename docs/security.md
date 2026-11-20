@@ -83,7 +83,7 @@ KWNTO is an **internal tool** for now. Some risks are knowingly accepted for tha
 
 - **Trash:** deleted projects, chapters and nodes stay recoverable for 30 days (admin setting), then are removed for good.
 - **Backups:** a script or command runs scheduled backups to a configurable destination. After the trash period, recovery is a backup restore by the admin. **Test the restore, not just the backup.** (planned)
-- **Offline edits** queue locally and are never discarded; sync conflicts ask which version to keep (design section 6.7).
+- **Offline edits** queue locally in the browser's IndexedDB (an outbox) and are never discarded: an entry leaves it only when the server accepted it, the server refused it (it then shows in the failed list until the person dismisses it), or the person chose `Keep theirs`. Sync conflicts ask which version to keep (design section 6.7). Entries carry the user id, so another account on the same browser never sees or sends them; signing out with waiting edits asks first and keeps them for the next sign-in. The outbox is readable by anyone with the browser profile (section 10).
 
 ## 8. Logging
 

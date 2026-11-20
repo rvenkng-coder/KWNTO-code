@@ -107,3 +107,13 @@ Date: 2026-11-16. The real collections and hook of the editor core plan (`backen
 **Found on the way:** live **create** events of nodes never arrived. The start-node hook ran the node's insert inside a transaction of its own, and PocketBase then sends no realtime create event for that record. Fixed in `projects.pb.js` (insert first, start node in its own transaction after) and pinned by a rule test; the same pattern on teams and projects is carried to Plan 7 (roadmap, "Carried over from Plan 3"). Delivery of updates and deletes, measured by the spike, was not affected.
 
 The decision stands: **GO with option 2**.
+
+## Plan 4: reconnect and offline sync
+
+Date: 2026-11-20. Offline queue, sync and conflicts of the offline sync plan (PocketBase JS SDK 0.28.2, PocketBase 0.40.6).
+
+- **The reconnect signal (finding E, how it is met):** the SDK sends the topic `PB_CONNECT` to its subscribers every time the event stream connects, after it has resubmitted the subscriptions, including after an automatic reconnect (`dist/pocketbase.es.mjs`, the `PB_CONNECT` listener of `initConnect`). The door counts them (`onReconnect` of `backend.content.subscribe`; the first connect is not a reconnect, and a stream that was already open counts as connected), and the editor loads the project again and lays the waiting edits over it. When the browser reports offline the live subscriptions are closed, and when the engine is online again they are opened first and the project is loaded after, so a teammate's save cannot fall between the two.
+- **The version is the counter (finding G):** an outbox entry keeps the `version` it was based on and the **values** of its fields before the edit. An edit made online that meets a 409 is retried silently as in Plan 3; only an edit made offline that meets a teammate's change to the same attribute asks the person (`Keep mine` or `Keep theirs`).
+- **Found on the way (all fixed, each with a test):** a stopped backend behind a proxy answers 502, 503 or 504 (or a bare 500 from the dev proxy), which is "cannot be reached", not a refusal; a project loaded again can be older than a save of my own that landed meanwhile, so my saves made while a load is under way are laid over it; after coming back online the subscription is opened before the load; `Keep theirs` still sends the fields of the entry that did not conflict.
+- **Funnel:** FUNNEL_RESULT
+

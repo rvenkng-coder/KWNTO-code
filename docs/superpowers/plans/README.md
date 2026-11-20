@@ -9,7 +9,7 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 | 1 | [Foundation and real-time spike](2026-11-11-foundation/README.md) | 1 | none | done |
 | 2 | [Accounts and teams](2026-11-12-accounts-teams/README.md) | 1 | 1 | done |
 | 3 | [Editor core](2026-11-14-editor-core/README.md) | 1 | 2 | done |
-| 4 | [Offline queue, sync and conflicts](2026-11-16-offline-sync/README.md) | 1 | 3 | planned |
+| 4 | [Offline queue, sync and conflicts](2026-11-16-offline-sync/README.md) | 1 | 3 | in progress |
 | 5 | Media upload, quota and strict file checks | 1 | 3 | outline |
 | 6 | Deployment | 1 | 2 (3 to 5 to test on) | outline |
 | 7 | Trash, share links, comments, presence, JSON import and export | 2 | 3, 4 | outline |
@@ -44,8 +44,19 @@ Found while building the editor core (2026-11-14 to 2026-11-16) and left out of 
 | Item | What and why | Plan |
 |---|---|---|
 | Live creates of teams and projects | A create hook that moves the record's own insert into a transaction (`e.app = txApp; e.next()`) makes PocketBase 0.40.6 send no realtime create event (found by Task 14 for nodes, fixed there). `teams.pb.js` and the project create hook in `projects.pb.js` still use it. Nothing subscribes to those creates today; a live team or project list (presence, Plan 7) would miss new ones. Restructure as the `nodes` hook does, with a rule test of the create event. | 7 |
-| Watch for a card re-mount loop | Once (Tasks 11 to 13 `npm test`), after switching back to Chapter 1 a node card kept re-mounting for 60 s ("element was detached from the DOM"). Not reproduced in 106 runs. If it shows again, capture a trace before rerunning. | 4 |
+| Watch for a card re-mount loop | Once (Tasks 11 to 13 `npm test`), after switching back to Chapter 1 a node card kept re-mounting for 60 s ("element was detached from the DOM"). Not reproduced in 106 runs. If it shows again, capture a trace before rerunning. Plan 4: no "detached" failure in the repeated runs of the offline and conflict specs (10 repeats, both browsers, several full `npm test` runs); keep watching. | 4 (watched, not seen) |
 | Hygiene checker false positives | `check:hygiene` reads `test.setTimeout(...)` and `test.info()` as new tests without a header, and `.fail` on any object (`fake.fail.next`) as Vitest's `.fail`. Match only test-defining calls. | tooling (next plan that touches it) |
+
+## Carried over from Plan 4
+
+Found while building the offline sync plan (2026-11-18 to 2026-11-20) and left out of it on purpose. The source is `.planning/2026-11-16-offline-sync/progress.md`.
+
+| Item | What and why | Plan |
+|---|---|---|
+| `Offline` shows only after an attempt | The top bar says `Offline` when the browser reports it or when a send finds the server unreachable. With the backend down and no edit made, nothing detects it; a dropped live connection does not change the status. Make the status follow the event stream. | 7 |
+| Opening a project needs the server | Edits are queued, reads are not: opening a project, switching teams, signing in or reloading fail while the backend is down. A read cache is a design decision (design 6.7 queues edits only). | developer decision |
+| Waiting edits are readable in the browser profile | Accepted while internal (security.md section 10, offline sync plan D10). Before a public release decide whether sign-out should offer to discard them. | 6 (before going public) |
+| Hand walk of the Flow | The ten-minute two-person walk (network off and on several times, every kind of conflict) was covered by the e2e specs `editor-offline` and `editor-conflicts` (field, position, deleted line, refused choice, two tabs, stopped backend), not by a person. | developer, with M8 and M9 |
 
 ## Later (developer decision, 2026-11-18)
 
@@ -104,7 +115,7 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 **Decide first:** how the guarded write hook is shared between collections; the decimal `sort_order` scheme for lines; undo history depth; `project_settings` (created with each project, rows made by a hook as in Plan 2).
 **Risks:** performance at 500 nodes and 5,000 lines (measured fine on the backend side, not yet on the canvas); the 409 retry path.
 
-### 4. Offline queue, sync and conflicts (planned; [detailed plan](2026-11-16-offline-sync/README.md))
+### 4. Offline queue, sync and conflicts (in progress; [detailed plan](2026-11-16-offline-sync/README.md))
 **Carried in from Plan 3:** the card re-mount watch (see [Carried over from Plan 3](#carried-over-from-plan-3)).
 **Goal:** edits go to IndexedDB first, sync later; keep-mine/keep-theirs on conflict; an "offline, N changes waiting" indicator.
 **Fixed already:** events missed while disconnected are not replayed, so refetch after every reconnect (finding E); `updated` alone is not a version, use the counter (finding G); queued writes carry the version they were based on. Confirm reconnect behaviour once through Funnel.

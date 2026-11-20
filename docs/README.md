@@ -15,8 +15,8 @@
 | **Developer** | [testing.md](developer/testing.md) | Test layers and commands |
 | **Developer** | [backend.md](developer/backend.md) | Backend development notes |
 | **Developer** | [styling.md](developer/styling.md) | Theme tokens, shared classes, the no-hex rule |
-| **User** | [editor.md](user/editor.md) | The editor: projects, chapters, canvas, script, undo, search, working together |
-| **Developer** | [editor.md](developer/editor.md) | Editor model and store, how an edit travels |
+| **User** | [editor.md](user/editor.md) | The editor: projects, chapters, canvas, script, undo, search, working together, working offline |
+| **Developer** | [editor.md](developer/editor.md) | Editor model and store, how an edit travels, the offline outbox and sync engine |
 | **Developer** | [test-plan-format.md](developer/test-plan-format.md) | The per-task Test plan block and `check:plan` |
 | **Developer** | [quality-limits.md](developer/quality-limits.md) | Function length, complexity and other limits on changed files, `check:quality` |
 | **Developer** | [check-task.md](developer/check-task.md) | `check:task`, the self-check every task ends with, and how to read its report |

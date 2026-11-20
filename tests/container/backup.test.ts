@@ -97,6 +97,8 @@ test('a restore brings back data, media files and the admin account', async () =
   expect(upload.status, await upload.clone().text()).toBe(200)
   const media = (await upload.json()) as { id: string; file: string }
 
+  // Backup names carry the second (manual_<UTC yyyymmdd_hhmmss>.zip): a second backup in the same second is refused.
+  await new Promise((resolve) => setTimeout(resolve, 1100))
   const before = new Set(manualZips())
   const made = backupNow(ADMIN_EMAIL, ADMIN_PASSWORD)
   expect(made.status, made.stderr).toBe(0)

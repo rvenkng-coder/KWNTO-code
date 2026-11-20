@@ -61,7 +61,7 @@ KWNTO is an **internal tool** for now. Some risks are knowingly accepted for tha
 
 | Risk | Defense | Check |
 |---|---|---|
-| **XSS** | React escapes text by default; the app shows plain text only | ESLint bans `dangerouslySetInnerHTML` **(planned)**; an end-to-end test saves `<script>` text as a node title and a comment and confirms it shows as text **(planned)** |
+| **XSS** | React escapes text by default; the app shows plain text only | ESLint bans `dangerouslySetInnerHTML` **(planned)**; an end-to-end test (`e2e/comments.spec.ts`) saves HTML as a node title and a comment, reloads, and confirms both show as text, nothing runs and no element is made |
 | **SQL injection** | PocketBase builds queries safely; the app never writes SQL | Rule tests send injection strings in filters; filters use bound parameters, never string concatenation **(planned)** |
 | **Broken access control** | Section 2 | The rule tests above |
 | **Malicious upload** | Section 4 | Byte detection, extension checks, quota race tests, and safe headers (`tests/rules/media.rules.test.ts`, `tests/rules/media.limits.rules.test.ts`, `tests/hooks/media-check.unit.test.ts`, `e2e/editor-media.spec.ts`) |

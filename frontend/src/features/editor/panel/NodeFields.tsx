@@ -8,6 +8,7 @@ import { Choices } from './Choices'
 import { Cues } from './Cues'
 import { MediaSection } from '../media/MediaSection.tsx'
 import { ScriptLines } from './ScriptLines'
+import { CommentsSection } from '../../comments/CommentsSection'
 
 const COLOR_NAMES = Object.keys(NODE_COLORS) as NodeColor[]
 
@@ -45,6 +46,7 @@ export function NodeFields({ node }: { node: StoryNode }) {
       <Cues projectId={node.projectId} nodeId={node.id} />
       <MediaSection node={node} />
       <Choices node={node} />
+      <CommentsSection nodeId={node.id} />
     </div>
   )
 }

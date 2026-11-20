@@ -20,6 +20,10 @@ Each row says what the link allows and when it was made.
 
 A **live** view follows the project: it refreshes by itself about every 30 seconds while the tab is open, and at once when the person comes back to the tab. A **snapshot** shows the project as it was when the link was made, until you republish it.
 
+## Commenting through a link
+
+People with a **Can comment** link click a node in the viewer and see its comments under the node's text, with a box to add their own. They can delete their own comments. Their comments appear for the team at once, with their account name. When you revoke the link they can no longer comment, and what they wrote stays.
+
 ## Republishing a snapshot
 
 Choose **Republish** on the snapshot's row. People who already have the link see the new version the next time they open or reload it.

@@ -4,6 +4,8 @@ import { errorMessage } from '../errorMessage'
 import { SignInForm } from '../auth/SignInForm'
 import { useSession } from '../auth/useSession'
 import { navigate } from '../shell/useRoute'
+import { CommentsSection } from '../comments/CommentsSection'
+import { useNodeComments } from '../comments/useNodeComments'
 import { ReadOnlyViewer } from './ReadOnlyViewer'
 import { shouldRefresh } from './shareModel'
 
@@ -86,6 +88,15 @@ function Refused({ message, signedIn }: { message: string; signedIn: boolean }) 
   )
 }
 
+// A comment link's viewer also shows each node's comments and lets the person write (D8).
+function CommentViewer({ open, token }: { open: Open; token: string }) {
+  useNodeComments(open.projectId, '')
+  return (
+    <ReadOnlyViewer projectId={open.projectId} file={open.file} token={token} needsSignIn
+      renderComments={(nodeId) => <CommentsSection nodeId={nodeId} />} />
+  )
+}
+
 /** The page behind `#/s/<token>` (design 5): works signed out for view links; comment and edit links ask for a sign-in first. */
 export function ShareScreen({ token }: { token: string }) {
   const { user } = useSession()
@@ -93,5 +104,6 @@ export function ShareScreen({ token }: { token: string }) {
   useLiveRefresh(state.status === 'viewing' ? state.open.kind : null, reload)
   if (state.status === 'loading') return <p>Opening the link…</p>
   if (state.status === 'refused') return <Refused message={state.message} signedIn={user !== null} />
-  return <ReadOnlyViewer projectId={state.open.projectId} file={state.open.file} token={token} needsSignIn={state.open.permission === 'comment'} />
+  if (state.open.permission === 'comment') return <CommentViewer open={state.open} token={token} />
+  return <ReadOnlyViewer projectId={state.open.projectId} file={state.open.file} token={token} needsSignIn={false} />
 }

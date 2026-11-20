@@ -176,6 +176,16 @@ If very many people save the same thing at the same moment and your change still
 
 If the team's owner removes you from the team, the project stays on your screen until you reload or open it again; then you see `This project does not exist or you are not a member of its team.`
 
+## Comments
+
+Select a node and scroll to **Comments** at the bottom of its panel. Comments are listed oldest first, each with its author's name and time. Type in **Add a comment** and choose **Comment** (up to 2,000 characters; line breaks are kept). A node with comments shows a small count on its card.
+
+- Everyone in the team sees new comments at once, without reloading, and so do people with a comment or edit link.
+- You can delete your own comments, and the team owner can delete any: choose **Delete**, then confirm in the row (**Delete this comment?**). A comment cannot be edited.
+- Comments are shown as plain text: anything that looks like formatting or code is shown exactly as typed.
+- Comments need a connection. Offline, **Comment** is disabled (**Comments need a connection.**) and nothing is queued.
+- Comments of a node go with it when the node is purged from the trash.
+
 ## Media
 
 You can attach audio, video and images to a node. They appear in the properties panel under **Media**:

@@ -128,7 +128,7 @@ test('a failed project trash keeps its error message', async ({ page }) => {
   await page.getByRole('button', { name: 'Move to trash' }).click()
   await expect(page.getByTestId('project-list').getByRole('alert')).toBeVisible()
   // A reload of the list would remount it; give that a moment to happen, then look again.
-  await page.waitForResponse((r) => r.url().includes('/api/collections/projects/records') && r.request().method() === 'GET').catch(() => undefined)
+  await page.waitForResponse((r) => r.url().includes('/api/collections/projects/records') && r.request().method() === 'GET', { timeout: 2000 }).catch(() => undefined)
   await expect(page.getByTestId('project-list').getByRole('alert')).toBeVisible()
   await expect(page.getByTestId('project-list')).toContainText('Story')
 })

@@ -100,12 +100,67 @@ describe('media store', () => {
     const file = new File(['x'], 'image.png')
     const p1 = useMediaStore.getState().upload('n1', file)
     const p2 = useMediaStore.getState().upload('n2', file)
-    expect(useMediaStore.getState().uploading).toEqual(['image.png', 'image.png'])
+    await vi.waitFor(() => expect(useMediaStore.getState().uploading).toEqual(['image.png', 'image.png']))
     first.resolve(media('m1'))
     await p1
     expect(useMediaStore.getState().uploading).toEqual(['image.png'])
     second.resolve(media('m22'))
     await p2
     expect(useMediaStore.getState().uploading).toEqual([])
+  })
+
+  // Protects: the pre-check reads the storage fresh, so stale numbers neither refuse a file that fits nor let one through.
+  test('an upload is judged by fresh storage, not the value from when the project opened', async () => {
+    door.list.mockResolvedValue([])
+    await useMediaStore.getState().open('A')
+    // Opened with a full quota; a teammate has since deleted files
+    useMediaStore.setState({ storage: { ...STORAGE, usedBytes: 1000 } })
+    door.upload.mockResolvedValueOnce(media('m1'))
+    await useMediaStore.getState().upload('n1', new File(['x'], 'a.png'))
+    expect(door.upload).toHaveBeenCalledTimes(1)
+    expect(useMediaStore.getState().error).toBeNull()
+
+    // Now the other way: the fresh value says full, the cached one said there was room
+    useMediaStore.setState({ storage: STORAGE })
+    door.storage.mockResolvedValueOnce({ ...STORAGE, usedBytes: 1000 })
+    await useMediaStore.getState().upload('n1', new File(['x'], 'b.png'))
+    expect(door.upload).toHaveBeenCalledTimes(1)
+    expect(useMediaStore.getState().error).toContain('Not enough storage')
+  })
+
+  // Protects: when the fresh read fails, the last known storage still gates the upload.
+  test('a failed storage read falls back to the last known value', async () => {
+    door.list.mockResolvedValue([])
+    await useMediaStore.getState().open('A')
+    useMediaStore.setState({ storage: { ...STORAGE, usedBytes: 1000 } })
+    door.storage.mockRejectedValueOnce(new Error('offline'))
+    await useMediaStore.getState().upload('n1', new File(['x'], 'a.png'))
+    expect(door.upload).not.toHaveBeenCalled()
+    expect(useMediaStore.getState().error).toContain('Not enough storage')
+  })
+
+  // Protects: when storage answers arrive out of order, the newest request wins, not the last to arrive.
+  test('an older storage answer arriving late does not overwrite a newer one', async () => {
+    door.list.mockResolvedValue([])
+    let emit: (e: MediaEvent) => void = () => {}
+    door.subscribe.mockImplementationOnce((_p: string, cb: (e: MediaEvent) => void) => {
+      emit = cb
+      return Promise.resolve(() => {})
+    })
+    await useMediaStore.getState().open('A')
+
+    const first = deferred<typeof STORAGE>()
+    const second = deferred<typeof STORAGE>()
+    door.storage.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise)
+    emit({ action: 'create', record: media('x1') })
+    emit({ action: 'delete', record: media('x1') })
+    await vi.waitFor(() => expect(door.storage).toHaveBeenCalledTimes(3))
+
+    second.resolve({ ...STORAGE, usedBytes: 0 })
+    await vi.waitFor(() => expect(useMediaStore.getState().storage?.usedBytes).toBe(0))
+    first.resolve({ ...STORAGE, usedBytes: 1000 })
+    await Promise.resolve()
+    await Promise.resolve()
+    expect(useMediaStore.getState().storage?.usedBytes).toBe(0)
   })
 })

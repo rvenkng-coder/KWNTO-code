@@ -157,6 +157,8 @@ test('removing a file hides it and only deleting for good frees its space', asyn
   await input.setInputFiles({ name: 'a.png', mimeType: 'image/png', buffer: PNG_1PX })
   await saved
   await expect(mediaItems(page)).toHaveCount(1)
+  // The meter follows the upload a moment later; wait for the real reading before comparing against it.
+  await expect(storageMeter(page)).not.toHaveText(meterBefore ?? '')
   const meterWithFile = await storageMeter(page).textContent()
 
   const item = mediaItems(page).first()

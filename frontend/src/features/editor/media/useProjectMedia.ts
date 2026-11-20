@@ -48,6 +48,18 @@ function forProject(projectId: string, set: SetFn): SetFn {
 
 export const FILE_TOKEN_REFRESH_MS = 45_000
 
+// Several reads of the lead's storage can be in flight at once (a live event, the end of an upload,
+// a removal). Answers can arrive out of order, so only the newest request may write the store;
+// an older answer would show numbers from before the latest change.
+let latestStorageRequest = 0
+
+async function readStorage(projectId: string, set: SetFn): Promise<StorageInfo> {
+  const mine = ++latestStorageRequest
+  const info = await backend.media.storage(projectId)
+  if (mine === latestStorageRequest) set(() => ({ storage: info }))
+  return info
+}
+
 async function refreshFileToken(get: () => MediaStoreState, set: SetFn): Promise<void> {
   const { projectId } = get()
   if (!projectId) return
@@ -76,8 +88,7 @@ async function openProjectMedia(projectId: string, rawSet: SetFn): Promise<() =>
       }
       set((s) => ({ media: applyMediaEvent(s.media, event) }))
       try {
-        const storageInfo = await backend.media.storage(projectId)
-        set(() => ({ storage: storageInfo }))
+        await readStorage(projectId, set)
       } catch {
         // storage refresh failure does not block live events
       }
@@ -87,14 +98,13 @@ async function openProjectMedia(projectId: string, rawSet: SetFn): Promise<() =>
   }
 
   try {
-    const [mediaList, storageInfo, token] = await Promise.all([
+    const [mediaList, , token] = await Promise.all([
       backend.media.list(projectId),
-      backend.media.storage(projectId),
+      readStorage(projectId, set),
       backend.media.fileToken(),
     ])
     set(() => ({
       media: early.reduce(applyMediaEvent, mediaList),
-      storage: storageInfo,
       fileToken: token,
     }))
   } catch (err) {
@@ -111,9 +121,18 @@ async function uploadProjectMedia(
   get: () => MediaStoreState,
   rawSet: SetFn,
 ): Promise<void> {
-  const { storage, projectId } = get()
+  const { projectId } = get()
   if (!projectId) return
   const set = forProject(projectId, rawSet)
+
+  // The lead's storage changes whenever any teammate uploads or deletes, so read it fresh before
+  // judging the file. If that fails, judge by the last known value; the server decides anyway.
+  let storage = get().storage
+  try {
+    storage = await readStorage(projectId, set)
+  } catch {
+    // keep the last known value
+  }
 
   if (storage) {
     const problem = earlyProblem({ name: file.name, size: file.size }, storage)
@@ -127,11 +146,11 @@ async function uploadProjectMedia(
   try {
     const created = await backend.media.upload(projectId, nodeId, file)
     set((s) => ({ media: applyMediaEvent(s.media, { action: 'create', record: created }) }))
-    const [storageInfo, token] = await Promise.all([
-      backend.media.storage(projectId),
+    const [, token] = await Promise.all([
+      readStorage(projectId, set),
       backend.media.fileToken(),
     ])
-    set(() => ({ storage: storageInfo, fileToken: token }))
+    set(() => ({ fileToken: token }))
   } catch (err) {
     set(() => ({ error: extractErrorMessage(err) }))
   } finally {
@@ -162,8 +181,7 @@ async function changeProjectMedia(
       const record = await backend.media[action](m.id)
       set((s) => ({ media: applyMediaEvent(s.media, { action: 'update', record }) }))
     }
-    const storageInfo = await backend.media.storage(projectId)
-    set(() => ({ storage: storageInfo }))
+    await readStorage(projectId, set)
   } catch (err) {
     set(() => ({ error: extractErrorMessage(err) }))
   }

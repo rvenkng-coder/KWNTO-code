@@ -33,3 +33,4 @@ spike/realtime/results/
 *.njsproj
 *.sln
 *.sw?
+backups/

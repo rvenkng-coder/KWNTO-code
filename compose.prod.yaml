@@ -1,0 +1,116 @@
+# Production stack (design 7b, plan 6 D1, D5, D6). Start it with: docker compose -f compose.prod.yaml up -d --build
+# Secrets come from .env on the VM (see .env.example); nothing here holds a secret.
+# Images are pinned by digest (docs/decisions/0004-deployment-images.md).
+services:
+  # One-shot: builds the web app into the kwnto-web volume, then exits.
+  web:
+    image: node@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a # node:22-alpine
+    working_dir: /build
+    volumes:
+      - .:/src:ro
+      - kwnto-web:/out
+    command:
+      - sh
+      - -c
+      - >-
+        tar -C /src --exclude=./node_modules --exclude=./dist --exclude=./.git --exclude=./backups -cf - .
+        | tar -C /build -xf -
+        && npm ci && npm run build
+        && find /out -mindepth 1 -delete && cp -r dist/. /out/
+    tmpfs:
+      - /build:mode=1777
+      - /tmp
+    environment:
+      HOME: /tmp
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: "no"
+
+  pocketbase:
+    build: ./backend
+    image: kwnto-pocketbase:dev
+    environment:
+      KWNTO_ADMIN_EMAIL: ${KWNTO_ADMIN_EMAIL:-}
+      KWNTO_ADMIN_PASSWORD: ${KWNTO_ADMIN_PASSWORD:-}
+      KWNTO_PRODUCTION: ${KWNTO_PRODUCTION:-}
+      KWNTO_PUBLIC_URL: ${KWNTO_PUBLIC_URL:-}
+    volumes:
+      - kwnto-data:/pb/pb_data
+      - kwnto-web:/pb/pb_public:ro
+    depends_on:
+      web:
+        condition: service_completed_successfully
+    networks: [kwnto-edge]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8090/api/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  # The only thing Tailscale publishes on the internet (D5). Listens on 8080 inside the network.
+  caddy:
+    image: caddy@sha256:003a97808e781aa9f7e75cc2f43d34d461099031faf5e20faefb9f61126836f0 # caddy:2-alpine
+    user: "10002:10002"
+    environment:
+      KWNTO_MAX_REQUEST_MB: ${KWNTO_MAX_REQUEST_MB:-1024}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      pocketbase:
+        condition: service_healthy
+    networks: [kwnto-edge]
+    read_only: true
+    tmpfs:
+      - /data:uid=10002,gid=10002
+      - /config:uid=10002,gid=10002
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/api/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  # Funnel on 443 to Caddy; tailnet-only 8443 to PocketBase for the admin (deploy/tailscale-serve.json).
+  # Needs /dev/net/tun. If the VM has none, replace `devices` with TS_USERSPACE=true (docs/admin/deployment guide).
+  tailscale:
+    image: tailscale/tailscale@sha256:72c1e19e0aedca96b8533bbb0b4368564410ff20b17e53b804eb6c1f04a31be4 # tailscale/tailscale:stable
+    hostname: ${TS_HOSTNAME:-kwnto}
+    environment:
+      TS_AUTHKEY: ${TS_AUTHKEY:-}
+      TS_HOSTNAME: ${TS_HOSTNAME:-kwnto}
+      TS_STATE_DIR: /var/lib/tailscale
+      TS_SERVE_CONFIG: /config/serve.json
+    volumes:
+      - kwnto-tailscale:/var/lib/tailscale
+      - ./deploy/tailscale-serve.json:/config/serve.json:ro
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add: [NET_ADMIN]
+    depends_on:
+      caddy:
+        condition: service_healthy
+      pocketbase:
+        condition: service_healthy
+    networks:
+      kwnto-edge:
+        ipv4_address: 172.30.0.2
+    restart: unless-stopped
+
+networks:
+  kwnto-edge:
+    name: kwnto-edge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+
+volumes:
+  kwnto-data:
+  kwnto-web:
+  kwnto-tailscale:

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import type { Media, MediaEvent, StorageInfo } from '../../../backend/media-types.ts'
-import { applyMediaEvent, mediaOf, meterText } from './mediaList.ts'
+import { applyMediaEvent, mediaOf, meterText, removedOf } from './mediaList.ts'
 
 function makeMedia(id: string, nodeId: string, created: string): Media {
   return {
@@ -13,6 +13,7 @@ function makeMedia(id: string, nodeId: string, created: string): Media {
     sizeBytes: 100,
     fileName: `f_${id}.png`,
     created,
+    removedAt: '',
   }
 }
 
@@ -59,7 +60,27 @@ describe('mediaList', () => {
         image: 50 * 1048576,
       },
       allowedTypes: ['wav', 'mp3', 'mov', 'mp4', 'jpeg', 'png'],
+      isLead: false,
     }
     expect(meterText(info)).toBe('Storage: 1 KB of 2.0 GB used')
+  })
+})
+
+describe('removed media', () => {
+  // Protects: a removed file leaves the node's list at once, comes back for the lead's list, and an update event swaps the record.
+  test('removed media is hidden from the node and listed for the lead', () => {
+    const kept = makeMedia('m1', 'node-a', '2026-11-19 10:00:00.000Z')
+    const gone = makeMedia('m2', 'node-a', '2026-11-19 10:01:00.000Z')
+
+    let list = [kept, gone]
+    list = applyMediaEvent(list, { action: 'update', record: { ...gone, removedAt: '2026-11-20 09:00:00.000Z' } })
+
+    expect(list).toHaveLength(2)
+    expect(mediaOf(list, 'node-a').map((m) => m.id)).toEqual(['m1'])
+    expect(removedOf(list, 'node-a').map((m) => m.id)).toEqual(['m2'])
+
+    list = applyMediaEvent(list, { action: 'update', record: gone })
+    expect(mediaOf(list, 'node-a')).toHaveLength(2)
+    expect(removedOf(list, 'node-a')).toHaveLength(0)
   })
 })

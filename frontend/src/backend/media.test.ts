@@ -14,6 +14,7 @@ describe('media mapping', () => {
       size_bytes: 2048,
       file: 'abcde1234567890.png',
       created: '2026-11-19 09:00:00.000Z',
+      removed_at: '',
     }
 
     const mapped = fromMediaRecord(raw)
@@ -27,7 +28,11 @@ describe('media mapping', () => {
       sizeBytes: 2048,
       fileName: 'abcde1234567890.png',
       created: '2026-11-19 09:00:00.000Z',
+      removedAt: '',
     })
+
+    // A removed file carries its removal time
+    expect(fromMediaRecord({ ...raw, removed_at: '2026-11-20 08:00:00.000Z' }).removedAt).toBe('2026-11-20 08:00:00.000Z')
 
     // Unknown kind throws
     expect(() => fromMediaRecord({ ...raw, kind: 'executable' })).toThrow(/unknown kind/i)

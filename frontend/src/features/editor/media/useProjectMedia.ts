@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { create } from 'zustand'
 import { backend } from '../../../backend/index.ts'
-import type { Media, StorageInfo } from '../../../backend/media-types.ts'
+import type { Media, MediaEvent, StorageInfo } from '../../../backend/media-types.ts'
 import { applyMediaEvent } from './mediaList.ts'
 import { earlyProblem } from './uploadCheck.ts'
 
@@ -16,7 +16,10 @@ interface MediaStoreState {
   close(): void
   upload(nodeId: string, file: File): Promise<void>
   remove(m: Media): Promise<void>
+  restore(m: Media): Promise<void>
+  deletePermanently(m: Media): Promise<void>
   setError(err: string | null): void
+  refreshFileToken(): Promise<void>
 }
 
 function extractErrorMessage(err: unknown): string {
@@ -35,41 +38,82 @@ function extractErrorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err)
 }
 
-async function openProjectMedia(
-  projectId: string,
-  set: (fn: (s: MediaStoreState) => Partial<MediaStoreState>) => void,
-): Promise<() => void> {
-  set(() => ({ projectId, error: null }))
+type SetFn = (fn: (s: MediaStoreState) => Partial<MediaStoreState>) => void
+
+// Writes for one project only land while that project is still the open one,
+// so a response that arrives after a switch is dropped.
+function forProject(projectId: string, set: SetFn): SetFn {
+  return (fn) => set((s) => (s.projectId === projectId ? fn(s) : {}))
+}
+
+export const FILE_TOKEN_REFRESH_MS = 45_000
+
+async function refreshFileToken(get: () => MediaStoreState, set: SetFn): Promise<void> {
+  const { projectId } = get()
+  if (!projectId) return
   try {
-    const [mediaList, storageInfo, token] = await Promise.all([
-      backend.media.list(projectId),
-      backend.media.storage(),
-      backend.media.fileToken(),
-    ])
-    set(() => ({ media: mediaList, storage: storageInfo, fileToken: token }))
+    const token = await backend.media.fileToken()
+    forProject(projectId, set)(() => ({ fileToken: token }))
+  } catch {
+    // keep the old token; the next tick tries again
+  }
+}
+
+async function openProjectMedia(projectId: string, rawSet: SetFn): Promise<() => void> {
+  rawSet(() => ({ projectId, error: null }))
+  const set = forProject(projectId, rawSet)
+
+  // Subscribe first so nothing between the list fetch and the subscription is lost;
+  // events that arrive before the list is loaded are replayed over it.
+  let loaded = false
+  const early: MediaEvent[] = []
+  let unsubscribe: () => void = () => {}
+  try {
+    unsubscribe = await backend.media.subscribe(projectId, async (event) => {
+      if (!loaded) {
+        early.push(event)
+        return
+      }
+      set((s) => ({ media: applyMediaEvent(s.media, event) }))
+      try {
+        const storageInfo = await backend.media.storage(projectId)
+        set(() => ({ storage: storageInfo }))
+      } catch {
+        // storage refresh failure does not block live events
+      }
+    })
   } catch (err) {
     set(() => ({ error: extractErrorMessage(err) }))
   }
 
-  return backend.media.subscribe(projectId, async (event) => {
-    set((s) => ({ media: applyMediaEvent(s.media, event) }))
-    try {
-      const storageInfo = await backend.media.storage()
-      set(() => ({ storage: storageInfo }))
-    } catch {
-      // storage refresh failure does not block live events
-    }
-  })
+  try {
+    const [mediaList, storageInfo, token] = await Promise.all([
+      backend.media.list(projectId),
+      backend.media.storage(projectId),
+      backend.media.fileToken(),
+    ])
+    set(() => ({
+      media: early.reduce(applyMediaEvent, mediaList),
+      storage: storageInfo,
+      fileToken: token,
+    }))
+  } catch (err) {
+    set(() => ({ error: extractErrorMessage(err) }))
+  }
+  loaded = true
+
+  return unsubscribe
 }
 
 async function uploadProjectMedia(
   nodeId: string,
   file: File,
   get: () => MediaStoreState,
-  set: (fn: (s: MediaStoreState) => Partial<MediaStoreState>) => void,
+  rawSet: SetFn,
 ): Promise<void> {
   const { storage, projectId } = get()
   if (!projectId) return
+  const set = forProject(projectId, rawSet)
 
   if (storage) {
     const problem = earlyProblem({ name: file.name, size: file.size }, storage)
@@ -84,25 +128,41 @@ async function uploadProjectMedia(
     const created = await backend.media.upload(projectId, nodeId, file)
     set((s) => ({ media: applyMediaEvent(s.media, { action: 'create', record: created }) }))
     const [storageInfo, token] = await Promise.all([
-      backend.media.storage(),
+      backend.media.storage(projectId),
       backend.media.fileToken(),
     ])
     set(() => ({ storage: storageInfo, fileToken: token }))
   } catch (err) {
     set(() => ({ error: extractErrorMessage(err) }))
   } finally {
-    set((s) => ({ uploading: s.uploading.filter((name) => name !== file.name) }))
+    // Drop one entry only, so a second upload with the same name keeps its indicator.
+    set((s) => {
+      const i = s.uploading.indexOf(file.name)
+      return { uploading: i === -1 ? s.uploading : s.uploading.filter((_, j) => j !== i) }
+    })
   }
 }
 
-async function removeProjectMedia(
+// Remove and restore change the record (an `update`); delete for good erases it. Each refreshes the
+// meter, since the lead's storage only shrinks on the last one.
+async function changeProjectMedia(
   m: Media,
-  set: (fn: (s: MediaStoreState) => Partial<MediaStoreState>) => void,
+  action: 'remove' | 'restore' | 'delete',
+  get: () => MediaStoreState,
+  rawSet: SetFn,
 ): Promise<void> {
+  const { projectId } = get()
+  if (!projectId) return
+  const set = forProject(projectId, rawSet)
   try {
-    await backend.media.remove(m.id)
-    set((s) => ({ media: applyMediaEvent(s.media, { action: 'delete', record: m }) }))
-    const storageInfo = await backend.media.storage()
+    if (action === 'delete') {
+      await backend.media.deletePermanently(m.id)
+      set((s) => ({ media: applyMediaEvent(s.media, { action: 'delete', record: m }) }))
+    } else {
+      const record = await backend.media[action](m.id)
+      set((s) => ({ media: applyMediaEvent(s.media, { action: 'update', record }) }))
+    }
+    const storageInfo = await backend.media.storage(projectId)
     set(() => ({ storage: storageInfo }))
   } catch (err) {
     set(() => ({ error: extractErrorMessage(err) }))
@@ -117,10 +177,13 @@ export const useMediaStore = create<MediaStoreState>((set, get) => ({
   error: null,
   fileToken: null,
   setError: (error) => set({ error }),
+  refreshFileToken: () => refreshFileToken(get, set),
   open: (projectId) => openProjectMedia(projectId, set),
   close: () => set({ projectId: null, media: [], storage: null, uploading: [], error: null, fileToken: null }),
   upload: (nodeId, file) => uploadProjectMedia(nodeId, file, get, set),
-  remove: (m) => removeProjectMedia(m, set),
+  remove: (m) => changeProjectMedia(m, 'remove', get, set),
+  restore: (m) => changeProjectMedia(m, 'restore', get, set),
+  deletePermanently: (m) => changeProjectMedia(m, 'delete', get, set),
 }))
 
 export function useProjectMedia(projectId: string | null): {
@@ -157,8 +220,13 @@ export function useProjectMedia(projectId: string | null): {
       }
     })
 
+    const timer = setInterval(() => {
+      void useMediaStore.getState().refreshFileToken()
+    }, FILE_TOKEN_REFRESH_MS)
+
     return () => {
       cancelled = true
+      clearInterval(timer)
       if (unsub) unsub()
       useMediaStore.getState().close()
     }

@@ -6,19 +6,19 @@ import { formatSize } from './uploadCheck.ts'
 interface MediaItemProps {
   media: Media
   token: string
-  onDelete: (media: Media) => Promise<void>
+  onRemove: (media: Media) => Promise<void>
 }
 
-export function MediaItem({ media, token, onDelete }: MediaItemProps) {
+export function MediaItem({ media, token, onRemove }: MediaItemProps) {
   const [confirming, setConfirming] = useState(false)
-  const [deleting, setDeleting] = useState(false)
+  const [removing, setRemoving] = useState(false)
 
-  const handleDelete = async () => {
-    setDeleting(true)
+  const handleRemove = async () => {
+    setRemoving(true)
     try {
-      await onDelete(media)
+      await onRemove(media)
     } finally {
-      setDeleting(false)
+      setRemoving(false)
       setConfirming(false)
     }
   }
@@ -51,7 +51,7 @@ export function MediaItem({ media, token, onDelete }: MediaItemProps) {
             className="btn btn-sm self-center text-xs"
             onClick={() => setConfirming(true)}
           >
-            Delete
+            Remove
           </button>
         )}
       </div>
@@ -66,20 +66,20 @@ export function MediaItem({ media, token, onDelete }: MediaItemProps) {
 
       {confirming && (
         <div className="flex flex-col gap-1 border-t border-border pt-2 text-xs">
-          <span>Delete {media.title}? This cannot be undone.</span>
+          <span>Remove {media.title} from this node? The team lead can bring it back.</span>
           <div className="flex gap-2">
             <button
               type="button"
               className="btn btn-sm btn-danger text-xs"
-              disabled={deleting}
-              onClick={() => void handleDelete()}
+              disabled={removing}
+              onClick={() => void handleRemove()}
             >
-              Delete
+              Remove
             </button>
             <button
               type="button"
               className="btn btn-sm text-xs"
-              disabled={deleting}
+              disabled={removing}
               onClick={() => setConfirming(false)}
             >
               Cancel

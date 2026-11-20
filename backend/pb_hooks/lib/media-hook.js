@@ -1,22 +1,34 @@
 // Media hook implementation helpers for PocketBase JS hooks.
 
-function getUploaderUsedBytes(app, userId) {
+// Storage belongs to the team owner (the lead): every file in the team's projects counts
+// against the owner's quota, whoever uploaded it and whether or not it is removed.
+function getTeamOwnerId(app, projectId) {
+  const project = app.findRecordById("projects", projectId)
+  return app.findRecordById("teams", project.getString("team")).getString("owner")
+}
+
+function getOwnerUsedBytes(app, ownerId) {
   const row = new DynamicModel({ total: 0 })
   app.db()
-    .newQuery("SELECT COALESCE(SUM(size_bytes), 0) AS total FROM media WHERE uploader = {:user}")
-    .bind({ user: userId })
+    .newQuery(
+      "SELECT COALESCE(SUM(m.size_bytes), 0) AS total FROM media m " +
+      "JOIN projects p ON p.id = m.project JOIN teams t ON t.id = p.team WHERE t.owner = {:owner}"
+    )
+    .bind({ owner: ownerId })
     .one(row)
   return Number(row.total) || 0
 }
 
-function getUploaderQuota(app, userId, defaultQuotaBytes, quotaFor) {
+function getOwnerQuota(app, userId, defaultQuotaBytes, quotaFor) {
+  let limitRow
   try {
-    const limitRow = app.findFirstRecordByFilter("user_limits", "user = {:user}", { user: userId })
-    const override = limitRow.getInt("quota_override_bytes")
-    return quotaFor(defaultQuotaBytes, override)
-  } catch {
-    return defaultQuotaBytes
+    limitRow = app.findFirstRecordByFilter("user_limits", "user = {:user}", { user: userId })
+  } catch (err) {
+    // No override row means the default quota; any other failure must not silently change the quota.
+    if (String(err).includes("no rows")) return defaultQuotaBytes
+    throw err
   }
+  return quotaFor(defaultQuotaBytes, limitRow.getInt("quota_override_bytes"))
 }
 
 function checkAndThrow(input, checkUpload) {
@@ -38,13 +50,18 @@ function prepareUploadRecord(e, deps) {
   if (!file || typeof file !== "object") {
     throw new BadRequestError("File is required")
   }
-  const uploaderId = e.record.getString("uploader")
+  const ownerId = getTeamOwnerId(e.app, e.record.getString("project"))
   const settings = deps.getSystemStorage(e.app)
-  const quotaBytes = getUploaderQuota(e.app, uploaderId, settings.defaultQuotaBytes, deps.quotaFor)
-  const usedBytes = getUploaderUsedBytes(e.app, uploaderId)
+  const quotaBytes = getOwnerQuota(e.app, ownerId, settings.defaultQuotaBytes, deps.quotaFor)
+  const usedBytes = getOwnerUsedBytes(e.app, ownerId)
 
   const reader = file.reader.open()
-  const head = toBytes(reader, 16)
+  let head
+  try {
+    head = toBytes(reader, 16)
+  } finally {
+    reader.close()
+  }
   const originalName = file.originalName || file.name
 
   const check = checkAndThrow({
@@ -65,14 +82,14 @@ function prepareUploadRecord(e, deps) {
   const randomName = $security.randomStringWithAlphabet(15, "abcdefghijklmnopqrstuvwxyz0123456789")
   file.name = `${randomName}.${ext}`
 
-  return { file, originalName, head, settings, quotaBytes, uploaderId }
+  return { file, originalName, head, settings, quotaBytes, ownerId }
 }
 
 function verifyRaceQuota(e, deps, prep) {
   let quotaExceeded = false
   let usedBefore = 0
   e.app.runInTransaction((txApp) => {
-    const records = txApp.findRecordsByFilter("media", "uploader = {:user}", "", 0, 0, { user: prep.uploaderId })
+    const records = txApp.findRecordsByFilter("media", "project.team.owner = {:owner}", "", 0, 0, { owner: prep.ownerId })
     const rows = records.map((r) => ({
       id: r.id,
       created: r.getString("created"),
@@ -96,6 +113,10 @@ function verifyRaceQuota(e, deps, prep) {
       usedBytes: usedBefore,
       quotaBytes: prep.quotaBytes,
     }, deps.checkUpload)
+    // The record is already deleted: never report this create as a success.
+    throw new BadRequestError("Not enough storage.", {
+      file: new ValidationError("media_over_quota", "Not enough storage."),
+    })
   }
 }
 
@@ -142,15 +163,30 @@ function handleStorageRoute(e) {
     throw new ForbiddenError("Verify your email address first.")
   }
 
-  const userId = e.auth.id
+  // The meter is the team lead's storage for one project, so the caller must be on its team.
+  const projectId = e.request.url.query().get("project")
+  if (!projectId) {
+    throw new BadRequestError("project is required")
+  }
+  let ownerId
+  try {
+    const teamId = e.app.findRecordById("projects", projectId).getString("team")
+    e.app.findFirstRecordByFilter("team_members", "team = {:team} && user = {:user}", { team: teamId, user: e.auth.id })
+    ownerId = e.app.findRecordById("teams", teamId).getString("owner")
+  } catch (err) {
+    if (String(err).includes("no rows")) throw new NotFoundError("Project not found.")
+    throw err
+  }
+
   const settings = getSystemStorage(e.app)
-  const quotaBytes = getUploaderQuota(e.app, userId, settings.defaultQuotaBytes, quotaFor)
-  const usedBytes = getUploaderUsedBytes(e.app, userId)
+  const quotaBytes = getOwnerQuota(e.app, ownerId, settings.defaultQuotaBytes, quotaFor)
+  const usedBytes = getOwnerUsedBytes(e.app, ownerId)
 
   const MIB = 1048576
   return e.json(200, {
     usedBytes,
     quotaBytes,
+    isLead: ownerId === e.auth.id,
     maxBytes: {
       audio: settings.maxMb.audio * MIB,
       video: settings.maxMb.video * MIB,
@@ -160,8 +196,28 @@ function handleStorageRoute(e) {
   })
 }
 
+// Media is never edited: the only change allowed is hiding it (`removed_at` set) by any member,
+// and bringing it back (cleared) by the team owner. The update rule has already checked membership.
+function handleMediaUpdate(e) {
+  const { changedFields } = require(`${__hooks}/lib/content-guard.js`)
+  const names = []
+  for (const field of e.record.collection().fields) names.push(field.getName())
+  const original = e.record.original()
+  const changed = changedFields(names, (n) => e.record.get(n), (n) => original.get(n))
+
+  if (changed.some((name) => name !== "removed_at")) {
+    throw new BadRequestError("Media can only be removed or restored.")
+  }
+  const restoring = changed.includes("removed_at") && e.record.getString("removed_at") === ""
+  if (restoring && getTeamOwnerId(e.app, e.record.getString("project")) !== e.auth.id) {
+    throw new ForbiddenError("Only the team lead can restore media.")
+  }
+  e.next()
+}
+
 module.exports = {
   handleMediaCreate,
   handleFileDownload,
+  handleMediaUpdate,
   handleStorageRoute,
 }

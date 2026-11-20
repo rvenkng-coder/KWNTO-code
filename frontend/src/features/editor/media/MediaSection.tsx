@@ -1,19 +1,12 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
 import type { StoryNode } from '../../../backend/index.ts'
 import { MediaItem } from './MediaItem.tsx'
-import { mediaOf } from './mediaList.ts'
+import { mediaOf, removedOf } from './mediaList.ts'
+import { RemovedMediaItem } from './RemovedMediaItem.tsx'
 import { StorageMeter } from './StorageMeter.tsx'
 import { useMediaStore } from './useProjectMedia.ts'
 
-export function MediaSection({ node }: { node: StoryNode }) {
-  const media = useMediaStore((s) => s.media)
-  const storage = useMediaStore((s) => s.storage)
-  const uploading = useMediaStore((s) => s.uploading)
-  const error = useMediaStore((s) => s.error)
-  const fileToken = useMediaStore((s) => s.fileToken)
-  const upload = useMediaStore((s) => s.upload)
-  const remove = useMediaStore((s) => s.remove)
-
+function useOnline(): boolean {
   const [isOnline, setIsOnline] = useState(
     typeof navigator !== 'undefined' ? navigator.onLine : true,
   )
@@ -28,6 +21,26 @@ export function MediaSection({ node }: { node: StoryNode }) {
       window.removeEventListener('offline', handleOffline)
     }
   }, [])
+  return isOnline
+}
+
+export function MediaSection({ node }: { node: StoryNode }) {
+  const media = useMediaStore((s) => s.media)
+  const storage = useMediaStore((s) => s.storage)
+  const uploading = useMediaStore((s) => s.uploading)
+  const error = useMediaStore((s) => s.error)
+  const fileToken = useMediaStore((s) => s.fileToken)
+  const upload = useMediaStore((s) => s.upload)
+  const remove = useMediaStore((s) => s.remove)
+  const restore = useMediaStore((s) => s.restore)
+  const deletePermanently = useMediaStore((s) => s.deletePermanently)
+
+  const isOnline = useOnline()
+
+  // An error belongs to the node it happened on.
+  useEffect(() => {
+    useMediaStore.getState().setError(null)
+  }, [node.id])
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -38,6 +51,7 @@ export function MediaSection({ node }: { node: StoryNode }) {
   }
 
   const nodeMedia = mediaOf(media, node.id)
+  const removedMedia = storage?.isLead ? removedOf(media, node.id) : []
 
   return (
     <div data-testid="media-section" className="flex flex-col gap-2 border-t border-border pt-2">
@@ -70,17 +84,26 @@ export function MediaSection({ node }: { node: StoryNode }) {
         </div>
       )}
 
-      {uploading.map((title) => (
-        <p key={title} className="text-xs text-muted">
+      {uploading.map((title, i) => (
+        <p key={`${i}-${title}`} className="text-xs text-muted">
           Uploading {title}…
         </p>
       ))}
 
       <div className="flex flex-col gap-2">
         {nodeMedia.map((m) => (
-          <MediaItem key={m.id} media={m} token={fileToken ?? ''} onDelete={remove} />
+          <MediaItem key={m.id} media={m} token={fileToken ?? ''} onRemove={remove} />
         ))}
       </div>
+
+      {removedMedia.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <h5 className="text-xs font-semibold">Removed by the team</h5>
+          {removedMedia.map((m) => (
+            <RemovedMediaItem key={m.id} media={m} onRestore={restore} onDeletePermanently={deletePermanently} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

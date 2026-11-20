@@ -187,7 +187,7 @@ describe('media limits and quota rules', () => {
     expect(rows[0].size_bytes).toBe(600)
 
     const pb = await asUser(owner)
-    const storageRes = await rawSend(pb.authStore.token, '/api/kwnto/storage')
+    const storageRes = await rawSend(pb.authStore.token, `/api/kwnto/storage?project=${projectId}`)
     if (storageRes.status === 200) {
       const storage = await storageRes.json()
       expect(storage.usedBytes).toBe(600)

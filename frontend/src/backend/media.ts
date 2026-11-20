@@ -24,6 +24,7 @@ export function fromMediaRecord(row: Record<string, unknown>): Media {
     sizeBytes: typeof row.size_bytes === 'number' ? row.size_bytes : 0,
     fileName: str(row.file),
     created: str(row.created),
+    removedAt: str(row.removed_at),
   }
 }
 
@@ -51,7 +52,7 @@ function subscribeMedia(pb: PocketBase, projectId: string, onEvent: (e: MediaEve
   return pb.collection('media').subscribe(
     '*',
     (e) => {
-      if (e.action === 'create' || e.action === 'delete') {
+      if (e.action === 'create' || e.action === 'update' || e.action === 'delete') {
         onEvent({
           action: e.action,
           record: fromMediaRecord(e.record as unknown as Record<string, unknown>),
@@ -82,12 +83,29 @@ export function createMedia(pb: PocketBase) {
         return fromMediaRecord(record as unknown as Record<string, unknown>)
       }),
 
-    remove: (id: string): Promise<void> =>
+    // Any member: hides the file; it stays in the lead's storage until the lead deletes it.
+    remove: (id: string): Promise<Media> =>
+      wrapped(async () => {
+        const record = await pb.collection('media').update(id, { removed_at: new Date().toISOString() })
+        return fromMediaRecord(record as unknown as Record<string, unknown>)
+      }),
+
+    // Team lead only.
+    restore: (id: string): Promise<Media> =>
+      wrapped(async () => {
+        const record = await pb.collection('media').update(id, { removed_at: '' })
+        return fromMediaRecord(record as unknown as Record<string, unknown>)
+      }),
+
+    // Team lead only: erases the file and frees the space.
+    deletePermanently: (id: string): Promise<void> =>
       wrapped(async () => {
         await pb.collection('media').delete(id)
       }),
 
-    storage: (): Promise<StorageInfo> => wrapped(() => pb.send<StorageInfo>('/api/kwnto/storage', { method: 'GET' })),
+    // The team lead's storage for the project: what every member's uploads count against.
+    storage: (projectId: string): Promise<StorageInfo> =>
+      wrapped(() => pb.send<StorageInfo>('/api/kwnto/storage', { method: 'GET', query: { project: projectId } })),
 
     fileUrl: (media: Media, token: string, thumb?: '100x100'): string => {
       const options = thumb ? { token, thumb } : { token }

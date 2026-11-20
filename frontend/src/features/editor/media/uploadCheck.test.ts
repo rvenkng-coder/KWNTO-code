@@ -14,6 +14,7 @@ describe('early upload check and formatSize', () => {
         image: 100 * 1048576,
       },
       allowedTypes: ['wav', 'mp3', 'mov', 'mp4', 'jpeg', 'png'],
+      isLead: false,
     }
 
     // a.gif -> type not allowed

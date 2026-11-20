@@ -6,6 +6,11 @@ onRecordCreate((e) => {
   handleMediaCreate(e)
 }, "media")
 
+onRecordUpdateRequest((e) => {
+  const { handleMediaUpdate } = require(`${__hooks}/lib/media-hook.js`)
+  handleMediaUpdate(e)
+}, "media")
+
 onFileDownloadRequest((e) => {
   const { handleFileDownload } = require(`${__hooks}/lib/media-hook.js`)
   handleFileDownload(e)

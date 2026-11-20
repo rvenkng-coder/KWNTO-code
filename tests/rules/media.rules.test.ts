@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from 'vitest'
 import { createNode, memberProject } from './helpers/content.ts'
-import { PNG_1PX, sampleBytes, uploadMedia } from './helpers/media.ts'
+import { PNG_1PX, sampleBytes, setQuotaOverride, uploadMedia } from './helpers/media.ts'
 import { asAdmin, asAnonymous, asUser, createUser, PB_URL, rawSend } from './helpers/pb.ts'
 import { addMember } from './helpers/teams.ts'
 
@@ -117,39 +117,112 @@ describe('media rules and collection', () => {
     expect(bytes).toEqual(PNG_1PX)
   })
 
-  // Protects: media is never edited and only members delete it (C4)
-  test('media is never edited and only members delete it', async () => {
+  // Protects: media is never edited; only the team lead deletes it (C4)
+  test('media is never edited and only the lead deletes it', async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
     const outsider = await createUser()
 
     const res = await uploadMedia(
-      owner,
+      member,
       { project: projectId, node: nodeId },
       { name: 'test.png', bytes: PNG_1PX },
     )
     expect(res.status).toBe(200)
     const record = await res.json()
 
-    // Member PATCHes title -> refused
+    // Member PATCHes title, size or file -> refused
     const memberPb = await asUser(member)
     await expect(memberPb.collection('media').update(record.id, { title: 'Updated' })).rejects.toThrow()
+    await expect(memberPb.collection('media').update(record.id, { size_bytes: 1 })).rejects.toThrow()
+    await expect(memberPb.collection('media').update(record.id, { uploader: owner.id })).rejects.toThrow()
 
-    // Outsider deletes -> refused
+    // Outsider and signed-out delete -> refused
     const outsiderPb = await asUser(outsider)
     await expect(outsiderPb.collection('media').delete(record.id)).rejects.toThrow()
+    await expect(asAnonymous().collection('media').delete(record.id)).rejects.toThrow()
 
-    // Signed-out deletes -> refused
-    const anonPb = asAnonymous()
-    await expect(anonPb.collection('media').delete(record.id)).rejects.toThrow()
+    // The member who uploaded it still cannot delete it
+    await expect(memberPb.collection('media').delete(record.id)).rejects.toThrow()
 
-    // Member delete -> 204
-    await memberPb.collection('media').delete(record.id)
-
-    // File URL no longer serves
-    const memberToken = await memberPb.files.getToken()
-    const fileRes = await fetch(`${PB_URL}/api/files/media/${record.id}/${record.file}?token=${memberToken}`)
+    // The lead deletes -> the file stops serving
+    const ownerPb = await asUser(owner)
+    await ownerPb.collection('media').delete(record.id)
+    const token = await ownerPb.files.getToken()
+    const fileRes = await fetch(`${PB_URL}/api/files/media/${record.id}/${record.file}?token=${token}`)
     expect(fileRes.status).not.toBe(200)
+  })
+
+  // Protects: a member removes media, only the lead restores it, and nobody else can (C12)
+  test('a member removes media and only the lead restores it', async () => {
+    const { owner, member, projectId, chapterId } = await memberProject()
+    const nodeId = await createNode(owner, projectId, chapterId)
+    const outsider = await createUser()
+
+    const res = await uploadMedia(member, { project: projectId, node: nodeId }, { name: 'a.png', bytes: PNG_1PX })
+    const record = await res.json()
+    expect(record.removed_at).toBe('')
+
+    // Outsider cannot remove
+    await expect((await asUser(outsider)).collection('media').update(record.id, { removed_at: '2026-11-20 08:00:00.000Z' })).rejects.toThrow()
+
+    // Member removes: the row stays and still counts
+    const memberPb = await asUser(member)
+    const removed = await memberPb.collection('media').update(record.id, { removed_at: '2026-11-20 08:00:00.000Z' })
+    expect(removed.removed_at).not.toBe('')
+    expect((await memberPb.collection('media').getOne(record.id)).id).toBe(record.id)
+
+    // Removing and changing something else in one request is refused
+    await expect(memberPb.collection('media').update(record.id, { removed_at: '2026-11-20 09:00:00.000Z', title: 'x' })).rejects.toThrow()
+
+    // The member cannot restore
+    await expect(memberPb.collection('media').update(record.id, { removed_at: '' })).rejects.toThrow()
+
+    // The lead restores
+    const restored = await (await asUser(owner)).collection('media').update(record.id, { removed_at: '' })
+    expect(restored.removed_at).toBe('')
+  })
+
+  // Protects: a member's upload counts against the lead's quota, not their own (C13)
+  test("a member's upload counts against the lead's quota", async () => {
+    const { owner, member, projectId, chapterId } = await memberProject()
+    const nodeId = await createNode(owner, projectId, chapterId)
+    await setQuotaOverride(owner.id, 1000)
+
+    const r1 = await uploadMedia(member, { project: projectId, node: nodeId }, { name: 'a.png', bytes: sampleBytes('png', 600) })
+    expect(r1.status).toBe(200)
+    const kept = await r1.json()
+
+    // The lead's quota is shared by the whole team
+    const r2 = await uploadMedia(owner, { project: projectId, node: nodeId }, { name: 'b.png', bytes: sampleBytes('png', 600) })
+    expect(r2.status).toBe(400)
+    expect((await r2.json()).data?.file?.code).toBe('media_over_quota')
+
+    // Removing it hides it but does not free the space
+    const memberPb = await asUser(member)
+    await memberPb.collection('media').update(kept.id, { removed_at: '2026-11-20 08:00:00.000Z' })
+    const r3 = await uploadMedia(member, { project: projectId, node: nodeId }, { name: 'c.png', bytes: sampleBytes('png', 600) })
+    expect(r3.status).toBe(400)
+
+    // Deleting it for good does
+    await (await asUser(owner)).collection('media').delete(kept.id)
+    const r4 = await uploadMedia(member, { project: projectId, node: nodeId }, { name: 'd.png', bytes: sampleBytes('png', 600) })
+    expect(r4.status).toBe(200)
+  })
+
+  // Protects: deleting the uploader's account keeps the file with the lead (C14)
+  test("deleting the uploader's account keeps the file", async () => {
+    const { owner, member, projectId, chapterId } = await memberProject()
+    const nodeId = await createNode(owner, projectId, chapterId)
+    const res = await uploadMedia(member, { project: projectId, node: nodeId }, { name: 'a.png', bytes: PNG_1PX })
+    const record = await res.json()
+
+    const admin = await asAdmin()
+    await admin.collection('users').delete(member.id)
+
+    const kept = await admin.collection('media').getOne(record.id)
+    expect(kept.uploader).toBe('')
+    expect(kept.size_bytes).toBe(67)
   })
 
   // Protects: deleting a team removes its media (C11)
@@ -214,43 +287,46 @@ describe('media rules and collection', () => {
     }
   })
 
-  // Protects: the storage route tells a person only their own usage and limits (C10)
-  test('the storage route tells a person only their own usage and limits', async () => {
-    const { owner, projectId, chapterId } = await memberProject()
+  // Protects: the storage route shows the lead's usage to the team and nobody else (C10)
+  test("the storage route shows the lead's usage to the team and nobody else", async () => {
+    const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
 
-    // Upload 2 files: 67 bytes + 600 bytes
-    const r1 = await uploadMedia(
-      owner,
-      { project: projectId, node: nodeId },
-      { name: 'f1.png', bytes: PNG_1PX },
-    )
+    // Owner uploads 67 bytes, member uploads 600 bytes: both count for the lead
+    const r1 = await uploadMedia(owner, { project: projectId, node: nodeId }, { name: 'f1.png', bytes: PNG_1PX })
     expect(r1.status).toBe(200)
-
-    const r2 = await uploadMedia(
-      owner,
-      { project: projectId, node: nodeId },
-      { name: 'f2.png', bytes: sampleBytes('png', 600) },
-    )
+    const r2 = await uploadMedia(member, { project: projectId, node: nodeId }, { name: 'f2.png', bytes: sampleBytes('png', 600) })
     expect(r2.status).toBe(200)
 
-    const ownerPb = await asUser(owner)
-    const res = await rawSend(ownerPb.authStore.token, '/api/kwnto/storage')
-    expect(res.status).toBe(200)
-    const data = await res.json()
+    const path = `/api/kwnto/storage?project=${projectId}`
+    const ownerRes = await rawSend((await asUser(owner)).authStore.token, path)
+    expect(ownerRes.status).toBe(200)
+    const data = await ownerRes.json()
     expect(data.usedBytes).toBe(667)
     expect(data.quotaBytes).toBe(2147483648)
+    expect(data.isLead).toBe(true)
     expect(data.maxBytes.video).toBe(209715200)
     expect(data.allowedTypes).toEqual(['wav', 'mp3', 'mov', 'mp4', 'jpeg', 'png'])
 
+    // The member sees the same meter but is not the lead
+    const memberRes = await rawSend((await asUser(member)).authStore.token, path)
+    expect(memberRes.status).toBe(200)
+    const memberData = await memberRes.json()
+    expect(memberData.usedBytes).toBe(667)
+    expect(memberData.isLead).toBe(false)
+
+    // An outsider gets 404; no project is a 400
+    const outsider = await createUser()
+    const outsiderToken = (await asUser(outsider)).authStore.token
+    expect((await rawSend(outsiderToken, path)).status).toBe(404)
+    expect((await rawSend(outsiderToken, '/api/kwnto/storage')).status).toBe(400)
+
     // Signed out -> 401
-    const anonRes = await rawSend(undefined, '/api/kwnto/storage')
-    expect(anonRes.status).toBe(401)
+    expect((await rawSend(undefined, path)).status).toBe(401)
 
     // Unverified -> 403
     const unverified = await createUser({ verified: false })
     const unverifiedPb = await asUser(unverified)
-    const unverifiedRes = await rawSend(unverifiedPb.authStore.token, '/api/kwnto/storage')
-    expect(unverifiedRes.status).toBe(403)
+    expect((await rawSend(unverifiedPb.authStore.token, path)).status).toBe(403)
   })
 })

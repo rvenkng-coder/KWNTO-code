@@ -98,26 +98,36 @@ describe('media door rules and integration', () => {
     expect(caught2?.fields.file).toContain('Not enough storage')
   })
 
-  // Protects: removing a file frees its space at once (C6)
-  test('removing a file frees its space at once', async () => {
-    const { owner, projectId, chapterId } = await memberProject()
+  // Protects: removing hides a file but only the lead's delete frees its space (C6)
+  test('removing hides a file and only the lead deleting frees its space', async () => {
+    const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
     const door = await doorFor(owner)
+    const memberDoor = await doorFor(member)
 
     const file = new File([PNG_1PX], 'test.png', { type: 'image/png' })
-    const uploaded = await door.media.upload(projectId, nodeId, file)
+    const uploaded = await memberDoor.media.upload(projectId, nodeId, file)
 
-    const s1 = await door.media.storage()
-    expect(s1.usedBytes).toBe(67)
+    // The member's upload is on the lead's meter
+    expect((await door.media.storage(projectId)).usedBytes).toBe(67)
+    expect((await memberDoor.media.storage(projectId)).isLead).toBe(false)
 
-    await door.media.remove(uploaded.id)
+    const removed = await memberDoor.media.remove(uploaded.id)
+    expect(removed.removedAt).not.toBe('')
+    expect((await door.media.storage(projectId)).usedBytes).toBe(67)
 
-    const s2 = await door.media.storage()
-    expect(s2.usedBytes).toBe(0)
+    // The member can neither restore nor delete for good
+    await expect(memberDoor.media.restore(uploaded.id)).rejects.toBeInstanceOf(BackendError)
+    await expect(memberDoor.media.deletePermanently(uploaded.id)).rejects.toBeInstanceOf(BackendError)
+
+    // The lead restores, then deletes for good
+    expect((await door.media.restore(uploaded.id)).removedAt).toBe('')
+    await door.media.deletePermanently(uploaded.id)
+    expect((await door.media.storage(projectId)).usedBytes).toBe(0)
   })
 
-  // Protects: teammates see uploads and deletes live and outsiders do not (C7)
-  test('teammates see uploads and deletes live and outsiders do not', async () => {
+  // Protects: teammates see uploads, removals and deletes live and outsiders do not (C7)
+  test('teammates see uploads, removals and deletes live and outsiders do not', async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
 
@@ -136,12 +146,15 @@ describe('media door rules and integration', () => {
     const unsubOut = await doorOut.media.subscribe(projectId, seenOut.onEvent)
     const unsubOutOwn = await doorOut.media.subscribe(other.projectId, seenOutOwn.onEvent)
 
-    // Teammate B uploads and deletes in project
+    // Teammate B uploads and removes in project, the lead deletes
     const file = new File([PNG_1PX], 'live.png', { type: 'image/png' })
     const uploaded = await doorB.media.upload(projectId, nodeId, file)
     await seenA.next((e) => e.action === 'create' && e.record.id === uploaded.id)
 
     await doorB.media.remove(uploaded.id)
+    await seenA.next((e) => e.action === 'update' && e.record.id === uploaded.id)
+
+    await doorA.media.deletePermanently(uploaded.id)
     await seenA.next((e) => e.action === 'delete' && e.record.id === uploaded.id)
 
     // Outsider uploads to their own project (control event)
@@ -151,9 +164,10 @@ describe('media door rules and integration', () => {
     // Outsider saw nothing from project A
     expect(seenOut.events).toHaveLength(0)
 
-    // Teammate A saw create then delete
+    // Teammate A saw create, the removal, then the delete
     expect(seenA.events.map((e) => ({ action: e.action, id: e.record.id }))).toEqual([
       { action: 'create', id: uploaded.id },
+      { action: 'update', id: uploaded.id },
       { action: 'delete', id: uploaded.id },
     ])
 

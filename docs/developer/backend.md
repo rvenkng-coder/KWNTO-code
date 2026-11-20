@@ -65,14 +65,14 @@ Custom routes live under `/api/kwnto/`. App routes so far: `GET /api/kwnto/stora
 
 | Service | What | Port |
 |---|---|---|
-| `web` | One-shot `node:22-alpine`: `npm ci && npm run build` into the volume `kwnto-web`, then exits | none |
+| `web` | One-shot `node:22-alpine`: `npm ci --ignore-scripts && npm run build` (on a tmpfs mounted `exec`) into (the copy of the repository leaves out `.env`) the volume `kwnto-web`, then exits | none |
 | `pocketbase` | The backend image; serves the API and, from `--publicDir=/pb/pb_public` (the `kwnto-web` volume, read-only), the built app. Data in the volume `kwnto-data` | `8090`, inside the network only |
 | `caddy` | The only service Tailscale publishes: blocks the dashboard and admin paths, adds security headers, limits the request size (`deploy/Caddyfile`) | `8080`, inside the network only |
 | `tailscale` | Funnel on 443 to `caddy:8080` (public); tailnet-only 8443 to `pocketbase:8090` (the dashboard, for the admin) (`deploy/tailscale-serve.json`). State in `kwnto-tailscale` | none on the host |
 
-All four join the network `kwnto-edge` (subnet `172.30.0.0/24`; `tailscale` has the fixed address `172.30.0.2`, which Caddy trusts for `X-Forwarded-For`). Nothing is published on the VM's own interfaces. `pocketbase` and `caddy` run read-only, non-root, with every capability dropped; `tailscale` only adds `NET_ADMIN` and needs `/dev/net/tun`.
+`pocketbase`, `caddy` and `tailscale` join the network `kwnto-edge` (subnet `172.30.0.0/24`); `web` only has the project's default network. The three have fixed addresses: `tailscale` `172.30.0.2` (which Caddy trusts for `X-Forwarded-For`), `pocketbase` `.10`, `caddy` `.11`; the network's `ip_range` is `172.30.0.128/25`, so any other container is assigned outside them and `.2` can never be taken first. Caddy reads `X-Forwarded-For` from the right (`trusted_proxies_strict`), so only the address Tailscale appended counts. Nothing is published on the VM's own interfaces. `pocketbase` and `caddy` run read-only, non-root, with every capability dropped; `tailscale` only adds `NET_ADMIN` and needs `/dev/net/tun`.
 
-`compose.edge-test.yaml` (used with `-f compose.prod.yaml -f compose.edge-test.yaml`) is the test override: no `web` or `tailscale`, in-memory data, the test admin, the host's `dist/` as the web app, Caddy on `127.0.0.1:8094` (limit 2 MB) and PocketBase direct on `127.0.0.1:8095` for the tests' admin set-up calls only. If a run was killed, `docker compose -f compose.prod.yaml -f compose.edge-test.yaml down -v` cleans up.
+`compose.edge-test.yaml` (used with `-f compose.prod.yaml -f compose.edge-test.yaml`) is the test override: no `web` or `tailscale` (the addresses are production's, not overridden), in-memory data, the test admin, the host's `dist/` as the web app, Caddy on `127.0.0.1:8094` (limit 2 MB) and PocketBase direct on `127.0.0.1:8095` for the tests' admin set-up calls only. If a run was killed, `docker compose -f compose.prod.yaml -f compose.edge-test.yaml down -v` cleans up.
 
 ## Production settings
 

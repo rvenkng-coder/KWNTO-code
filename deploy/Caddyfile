@@ -6,6 +6,8 @@
 		# Forwarding headers are trusted only from the Tailscale container (fixed address in compose.prod.yaml).
 		trusted_proxies static 172.30.0.2/32
 		client_ip_headers X-Forwarded-For
+		# Read X-Forwarded-For right to left: the entry Tailscale appended counts, not one a client put first.
+		trusted_proxies_strict
 	}
 }
 

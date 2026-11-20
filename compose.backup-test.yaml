@@ -24,14 +24,8 @@ services:
       - ${KWNTO_BACKUP_DIR:?KWNTO_BACKUP_DIR must be set}:/pb/pb_data/backups
     ports:
       - "127.0.0.1:8095:8090"
-    networks:
-      kwnto-edge:
-        ipv4_address: 172.30.0.10
   caddy:
     environment:
       KWNTO_MAX_REQUEST_MB: "2"
     ports:
       - "127.0.0.1:8094:8080"
-    networks:
-      kwnto-edge:
-        ipv4_address: 172.30.0.11

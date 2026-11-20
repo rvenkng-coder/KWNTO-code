@@ -23,15 +23,8 @@ services:
       - /pb/pb_data:uid=10001,gid=10001
     ports:
       - "127.0.0.1:8095:8090"
-    # Fixed addresses, so 172.30.0.2 (the Tailscale container's in production) stays free for the C6 test.
-    networks:
-      kwnto-edge:
-        ipv4_address: 172.30.0.10
   caddy:
     environment:
       KWNTO_MAX_REQUEST_MB: "2"
     ports:
       - "127.0.0.1:8094:8080"
-    networks:
-      kwnto-edge:
-        ipv4_address: 172.30.0.11

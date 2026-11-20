@@ -93,3 +93,16 @@ test('the address Tailscale forwards is the one the lockout counts', async () =>
   expect(fromTrustedHop(rightBody(user.email), '203.0.113.2')).toBe(200)
   expect(new Set(await failureIps(user.email, token))).toEqual(new Set(['203.0.113.1']))
 }, 120_000)
+
+// Protects D6: Caddy reads X-Forwarded-For right to left, so the entry Tailscale appended counts, not one the visitor put first.
+test('with a chain of forwarded addresses the lockout counts the one nearest the trusted hop', async () => {
+  await sleep(AUTH_WINDOW_MS)
+  const user = await verifiedUser()
+  await sleep(AUTH_WINDOW_MS)
+  const token = await edgeAdminToken()
+  for (let i = 0; i < 2; i++) {
+    await sleep(AUTH_WINDOW_MS)
+    expect(fromTrustedHop(wrongBody(user.email), '198.51.100.9, 203.0.113.1')).toBe(400)
+  }
+  expect(new Set(await failureIps(user.email, token))).toEqual(new Set(['203.0.113.1']))
+}, 120_000)

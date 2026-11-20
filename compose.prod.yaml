@@ -12,13 +12,18 @@ services:
     command:
       - sh
       - -c
-      - >-
-        tar -C /src --exclude=./node_modules --exclude=./dist --exclude=./.git --exclude=./backups -cf - .
-        | tar -C /build -xf -
-        && npm ci && npm run build
-        && find /out -mindepth 1 -delete && cp -r dist/. /out/
+      # pipefail: a tar that cannot read a file fails the whole copy. .env (secrets) is not copied into the build.
+      # --ignore-scripts: node:22-alpine has no git, so the "prepare" hook (git config) would fail; the build needs no install script.
+      - |-
+        set -eu
+        set -o pipefail
+        tar -C /src --exclude=./node_modules --exclude=./dist --exclude=./.git --exclude=./backups --exclude=./.env -cf - . | tar -C /build -xf -
+        npm ci --ignore-scripts
+        npm run build
+        find /out -mindepth 1 -delete
+        cp -r dist/. /out/
     tmpfs:
-      - /build:mode=1777
+      - /build:mode=1777,exec # tmpfs is noexec by default; the installed build tools (tsc, vite) must run
       - /tmp
     environment:
       HOME: /tmp
@@ -42,7 +47,10 @@ services:
     depends_on:
       web:
         condition: service_completed_successfully
-    networks: [kwnto-edge]
+    # Fixed addresses (with ip_range below) so nothing else can take the Tailscale address 172.30.0.2.
+    networks:
+      kwnto-edge:
+        ipv4_address: 172.30.0.10
     read_only: true
     tmpfs: [/tmp]
     cap_drop: [ALL]
@@ -65,7 +73,9 @@ services:
     depends_on:
       pocketbase:
         condition: service_healthy
-    networks: [kwnto-edge]
+    networks:
+      kwnto-edge:
+        ipv4_address: 172.30.0.11
     read_only: true
     tmpfs:
       - /data:uid=10002,gid=10002
@@ -110,7 +120,9 @@ networks:
     name: kwnto-edge
     ipam:
       config:
+        # Containers without a fixed address get one from the upper half, never .2, .10 or .11.
         - subnet: 172.30.0.0/24
+          ip_range: 172.30.0.128/25
 
 volumes:
   kwnto-data:

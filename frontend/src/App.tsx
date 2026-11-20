@@ -8,6 +8,7 @@ import { TeamDetail } from './features/teams/TeamDetail'
 import { AppShell } from './features/shell/AppShell'
 import { navigate, useRoute } from './features/shell/useRoute'
 import { useAccountTheme } from './features/shell/useAccountTheme'
+import { ShareScreen } from './features/share/ShareScreen'
 
 function Backend({ status }: { status: 'checking' | 'connected' | 'unreachable' }) {
   return (
@@ -40,6 +41,10 @@ function App() {
 
   useAccountTheme(signedIn)
 
+  if (!user && route.name === 'share') {
+    return <AppShell><ShareScreen token={route.token} /></AppShell>
+  }
+
   if (!user) {
     return (
       <>
@@ -53,7 +58,9 @@ function App() {
   return (
     <AppShell>
       <Backend status={status} />
-      {route.name === 'team' ? (
+      {route.name === 'share' ? (
+        <ShareScreen token={route.token} />
+      ) : route.name === 'team' ? (
         <TeamDetail teamId={route.teamId} onBack={() => navigate({ name: 'teams' })} />
       ) : route.name === 'project' ? (
         <EditorScreen projectId={route.projectId} chapterId={route.chapterId} />

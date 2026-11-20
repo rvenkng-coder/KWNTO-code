@@ -5,6 +5,7 @@ import { useTeams } from './useTeams'
 import { JoinByCodeForm } from './JoinByCodeForm'
 import { InvitesInbox } from './InvitesInbox'
 import { VerifyGate } from '../auth/VerifyGate'
+import { SharedWithMe } from '../share/SharedWithMe'
 
 export function TeamsScreen() {
   const { user } = useSession()
@@ -48,6 +49,7 @@ export function TeamsScreen() {
           </li>
         ))}
       </ul>
+      <SharedWithMe />
     </div>
   )
 }

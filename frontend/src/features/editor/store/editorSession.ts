@@ -1,7 +1,7 @@
 import type { ProjectContent, RemoteEvent } from '../../../backend'
 import { errorMessage } from '../../errorMessage'
 import { applyRemote } from '../model/remote'
-import { EMPTY_STATE, fromContent, mergeNewer, type ContentState, type TouchedMap } from '../model/state'
+import { applyTouched, EMPTY_STATE, fromContent, mergeNewer, type ContentState, type TouchedMap } from '../model/state'
 import { overlay, type OutboxEntry } from '../sync/outbox'
 import type { EditorSyncPort } from './editorSync'
 import type { EditorDoor, EditorStore } from './editorStore'
@@ -14,7 +14,7 @@ export const OPEN_FAILED = 'This project does not exist or you are not a member 
 
 type Closer = (() => Promise<void>) | null
 type Set = (partial: Partial<EditorStore> | ((s: EditorStore) => Partial<EditorStore>)) => void
-type Fetched = { ok: true; state: ContentState; touched: TouchedMap; close: Closer } | { ok: false; reason: unknown; close: Closer }
+type Fetched = { ok: true; state: ContentState; close: Closer } | { ok: false; reason: unknown; close: Closer }
 
 function discard(close: Closer): void {
   if (close !== null) void close().catch(() => undefined)
@@ -59,8 +59,8 @@ class Session {
     else this.set((st) => ({ content: overlay(applyRemote(st.content, event), waitingEntries()) }))
   }
 
-  private finish(loaded: ProjectContent, events: RemoteEvent[]): ContentState {
-    return overlay(events.reduce(applyRemote, fromContent(loaded)), this.waitingEntries())
+  private finish(loaded: ProjectContent, events: RemoteEvent[], touched: TouchedMap): ContentState {
+    return overlay(applyTouched(events.reduce(applyRemote, fromContent(loaded)), touched), this.waitingEntries())
   }
 
   // Loads the project, and subscribes when asked.
@@ -79,7 +79,7 @@ class Session {
     const close: Closer = sub.status === 'fulfilled' ? sub.value : null
     if (loaded.status === 'rejected') return { ok: false, reason: loaded.reason, close }
     if (sub.status === 'rejected') return { ok: false, reason: sub.reason, close }
-    return { ok: true, state: this.finish(loaded.value, events), touched, close }
+    return { ok: true, state: this.finish(loaded.value, events, touched), close }
   }
 
   // The event stream came back (or the connection did): everything may have changed meanwhile.
@@ -87,7 +87,7 @@ class Session {
     const projectId = this.openProject
     if (projectId === null || token !== this.openToken) return
     const result = await this.fetchProject(projectId, token, false)
-    if (token === this.openToken && result.ok) this.set((st) => ({ content: mergeNewer(st.content, result.state, result.touched) }))
+    if (token === this.openToken && result.ok) this.set((st) => ({ content: mergeNewer(st.content, result.state) }))
   }
 
   // The connection is back after the live subscriptions were closed: subscribe again and load again.
@@ -98,7 +98,7 @@ class Session {
     if (token !== this.openToken || !result.ok) return discard(result.close)
     this.stopSubscription()
     this.closeSubscription = result.close
-    this.set((st) => ({ content: mergeNewer(st.content, result.state, result.touched) }))
+    this.set((st) => ({ content: mergeNewer(st.content, result.state) }))
   }
 
   // Waiting edits that were not known when the project loaded (the outbox was still being read) are laid over it now.
@@ -115,8 +115,8 @@ class Session {
     this.watching = true
     this.wasOnline = this.sync.snapshot()?.online ?? true
     this.sync.register({
-      saved: (entry) => {
-        if (this.loading > 0) this.touched.set(`${entry.kind}:${entry.id}`, entry.op === 'remove' ? 'gone' : 'kept')
+      saved: (entry, record) => {
+        if (this.loading > 0) this.touched.set(`${entry.kind}:${entry.id}`, record ?? 'gone')
       },
       refused: () => undefined,
       theirs: () => undefined,

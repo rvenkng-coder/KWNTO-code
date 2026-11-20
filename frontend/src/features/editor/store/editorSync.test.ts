@@ -203,3 +203,18 @@ test('after coming back online the subscription is open before the project is lo
   await settle()
   expect(s.fake.loads).toHaveLength(2)
 })
+
+// Protects: finding E: a waiting edit that the server accepts while the project is still opening is not lost from the screen when the (older) load arrives.
+test('a save that lands while the project is opening shows once the load arrives', async () => {
+  const s = await setup([content({ nodes: [n1()] })], [
+    { op: 'update', kind: 'nodes', id: 'n1', changes: { title: 'Mine' }, baseVersion: 4, baseValues: { title: 'A' }, snapshot: null },
+  ])
+  s.fake.holdNextLoad()
+  const opening = s.store.getState().open('p1')
+  await settle()
+  s.fake.updates[0]!.resolve(n1({ title: 'Mine', version: 5 }))
+  await settle()
+  s.fake.heldLoads[0]!(content({ nodes: [n1()] }))
+  await opening
+  expect(s.store.getState().content.nodes.n1).toMatchObject({ title: 'Mine', version: 5 })
+})

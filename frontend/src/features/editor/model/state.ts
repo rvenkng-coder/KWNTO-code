@@ -103,27 +103,35 @@ function newer<T extends { version: number }>(local: T | undefined, loaded: T | 
  * the screen already has in a higher version stays (the load may have been read before my own
  * save landed). Records only the screen has are gone: someone deleted them meanwhile.
  */
-export function mergeNewer(local: ContentState, loaded: ContentState, touched: TouchedMap = new Map()): ContentState {
+export function mergeNewer(local: ContentState, loaded: ContentState): ContentState {
   const merged: ContentState = { ...loaded, project: newer(local.project ?? undefined, loaded.project), settings: newer(local.settings ?? undefined, loaded.settings) }
   for (const table of TABLES) {
     const next: Record<string, { version: number }> = {}
     for (const [id, record] of Object.entries(loaded[table])) next[id] = newer(local[table][id], record) ?? record
     ;(merged as unknown as Record<Table, unknown>)[table] = next
   }
-  return applyTouched(merged, local, touched)
+  return merged
 }
 
-/** Records my own saves changed while a load was under way: `kept` stays as the screen has it, `gone` was removed by me. */
-export type TouchedMap = Map<string, 'kept' | 'gone'>
+/** What my own saves did while a load was under way: the record the server answered with, or `gone` for a removal. */
+export type TouchedMap = Map<string, ContentRecords[ContentKind] | 'gone'>
 
-// The load may have been read before those saves landed, so it can lack a record I just made or still hold one I just removed.
-function applyTouched(merged: ContentState, local: ContentState, touched: TouchedMap): ContentState {
-  let out = merged
+/**
+ * A load may have been read before my own saves landed, so it can hold an older copy of a record I just
+ * saved, lack one I just made, or still hold one I just removed. My saves are laid over it.
+ */
+export function applyTouched(state: ContentState, touched: TouchedMap): ContentState {
+  const projectId = state.project?.id
+  let out = state
   for (const [key, how] of touched) {
     const [kind, id] = key.split(':') as [ContentKind, string]
-    const mine = getRecord(local, kind, id)
-    if (how === 'gone') out = dropRecord(out, kind, id)
-    else if (mine !== undefined && getRecord(out, kind, id) === undefined) out = putRecord(out, kind, mine)
+    if (how === 'gone') {
+      out = dropRecord(out, kind, id)
+      continue
+    }
+    const ownProject = 'projectId' in how ? how.projectId === projectId : how.id === projectId
+    const current = getRecord(out, kind, id)
+    if (ownProject && (current === undefined || current.version < how.version)) out = putRecord(out, kind, how)
   }
   return out
 }

@@ -4,7 +4,10 @@ import { expect, test } from 'vitest'
 // The hook helpers are CommonJS so PocketBase can require() them; load them the same way.
 const require = createRequire(import.meta.url)
 type Json = Record<string, unknown>
-const { FILE_LIMITS, buildProjectFile, validateProjectFile } = require('../../backend/pb_hooks/lib/project-file.js') as {
+const { FILE_LIMITS, buildProjectFile, validateProjectFile, downloadName, importedName, utf8Length } = require('../../backend/pb_hooks/lib/project-file.js') as {
+  downloadName: (name: string) => string
+  importedName: (name: string) => string
+  utf8Length: (text: string) => number
   FILE_LIMITS: Record<string, number>
   buildProjectFile: (records: Json, nowIso: string) => Json
   validateProjectFile: (value: unknown, limits: Record<string, number>) => { ok: true; file: Json } | { ok: false; problems: string[] }
@@ -176,4 +179,25 @@ test('the validator never throws and returns a copy', () => {
   expect(result.file).toEqual(input)
   expect(result.file).not.toBe(input)
   expect((result.file.nodes as Json[])[0]).not.toBe((input.nodes as Json[])[0])
+})
+
+// Protects the route's small decisions (design 10): the download name keeps letters, digits,
+// - and _ only (no header injection, no path), the imported project's name always fits the
+// 120-character field, and the size check counts bytes, not characters.
+test('names and sizes the routes rely on', () => {
+  expect(downloadName('My story')).toBe('My-story.kwnto.json')
+  expect(downloadName('a"; b\r\nX: y/../z')).toBe('a-b-X-y-z.kwnto.json')
+  expect(downloadName('***')).toBe('project.kwnto.json')
+  expect(downloadName('é')).toBe('project.kwnto.json')
+  expect(downloadName('x'.repeat(300)).length).toBeLessThanOrEqual(100)
+
+  expect(importedName('Story')).toBe('Story (imported)')
+  const long = importedName('y'.repeat(FILE_LIMITS.name))
+  expect(Array.from(long)).toHaveLength(FILE_LIMITS.name)
+  expect(long.endsWith(' (imported)')).toBe(true)
+
+  expect(utf8Length('abc')).toBe(3)
+  expect(utf8Length('é')).toBe(2)
+  expect(utf8Length('€')).toBe(3)
+  expect(utf8Length('😀')).toBe(4)
 })

@@ -364,4 +364,31 @@ function importPlan(file, newId) {
   return { name: file.project.name, startNode: start === null ? null : nodeIds.get(start), chapters, nodes, lines, cues, connections }
 }
 
-module.exports = { FILE_LIMITS, buildProjectFile, validateProjectFile, importPlan }
+// ---------------------------------------------------------------- small helpers for the routes
+
+const IMPORTED = ' (imported)'
+
+// The file name offered for a download: letters, digits, - and _ only, so nothing in a
+// project name can end up in the header or a path.
+function downloadName(name) {
+  const base = String(name).replace(/[^A-Za-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80)
+  return `${base === '' ? 'project' : base}.kwnto.json`
+}
+
+// The name of the project an import makes, cut so it still fits the name field.
+function importedName(name) {
+  const room = FILE_LIMITS.name - IMPORTED.length
+  return Array.from(name).slice(0, room).join('') + IMPORTED
+}
+
+// Bytes of a string in UTF-8, for the size limit (a 5 MB limit is bytes, not characters).
+function utf8Length(value) {
+  let bytes = 0
+  for (const ch of value) {
+    const code = ch.codePointAt(0)
+    bytes += code < 0x80 ? 1 : code < 0x800 ? 2 : code < 0x10000 ? 3 : 4
+  }
+  return bytes
+}
+
+module.exports = { FILE_LIMITS, buildProjectFile, validateProjectFile, importPlan, downloadName, importedName, utf8Length }

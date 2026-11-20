@@ -45,10 +45,10 @@ module.exports = { FILE_LIMITS, buildProjectFile, validateProjectFile, importPla
 
 ## Checkpoint 2B: The routes
 
-- [ ] **Step 5: Confirm** how a 0.40.6 route reads the raw body and its length (`e.request.body`, `toString(...)`, `e.request.contentLength`) in `types.d.ts`; record it in `progress.md`. The size check must happen before parsing.
-- [ ] **Step 6: Write the failing tests** C4 to C6 in `tests/rules/project-file.rules.test.ts`; run, expect FAIL.
-- [ ] **Step 7: Implement** `project-file.pb.js`.
-- [ ] **Step 8: Run** `npm run test:rules`. Expected: PASS. **Close checkpoint 2B** (commit `feat: export and import routes`).
+- [x] **Step 5: Confirm** how a 0.40.6 route reads the raw body and its length (`e.request.body`, `toString(...)`, `e.request.contentLength`) in `types.d.ts`; record it in `progress.md`. The size check must happen before parsing.
+- [x] **Step 6: Write the failing tests** C4 to C6 in `tests/rules/project-file.rules.test.ts`; run, expect FAIL.
+- [x] **Step 7: Implement** `project-file.pb.js`.
+- [x] **Step 8: Run** `npm run test:rules`. Expected: PASS. **Close checkpoint 2B** (commit `feat: export and import routes`).
 
 ## Checkpoint 2C: The buttons
 

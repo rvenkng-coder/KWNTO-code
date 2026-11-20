@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
 import { BackendError } from '../../../backend/errors'
 import type { ProjectContent, RemoteEvent, StoryNode } from '../../../backend'
-import { content, node } from '../model/fixtures'
+import { content, line, node } from '../model/fixtures'
 import { createMemoryOutbox, type OutboxStorage } from '../sync/outboxStorage'
 import { createSyncEngine } from '../sync/syncEngine'
 import { settle } from '../sync/fakes'
@@ -15,22 +15,29 @@ type Update = { args: unknown[]; resolve(n: StoryNode): void; reject(e: unknown)
 function fakeDoor(pages: ProjectContent[]) {
   const updates: Update[] = []
   const loads: string[] = []
+  const heldLoads: Array<(c: ProjectContent) => void> = []
+  let holdNext = false
   const reconnects: Array<() => void> = []
   const events: Array<(e: RemoteEvent) => void> = []
   let server: StoryNode | null = null
   const door: EditorDoor = {
-    load: () => Promise.resolve(pages[Math.min(loads.push('p1') - 1, pages.length - 1)]!),
+    load: () => {
+      const page = pages[Math.min(loads.push('p1') - 1, pages.length - 1)]!
+      if (!holdNext) return Promise.resolve(page)
+      holdNext = false
+      return new Promise<ProjectContent>((resolve) => heldLoads.push(resolve))
+    },
     get: () => Promise.resolve(server) as never,
     subscribe: (_id, onEvent, onReconnect) => {
       events.push(onEvent)
       if (onReconnect !== undefined) reconnects.push(onReconnect)
       return Promise.resolve(async () => {})
     },
-    create: () => Promise.reject(new Error('unused')),
+    create: ((_kind: string, record: unknown) => Promise.resolve(record)) as EditorDoor['create'],
     update: ((...args: unknown[]) => new Promise<StoryNode>((resolve, reject) => updates.push({ args, resolve, reject }))) as EditorDoor['update'],
-    remove: () => Promise.reject(new Error('unused')),
+    remove: () => Promise.resolve(),
   }
-  return { door, updates, loads, reconnects, events, setServer: (n: StoryNode) => { server = n } }
+  return { door, updates, loads, reconnects, events, heldLoads, holdNextLoad: () => { holdNext = true }, setServer: (n: StoryNode) => { server = n } }
 }
 
 // A store on a real sync engine over a memory outbox the test can pre-fill.
@@ -147,4 +154,31 @@ test('a reload never replaces a record with an older copy', async () => {
   await settle()
   expect(s.fake.loads).toHaveLength(2)
   expect(s.store.getState().content.nodes.n1).toMatchObject({ title: 'B', version: 5 })
+})
+
+// Protects: D6: my own create that the server saved while the reload was under way (after the reload's snapshot was read) is not dropped from the screen.
+test('a record I created while a reload was under way stays on screen', async () => {
+  const s = await setup([content({ nodes: [n1()] }), content({ nodes: [n1()] })])
+  await open(s)
+  s.fake.holdNextLoad()
+  s.fake.reconnects[0]!()
+  await settle()
+  await s.store.getState().create('script_lines', line('L', { nodeId: 'n1' }))
+  s.fake.heldLoads[0]!(content({ nodes: [n1()] }))
+  await settle()
+  expect(s.store.getState().content.lines.L).toBeDefined()
+})
+
+// Protects: the same race for a removal: a record I removed while the reload was under way does not come back.
+test('a record I removed while a reload was under way stays removed', async () => {
+  const withLine = () => content({ nodes: [n1()], lines: [line('L', { nodeId: 'n1' })] })
+  const s = await setup([withLine(), withLine()])
+  await open(s)
+  s.fake.holdNextLoad()
+  s.fake.reconnects[0]!()
+  await settle()
+  await s.store.getState().remove('script_lines', 'L')
+  s.fake.heldLoads[0]!(withLine())
+  await settle()
+  expect(s.store.getState().content.lines.L).toBeUndefined()
 })

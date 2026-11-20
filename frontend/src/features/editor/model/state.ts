@@ -103,12 +103,27 @@ function newer<T extends { version: number }>(local: T | undefined, loaded: T | 
  * the screen already has in a higher version stays (the load may have been read before my own
  * save landed). Records only the screen has are gone: someone deleted them meanwhile.
  */
-export function mergeNewer(local: ContentState, loaded: ContentState): ContentState {
+export function mergeNewer(local: ContentState, loaded: ContentState, touched: TouchedMap = new Map()): ContentState {
   const merged: ContentState = { ...loaded, project: newer(local.project ?? undefined, loaded.project), settings: newer(local.settings ?? undefined, loaded.settings) }
   for (const table of TABLES) {
     const next: Record<string, { version: number }> = {}
     for (const [id, record] of Object.entries(loaded[table])) next[id] = newer(local[table][id], record) ?? record
     ;(merged as unknown as Record<Table, unknown>)[table] = next
   }
-  return merged
+  return applyTouched(merged, local, touched)
+}
+
+/** Records my own saves changed while a load was under way: `kept` stays as the screen has it, `gone` was removed by me. */
+export type TouchedMap = Map<string, 'kept' | 'gone'>
+
+// The load may have been read before those saves landed, so it can lack a record I just made or still hold one I just removed.
+function applyTouched(merged: ContentState, local: ContentState, touched: TouchedMap): ContentState {
+  let out = merged
+  for (const [key, how] of touched) {
+    const [kind, id] = key.split(':') as [ContentKind, string]
+    const mine = getRecord(local, kind, id)
+    if (how === 'gone') out = dropRecord(out, kind, id)
+    else if (mine !== undefined && getRecord(out, kind, id) === undefined) out = putRecord(out, kind, mine)
+  }
+  return out
 }

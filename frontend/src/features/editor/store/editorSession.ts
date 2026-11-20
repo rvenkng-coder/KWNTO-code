@@ -1,7 +1,7 @@
 import type { ProjectContent, RemoteEvent } from '../../../backend'
 import { errorMessage } from '../../errorMessage'
 import { applyRemote } from '../model/remote'
-import { EMPTY_STATE, fromContent, mergeNewer, type ContentState } from '../model/state'
+import { EMPTY_STATE, fromContent, mergeNewer, type ContentState, type TouchedMap } from '../model/state'
 import { overlay, type OutboxEntry } from '../sync/outbox'
 import type { EditorSyncPort } from './editorSync'
 import type { EditorDoor, EditorStore } from './editorStore'
@@ -14,7 +14,7 @@ export const OPEN_FAILED = 'This project does not exist or you are not a member 
 
 type Closer = (() => Promise<void>) | null
 type Set = (partial: Partial<EditorStore> | ((s: EditorStore) => Partial<EditorStore>)) => void
-type Fetched = { ok: true; state: ContentState; close: Closer } | { ok: false; reason: unknown; close: Closer }
+type Fetched = { ok: true; state: ContentState; touched: TouchedMap; close: Closer } | { ok: false; reason: unknown; close: Closer }
 
 function discard(close: Closer): void {
   if (close !== null) void close().catch(() => undefined)
@@ -27,6 +27,9 @@ class Session {
   private watching = false
   private wasOnline = true
   private laidOver: OutboxEntry[] = []
+  // What my own saves changed while a load was under way (see mergeNewer).
+  private touched: TouchedMap = new Map()
+  private loading = 0
   // Live events that arrive while a load is under way wait here, and are applied on top of it (the version check drops stale ones).
   private buffered: RemoteEvent[] | null = null
 
@@ -63,14 +66,17 @@ class Session {
   // Loads the project, and subscribes when asked.
   private async fetchProject(projectId: string, token: number, subscribe: boolean): Promise<Fetched> {
     this.buffered ??= []
+    if (this.loading++ === 0) this.touched.clear()
     const subscribed = subscribe ? this.door.subscribe(projectId, this.onEventOf(token), () => void this.reload(token)) : Promise.resolve(null)
     const [loaded, sub] = await Promise.allSettled([this.door.load(projectId), subscribed])
     const events = this.buffered ?? []
     this.buffered = null
+    this.loading--
+    const touched = new Map(this.touched)
     const close: Closer = sub.status === 'fulfilled' ? sub.value : null
     if (loaded.status === 'rejected') return { ok: false, reason: loaded.reason, close }
     if (sub.status === 'rejected') return { ok: false, reason: sub.reason, close }
-    return { ok: true, state: this.finish(loaded.value, events), close }
+    return { ok: true, state: this.finish(loaded.value, events), touched, close }
   }
 
   // The event stream came back (or the connection did): everything may have changed meanwhile.
@@ -78,7 +84,7 @@ class Session {
     const projectId = this.openProject
     if (projectId === null || token !== this.openToken) return
     const result = await this.fetchProject(projectId, token, false)
-    if (token === this.openToken && result.ok) this.set((st) => ({ content: mergeNewer(st.content, result.state) }))
+    if (token === this.openToken && result.ok) this.set((st) => ({ content: mergeNewer(st.content, result.state, result.touched) }))
   }
 
   // The connection is back after the live subscriptions were closed: subscribe again and load again.
@@ -89,7 +95,7 @@ class Session {
     if (token !== this.openToken || !result.ok) return discard(result.close)
     this.stopSubscription()
     this.closeSubscription = result.close
-    this.set((st) => ({ content: mergeNewer(st.content, result.state) }))
+    this.set((st) => ({ content: mergeNewer(st.content, result.state, result.touched) }))
   }
 
   // Waiting edits that were not known when the project loaded (the outbox was still being read) are laid over it now.
@@ -105,6 +111,13 @@ class Session {
     if (this.watching) return
     this.watching = true
     this.wasOnline = this.sync.snapshot()?.online ?? true
+    this.sync.register({
+      saved: (entry) => {
+        if (this.loading > 0) this.touched.set(`${entry.kind}:${entry.id}`, entry.op === 'remove' ? 'gone' : 'kept')
+      },
+      refused: () => undefined,
+      theirs: () => undefined,
+    })
     this.sync.subscribe((snapshot) => {
       const online = snapshot?.online ?? true
       const changed = online !== this.wasOnline

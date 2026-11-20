@@ -259,3 +259,26 @@ test('a stopped backend keeps the edit waiting and saves it when the server retu
   await expect(syncStatus(page)).toHaveCount(0, { timeout: 15_000 })
   expect((await adminRecord('nodes', id)).title).toBe('While down')
 })
+
+// Protects: design 6.7, review focus 3: a script line added offline survives the reconnect on the screen that made it, next to a teammate's recolour of the node.
+test('a line added offline stays on screen after reconnecting next to a teammate\'s recolour', async ({ browser }) => {
+  const { a, b, ids } = await ownerAndMember(browser, 1)
+  const [n1] = ids as [string]
+  const ctxB = b.context()
+  await card(b, n1).click()
+  await goOffline(ctxB, b)
+  await panel(b).getByRole('button', { name: 'Add line' }).click()
+  await panel(b).getByTestId('line-row').first().getByLabel('Line text').fill('content')
+  await panel(b).getByTestId('line-row').first().getByLabel('Line text').blur()
+  await card(a, n1).click()
+  await colourButton(a, 'red').click()
+  await expect.poll(async () => (await adminRecord('nodes', n1)).color).toBe('red')
+
+  await goOnline(ctxB, b)
+  await expect(syncStatus(b)).toHaveCount(0)
+  await expect(panel(b).getByTestId('line-row')).toHaveCount(1)
+  await expect(panel(b).getByTestId('line-row').first().getByLabel('Line text')).toHaveValue('content')
+  await expect(colourButton(b, 'red')).toHaveAttribute('aria-pressed', 'true')
+  await card(a, n1).click()
+  await expect(panel(a).getByTestId('line-row').first().getByLabel('Line text')).toHaveValue('content')
+})

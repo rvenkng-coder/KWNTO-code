@@ -1,5 +1,5 @@
 import { createMemoryOutbox, type OutboxStorage } from './outboxStorage'
-import { createSyncEngine, type Answer, type SyncDeps, type SyncDoor, type SyncEngine } from './syncEngine'
+import { createSyncEngine, type TabMessage, type SyncDeps, type SyncDoor, type SyncEngine } from './syncEngine'
 
 // Test doubles for the sync engine (offline sync plan Task 3): a scripted door, a clock that
 // runs timers when the test says, a lock that grants one holder per name, a channel between tabs.
@@ -75,9 +75,9 @@ export function fakeLock(): SyncDeps['lock'] {
 
 /** Every member hears the others' posts, never its own (like BroadcastChannel). */
 export function fakeBus() {
-  const members = new Set<{ fn: (message?: Answer) => void }>()
+  const members = new Set<{ fn: (message?: TabMessage) => void }>()
   return (): SyncDeps['channel'] => {
-    const me: { fn: (message?: Answer) => void } = { fn: () => {} }
+    const me: { fn: (message?: TabMessage) => void } = { fn: () => {} }
     members.add(me)
     return {
       post: (message) => { for (const m of members) if (m !== me) queueMicrotask(() => m.fn(message)) },

@@ -1,52 +1,20 @@
-import type { Backend, ContentKind, ContentRecords } from '../../../backend'
-import { BackendError } from '../../../backend/errors'
-import { planAdd, type NewEntry, type OutboxEntry } from './outbox'
+import type { NewEntry, OutboxEntry } from './outbox'
 import { nextDelay } from './outboxText'
-import type { FailedEntry, OutboxStorage } from './outboxStorage'
-import { AnswerBook, type Answer } from './syncAnswers'
+import type { FailedEntry } from './outboxStorage'
+import { AnswerBook, type Answer, type TabMessage } from './syncAnswers'
 import { mineEntry, theirsEntry } from './syncResolve'
 import { createSender, type Outcome } from './syncSend'
+import { TabLink, writeEntry } from './syncTabs'
+import type { EngineEntry, PendingConflict, SyncDeps, SyncEngine, SyncSnapshot } from './syncTypes'
 
 // The one loop that sends outbox entries (offline sync plan Task 3, D2, D7 to D9, D12): in seq
 // order, one request at a time, only in the tab holding the Web Lock, backing off while the
 // server cannot be reached. Everything it touches is injected.
 
-export type { Answer }
+export type { Answer, TabMessage }
+export type { EngineEntry, PendingConflict, SyncDeps, SyncDoor, SyncEngine, SyncHooks, SyncSnapshot } from './syncTypes'
 export const LOCK_PREFIX = 'kwnto-sync-'
 const NO_COPY = 'The record was deleted and no copy of your change is left to restore it.'
-
-export type SyncDoor = Pick<Backend['content'], 'get' | 'create' | 'update' | 'remove'>
-export interface PendingConflict { entry: OutboxEntry; server: ContentRecords[ContentKind] | null; fields: string[]; deleted: boolean }
-export interface SyncSnapshot {
-  online: boolean; owner: boolean; waiting: number; sendingSeq: number | null
-  failed: FailedEntry[]; conflict: PendingConflict | null; entries: OutboxEntry[]
-}
-export interface SyncHooks {
-  saved(entry: OutboxEntry, record: ContentRecords[ContentKind] | null): void
-  refused(entry: OutboxEntry, error: BackendError): void
-  theirs(entry: OutboxEntry, server: ContentRecords[ContentKind] | null): void
-}
-export interface SyncDeps {
-  userId: string; door: SyncDoor; storage: OutboxStorage; hooks: SyncHooks
-  clock: { now(): number; setTimeout(fn: () => void, ms: number): unknown; clearTimeout(handle: unknown): void }
-  lock(name: string, run: () => Promise<void>): Promise<void>
-  /** Refreshes the session; false when it has ended (the sign-in is then needed before anything is sent). */
-  refreshSession?: () => Promise<boolean>
-  channel: { post(message?: Answer): void; listen(fn: (message?: Answer) => void): () => void }
-}
-/** What a caller gives `add`: the engine fills the user, the offline flag and the time. */
-export type EngineEntry = NewEntry extends infer E ? (E extends NewEntry ? Omit<E, 'userId' | 'offline' | 'made'> : never) : never
-export interface SyncEngine {
-  start(): void
-  stop(): Promise<void>
-  /** Resolves with the seq once stored; 0 when the edit cancelled waiting work and nothing was stored. */
-  add(entry: EngineEntry): Promise<number>
-  setOnline(online: boolean): void
-  resolve(choice: 'mine' | 'theirs'): Promise<void>
-  dismiss(seq: number): Promise<void>
-  snapshot(): SyncSnapshot
-  subscribe(listener: (s: SyncSnapshot) => void): () => void
-}
 
 class Engine implements SyncEngine {
   private queue: OutboxEntry[] = []
@@ -61,6 +29,7 @@ class Engine implements SyncEngine {
   // Set at the start and after every reconnect: the session may have ended while nothing could be sent.
   private checkSession = true
   private answers: AnswerBook
+  private link: TabLink
   private conflict: PendingConflict | null = null
   private attempt = 0
   private timer: unknown = null
@@ -79,6 +48,7 @@ class Engine implements SyncEngine {
   constructor(deps: SyncDeps) {
     this.deps = deps
     this.answers = new AnswerBook(deps.hooks, deps.channel)
+    this.link = new TabLink(deps.channel)
     this.send = createSender(deps.door)
     this.current = this.build()
   }
@@ -94,14 +64,37 @@ class Engine implements SyncEngine {
 
   private build(): SyncSnapshot {
     return {
-      online: this.netOnline && !this.serverDown, owner: this.owner, waiting: this.queue.length + this.adding, sendingSeq: this.sendingSeq,
-      failed: this.failed, conflict: this.conflict, entries: this.queue,
+      online: this.netOnline && !this.serverDown && (this.owner || this.link.remoteOnline), owner: this.owner,
+      waiting: this.queue.length + this.adding, sendingSeq: this.sendingSeq,
+      failed: this.failed, conflict: this.owner ? this.conflict : this.link.remoteConflict, entries: this.queue,
     }
   }
 
   private publish(): void {
     this.current = this.build()
+    this.shareState(false)
     for (const listener of this.listeners) listener(this.current)
+  }
+
+  private shareState(force: boolean): void {
+    if (this.owner) this.link.share(this.current.online, this.conflict, force)
+  }
+
+  private onMessage(message?: TabMessage): void {
+    if (message?.type === 'hello') return this.shareState(true)
+    if (message?.type === 'state') {
+      if (this.owner) return
+      this.link.take(message.online, message.conflict)
+      return this.publish()
+    }
+    if (message?.type === 'resolve') {
+      if (this.owner) void this.resolve(message.choice)
+      return
+    }
+    this.refreshQuietly().then(() => {
+      if (message !== undefined) this.answers.receive(message)
+      this.wake()
+    })
   }
 
   private async refresh(): Promise<void> {
@@ -120,14 +113,10 @@ class Engine implements SyncEngine {
   start(): void {
     if (this.started) return
     this.started = true
-    this.unlisten = this.deps.channel.listen((message) => {
-      this.refreshQuietly().then(() => {
-        if (message !== undefined) this.answers.receive(message)
-        this.wake()
-      })
-    })
+    this.unlisten = this.deps.channel.listen((message) => this.onMessage(message))
     void this.refreshQuietly()
     this.lockDone = this.deps.lock(LOCK_PREFIX + this.deps.userId, () => this.holdLock())
+    this.deps.channel.post({ type: 'hello' })
   }
 
   // Background reads must not raise an unhandled rejection: a closing page loses its IndexedDB connection, the entries stay stored.
@@ -138,6 +127,7 @@ class Engine implements SyncEngine {
   private holdLock(): Promise<void> {
     if (this.stopped) return Promise.resolve()
     this.owner = true
+    this.link.becameOwner()
     this.publish()
     this.wake()
     return new Promise<void>((resolve) => {
@@ -196,21 +186,10 @@ class Engine implements SyncEngine {
   private async store(entry: NewEntry): Promise<number> {
     const { storage } = this.deps
     if (!this.owner) return storage.add(entry)
-    // Planned on the cached queue and written without a read first: the first storage call is made
-    // at once, so a text flushed on `pagehide` reaches IndexedDB before the page goes. The new
-    // entry is written before the cancelled ones are removed, so a stop in between loses nothing.
     const locked = this.sendingSeq ?? this.conflict?.entry.seq ?? null
-    const plan = planAdd(this.queue, entry, locked)
-    let seq = 0
-    if (plan.replace !== null) {
-      await storage.put(plan.replace)
-      seq = plan.replace.seq
-    } else if (plan.append !== null) {
-      seq = await storage.add(plan.append)
-    }
-    await storage.remove(plan.drop)
+    const { seq, dropped } = await writeEntry(storage, this.queue, locked, entry)
     // Edits the new one cancelled never reach the server; that is what the person asked for, so they are answered as done.
-    for (const dropped of plan.drop) this.answers.announce(this.queue.find((q) => q.seq === dropped), { seq: dropped, type: 'saved', record: null })
+    for (const seqOf of dropped) this.answers.announce(this.queue.find((q) => q.seq === seqOf), { seq: seqOf, type: 'saved', record: null })
     return seq
   }
 
@@ -223,6 +202,7 @@ class Engine implements SyncEngine {
   }
 
   async resolve(choice: 'mine' | 'theirs'): Promise<void> {
+    if (!this.owner) return this.deps.channel.post({ type: 'resolve', choice })
     const { conflict } = this
     if (conflict === null) return
     await this.exclusive(async () => {

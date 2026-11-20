@@ -36,18 +36,21 @@ function failure(error: BackendError): Outcome {
   return isTransient(error) ? { type: 'unreachable' } : { type: 'refused', error }
 }
 
-export function createSender(door: SyncDoor): (entry: OutboxEntry) => Promise<Outcome> {
-  // The create reached the server and its answer was lost: the id exists in this project, so it is done.
-  async function confirmCreated(entry: Extract<OutboxEntry, { op: 'create' }>): Promise<Outcome> {
-    let found: Awaited<ReturnType<SyncDoor['get']>>
-    try {
-      found = await door.get(entry.kind, entry.id)
-    } catch (err) {
-      return failure(toBackendError(err))
-    }
-    if (found !== null && 'projectId' in found && found.projectId === entry.projectId) return { type: 'saved', record: found }
-    return { type: 'refused', error: new BackendError('invalid', 400, { id: 'in use' }, 'That id is already used by another record.') }
+// The create reached the server and its answer was lost: the id exists in this project, so it is done. When the check
+// itself fails (the link is bad) the entry waits and is tried again.
+async function confirmCreatedIn(door: SyncDoor, entry: Extract<OutboxEntry, { op: 'create' }>): Promise<Outcome> {
+  let found: Awaited<ReturnType<SyncDoor['get']>>
+  try {
+    found = await door.get(entry.kind, entry.id)
+  } catch (err) {
+    return failure(toBackendError(err))
   }
+  if (found !== null && 'projectId' in found && found.projectId === entry.projectId) return { type: 'saved', record: found }
+  return { type: 'refused', error: new BackendError('invalid', 400, { id: 'in use' }, 'That id is already used by another record.') }
+}
+
+export function createSender(door: SyncDoor): (entry: OutboxEntry) => Promise<Outcome> {
+  const confirmCreated = (entry: Extract<OutboxEntry, { op: 'create' }>): Promise<Outcome> => confirmCreatedIn(door, entry)
 
   async function sendCreate(entry: Extract<OutboxEntry, { op: 'create' }>): Promise<Outcome> {
     try {

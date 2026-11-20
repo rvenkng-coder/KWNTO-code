@@ -1,13 +1,20 @@
 import type { ContentKind, ContentRecords } from '../../../backend'
 import { BackendError } from '../../../backend/errors'
 import type { OutboxEntry } from './outbox'
-import type { SyncDeps, SyncHooks } from './syncEngine'
+import type { PendingConflict, SyncDeps, SyncHooks } from './syncEngine'
 
 /** What happened to one outbox entry. The tab that sends tells every tab, because each tab holds the promises of its own edits. */
 export type Answer =
   | { seq: number; type: 'saved'; record: ContentRecords[ContentKind] | null }
   | { seq: number; type: 'refused'; message: string }
   | { seq: number; type: 'theirs'; server: ContentRecords[ContentKind] | null }
+
+/** What tabs of one browser say to each other. A plain `undefined` message means "the outbox changed". */
+export type TabMessage =
+  | Answer
+  | { type: 'hello' }
+  | { type: 'state'; online: boolean; conflict: PendingConflict | null }
+  | { type: 'resolve'; choice: 'mine' | 'theirs' }
 
 /** Tells the store of this tab. `error` is the real error when the answer was made here; elsewhere it is rebuilt from the message. */
 export function deliverAnswer(hooks: SyncHooks, entry: OutboxEntry, answer: Answer, error?: BackendError): void {

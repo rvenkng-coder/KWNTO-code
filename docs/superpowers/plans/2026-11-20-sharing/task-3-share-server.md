@@ -47,23 +47,23 @@ export function shareMedia(token: string, mediaId: string, user?: TestUser): Pro
 
 ## Checkpoint 3A: Links and the access decision
 
-- [ ] **Step 1: Write the failing tests** C1 in `tests/hooks/share.unit.test.ts`, C2 and C3 in `share_links.rules.test.ts`, C4 in `link_grants.rules.test.ts`, with the helper.
-- [ ] **Step 2: Run** `npx vitest run --project unit tests/hooks/share.unit.test.ts` and `npm run test:rules -- tests/rules/share_links.rules.test.ts tests/rules/link_grants.rules.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** `lib/share.js` (the first line is `if (link === null || link.revoked || projectTrashed) return NOT_FOUND`, B1; the sign-in branch `if (link.permission !== 'view' && !caller.signedIn)`, B2; the verified branch `if (link.permission !== 'view' && !caller.verified)`, B3), migration `1794400000` (both collections) and the create hook.
-- [ ] **Step 4: Run** them. Open the `share_links` create rule once: C2 must fail; restore. Expected: PASS. **Close checkpoint 3A** (commit `feat: share links and grants`).
+- [x] **Step 1: Write the failing tests** C1 in `tests/hooks/share.unit.test.ts`, C2 and C3 in `share_links.rules.test.ts`, C4 in `link_grants.rules.test.ts`, with the helper.
+- [x] **Step 2: Run** `npx vitest run --project unit tests/hooks/share.unit.test.ts` and `npm run test:rules -- tests/rules/share_links.rules.test.ts tests/rules/link_grants.rules.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** `lib/share.js` (the first line is `if (link === null || link.revoked || projectTrashed) return NOT_FOUND`, B1; the sign-in branch `if (link.permission !== 'view' && !caller.signedIn)`, B2; the verified branch `if (link.permission !== 'view' && !caller.verified)`, B3), migration `1794400000` (both collections) and the create hook.
+- [x] **Step 4: Run** them. Open the `share_links` create rule once: C2 must fail; restore. Expected: PASS. **Close checkpoint 3A** (commit `feat: share links and grants`).
 
 ## Checkpoint 3B: The routes
 
-- [ ] **Step 5: Confirm** in 0.40.6 `types.d.ts` how a route serves a stored file (`e.app.newFilesystem()`, `fs.serve(res, req, key, name)`, `record.baseFilesPath()`), and that thumbs can be served the same way; record it in `progress.md`. If serving is not possible from a route, stop and report (D8 needs another way for media).
-- [ ] **Step 6: Write the failing tests** C5 to C7 in `share-routes.rules.test.ts`; run, expect FAIL.
-- [ ] **Step 7: Implement** `share.pb.js` and the revoke-all route.
-- [ ] **Step 8: Run** `npm run test:rules`. Expected: PASS. **Close checkpoint 3B** (commit `feat: share routes for view, comment and edit links`).
+- [x] **Step 5: Confirm** in 0.40.6 `types.d.ts` how a route serves a stored file (`e.app.newFilesystem()`, `fs.serve(res, req, key, name)`, `record.baseFilesPath()`), and that thumbs can be served the same way; record it in `progress.md`. If serving is not possible from a route, stop and report (D8 needs another way for media).
+- [x] **Step 6: Write the failing tests** C5 to C7 in `share-routes.rules.test.ts`; run, expect FAIL.
+- [x] **Step 7: Implement** `share.pb.js` and the revoke-all route.
+- [x] **Step 8: Run** `npm run test:rules`. Expected: PASS. **Close checkpoint 3B** (commit `feat: share routes for view, comment and edit links`).
 
 ## Checkpoint 3C: Edit grants in the content rules
 
-- [ ] **Step 9: Write the failing tests** C8 and C9 in `share-access.rules.test.ts`; run, expect FAIL.
-- [ ] **Step 10: Write migration `1794400100`.** Then confirm the alias joins one grant row: C9's mixed case must pass; if it fails, the aliases do not do what D2 needs, stop and report.
-- [ ] **Step 11: Run** `npm run test:rules` and `npm run test:e2e`. Expected: PASS, every existing rule test unchanged. Open the grant once (drop `grant.permission ?= 'edit'`): C8's comment-link row must fail; restore. Write runbook control 6 and the docs. **Close checkpoint 3C** (commit `feat: edit links reach one project through grants`).
+- [x] **Step 9: Write the failing tests** C8 and C9 in `share-access.rules.test.ts`; run, expect FAIL.
+- [x] **Step 10: Write migration `1794400100`.** Then confirm the alias joins one grant row: C9's mixed case must pass; if it fails, the aliases do not do what D2 needs, stop and report.
+- [x] **Step 11: Run** `npm run test:rules` and `npm run test:e2e`. Expected: PASS, every existing rule test unchanged. Open the grant once (drop `grant.permission ?= 'edit'`): C8's comment-link row must fail; restore. Write runbook control 6 and the docs. **Close checkpoint 3C** (commit `feat: edit links reach one project through grants`).
 
 ## Test plan
 ### Cases

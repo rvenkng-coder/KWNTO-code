@@ -31,23 +31,23 @@ export function canDelete(c: Comment, userId: string, isOwner: boolean): boolean
 
 ## Checkpoint 5A: The collection
 
-- [ ] **Step 1: Write the failing tests** C1 to C4 in `tests/rules/comments.rules.test.ts`.
-- [ ] **Step 2: Run** `npm run test:rules -- tests/rules/comments.rules.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Write** the migration and the hook.
-- [ ] **Step 4: Run** `npm run test:rules`. Open the create rule once: C2 must fail; restore. Expected: PASS. **Close checkpoint 5A** (commit `feat: comments collection`).
+- [x] **Step 1: Write the failing tests** C1 to C4 in `tests/rules/comments.rules.test.ts`.
+- [x] **Step 2: Run** `npm run test:rules -- tests/rules/comments.rules.test.ts`. Expected: FAIL.
+- [x] **Step 3: Write** the migration and the hook.
+- [x] **Step 4: Run** `npm run test:rules`. Open the create rule once: C2 must fail; restore. Expected: PASS. **Close checkpoint 5A** (commit `feat: comments collection`).
 
 ## Checkpoint 5B: Door and list
 
-- [ ] **Step 5: Write the failing tests** C5 in `commentList.test.ts` and the door's mapping in `comments.test.ts` (C5 also).
-- [ ] **Step 6: Run** `npx vitest run --project unit frontend/src/features/comments frontend/src/backend/comments.test.ts`. Expected: FAIL.
-- [ ] **Step 7: Implement** the door and `commentList.ts` (the echo rule `if (list.some((c) => c.id === e.record.id)) return list`, B1; `canDelete` is `c.authorId === userId || isOwner`, B2).
-- [ ] **Step 8: Run** them. Expected: PASS. **Close checkpoint 5B** (commit `feat: comments door and list`).
+- [x] **Step 5: Write the failing tests** C5 in `commentList.test.ts` and the door's mapping in `comments.test.ts` (C5 also).
+- [x] **Step 6: Run** `npx vitest run --project unit frontend/src/features/comments frontend/src/backend/comments.test.ts`. Expected: FAIL.
+- [x] **Step 7: Implement** the door and `commentList.ts` (the echo rule `if (list.some((c) => c.id === e.record.id)) return list`, B1; `canDelete` is `c.authorId === userId || isOwner`, B2).
+- [x] **Step 8: Run** them. Expected: PASS. **Close checkpoint 5B** (commit `feat: comments door and list`).
 
 ## Checkpoint 5C: The panel
 
-- [ ] **Step 9: Write the failing tests** C6 to C8 in `e2e/comments.spec.ts`; run, expect FAIL.
-- [ ] **Step 10: Implement** `useNodeComments` (load and subscribe per open project, like `useProjectMedia`; offline: the `Comment` button is disabled with `Comments need a connection.`, comments are not queued), the section, the row and the badge.
-- [ ] **Step 11: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. Update the docs. **Close checkpoint 5C** (commit `feat: comments in the panel and on cards`).
+- [x] **Step 9: Write the failing tests** C6 to C8 in `e2e/comments.spec.ts`; run, expect FAIL.
+- [x] **Step 10: Implement** `useNodeComments` (load and subscribe per open project, like `useProjectMedia`; offline: the `Comment` button is disabled with `Comments need a connection.`, comments are not queued), the section, the row and the badge.
+- [x] **Step 11: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. Update the docs. **Close checkpoint 5C** (commit `feat: comments in the panel and on cards`).
 
 ## Test plan
 ### Cases

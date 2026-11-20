@@ -31,23 +31,23 @@ export function permissionLabel(p: SharePermission, k: ShareKind): string // 'Ca
 
 ## Checkpoint 4A: Door and model
 
-- [ ] **Step 1: Write the failing tests** C1 in `shareModel.test.ts`, C2 in `shares.test.ts`, the route rows of C1 in `routes.test.ts`.
-- [ ] **Step 2: Run** `npx vitest run --project unit frontend/src/features/share frontend/src/backend/shares.test.ts frontend/src/features/shell/routes.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** `share-types.ts`, `shares.ts`, `shareModel.ts` (`shouldRefresh` is `kind === 'live' && visible && nowMs - lastMs >= 30000`, B1) and the route (`/^[A-Za-z0-9]{40}$/`, B2).
-- [ ] **Step 4: Run** them. Expected: PASS. **Close checkpoint 4A** (commit `feat: share door and model`).
+- [x] **Step 1: Write the failing tests** C1 in `shareModel.test.ts`, C2 in `shares.test.ts`, the route rows of C1 in `routes.test.ts`.
+- [x] **Step 2: Run** `npx vitest run --project unit frontend/src/features/share frontend/src/backend/shares.test.ts frontend/src/features/shell/routes.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** `share-types.ts`, `shares.ts`, `shareModel.ts` (`shouldRefresh` is `kind === 'live' && visible && nowMs - lastMs >= 30000`, B1) and the route (`/^[A-Za-z0-9]{40}$/`, B2).
+- [x] **Step 4: Run** them. Expected: PASS. **Close checkpoint 4A** (commit `feat: share door and model`).
 
 ## Checkpoint 4B: The share dialog and the link screen
 
-- [ ] **Step 5: Write the failing tests** C3 to C6 in `e2e/share-links.spec.ts` (`e2e/helpers/share.ts`: `makeLink(page, permission, kind): Promise<string>` reads the copied URL; a fresh `browser.newContext()` is the person without an account).
-- [ ] **Step 6: Run** `npm run test:e2e -- e2e/share-links.spec.ts`. Expected: FAIL.
-- [ ] **Step 7: Implement** the dialog, the screen, the viewer and the panel. Theme tokens only (Plan 3 D1); no `confirm()`. The viewer never imports the editor store.
-- [ ] **Step 8: Run** the spec. Expected: PASS. **Close checkpoint 4B** (commit `feat: share dialog and read-only viewer`).
+- [x] **Step 5: Write the failing tests** C3 to C6 in `e2e/share-links.spec.ts` (`e2e/helpers/share.ts`: `makeLink(page, permission, kind): Promise<string>` reads the copied URL; a fresh `browser.newContext()` is the person without an account).
+- [x] **Step 6: Run** `npm run test:e2e -- e2e/share-links.spec.ts`. Expected: FAIL.
+- [x] **Step 7: Implement** the dialog, the screen, the viewer and the panel. Theme tokens only (Plan 3 D1); no `confirm()`. The viewer never imports the editor store.
+- [x] **Step 8: Run** the spec. Expected: PASS. **Close checkpoint 4B** (commit `feat: share dialog and read-only viewer`).
 
 ## Checkpoint 4C: Edit links in the editor
 
-- [ ] **Step 9: Write the failing tests** C7 and C8; run, expect FAIL.
-- [ ] **Step 10: Implement** `SharedWithMe` and whatever the editor needs so an edit-grant holder can work: find every place the editor or shell reads the team, its members or the owner (for example `Back to teams`, owner-only menu items) and make each one treat "not a member" as "not the owner" instead of failing. List those places in the report.
-- [ ] **Step 11: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. Write `docs/user/sharing.md`. **Close checkpoint 4C** (commit `feat: edit links open the editor`).
+- [x] **Step 9: Write the failing tests** C7 and C8; run, expect FAIL.
+- [x] **Step 10: Implement** `SharedWithMe` and whatever the editor needs so an edit-grant holder can work: find every place the editor or shell reads the team, its members or the owner (for example `Back to teams`, owner-only menu items) and make each one treat "not a member" as "not the owner" instead of failing. List those places in the report.
+- [x] **Step 11: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. Write `docs/user/sharing.md`. **Close checkpoint 4C** (commit `feat: edit links open the editor`).
 
 ## Test plan
 ### Cases

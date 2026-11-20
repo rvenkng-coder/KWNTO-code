@@ -183,21 +183,14 @@ export function createAuth(pb: PocketBase) {
       return doRefresh(pb, cache, () => signOutCount, currentRef)
     },
 
-    async requestVerification(email: string): Promise<void> {
-      await requestVerification(pb, email)
-    },
+    requestVerification: (email: string): Promise<void> => requestVerification(pb, email),
 
-    async requestPasswordReset(email: string): Promise<void> {
-      await requestPasswordReset(pb, email)
-    },
+    requestPasswordReset: (email: string): Promise<void> => requestPasswordReset(pb, email),
 
-    async confirmVerification(token: string): Promise<void> {
-      await confirmVerification(pb, token)
-    },
+    confirmVerification: (token: string): Promise<void> => confirmVerification(pb, token),
 
-    async confirmPasswordReset(token: string, password: string, passwordConfirm: string): Promise<void> {
-      await confirmPasswordReset(pb, token, password, passwordConfirm)
-    },
+    confirmPasswordReset: (token: string, password: string, passwordConfirm: string): Promise<void> =>
+      confirmPasswordReset(pb, token, password, passwordConfirm),
 
     onChange(
       listener: (user: AuthUser | null) => void,

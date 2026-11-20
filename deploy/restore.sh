@@ -2,11 +2,12 @@
 # Restores ALL data from a backup zip (plan 6 D11). Usage: deploy/restore.sh [--yes] <backup.zip>
 # Offline procedure: stop pocketbase, empty the data volume with a throwaway container of the same
 # image, unzip the backup into it, start pocketbase. It works when the app will not start.
-# Env: KWNTO_COMPOSE_FILES (default "-f compose.prod.yaml"), KWNTO_DATA_VOLUME (default kwnto-data).
+# Env: KWNTO_COMPOSE_FILES (default "-f compose.prod.yaml"), KWNTO_DATA_VOLUME (default: the volume
+# mounted at /pb/pb_data in the pocketbase container; Compose names it <project>_kwnto-data).
 set -eu
 
 COMPOSE_FILES=${KWNTO_COMPOSE_FILES:--f compose.prod.yaml}
-VOLUME=${KWNTO_DATA_VOLUME:-kwnto-data}
+VOLUME=${KWNTO_DATA_VOLUME:-}
 IMAGE=kwnto-pocketbase:dev
 
 YES=0
@@ -49,6 +50,23 @@ case "$CHECK" in
     ;;
 esac
 
+# Which volume is replaced: KWNTO_DATA_VOLUME if set, else the one mounted at /pb/pb_data in the pocketbase
+# container (Compose names it <project>_kwnto-data, so the plain name would be a new, unused volume).
+if [ -z "$VOLUME" ]; then
+  # shellcheck disable=SC2086
+  CONTAINER=$(docker compose $COMPOSE_FILES ps -aq pocketbase 2>/dev/null | head -n 1) || CONTAINER=""
+  if [ -z "$CONTAINER" ]; then
+    echo "Could not find the pocketbase container to read its data volume from. Start the stack, or set KWNTO_DATA_VOLUME to the volume's name." >&2
+    exit 1
+  fi
+  VOLUME=$(docker inspect "$CONTAINER" --format '{{range .Mounts}}{{if eq .Destination "/pb/pb_data"}}{{.Name}}{{end}}{{end}}' 2>/dev/null) || VOLUME=""
+  if [ -z "$VOLUME" ]; then
+    echo "The pocketbase container's /pb/pb_data is not a named volume (a bind mount or tmpfs?). Set KWNTO_DATA_VOLUME to the volume's name." >&2
+    exit 1
+  fi
+fi
+
+echo "Data volume to be replaced: $VOLUME"
 if [ "$YES" -ne 1 ]; then
   printf 'This replaces ALL data with %s. Type RESTORE to continue: ' "$FILE"
   ANSWER=""

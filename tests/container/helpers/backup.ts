@@ -4,10 +4,11 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 // Helpers for the backup test stack: compose.prod.yaml plus compose.backup-test.yaml (data in the
-// named volume kwnto-backup-test-data, backups in a temporary host folder). Same ports as the edge stack,
+// Compose-named volume kwnto-backup-test_kwnto-data, backups in a temporary host folder). Same ports as the edge stack,
 // so the two test files must not run at the same time (vitest.config.ts runs container files one at a time).
 
-export const BACKUP_VOLUME = 'kwnto-backup-test-data'
+// Compose's own name for the data volume (<project>_kwnto-data); restore.sh must find it itself.
+export const BACKUP_VOLUME = 'kwnto-backup-test_kwnto-data'
 export const ADMIN_EMAIL = 'admin@example.test'
 export const ADMIN_PASSWORD = 'test-admin-password-1'
 const COMPOSE_FILES = ['-f', 'compose.prod.yaml', '-f', 'compose.backup-test.yaml']
@@ -50,7 +51,6 @@ export const backupNow = (email: string, password: string, pb = 'http://127.0.0.
 export function restore(dir: string, args: string[], input = ''): ScriptResult {
   return runScript('deploy/restore.sh', args, input, {
     KWNTO_COMPOSE_FILES: COMPOSE_FILES.join(' '),
-    KWNTO_DATA_VOLUME: BACKUP_VOLUME,
     KWNTO_BACKUP_DIR: dir, // compose needs it to read the files, as on the VM
   })
 }

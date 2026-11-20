@@ -137,10 +137,10 @@ The first start of an empty volume with `KWNTO_PRODUCTION=1` writes these (admin
 The full procedure, with what it checks and what to do when it fails, is [runbook control 8](../security.md#8-restore-from-a-backup). In short, from the repository folder:
 
 ```sh
-KWNTO_DATA_VOLUME=$(docker volume ls -q | grep 'kwnto-data$') deploy/restore.sh ./backups/<file>.zip
+deploy/restore.sh ./backups/<file>.zip
 ```
 
-- **Set `KWNTO_DATA_VOLUME`.** Docker names the real volume after the folder (for example `kwnto_kwnto-data`), not plain `kwnto-data`; the command above looks it up (it needs exactly one match; with several, name yours). Without it the script would restore into a new, unused volume.
+- **The script finds the data volume itself** (Docker names it after the folder, for example `kwnto_kwnto-data`) and shows it on a line `Data volume to be replaced: <name>` before it asks you to type `RESTORE`; check that it is the volume you expect. If it cannot find it (the stack is not created, or the data is not a named volume) it stops with exit 1 and tells you to set `KWNTO_DATA_VOLUME` to the volume's name.
 - A backup that is cut off or empty is refused before anything is touched: `Backup is damaged: <file>` (exit 2). If it prints `Could not check the backup (...)` (exit 1) the file may be fine: check that Docker runs and make the file readable (`chmod 644 <file>`), then run it again.
 - A restore replaces **everything** with the state at the backup, including the admin password from that time.
 

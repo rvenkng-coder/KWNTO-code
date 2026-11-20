@@ -176,6 +176,7 @@ test('restore asks before replacing all data', async () => {
   const res = restore(dir, [file], 'no\n')
   expect(res.status).toBe(1)
   expect(res.stdout).toContain(`This replaces ALL data with ${file}. Type RESTORE to continue:`)
+  expect(res.stdout).toContain('Data volume to be replaced: kwnto-backup-test_kwnto-data')
   expect((await raw('/api/health')).status).toBe(200)
   expect(await adminSignIn(OLD_PASSWORD)).toBe(200)
 })

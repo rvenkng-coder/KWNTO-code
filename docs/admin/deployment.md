@@ -127,10 +127,10 @@ The first start of an empty volume with `KWNTO_PRODUCTION=1` writes these (admin
 
   ```sh
   PB_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(docker compose -f compose.prod.yaml ps -q pocketbase))
-  printf '%s\n%s\n' 'admin@example.com' '<admin password>' | PB=http://$PB_IP:8090 deploy/backup-now.sh
+  PB=http://$PB_IP:8090 deploy/backup-now.sh
   ```
 
-  `PB` is PocketBase's address on the compose network (nothing is published on the VM, so the first line looks it up; from the VM's own shell that address is reachable). Typing the password in a command line leaves it in your shell history: start the line with a space (if your shell ignores such lines) or use a password manager's paste and clear the history afterwards. The script reads the email and password from standard input (never from arguments), and prints `Backup written: manual_<yyyymmdd_hhmmss>.zip` (UTC time). Two backups within one second get the same name and the second fails: wait a second.
+  `PB` is PocketBase's address on the compose network (nothing is published on the VM, so the first line looks it up; from the VM's own shell that address is reachable). When the script waits, type the admin email and press Enter, then the password and press Enter (two lines; the password is not echoed and never appears on a command line, so it stays out of your shell history). It prints `Backup written: manual_<yyyymmdd_hhmmss>.zip` (UTC time). Two backups within one second get the same name and the second fails: wait a second.
 
 ## Restore
 
@@ -146,12 +146,15 @@ deploy/restore.sh ./backups/<file>.zip
 
 ## Updating
 
+1. Make a backup first, as in [Backups](#backups) (`PB=http://$PB_IP:8090 deploy/backup-now.sh`).
+2. Update:
+
 ```sh
 git pull
 docker compose -f compose.prod.yaml up -d --build --force-recreate
 ```
 
-`--force-recreate` makes the `web` service build the new app again; accounts, projects, media and the settings you changed live in volumes and survive (a container test pins that data and settings survive an update). Make a backup first (`deploy/backup-now.sh`). The image digests in `compose.prod.yaml` and `backend/Dockerfile` are pinned ([decision 0004](../decisions/0004-deployment-images.md)): once a month check for newer versions, change the digest and the comment next to it, rebuild and run `npm run test:container` on a development machine before deploying.
+`--force-recreate` makes the `web` service build the new app again; accounts, projects, media and the settings you changed live in volumes and survive (a container test pins that data and settings survive an update). The image digests in `compose.prod.yaml` and `backend/Dockerfile` are pinned ([decision 0004](../decisions/0004-deployment-images.md)): once a month check for newer versions, change the digest and the comment next to it, rebuild and run `npm run test:container` on a development machine before deploying.
 
 ## When the disk fills
 

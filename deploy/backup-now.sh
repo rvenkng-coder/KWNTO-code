@@ -8,7 +8,16 @@ set -eu
 : "${PB:?PB must be the backend's private address, for example http://127.0.0.1:8090}"
 
 IFS= read -r ADMIN_EMAIL || { echo "Expected the admin email on the first line of standard input" >&2; exit 1; }
+# At a terminal the password is typed without echo; piped input is unaffected.
+if [ -t 0 ]; then
+  stty -echo
+  trap 'stty echo' EXIT
+fi
 IFS= read -r ADMIN_PASSWORD || { echo "Expected the admin password on the second line of standard input" >&2; exit 1; }
+if [ -t 0 ]; then
+  stty echo
+  echo
+fi
 
 # Puts a value into JSON text: a backslash and a double quote each get a backslash before them.
 json_escape() {

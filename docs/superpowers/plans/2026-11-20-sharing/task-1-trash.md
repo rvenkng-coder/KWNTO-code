@@ -48,10 +48,10 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 1A: The decisions
 
-- [ ] **Step 1: Write the failing test** C1 in `tests/hooks/trash.unit.test.ts`.
-- [ ] **Step 2: Run** `npx vitest run --project unit tests/hooks/trash.unit.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** `lib/trash.js`. The expiry test is `deletedAtIso !== '' && deletedAtIso < cutoffIso` (B1); the stamp test is `if (sent === '' || sent === null || sent === undefined) return ''` (B2).
-- [ ] **Step 4: Run** it. Expected: PASS. **Close checkpoint 1A** (commit `feat: trash time and expiry decisions`).
+- [x] **Step 1: Write the failing test** C1 in `tests/hooks/trash.unit.test.ts`.
+- [x] **Step 2: Run** `npx vitest run --project unit tests/hooks/trash.unit.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** `lib/trash.js`. The expiry test is `deletedAtIso !== '' && deletedAtIso < cutoffIso` (B1); the stamp test is `if (sent === '' || sent === null || sent === undefined) return ''` (B2).
+- [x] **Step 4: Run** it. Expected: PASS. **Close checkpoint 1A** (commit `feat: trash time and expiry decisions`).
 
 ## Checkpoint 1B: The server
 

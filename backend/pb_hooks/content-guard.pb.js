@@ -24,6 +24,20 @@ onRecordUpdateRequest((e) => {
     throw new BadRequestError("version is required")
   }
 
+  // The trash time is the server's own (design 6.8, plan D11): a browser with a wrong clock,
+  // or a hand-made request, must not date work far back and get it purged. Done before the
+  // changed fields are found, so the stamped value is what gets copied. `deleted_at` exists
+  // on projects, chapters and nodes only; its restore (an empty value) stays empty.
+  if (Object.prototype.hasOwnProperty.call(e.requestInfo().body, "deleted_at")) {
+    const { serverDeletedAt } = require(`${__hooks}/lib/trash.js`)
+    const nowIso = new Date().toISOString().replace("T", " ")
+    // The body value is a Go-backed object here, not a JS string, so an empty value does not
+    // equal '' until it is turned into text; null and undefined are left for the helper.
+    const sentValue = e.requestInfo().body["deleted_at"]
+    const sentText = sentValue === null || sentValue === undefined ? sentValue : String(sentValue)
+    e.record.set("deleted_at", serverDeletedAt(sentText, nowIso))
+  }
+
   const names = []
   for (const field of e.record.collection().fields) names.push(field.getName())
   const original = e.record.original()

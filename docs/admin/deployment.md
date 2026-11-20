@@ -177,29 +177,96 @@ The first start of an empty volume with `KWNTO_PRODUCTION=1` writes these (admin
 
 ## Backups
 
-- PocketBase makes a backup **every day at 02:00 UTC** and keeps the last **7**. Change the schedule and the keep count in the dashboard: Settings, Backups.
-- A backup is a zip in the host folder `KWNTO_BACKUP_DIR` (default `./backups`). It holds the database, the uploaded media files and the admin account, so **protect it like a secret**. The folder must exist and be writable by user 10001 (`mkdir -p backups && sudo chown 10001:10001 backups`), or scheduled backups fail.
-- **Copy the folder off the VM** (another machine, a NAS, a cloud drive), for example `rsync -a ./backups/ user@other-host:/safe/kwnto-backups/`. A backup on the same disk does not survive the disk.
-- **Make one now:**
+A backup is one zip file. It holds the **database, the uploaded media files and the admin account** (including the admin password), so **protect it like a secret**. Backups are written to the folder `backups/` in the repository folder on the VM (set by `KWNTO_BACKUP_DIR`).
 
-  ```sh
-  PB_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(docker compose -f compose.prod.yaml ps -q pocketbase))
-  PB=http://$PB_IP:8090 deploy/backup-now.sh
-  ```
+### What happens by itself
 
-  `PB` is PocketBase's address on the compose network (nothing is published on the VM, so the first line looks it up; from the VM's own shell that address is reachable). When the script waits, type the admin email and press Enter, then the password and press Enter (two lines; the password is not echoed and never appears on a command line, so it stays out of your shell history). It prints `Backup written: manual_<yyyymmdd_hhmmss>.zip` (UTC time). Two backups within one second get the same name and the second fails: wait a second.
+- PocketBase makes a backup **every day at 02:00 UTC** and keeps the last **7**. Change the time and the keep count in the dashboard: Settings, Backups.
+- The folder must exist and belong to user 10001 **before the first start** (`mkdir -p backups && sudo chown 10001:10001 backups`; First run does this). Otherwise scheduled backups fail.
+- A backup on the same disk does not survive the disk. **Copy the folder to another machine regularly** (see "Copy backups off the VM" below).
+
+### Make a backup now
+
+Do this before an update, before a risky change, and before you restore something. Run it on the VM, in the repository folder:
+
+1. Find PocketBase's private address. Nothing is published on the VM, so it is the container's address on the compose network:
+
+   ```sh
+   PB_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(docker compose -f compose.prod.yaml ps -q pocketbase))
+   echo $PB_IP        # for example 172.30.0.10
+   ```
+
+2. Run the script:
+
+   ```sh
+   PB=http://$PB_IP:8090 deploy/backup-now.sh
+   ```
+
+3. It waits for two lines: type the admin email and press Enter, then type the admin password and press Enter. The password is not shown and never appears on a command line, so it stays out of your shell history.
+4. It prints `Backup written: manual_20261121_093045.zip` (the name is the UTC time). Check it is there:
+
+   ```sh
+   ls -lh backups/
+   ```
+
+If it fails: `Failed to authenticate` means the admin email or password is wrong (the rate limiter also allows only about 2 sign-in tries every 3 seconds, so do not retry in a hurry); a connection error means `PB_IP` is empty (`pocketbase` is not running: `docker compose -f compose.prod.yaml ps`). Two backups in the same second get the same name and the second fails: wait a second.
+
+### Copy backups off the VM
+
+From your own computer (replace the names):
+
+```sh
+scp -r user@vm-address:kwnto/backups ./kwnto-backups-$(date +%F)
+```
+
+or, to keep a folder in step, run on the VM: `rsync -a ./backups/ user@other-host:/safe/kwnto-backups/`. If `scp` says permission denied, make the files readable first: `sudo chmod -R a+r backups` on the VM. Store the copies somewhere only you can read: anyone who has a backup has the admin password hash and every upload.
 
 ## Restore
 
-The full procedure, with what it checks and what to do when it fails, is [runbook control 8](../security.md#8-restore-from-a-backup). In short, from the repository folder:
+A restore **replaces everything** (database, media, admin account and password) with the state at the time of the backup. Whatever people did after that backup is lost, and the admin password becomes the one from that time. It works even when the app will not start. The full runbook, with every message the script can print, is [control 8](../security.md#8-restore-from-a-backup).
 
-```sh
-deploy/restore.sh ./backups/<file>.zip
-```
+### Restore on the same VM
 
-- **The script finds the data volume itself** (Docker names it after the folder, for example `kwnto_kwnto-data`) and shows it on a line `Data volume to be replaced: <name>` before it asks you to type `RESTORE`; check that it is the volume you expect. If it cannot find it (the stack is not created, or the data is not a named volume) it stops with exit 1 and tells you to set `KWNTO_DATA_VOLUME` to the volume's name.
-- A backup that is cut off or empty is refused before anything is touched: `Backup is damaged: <file>` (exit 2). If it prints `Could not check the backup (...)` (exit 1) the file may be fine: check that Docker runs and make the file readable (`chmod 644 <file>`), then run it again.
-- A restore replaces **everything** with the state at the backup, including the admin password from that time.
+Run on the VM, in the repository folder:
+
+1. **Choose the backup.** The newest first:
+
+   ```sh
+   ls -lt backups/
+   ```
+
+   If the backup is on another machine, copy it into `backups/` first, for example from your computer: `scp kwnto-2026-11-20.zip user@vm-address:kwnto/backups/`. The file must be readable by others (`chmod 644 backups/<file>.zip`), because the script reads it as user 10001.
+2. **Optional safety copy** of the current state, if the app still runs: "Make a backup now" above. Then you can undo the restore by restoring that file.
+3. **Run the restore:**
+
+   ```sh
+   deploy/restore.sh ./backups/<file>.zip
+   ```
+
+   It checks the zip first (a cut-off or empty file is refused before anything is touched), then prints the data volume it will replace:
+
+   ```
+   Data volume to be replaced: kwnto_kwnto-data
+   This replaces ALL data with ./backups/<file>.zip. Type RESTORE to continue:
+   ```
+
+   Check that the volume name is the one you expect, then type `RESTORE` and press Enter. Anything else stops it with nothing changed. It then stops `pocketbase`, empties the volume, unpacks the backup, starts `pocketbase` and waits until it answers (up to 60 seconds). The last line is `Restored from ./backups/<file>.zip`.
+4. **Check it by hand:**
+   - Sign in to the dashboard over the tailnet (`https://<host>:8443/_/`) with the admin password **from the time of the backup**.
+   - In the app on the public address, sign in as a user and open a project that existed at the time of the backup; open a node with an uploaded image and check it loads.
+   - Everyone who was signed in may be signed out and has to sign in again.
+
+If it stops with a message, the table in [control 8](../security.md#8-restore-from-a-backup) says what it means. The usual ones: `Backup is damaged: <file>` (pick another backup), `Could not check the backup (...)` (check that Docker runs and `chmod 644` the file, then run it again), `Restore failed after the data folder was emptied; pocketbase is stopped` (run the restore again with a good backup: the data folder is empty until you do).
+
+### Restore onto a new or rebuilt VM
+
+1. Follow the guide from the top: Getting the code, Tailscale and Funnel, First run. Use the **same `TS_HOSTNAME`** so the public address stays the same (delete the old machine in the Tailscale Machines page first, or the new one gets a `-1` name and a different address).
+2. Wait until the stack is running (First run, "Check it"), then copy your backup into `backups/` and follow "Restore on the same VM", steps 3 and 4. The restore replaces the new empty install with your data, including the admin account of the backup.
+3. The settings written on the first start (`KWNTO_PUBLIC_URL`, rate limits, trusted proxy) come back from the backup, so check Settings, Application URL still matches your public address.
+
+### Practice it once
+
+A backup you have never restored is a guess. After the first real backup, restore it on a test VM, or on the real VM on a day with no users, and walk through the checks above.
 
 ## Updating
 

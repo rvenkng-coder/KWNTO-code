@@ -44,11 +44,10 @@ case "$CHECK" in
     echo "Backup is damaged: $FILE" >&2
     exit 2
     ;;
-  4)
-    echo "The backup file is not readable by the container user (uid 10001): $FILE. Run chmod 644 on it and try again." >&2
-    exit 1
-    ;;
   *)
+    if [ "$CHECK" -eq 4 ]; then
+      echo "The backup file is not readable by the container user (uid 10001): run chmod 644 on it and try again." >&2
+    fi
     echo "Could not check the backup (docker or file permission problem, see the error above): $FILE" >&2
     exit 1
     ;;

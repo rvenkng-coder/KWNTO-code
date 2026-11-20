@@ -10,7 +10,7 @@ import { visibleTabs } from './chapters/tabsView'
 import { useTabsView } from './chapters/useTabsView'
 import { ErrorBanner } from './ErrorBanner'
 import { useProjectMedia } from './media/useProjectMedia.ts'
-import { useNodeComments } from '../comments/useNodeComments'
+import { CommentsLoader } from '../comments/CommentsLoader'
 import { liveChapters } from './model/state'
 import { PropertiesPanel } from './panel/PropertiesPanel'
 import { editorStore, useEditor } from './store/editorStore'
@@ -132,7 +132,6 @@ export function EditorScreen({ projectId, chapterId }: { projectId: string; chap
   const active = chapters.find((c) => c.id === chapterId) ?? null
   useOpenProject(projectId)
   useProjectMedia(projectId)
-  useNodeComments(status === 'ready' ? projectId : null, content.project === null ? '' : content.project.teamId)
   useFirstTabRedirect(projectId, chapters, active)
   useFlushOnLeave(projectId, chapterId)
   useShortcuts(active === null ? null : active.id)
@@ -140,5 +139,10 @@ export function EditorScreen({ projectId, chapterId }: { projectId: string; chap
   if (status === 'error') return <NotFound />
   if (status !== 'ready') return <p>Loading project…</p>
   const projectName = content.project === null ? '' : content.project.name
-  return <EditorFrame projectId={projectId} teamId={content.project === null ? '' : content.project.teamId} projectName={projectName} chapters={chapters} active={active} />
+  return (
+    <>
+      <CommentsLoader projectId={projectId} teamId={content.project === null ? '' : content.project.teamId} />
+      <EditorFrame projectId={projectId} teamId={content.project === null ? '' : content.project.teamId} projectName={projectName} chapters={chapters} active={active} />
+    </>
+  )
 }

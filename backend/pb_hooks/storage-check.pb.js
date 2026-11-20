@@ -43,6 +43,8 @@ cronAdd("kwnto_storage_check", "0 * * * *", () => {
         text: text,
       }))
     } catch (error) {
+      // The server console is the only place a hook can report this; the log entry is already written.
+      // eslint-disable-next-line no-console
       console.error(`storage check: could not mail ${admin.email()}:`, String(error))
     }
   }

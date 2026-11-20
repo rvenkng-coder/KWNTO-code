@@ -36,6 +36,8 @@ afterEach(async () => {
   await clearAll()
 })
 
+// Protects D12: over the limit the admin gets one `storage` entry, with the numbers, and a
+// second run inside 24 hours adds nothing.
 test('over the total limit the admin is warned once', async () => {
   restore = await setStorageSetting('total_warning_bytes', 100)
   const { owner, projectId, chapterId } = await memberProject()
@@ -59,6 +61,8 @@ test('over the total limit the admin is warned once', async () => {
   expect(entry.detail.limitBytes).toBe(100)
 })
 
+// Protects D12: a limit of 0 turns the warning off, and a total under the limit (the 20 GB
+// default) never warns, however many files are stored.
 test('no warning under the limit or when it is off', async () => {
   const { owner, projectId, chapterId } = await memberProject()
   const nodeId = await createNode(owner, projectId, chapterId)

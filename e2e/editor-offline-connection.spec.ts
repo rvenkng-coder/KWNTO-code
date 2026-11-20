@@ -4,10 +4,11 @@
 // undo one step at a time. The stream is cut without `setOffline`, so the browser stays online.
 import { expect, test, type Page } from '@playwright/test'
 import { adminRecord } from './helpers/admin'
-import { addNodeAt, card, ownerWithProject, readyCanvas } from './helpers/editor'
-import { syncStatus } from './helpers/offline'
+import { addNodeAt, card, cards, ownerWithProject, readyCanvas } from './helpers/editor'
+import { goOffline, goOnline, syncStatus } from './helpers/offline'
 import { rename } from './helpers/pair'
 
+const mod = process.platform === 'darwin' ? 'Meta' : 'Control'
 const STREAM = '**/api/realtime'
 
 // Remembers every EventSource the page opens, so a test can end the open stream. Must run before the page loads.
@@ -69,4 +70,25 @@ test('a waiting edit is sent as soon as the connection is back', async ({ page }
   await page.unroute(STREAM)
   await expect.poll(async () => (await adminRecord('nodes', id)).title, { timeout: 8000 }).toBe('Waited')
   await expect(card(page, id)).toContainText('Waited')
+})
+
+// Protects D15: edits made offline are separate undo steps once they are saved. A paste is a group;
+// it closed only when the server answered, so everything done after it offline fell into it and one
+// Ctrl+Z undid both. Now the group closes when its records are stored: one Ctrl+Z takes back only
+// the rename, and the pasted node stays.
+test('edits made offline undo one step at a time after reconnecting', async ({ page, context }) => {
+  const id = await projectWithNode(page)
+  await card(page, id).click()
+  await page.keyboard.press(`${mod}+c`)
+  await goOffline(context, page)
+  await page.keyboard.press(`${mod}+v`)
+  await expect(cards(page)).toHaveCount(2)
+  await rename(page, id, 'Offline title')
+  await goOnline(context, page)
+  await expect(syncStatus(page)).toHaveCount(0)
+  await expect.poll(async () => (await adminRecord('nodes', id)).title).toBe('Offline title')
+
+  await page.keyboard.press(`${mod}+z`)
+  await expect(card(page, id)).not.toContainText('Offline title')
+  await expect(cards(page)).toHaveCount(2)
 })

@@ -101,9 +101,14 @@ function createHooks(c: Ctx): SyncHooks {
 }
 
 // Hands one edit to the outbox; resolves true when the server accepted it, false when it was refused.
+// While the engine is offline the edit resolves true as soon as it is STORED in the outbox (plan 7
+// Task 7, D15): nothing can answer it until the connection is back, and an undo group that waited for
+// an answer would stay open and swallow every later edit into one step. If the server refuses it after
+// the reconnect, the waiter still takes the change back from the screen and shows the error.
 function createSubmit(c: Ctx, sync: EditorSyncPort) {
   return (entry: EngineEntry, undo: (s: ContentState) => ContentState): Promise<boolean> => {
     c.set((st) => ({ saving: st.saving + 1 }))
+    const offline = sync.snapshot()?.online === false
     return new Promise<boolean>((resolve) => {
       const waiter: Waiter = {
         undo,
@@ -115,7 +120,11 @@ function createSubmit(c: Ctx, sync: EditorSyncPort) {
       const answered = (ok: boolean, w: Waiter) => (ok ? w.finish(true) : (c.edit(w.undo), w.finish(false)))
       c.waiters.begin()
       sync.add(entry).then(
-        (seq) => (seq === 0 ? waiter.finish(true) : c.waiters.attach(seq, waiter, answered)),
+        (seq) => {
+          if (seq === 0) return waiter.finish(true)
+          c.waiters.attach(seq, waiter, answered)
+          if (offline) resolve(true)
+        },
         (err: unknown) => {
           c.edit(undo)
           c.set({ error: errorMessage(err, SAVE_FAILED) })

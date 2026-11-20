@@ -3,7 +3,12 @@ import type { ContentKind, ContentRecords, ProjectContent, RemoteEvent } from '.
 import { BackendError } from '../../../backend/errors'
 import { chapter, content, line, node } from '../model/fixtures'
 import { UNDO_BLOCKED } from '../model/history'
+import { createMemoryOutbox } from '../sync/outboxStorage'
+import { createHookRegistry } from '../sync/hookRegistry'
+import { createSyncEngine } from '../sync/syncEngine'
+import { settle } from '../sync/fakes'
 import { createEdits } from './edits'
+import { portOf } from './editorSync'
 import { createEditorStore, type EditorDoor } from './editorStore'
 import { UNDO_PAUSED } from './editorSync'
 
@@ -157,4 +162,38 @@ test('undo waits while offline changes are waiting', async () => {
   paused = null
   await edits.undo()
   expect(store.getState().content.nodes.n1?.title).toBe('A')
+})
+
+// Protects plan 7 D15 (the offline undo group carried over from the offline sync plan): while
+// offline a group closes when its edits are STORED, not when the server answers, so an edit
+// made after it is a step of its own. Nothing here answers the door; one undo takes back only
+// the rename.
+test('an offline group closes when its edits are stored', async () => {
+  const fake = autoDoor(content({ nodes: [node('n1', { title: 'A' })] }))
+  const door: EditorDoor = { ...fake.door, create: (() => new Promise(() => undefined)) as EditorDoor['create'], update: (() => new Promise(() => undefined)) as EditorDoor['update'] }
+  const registry = createHookRegistry()
+  const engine = createSyncEngine({
+    userId: 'u1', door, storage: createMemoryOutbox(), hooks: registry.hooks, lock: (_n, run) => run(),
+    channel: { post: () => undefined, listen: () => () => undefined },
+    clock: { now: () => 1, setTimeout: (fn, ms) => setTimeout(fn, ms), clearTimeout: (h) => clearTimeout(h as ReturnType<typeof setTimeout>) },
+  })
+  engine.start()
+  await settle()
+  const store = createEditorStore(door, portOf(engine, registry.register))
+  await store.getState().open('p1')
+  await settle()
+  engine.setOnline(false)
+  await settle()
+  const edits = createEdits(store, () => undefined)
+
+  await edits.group('Add line', async () => {
+    await edits.create('script_lines', line('L1', { nodeId: 'n1' }), 'Add line')
+  })
+  await edits.update('nodes', 'n1', { title: 'B' }, 'Rename node')
+  expect(store.getState().content.lines.L1).toBeDefined()
+  expect(store.getState().content.nodes.n1?.title).toBe('B')
+
+  await edits.undo()
+  expect(store.getState().content.nodes.n1?.title).toBe('A')
+  expect(store.getState().content.lines.L1).toBeDefined()
 })

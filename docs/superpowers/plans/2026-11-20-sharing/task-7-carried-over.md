@@ -44,10 +44,10 @@ export const STREAM_GRACE_MS = 3000
 
 ## Checkpoint 7C: The offline undo group
 
-- [ ] **Step 9: Write the failing tests** C7 in `edits.test.ts` (a store whose writes resolve "stored" at once and "answered" only when the test says so) and C8 in `e2e/editor-offline.spec.ts`.
-- [ ] **Step 10: Run, expect FAIL.**
-- [ ] **Step 11: Implement.** Find how the store's offline write tells "stored in the outbox" apart from "answered by the server" (the engine's `add` resolves once stored); the group waits only for the first. Online behaviour must not change (an online group still closes after the answers, so a refused write is not recorded).
-- [ ] **Step 12: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. Update the docs and the roadmap tables. **Close checkpoint 7C** (commit `fix: offline edits close their undo step when stored`).
+- [x] **Step 9: Write the failing tests** C7 in `edits.test.ts` (a store whose writes resolve "stored" at once and "answered" only when the test says so) and C8 in `e2e/editor-offline.spec.ts`.
+- [x] **Step 10: Run, expect FAIL.**
+- [x] **Step 11: Implement.** Find how the store's offline write tells "stored in the outbox" apart from "answered by the server" (the engine's `add` resolves once stored); the group waits only for the first. Online behaviour must not change (an online group still closes after the answers, so a refused write is not recorded).
+- [x] **Step 12: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. Update the docs and the roadmap tables. **Close checkpoint 7C** (commit `fix: offline edits close their undo step when stored`).
 
 ## Test plan
 ### Cases

@@ -52,7 +52,13 @@ Every tab keeps the promises of its own edits, so the answers must reach every t
 - A load that arrives over a screen that already holds a record in a higher version keeps the higher one (`mergeNewer`): the load may have been read before my own save landed. Live events that arrive during the load wait and are applied on top of it.
 - Waiting entries that the engine only reads from IndexedDB after the project loaded are laid over the project when the snapshot reports them.
 
+### Offline follows the live connection, and retries at once (Plan 7 Task 7)
+
+`syncStore.ts` tells the engine it is offline when the browser says so **or** when the live stream has been down for 3 s (`isOffline` in `sync/connectionStatus.ts`). The stream's state comes from `backend.realtime.onConnectionChange` (`PB_CONNECT` and the SDK's `onDisconnect`, fed only while a project subscription is open). Once the engine is offline the editor closes its subscriptions, so no event can announce the stream's return: while it is down a probe opens a real `EventSource` once a second (the health route would not do, it stays up while only the stream is blocked) and a connect ends it. `SyncEngine.retryNow()` (called from the editor session on every reconnect) sends an entry waiting on the backoff at once and restarts the backoff. Any subscription that stays open while the editor is offline (comments, presence) must be closed with it, or the editor reconnects by reloading before it has sent its queue.
+
 ### Undo while offline (D11)
+
+An edit made while the engine is offline resolves as soon as it is STORED in the outbox (`createSubmit` in `store/editorEdits.ts`), not when the server answers: an undo group (a paste, a multi-node drag) therefore closes when its records are stored, and later edits are steps of their own. If the server refuses one after the reconnect, its waiter still takes it back from the screen and shows the error (the recorded step may then be skipped by undo as blocked).
 
 `edits.undo` and `redo` first wait for every write in flight, which offline would never end. While the engine is offline and `waiting > 0` (an edit still being stored counts), they do nothing and set `UNDO_PAUSED` as the store's `error`; `undoPausedBy(appSync())` decides. Plan 3's step is recorded only after the write succeeds, so after the sync the undo works again. A node trashed while offline reaches the trash with the server's time when the queued edit is sent (Plan 7: the guard hook replaces `deleted_at`); nothing else changes for the queue.
 

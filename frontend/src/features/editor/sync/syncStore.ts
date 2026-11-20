@@ -42,6 +42,7 @@ function build(): SyncLifecycle {
   const lifecycle = createSyncLifecycle(onUser, (userId) => {
     const engine = createSyncEngine({
       userId, door: backend.content, storage, hooks: registry.hooks, lock: browserLock, channel: browserChannel(),
+      refreshSession: async () => (await backend.auth.refresh()) !== null,
       clock: { now: () => Date.now(), setTimeout: (fn, ms) => setTimeout(fn, ms), clearTimeout: (h) => clearTimeout(h as ReturnType<typeof setTimeout>) },
     })
     engine.setOnline(navigator.onLine)

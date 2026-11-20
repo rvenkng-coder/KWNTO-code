@@ -97,11 +97,11 @@ export interface Shared { storage: OutboxStorage; lock: SyncDeps['lock']; channe
 export const sharedParts = (): Shared => ({ storage: createMemoryOutbox(), lock: fakeLock(), channel: fakeBus(), door: fakeDoor() })
 
 /** An engine on the shared parts (one per "tab"), with its own clock and hook log. */
-export function tab(shared: Shared = sharedParts()) {
+export function tab(shared: Shared = sharedParts(), extra: Partial<SyncDeps> = {}) {
   const clock = fakeClock()
   const log: HookLog = { saved: [], refused: [], theirs: [] }
   const engine: SyncEngine = createSyncEngine({
-    userId: 'u1', door: shared.door.door, storage: shared.storage, clock, lock: shared.lock, channel: shared.channel(),
+    userId: 'u1', door: shared.door.door, storage: shared.storage, clock, lock: shared.lock, channel: shared.channel(), ...extra,
     hooks: {
       saved: (...a) => { log.saved.push(a) },
       refused: (...a) => { log.refused.push(a) },

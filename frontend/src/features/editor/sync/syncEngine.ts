@@ -3,7 +3,7 @@ import { BackendError } from '../../../backend/errors'
 import { planAdd, type NewEntry, type OutboxEntry } from './outbox'
 import { nextDelay } from './outboxText'
 import type { FailedEntry, OutboxStorage } from './outboxStorage'
-import { deliverAnswer, type Answer } from './syncAnswers'
+import { AnswerBook, type Answer } from './syncAnswers'
 import { mineEntry, theirsEntry } from './syncResolve'
 import { createSender, type Outcome } from './syncSend'
 
@@ -30,6 +30,8 @@ export interface SyncDeps {
   userId: string; door: SyncDoor; storage: OutboxStorage; hooks: SyncHooks
   clock: { now(): number; setTimeout(fn: () => void, ms: number): unknown; clearTimeout(handle: unknown): void }
   lock(name: string, run: () => Promise<void>): Promise<void>
+  /** Refreshes the session; false when it has ended (the sign-in is then needed before anything is sent). */
+  refreshSession?: () => Promise<boolean>
   channel: { post(message?: Answer): void; listen(fn: (message?: Answer) => void): () => void }
 }
 /** What a caller gives `add`: the engine fills the user, the offline flag and the time. */
@@ -56,8 +58,9 @@ class Engine implements SyncEngine {
   private started = false
   private sendingSeq: number | null = null
   private adding = 0
-  // The edits this tab made that have no answer yet, by seq: their promises live in this tab.
-  private mine = new Map<number, OutboxEntry>()
+  // Set at the start and after every reconnect: the session may have ended while nothing could be sent.
+  private checkSession = true
+  private answers: AnswerBook
   private conflict: PendingConflict | null = null
   private attempt = 0
   private timer: unknown = null
@@ -75,6 +78,7 @@ class Engine implements SyncEngine {
 
   constructor(deps: SyncDeps) {
     this.deps = deps
+    this.answers = new AnswerBook(deps.hooks, deps.channel)
     this.send = createSender(deps.door)
     this.current = this.build()
   }
@@ -118,7 +122,7 @@ class Engine implements SyncEngine {
     this.started = true
     this.unlisten = this.deps.channel.listen((message) => {
       this.refreshQuietly().then(() => {
-        if (message !== undefined) this.receive(message)
+        if (message !== undefined) this.answers.receive(message)
         this.wake()
       })
     })
@@ -158,6 +162,7 @@ class Engine implements SyncEngine {
     this.clearTimer()
     if (online) {
       this.attempt = 0
+      this.checkSession = true
       this.wake()
     }
     this.publish()
@@ -168,22 +173,6 @@ class Engine implements SyncEngine {
     this.timer = null
   }
 
-  // Tells this tab's store and, through the channel, every other tab. `entry` is undefined when only another tab knows it.
-  private announce(entry: OutboxEntry | undefined, answer: Answer, error?: BackendError): void {
-    const known = entry ?? this.mine.get(answer.seq)
-    this.mine.delete(answer.seq)
-    if (known !== undefined) deliverAnswer(this.deps.hooks, known, answer, error)
-    this.deps.channel.post(answer)
-  }
-
-  // An answer from the tab that sends: it concerns me only when the edit was made here.
-  private receive(answer: Answer): void {
-    const entry = this.mine.get(answer.seq)
-    if (entry === undefined) return
-    this.mine.delete(answer.seq)
-    deliverAnswer(this.deps.hooks, entry, answer)
-  }
-
   add(partial: EngineEntry): Promise<number> {
     // Counted as waiting from this moment, so undo and the sign-out question see an edit that is still being stored.
     this.adding++
@@ -192,7 +181,7 @@ class Engine implements SyncEngine {
       try {
         const entry = { ...partial, userId: this.deps.userId, offline: !this.current.online, made: this.deps.clock.now() } as NewEntry
         const seq = await this.store(entry)
-        if (seq > 0 && !this.mine.has(seq)) this.mine.set(seq, { ...entry, seq } as OutboxEntry)
+        if (seq > 0) this.answers.remember(seq, { ...entry, seq } as OutboxEntry)
         return seq
       } finally {
         this.adding--
@@ -221,7 +210,7 @@ class Engine implements SyncEngine {
     }
     await storage.remove(plan.drop)
     // Edits the new one cancelled never reach the server; that is what the person asked for, so they are answered as done.
-    for (const dropped of plan.drop) this.announce(this.queue.find((q) => q.seq === dropped), { seq: dropped, type: 'saved', record: null })
+    for (const dropped of plan.drop) this.answers.announce(this.queue.find((q) => q.seq === dropped), { seq: dropped, type: 'saved', record: null })
     return seq
   }
 
@@ -247,8 +236,8 @@ class Engine implements SyncEngine {
       this.conflict = null
       await this.refresh()
       const { entry } = conflict
-      if (choice === 'theirs') this.announce(entry, { seq: entry.seq, type: 'theirs', server: conflict.server })
-      else if (mine === null) this.announce(entry, { seq: entry.seq, type: 'refused', message: NO_COPY })
+      if (choice === 'theirs') this.answers.announce(entry, { seq: entry.seq, type: 'theirs', server: conflict.server })
+      else if (mine === null) this.answers.announce(entry, { seq: entry.seq, type: 'refused', message: NO_COPY })
     })
     this.deps.channel.post()
     this.wake()
@@ -281,11 +270,23 @@ class Engine implements SyncEngine {
     const { conflict } = this
     if (conflict !== null) return
     if (!this.owner || this.stopped || !this.netOnline || this.timer !== null) return
+    if (!(await this.sessionUsable())) return
     const entry = await this.exclusive(() => this.take())
     if (entry === null) return
     const outcome = await this.send(entry)
     await this.exclusive(() => this.settle(entry, outcome))
     return this.sendNext()
+  }
+
+  // A request with an ended session is a guest's: the rules would answer 403 or 404 and the edits would be wrongly refused.
+  // Entries stay stored until the person signs in again (the engine of the next session sends them).
+  private async sessionUsable(): Promise<boolean> {
+    const refresh = this.deps.refreshSession
+    if (refresh === undefined || !this.checkSession) return true
+    this.checkSession = false
+    const usable = await refresh().catch(() => true)
+    this.checkSession = !usable
+    return usable
   }
 
   private async take(): Promise<OutboxEntry | null> {
@@ -315,14 +316,14 @@ class Engine implements SyncEngine {
     } else if (outcome.type === 'saved') {
       this.markReachable()
       await storage.remove([entry.seq])
-      tell = () => this.announce(entry, { seq: entry.seq, type: 'saved', record: outcome.record })
+      tell = () => this.answers.announce(entry, { seq: entry.seq, type: 'saved', record: outcome.record })
     } else if (outcome.type === 'conflict') {
       this.markReachable()
       this.conflict = { entry, server: outcome.server, fields: outcome.fields, deleted: outcome.deleted }
     } else {
       this.markReachable()
       await storage.fail(entry, outcome.error.message)
-      tell = () => this.announce(entry, { seq: entry.seq, type: 'refused', message: outcome.error.message }, outcome.error)
+      tell = () => this.answers.announce(entry, { seq: entry.seq, type: 'refused', message: outcome.error.message }, outcome.error)
     }
     await this.refresh()
     // After the refresh: whoever hears the answer sees a snapshot without the entry that was just answered.

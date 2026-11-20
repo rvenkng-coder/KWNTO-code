@@ -59,3 +59,21 @@ test('offline clears when the queue empties while the server was down', async ()
   await settle()
   expect(t.engine.snapshot().online).toBe(true)
 })
+
+// Protects: design 6.7 (offline for a long time): before sending after a reconnect the session is refreshed; if it has ended nothing is sent (a guest's request would be answered 403 or 404 and the edits wrongly refused) and the entries stay stored for the next sign-in.
+test('an ended session is not used to send waiting edits', async () => {
+  let valid = false
+  let checks = 0
+  const t = tab(undefined, { refreshSession: () => { checks++; return Promise.resolve(valid) } })
+  t.engine.start()
+  await settle()
+  await t.engine.add(upd('n1'))
+  await settle()
+  expect(t.door.calls).toHaveLength(0)
+  expect(t.engine.snapshot()).toMatchObject({ waiting: 1, failed: [] })
+  valid = true
+  t.engine.setOnline(true)
+  await settle()
+  expect(t.door.calls).toHaveLength(1)
+  expect(checks).toBeGreaterThanOrEqual(2)
+})

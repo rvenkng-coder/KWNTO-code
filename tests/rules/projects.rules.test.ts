@@ -11,6 +11,8 @@ import { addMember, expectCreateRefused } from './helpers/teams.ts'
 // D13 (deleting a team removes its projects).
 
 const TRASHED_AT = '2026-11-14 10:00:00.000Z'
+// The server stamps its own trash time (Plan 7 D11); the browser's value is ignored.
+const nearNow = (t: unknown) => Math.abs(Date.parse(String(t).replace(' ', 'T')) - Date.now()) < 10_000
 
 async function rowsOf(collection: string, projectId: string): Promise<Record<string, unknown>[]> {
   const admin = await asAdmin()
@@ -65,7 +67,9 @@ test('only the team owner moves a project to the trash', async () => {
 
   const allowed = await guardedUpdate(owner, 'projects', project.id, { version: 0, deleted_at: TRASHED_AT })
   expect(allowed.status).toBe(200)
-  expect(await readAsAdmin('projects', project.id)).toMatchObject({ deleted_at: TRASHED_AT, version: 1 })
+  const stored = await readAsAdmin('projects', project.id)
+  expect(stored).toMatchObject({ version: 1 })
+  expect(nearNow(stored.deleted_at)).toBe(true)
 })
 
 // A moved project would hand one team's work to another (design 5: teams own projects).

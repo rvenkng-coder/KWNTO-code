@@ -52,10 +52,10 @@ KWNTO is an **internal tool** for now. Some risks are knowingly accepted for tha
 
 ## 4. Uploads
 
-- Allowed: WAV, MP3, MOV, MP4, JPEG, PNG. Limits are admin settings (default 2 GB per user, 200 MB per video, 50 MB per audio or image).
-- **Strict check:** the server reads the file's first bytes to confirm the real type, not just the extension, and rejects mismatches.
-- Files are served with headers that stop the browser guessing a type or running them as pages (for example `X-Content-Type-Options: nosniff`). File names are replaced with generated names.
-- Over quota: the upload is refused with a clear message; nothing already uploaded is deleted.
+- Allowed: WAV, MP3, MOV, MP4, JPEG, PNG. Limits are admin settings (default 2 GB per user, 200 MB per video, 50 MB per audio or image in `system_storage`, overridden per user in `user_limits`).
+- **Strict check:** the server reads the file's first bytes to confirm the real type, not just the extension, and rejects mismatches (`backend/pb_hooks/lib/media-check.js`, `media.pb.js`). Tested by `tests/hooks/media-check.unit.test.ts`, `tests/rules/media.rules.test.ts`, `tests/rules/media.limits.rules.test.ts`, and `e2e/editor-media.spec.ts`.
+- Files are served with headers that stop the browser guessing a type or running them as pages (`X-Content-Type-Options: nosniff` and `Content-Security-Policy: default-src 'none'; img-src 'self'; media-src 'self'; sandbox`). File names are replaced with random 15-character generated names. Verified by `tests/rules/media.rules.test.ts`.
+- Over quota: the upload is refused with a clear message; nothing already uploaded is deleted. Parallel uploads that together exceed quota are resolved safely with post-insert race checks. Tested by `tests/rules/media.limits.rules.test.ts` and `e2e/editor-media.spec.ts`.
 
 ## 5. Common web vulnerabilities (OWASP-style checklist)
 
@@ -64,7 +64,7 @@ KWNTO is an **internal tool** for now. Some risks are knowingly accepted for tha
 | **XSS** | React escapes text by default; the app shows plain text only | ESLint bans `dangerouslySetInnerHTML` **(planned)**; an end-to-end test saves `<script>` text as a node title and a comment and confirms it shows as text **(planned)** |
 | **SQL injection** | PocketBase builds queries safely; the app never writes SQL | Rule tests send injection strings in filters; filters use bound parameters, never string concatenation **(planned)** |
 | **Broken access control** | Section 2 | The rule tests above |
-| **Malicious upload** | Section 4 | Rule tests with a fake file **(planned)** |
+| **Malicious upload** | Section 4 | Byte detection, extension checks, quota race tests, and safe headers (`tests/rules/media.rules.test.ts`, `tests/rules/media.limits.rules.test.ts`, `tests/hooks/media-check.unit.test.ts`, `e2e/editor-media.spec.ts`) |
 | **Bad imports** | A JSON project import is untrusted input; validate it with a schema (for example `zod`), with size limits | Unit tests with malformed and oversized files **(planned)** |
 | **Leaked secrets** | Secrets stay out of git | gitleaks before each commit and in the workflow **(planned)** |
 | **Vulnerable libraries** | Dependency audit | `npm audit` in the workflow **(planned)** |

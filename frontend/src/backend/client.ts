@@ -4,6 +4,7 @@ import { createTeams } from './teams'
 import { createPreferences } from './preferences'
 import { createProjects } from './projects'
 import { createContent } from './content'
+import { createMedia } from './media'
 
 export interface Backend {
   health(): Promise<boolean>
@@ -12,6 +13,7 @@ export interface Backend {
   preferences: ReturnType<typeof createPreferences>
   projects: ReturnType<typeof createProjects>
   content: ReturnType<typeof createContent>
+  media: ReturnType<typeof createMedia>
 }
 
 export function createBackend(baseUrl?: string): Backend {
@@ -34,5 +36,6 @@ export function createBackend(baseUrl?: string): Backend {
     preferences: createPreferences(pb),
     projects: createProjects(pb),
     content: createContent(pb),
+    media: createMedia(pb),
   }
 }

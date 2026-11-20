@@ -24,11 +24,11 @@ Everything an admin can tune lives in settings tables, edited in the PocketBase 
 
 | Field | Default | What it does | Used by |
 |---|---|---|---|
-| `default_quota_bytes` | `2147483648` (2 GB) | Upload space per user, unless that user has an override in `user_limits`. | later |
-| `max_video_mb` | `200` | Largest video file, in MB. | later |
-| `max_audio_mb` | `50` | Largest audio file, in MB. | later |
-| `max_image_mb` | `50` | Largest image file, in MB. | later |
-| `allowed_types` | `["wav","mp3","mov","mp4","jpeg","png"]` | File types that can be uploaded. | later |
+| `default_quota_bytes` | `2147483648` (2 GB) | Upload space per user, unless that user has an override in `user_limits`. | Plan 5 (media upload) |
+| `max_video_mb` | `200` | Largest video file, in MB. | Plan 5 (media upload) |
+| `max_audio_mb` | `50` | Largest audio file, in MB. | Plan 5 (media upload) |
+| `max_image_mb` | `50` | Largest image file, in MB. | Plan 5 (media upload) |
+| `allowed_types` | `["wav","mp3","mov","mp4","jpeg","png"]` | File types that can be uploaded. | Plan 5 (media upload) |
 
 ## `system_behavior`
 
@@ -68,7 +68,7 @@ The user can read and change their own row from the app (not the `user` field), 
 
 | Field | Default | What it does |
 |---|---|---|
-| `quota_override_bytes` | empty (`0`) | Upload space for this user, in bytes, instead of `system_storage.default_quota_bytes`. Empty or `0` means "use the system default". Used by a later plan. |
+| `quota_override_bytes` | empty (`0`) | Upload space for this user, in bytes, instead of `system_storage.default_quota_bytes`. Empty or `0` means "use the system default". Used by Plan 5 (media upload). |
 
 ### `user_status` (admin only)
 

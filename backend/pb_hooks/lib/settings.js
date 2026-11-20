@@ -30,4 +30,17 @@ function getSystemBehavior(app) {
   }
 }
 
-module.exports = { getSystemAccess, getSystemBehavior }
+function getSystemStorage(app) {
+  const record = readOnlyRecord(app, "system_storage")
+  return {
+    defaultQuotaBytes: record.getInt("default_quota_bytes"),
+    maxMb: {
+      audio: record.getInt("max_audio_mb"),
+      video: record.getInt("max_video_mb"),
+      image: record.getInt("max_image_mb"),
+    },
+    allowedTypes: record.getStringSlice("allowed_types"),
+  }
+}
+
+module.exports = { getSystemAccess, getSystemBehavior, getSystemStorage }

@@ -10,7 +10,7 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 | 2 | [Accounts and teams](2026-11-12-accounts-teams/README.md) | 1 | 1 | done |
 | 3 | [Editor core](2026-11-14-editor-core/README.md) | 1 | 2 | done |
 | 4 | [Offline queue, sync and conflicts](2026-11-16-offline-sync/README.md) | 1 | 3 | done |
-| 5 | Media upload, quota and strict file checks | 1 | 3 | outline |
+| 5 | [Media upload, quota and strict file checks](2026-11-16-media-upload/README.md) | 1 | 3 | done |
 | 6 | Deployment | 1 | 2 (3 to 5 to test on) | outline |
 | 7 | Trash, share links, comments, presence, JSON import and export | 2 | 3, 4 | outline |
 | 8 | Export (PDF, Word, JPG, PNG) | 3 | 3 | outline |
@@ -63,6 +63,14 @@ Found while building the offline sync plan (2026-11-18 to 2026-11-20) and left o
 | Retry right after the server returns | After a server outage a waiting edit is retried on the backoff (1, 2, 4 ... 30 s), so it saved about 10 s after the proxy came back (2026-11-20 check). The event stream reconnecting (`PB_CONNECT`) could trigger an immediate retry. | 7 |
 | Confirm the reconnect behind the public Funnel address | Checked through `tailscale serve` (tailnet only) on 2026-11-20, see decision 0002; repeat the two checks once behind the public address (test-plan M12). | 6 |
 | Hand walk of the Flow | The developer walked the app by hand (2026-11-19 and 2026-11-20), not following the written Flow, and found two bugs (stopped backend refused edits; a line added offline vanished after reconnecting), both fixed. The written walk (every conflict kind, both browsers) was not done as such; the e2e specs `editor-offline` and `editor-conflicts` cover those cases. Repeat with M8 and M9. | developer, with M8 and M9 |
+
+## Carried over from Plan 5
+
+Found while building media upload, quota and strict file checks (2026-11-16 to 2026-11-19). The source is `.planning/2026-11-16-media-upload/progress.md`.
+
+| Item | What and why | Plan |
+|---|---|---|
+| Upload progress bar | The PocketBase JS SDK's `fetch` does not report upload progress (D12). If large uploads through Funnel prove slow, add upload progress reporting or chunked uploading. | 6 |
 
 ## Later (developer decision, 2026-11-18)
 
@@ -128,18 +136,20 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 **Decide first:** queue storage layout and replay order; what counts as "same attribute" for the dialog.
 **Risks:** highest-risk part of the editor (design 6.7); needs its own unit and Playwright tests (offline, reconnect, forced conflict). Strong model.
 
-### 5. Media upload, quota and strict file checks
+### 5. Media upload, quota and strict file checks (planned; [detailed plan](2026-11-16-media-upload/README.md))
 **Goal:** upload WAV, MP3, MOV, MP4, JPEG, PNG with magic-byte checks, generated file names, `nosniff` headers, the per-user quota (`user_limits` override, else `system_storage` default) and per-file limits from `system_storage`.
 **Fixed already:** `system_storage` and `user_limits` tables exist from Plan 2; trashed media counts toward quota until purged; snapshots reference media and never count.
 **Decide first:** where the byte check runs (hook on upload request) and how a refused upload reports which limit it hit.
 **Risks:** large uploads through Funnel; quota race when two uploads arrive together.
 
 ### 6. Deployment
-**Carried in from Plan 2:** the rate limiter and trusted proxy, a real-mail walk, and the unknown-email timing note (see [Carried over from Plan 2](#carried-over-from-plan-2)). **Carried in from Plan 4:** repeat the reconnect check behind the public Funnel address (test-plan M12).
+**Carried in from Plan 2:** the rate limiter and trusted proxy, a real-mail walk, and the unknown-email timing note (see [Carried over from Plan 2](#carried-over-from-plan-2)).
+**Carried in from Plan 4:** repeat the reconnect check behind the public Funnel address (test-plan M12).
+**Carried in from Plan 5:** large uploads through Funnel and the D12 upload progress-bar follow-up (see [Carried over from Plan 5](#carried-over-from-plan-5)).
 **Goal:** Docker Compose with PocketBase, Caddy and Tailscale Funnel; backups with a restore test; first-run guide; incident runbook finished.
 **Fixed already:** the admin dashboard and admin API paths are blocked on the public address, including `/api/kwnto/admin/` from Plan 2; non-root, no privileged mode, secrets in `.env`; PocketBase's built-in rate limiter is enabled (at least the `*:auth` rule, which covers auth-with-password), because the sign-in lockout cannot stop guesses sent in parallel (see [security.md](../../security.md) section 3); data in volumes; real-time checked through Funnel; total disk-usage warning.
 **Decide first:** backup destination and default schedule; the SMTP setup guide (Gmail app password).
-**Risks:** Funnel bandwidth for video (fallback: Cloudflare Tunnel).
+**Risks:** Funnel bandwidth for video and large media uploads (fallback: Cloudflare Tunnel).
 
 ### 7. Trash, share links, comments, presence, JSON import and export
 **Carried in from Plan 3:** live creates of teams and projects (see [Carried over from Plan 3](#carried-over-from-plan-3)).

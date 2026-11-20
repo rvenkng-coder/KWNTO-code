@@ -2,6 +2,7 @@ import { expect, test } from 'vitest'
 import { BackendError } from '../../../backend/errors'
 import type { ProjectContent, RemoteEvent, StoryNode } from '../../../backend'
 import { content, node } from '../model/fixtures'
+import { settle } from '../sync/fakes'
 import { createEditorStore, type EditorDoor } from './editorStore'
 
 interface Deferred<T> { promise: Promise<T>; resolve(v: T): void; reject(e: unknown): void }
@@ -19,6 +20,7 @@ function fakeDoor() {
   const updates: Array<{ args: unknown[]; answer: Deferred<StoryNode> }> = []
   const door: EditorDoor = {
     load: () => { const d = deferred<ProjectContent>(); loads.push(d); return d.promise },
+    get: () => Promise.resolve(null),
     subscribe: (projectId, emit) => {
       const sub = { projectId, emit, ready: deferred<() => Promise<void>>(), closed: false }
       subscribes.push(sub)
@@ -47,6 +49,7 @@ test('an edit shows at once and takes the saved version', async () => {
   const saving = store.getState().update('nodes', 'n1', { title: 'B' })
   expect(store.getState().content.nodes.n1?.title).toBe('B')
   expect(store.getState().saving).toBe(1)
+  await settle()
   expect(fake.updates[0]?.args).toEqual(['nodes', 'n1', { title: 'B' }, 3])
   fake.updates[0]?.answer.resolve(node('n1', { title: 'B', version: 4 }))
   expect(await saving).toBe(true)
@@ -59,6 +62,7 @@ test('a refused edit is rolled back with its message', async () => {
   const fake = fakeDoor()
   const store = await opened(fake)
   const saving = store.getState().update('nodes', 'n1', { title: 'B' })
+  await settle()
   fake.updates[0]?.answer.reject(new BackendError('forbidden', 403, {}, 'm'))
   expect(await saving).toBe(false)
   expect(store.getState().content.nodes.n1?.title).toBe('A')
@@ -72,7 +76,9 @@ test('a rollback keeps edits of other fields made meanwhile', async () => {
   const fake = fakeDoor()
   const store = await opened(fake)
   const first = store.getState().update('nodes', 'n1', { title: 'B' })
+  await settle()
   void store.getState().update('nodes', 'n1', { x: 50 })
+  await settle()
   fake.updates[0]?.answer.reject(new BackendError('unknown', 0, {}, 'x'))
   await first
   expect(store.getState().content.nodes.n1).toMatchObject({ title: 'A', x: 50 })

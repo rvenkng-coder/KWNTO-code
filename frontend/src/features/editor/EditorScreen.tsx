@@ -54,7 +54,8 @@ function useFlushOnLeave(projectId: string, chapterId: string | null): void {
     const onPageHide = () => pendingEdits.flushAll()
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
       pendingEdits.flushAll()
-      if (shouldWarnOnLeave(pendingEdits.size(), editorStore.getState().saving)) e.preventDefault()
+      // A save in flight is safe in the outbox, so only text that could not be handed over warns.
+      if (shouldWarnOnLeave(pendingEdits.size(), 0)) e.preventDefault()
     }
     window.addEventListener('pagehide', onPageHide)
     window.addEventListener('beforeunload', onBeforeUnload)

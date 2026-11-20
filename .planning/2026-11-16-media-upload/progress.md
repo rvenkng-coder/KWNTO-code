@@ -138,3 +138,7 @@ FAIL hygiene:
 check:task: FAIL (1 steps)
 ```
 
+## Merge of `origin/main` into `feat/media-upload` (2026-11-20)
+
+`main` had moved 40 commits (Plan 4, offline sync). Three doc conflicts (`docs/developer/backend.md`, `docs/superpowers/plans/README.md`, `docs/user/editor.md`) resolved by keeping both sides; the user guide's Media section now describes remove, restore and team storage. One behaviour conflict found by the e2e run: Plan 4's `a choice refused by the unique pair index lands in the failed list` failed on Chromium with the media live subscription open. Cause and fix are in the plan amendment (`keepMediaOpen`). After the merge: `npm test` (679 unit, 5 container, 214 rules) and the whole e2e suite (214) pass.
+

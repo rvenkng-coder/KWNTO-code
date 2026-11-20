@@ -2,6 +2,7 @@ import { expect, test, type Browser, type Page } from '@playwright/test'
 import { uniqueEmail } from './helpers/admin.ts'
 import { addNodeAt, card, createProject, openProject, ownerWithProject, readyCanvas, waitForSave } from './helpers/editor.ts'
 import { PNG_1PX, sampleBytes, setQuotaOverride } from './helpers/media.ts'
+import { goOffline } from './helpers/offline.ts'
 import { createTeam, enableJoinCode, joinWithCode, openTeam, signUpVerifyAndSignIn } from './helpers/ui.ts'
 
 const panel = (page: Page) => page.getByTestId('editor-panel')
@@ -236,6 +237,26 @@ test("a teammate's upload and removal appear without a reload, and only the lead
   await expect(mediaItems(b)).toHaveCount(0)
   await expect(removedItems(b)).toHaveCount(0)
   await expect(panel(b).getByRole('button', { name: /Delete|Restore/ })).toHaveCount(0)
+})
+
+// Protects: offline sync plan D6 applied to media: a file a teammate uploads while I am offline shows up
+// when I am back, without a reload (the media list is loaded again on reconnect).
+test('media uploaded while I was offline appears when I am back', async ({ page, browser }) => {
+  const { a, b } = await ownerAndMember(page, browser)
+  const nodeId = await addNodeAt(a, 40, 60)
+  await expect(card(b, nodeId)).toBeVisible()
+  await card(a, nodeId).click()
+  await card(b, nodeId).click()
+  await expect(panel(a).getByTestId('media-section')).toBeVisible()
+
+  await goOffline(a.context(), a)
+  const saved = waitForSave(b, 'media', 'POST')
+  await panel(b).getByLabel('Add media').setInputFiles({ name: 'later.png', mimeType: 'image/png', buffer: PNG_1PX })
+  await saved
+
+  await a.context().setOffline(false)
+  await expect(mediaItems(a)).toHaveCount(1)
+  await expect(mediaItems(a).first()).toContainText('later.png')
 })
 
 // Protects: D9: uploads wait for connection; disabled and offline copy shown.

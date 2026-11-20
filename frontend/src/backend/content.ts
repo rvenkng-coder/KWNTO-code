@@ -30,6 +30,33 @@ function refusedCreate(err: unknown): BackendError {
   return new BackendError('forbidden', error.status, {}, error.message)
 }
 
+export interface UpdateOptions<K extends ContentKind> { shouldRetry?: (current: ContentRecords[K]) => boolean }
+
+async function getOrNull<K extends ContentKind>(pb: PocketBase, kind: K, id: string): Promise<ContentRecords[K] | null> {
+  try {
+    return await wrapped(async () => fromRecord(kind, await pb.collection(kind).getOne(id)))
+  } catch (err) {
+    // PocketBase's 404 carries a message; one without (the door's default) came from a proxy with no route: not "gone".
+    if (err instanceof BackendError && err.kind === 'not-found' && err.message !== 'Request failed') return null
+    if (err instanceof BackendError && err.kind === 'not-found') throw new BackendError('unreachable', 0, {}, 'The server cannot be reached.')
+    throw err
+  }
+}
+
+function updateRecord<K extends ContentKind>(
+  pb: PocketBase,
+  kind: K,
+  id: string,
+  edit: { changes: Partial<EditableFields[K]>; baseVersion: number } & UpdateOptions<K>,
+): Promise<ContentRecords[K]> {
+  const io: GuardedIO<ContentRecords[K]> = {
+    read: () => wrapped(async () => fromRecord(kind, await pb.collection(kind).getOne(id))),
+    write: (body, version) =>
+      wrapped(async () => fromRecord(kind, await pb.collection(kind).update(id, { ...body, version }))),
+  }
+  return guardedSave(io, toUpdateBody(kind, edit.changes), edit.baseVersion, edit.shouldRetry)
+}
+
 export function createContent(pb: PocketBase) {
   function all<K extends ContentKind>(kind: K, projectId: string): Promise<Array<ContentRecords[K]>> {
     const filter = pb.filter('project = {:project}', { project: projectId })
@@ -63,29 +90,29 @@ export function createContent(pb: PocketBase) {
       }
     },
 
-    /** Sends only `changes`; a 409 is retried up to MAX_SAVE_TRIES times, then rejects with TOO_BUSY. */
-    async update<K extends ContentKind>(
+    /** One record, or null when it does not exist or cannot be seen (404). */
+    get: <K extends ContentKind>(kind: K, id: string): Promise<ContentRecords[K] | null> => getOrNull(pb, kind, id),
+
+    /**
+     * Sends only `changes`; a 409 is retried up to MAX_SAVE_TRIES times, then rejects with TOO_BUSY.
+     * With `shouldRetry`, a 409 whose current record it rejects stops at once with EditConflict.
+     */
+    update: <K extends ContentKind>(
       kind: K,
       id: string,
       changes: Partial<EditableFields[K]>,
       baseVersion: number,
-    ): Promise<ContentRecords[K]> {
-      const io: GuardedIO<ContentRecords[K]> = {
-        read: () => wrapped(async () => fromRecord(kind, await pb.collection(kind).getOne(id))),
-        write: (body, version) =>
-          wrapped(async () => fromRecord(kind, await pb.collection(kind).update(id, { ...body, version }))),
-      }
-      return guardedSave(io, toUpdateBody(kind, changes), baseVersion)
-    },
+      options: UpdateOptions<K> = {},
+    ): Promise<ContentRecords[K]> => updateRecord(pb, kind, id, { changes, baseVersion, ...options }),
 
     /** Lines, cues and connections are deleted outright (undo re-creates them). */
     async remove(kind: RemovableKind, id: string): Promise<void> {
       await wrapped(() => pb.collection(kind).delete(id))
     },
 
-    /** Live changes of the project; resolves to a function that closes every subscription. */
-    subscribe(projectId: string, onEvent: (event: RemoteEvent) => void): Promise<() => Promise<void>> {
-      return subscribeProject(pb, projectId, onEvent)
+    /** Live changes of the project; `onReconnect` fires when the stream comes back. Resolves to a function that closes every subscription. */
+    subscribe(projectId: string, onEvent: (event: RemoteEvent) => void, onReconnect?: () => void): Promise<() => Promise<void>> {
+      return subscribeProject(pb, projectId, onEvent, onReconnect)
     },
   }
 }

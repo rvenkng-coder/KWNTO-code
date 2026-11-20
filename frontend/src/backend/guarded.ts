@@ -1,4 +1,4 @@
-import { createBackendError, toBackendError } from './errors'
+import { createBackendError, EditConflict, toBackendError } from './errors'
 
 // The client half of the version guard (decision 0002): "the client must handle 409 as
 // normal flow (re-read, re-apply only its own fields, retry) ... bound the retries".
@@ -19,6 +19,7 @@ export async function guardedSave<R extends { version: number }>(
   io: GuardedIO<R>,
   body: Record<string, unknown>,
   baseVersion: number,
+  shouldRetry?: (current: R) => boolean,
 ): Promise<R> {
   let version = baseVersion
   for (let attempt = 1; attempt <= MAX_SAVE_TRIES; attempt++) {
@@ -28,7 +29,11 @@ export async function guardedSave<R extends { version: number }>(
       const error = toBackendError(err)
       if (error.kind !== 'conflict') throw error
       // No read after the last try: nothing would use it.
-      if (attempt < MAX_SAVE_TRIES) version = (await io.read()).version
+      if (attempt < MAX_SAVE_TRIES || shouldRetry !== undefined) {
+        const current = await io.read()
+        if (shouldRetry !== undefined && !shouldRetry(current)) throw new EditConflict(current)
+        version = current.version
+      }
     }
   }
   throw createBackendError('conflict', TOO_BUSY)

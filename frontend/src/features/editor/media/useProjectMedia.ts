@@ -3,6 +3,8 @@ import { create } from 'zustand'
 import { backend } from '../../../backend/index.ts'
 import type { Media, MediaEvent, StorageInfo } from '../../../backend/media-types.ts'
 import { applyMediaEvent } from './mediaList.ts'
+import { currentSnapshot, subscribeSnapshot } from '../sync/syncStore'
+import { keepMediaOpen, type OnlinePort } from './keepMediaOpen.ts'
 import { earlyProblem } from './uploadCheck.ts'
 
 interface MediaStoreState {
@@ -47,6 +49,12 @@ function forProject(projectId: string, set: SetFn): SetFn {
 }
 
 export const FILE_TOKEN_REFRESH_MS = 45_000
+
+// The editor's connection state: the sync engine of whoever is signed in.
+const appOnline: OnlinePort = {
+  online: () => currentSnapshot()?.online ?? true,
+  subscribe: (fn) => subscribeSnapshot(fn),
+}
 
 // Several reads of the lead's storage can be in flight at once (a live event, the end of an upload,
 // a removal). Answers can arrive out of order, so only the newest request may write the store;
@@ -227,25 +235,15 @@ export function useProjectMedia(projectId: string | null): {
       return
     }
 
-    let unsub: (() => void) | undefined
-    let cancelled = false
-
-    void useMediaStore.getState().open(projectId).then((u) => {
-      if (cancelled) {
-        u()
-      } else {
-        unsub = u
-      }
-    })
+    const stopLive = keepMediaOpen(() => useMediaStore.getState().open(projectId), appOnline)
 
     const timer = setInterval(() => {
       void useMediaStore.getState().refreshFileToken()
     }, FILE_TOKEN_REFRESH_MS)
 
     return () => {
-      cancelled = true
       clearInterval(timer)
-      if (unsub) unsub()
+      stopLive()
       useMediaStore.getState().close()
     }
   }, [projectId])

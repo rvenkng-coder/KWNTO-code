@@ -9,6 +9,18 @@ test('status 0 -> unreachable', () => {
   expect(err.kind).toBe('unreachable')
 })
 
+// Protects design 6.7: a stopped backend behind a proxy answers 502, 503 or 504 (or a bare 500 from the dev proxy), which is
+// "cannot be reached" like status 0, so waiting edits are kept and retried instead of being refused and undone.
+test('gateway errors and a bare proxy 500 -> unreachable, a real 500 with a message -> unknown', () => {
+  for (const status of [502, 503, 504]) {
+    expect(toBackendError(new ClientResponseError({ status, response: {} })).kind).toBe('unreachable')
+  }
+  expect(toBackendError(new ClientResponseError({ status: 500, response: {} })).kind).toBe('unreachable')
+  const real = toBackendError(new ClientResponseError({ status: 500, response: { message: 'Something broke.' } }))
+  expect(real.kind).toBe('unknown')
+  expect(real.message).toBe('Something broke.')
+})
+
 test('status 400 with field message -> invalid with fields', () => {
   const err = toBackendError(new ClientResponseError({
     status: 400,

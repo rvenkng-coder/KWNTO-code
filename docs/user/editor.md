@@ -166,6 +166,21 @@ You can attach audio, video and images to a node. They appear in the properties 
 - **Allowed types:** audio (WAV, MP3), video (MOV, MP4) and images (JPEG, PNG).
 - **Add media:** choose **Add media** to upload a file. The server checks the file's real type (by its first bytes, not just its extension), size limits and your quota.
 - **In-place playback:** audio and video play right in the panel with controls, and images show thumbnail previews.
-- **Quota & storage meter:** the meter shows how much storage you have used out of your total quota (e.g. `Storage: 1 KB of 2.0 GB used`). Trashed nodes still count toward your quota until purged.
-- **Delete media:** choose **Delete** on an item. The panel asks for confirmation (`Delete <title>? This cannot be undone.`). Deleting frees the storage space immediately. There is no undo for deleted media.
-- **Offline:** uploads require an active internet connection. When offline, **Add media** is disabled and a message explains that uploads need a connection.
+- **Storage belongs to the team owner.** Everything uploaded in a team's projects counts against the owner's quota, whoever uploads it. The meter shows the owner's storage (e.g. `Team storage: 1 KB of 2.0 GB used`), the same for every member. Trashed nodes still count until they are purged.
+- **Remove media:** any member can choose **Remove** on an item. The panel asks first (`Remove <title> from this node? The team lead can bring it back.`). The file disappears for everyone, but it still uses the owner's storage; members cannot delete it.
+- **Restore or delete for good (team owner only):** the owner sees the removed files under **Removed by the team**, and can choose **Restore** or **Delete for good** (asks first, cannot be undone). Only deleting for good frees the space.
+- **Offline:** uploads require an active internet connection. When offline, **Add media** is disabled and a message explains that uploads need a connection. Files your teammates add or remove while you are offline show up when you are back online, without a reload.
+
+## Working offline
+
+You can keep writing when the connection drops. Every change is saved in your browser first and sent from there, so nothing is lost if the connection fails or you close the tab.
+
+- **The indicator.** The top bar shows `Offline` when the browser has no connection, `Offline, 3 changes waiting` when changes are waiting to be sent, and `Saving…` while they are being sent after the connection came back. When everything is saved, nothing is shown.
+- **Closing the tab.** Changes that are waiting stay in your browser. Open the project again on the same browser and they are sent; they also show on your screen again on top of what your teammates did meanwhile.
+- **When you come back online.** The project is loaded again, so what your teammates did while you were away appears without a reload, and your waiting changes are sent in the order you made them.
+- **When a teammate changed the same thing.** If you and a teammate changed the same thing while you were offline (for example both renamed the same node), a window opens: `Someone else changed this while you were offline`. For each thing it shows `Yours` and `Theirs`; choose `Keep mine` or `Keep theirs`. Nothing else is sent until you choose. Changes to different things (you recoloured a node, they renamed it) are merged without asking. If a teammate deleted a script line, cue or connection you changed, the window says so, and `Keep mine` puts it back with your changes.
+- **A change that could not be saved.** If the server refuses a change, the top bar says `1 change could not be saved` with a `Show` button. The list gives what it was and the server's message; the change is taken back on your screen and the changes after it are still sent. `Dismiss` removes a row.
+- **Undo.** While you are offline with changes waiting, Undo and Redo do nothing and say `Undo waits until you are back online and your changes are saved.` They work again as soon as the changes are saved.
+- **Signing out.** If changes are waiting, you are asked first: `Sign out anyway` or `Stay signed in`. If you sign out anyway, they are kept in the browser and sent the next time you sign in on this browser.
+- **Shared computers.** Waiting changes are kept in the browser profile, so anyone who can open that profile can read them. On a shared computer, wait for `Saving…` to disappear before you sign out.
+- **Not covered.** Pictures and other files are not queued; they need a connection.

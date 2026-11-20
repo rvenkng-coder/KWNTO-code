@@ -32,3 +32,8 @@ export async function userExists(email: string): Promise<boolean> {
   const found = await pb.collection('users').getList(1, 1, { filter: pb.filter('email = {:email}', { email: email.toLowerCase() }) })
   return found.totalItems > 0
 }
+
+/** One record as the admin stored it (rules do not apply). */
+export async function adminRecord(collection: string, id: string): Promise<Record<string, unknown>> {
+  return (await adminPB()).collection(collection).getOne(id)
+}

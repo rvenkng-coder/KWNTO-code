@@ -83,7 +83,7 @@ KWNTO is an **internal tool** for now. Some risks are knowingly accepted for tha
 
 - **Trash:** deleted projects, chapters and nodes stay recoverable for 30 days (admin setting), then are removed for good.
 - **Backups:** a script or command runs scheduled backups to a configurable destination. After the trash period, recovery is a backup restore by the admin. **Test the restore, not just the backup.** (planned)
-- **Offline edits** queue locally and are never discarded; sync conflicts ask which version to keep (design section 6.7).
+- **Offline edits** queue locally in the browser's IndexedDB (an outbox) and are never discarded: an entry leaves it only when the server accepted it, the server refused it (it then shows in the failed list until the person dismisses it), or the person chose `Keep theirs`. Sync conflicts ask which version to keep (design section 6.7). Entries carry the user id, so another account on the same browser never sees or sends them; signing out with waiting edits asks first and keeps them for the next sign-in. The outbox is readable by anyone with the browser profile (section 10).
 
 ## 8. Logging
 
@@ -198,6 +198,7 @@ Read the security log (Collections, `security_events`, newest first; filter for 
 
 Known and accepted while the tool is internal (also listed in design section 12):
 - Account enumeration through the invite-by-email message: the "doesn't exist" message lets a signed-in owner discover which emails are registered (design section 5). Limited by the shared attempt limit and an `invite` log entry per attempt (section 3, invites). Before a public release, decide whether an invite to an unknown email should get the same answer as a known one.
+- Waiting offline edits (the outbox) live in the browser's IndexedDB, readable by anyone with the browser profile, and stay there after sign-out so they are sent at the next sign-in (offline sync plan D10). Entries carry the user id: another account on the same browser never sees or sends them. Accepted while internal; before a public release decide whether sign-out should offer to discard them.
 - Open sign-up on a public address, and the disk use of 2 GB per account.
 - PocketBase's single-server, SQLite limits.
 - Tailscale Funnel's bandwidth limits.

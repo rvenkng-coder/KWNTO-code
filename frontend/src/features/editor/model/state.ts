@@ -90,3 +90,48 @@ export function dropRecord(s: ContentState, kind: ContentKind, id: string): Cont
   delete rest[id]
   return { ...s, [table]: rest }
 }
+
+type Table = 'chapters' | 'nodes' | 'lines' | 'cues' | 'connections'
+const TABLES: readonly Table[] = ['chapters', 'nodes', 'lines', 'cues', 'connections']
+
+function newer<T extends { version: number }>(local: T | undefined, loaded: T | null): T | null {
+  return local !== undefined && loaded !== null && local.version > loaded.version ? local : loaded
+}
+
+/**
+ * A project loaded again over what is on screen: everything the load holds, except that a record
+ * the screen already has in a higher version stays (the load may have been read before my own
+ * save landed). Records only the screen has are gone: someone deleted them meanwhile.
+ */
+export function mergeNewer(local: ContentState, loaded: ContentState): ContentState {
+  const merged: ContentState = { ...loaded, project: newer(local.project ?? undefined, loaded.project), settings: newer(local.settings ?? undefined, loaded.settings) }
+  for (const table of TABLES) {
+    const next: Record<string, { version: number }> = {}
+    for (const [id, record] of Object.entries(loaded[table])) next[id] = newer(local[table][id], record) ?? record
+    ;(merged as unknown as Record<Table, unknown>)[table] = next
+  }
+  return merged
+}
+
+/** What my own saves did while a load was under way: the record the server answered with, or `gone` for a removal. */
+export type TouchedMap = Map<string, ContentRecords[ContentKind] | 'gone'>
+
+/**
+ * A load may have been read before my own saves landed, so it can hold an older copy of a record I just
+ * saved, lack one I just made, or still hold one I just removed. My saves are laid over it.
+ */
+export function applyTouched(state: ContentState, touched: TouchedMap): ContentState {
+  const projectId = state.project?.id
+  let out = state
+  for (const [key, how] of touched) {
+    const [kind, id] = key.split(':') as [ContentKind, string]
+    if (how === 'gone') {
+      out = dropRecord(out, kind, id)
+      continue
+    }
+    const ownProject = 'projectId' in how ? how.projectId === projectId : how.id === projectId
+    const current = getRecord(out, kind, id)
+    if (ownProject && (current === undefined || current.version < how.version)) out = putRecord(out, kind, how)
+  }
+  return out
+}

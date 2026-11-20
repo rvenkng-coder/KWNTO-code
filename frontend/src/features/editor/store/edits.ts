@@ -7,6 +7,7 @@ import {
 import { newId } from '../model/ids'
 import { getRecord } from '../model/state'
 import { editorStore, type EditorStore } from './editorStore'
+import { appSync, undoPausedBy } from './editorSync'
 import { pendingEdits } from './pendingEdits'
 
 // Every content change a screen makes goes through here (plan Task 12), so it lands in the
@@ -25,6 +26,15 @@ type Edits = {
   cut(nodeIds: string[]): Promise<void>
   paste(chapterId: string): Promise<void>
   reset(): void
+}
+
+// D11: offline with changes waiting, undo and redo do nothing and say why.
+function pauseGate(store: StoreApi<EditorStore>, undoPaused: () => string | null, settle: () => Promise<void>) {
+  return (run: () => Promise<void>): Promise<void> | void => {
+    const paused = undoPaused()
+    if (paused !== null) return store.setState({ error: paused })
+    return settle().then(run)
+  }
 }
 
 const isTrashable = (kind: CreatableKind): kind is 'chapters' | 'nodes' => kind === 'chapters' || kind === 'nodes'
@@ -72,10 +82,11 @@ function createInFlight(flush: () => void) {
 }
 
 // The history: recording, groups, undo and redo.
-function createRecorder(store: StoreApi<EditorStore>, flush: () => void): Recorder {
+function createRecorder(store: StoreApi<EditorStore>, flush: () => void, undoPaused: () => string | null): Recorder {
   let history: History = EMPTY_HISTORY
   let collecting: Change[] | null = null
   const inFlight = createInFlight(flush)
+  const whenNotPaused = pauseGate(store, undoPaused, inFlight.settle)
 
   // Applies a step if every change still fits the state; otherwise skips it with `blocked`.
   async function play(taken: { history: History; step: Step } | null, blocked: string, skipped: History | null): Promise<void> {
@@ -109,18 +120,18 @@ function createRecorder(store: StoreApi<EditorStore>, flush: () => void): Record
       }
     },
     async undo() {
-      await inFlight.settle()
-      const taken = takeUndo(history)
-      return play(taken, UNDO_BLOCKED, taken === null ? null : { past: taken.history.past, future: history.future })
+      await whenNotPaused(() => {
+        const taken = takeUndo(history)
+        return play(taken, UNDO_BLOCKED, taken === null ? null : { past: taken.history.past, future: history.future })
+      })
     },
     async redo() {
-      await inFlight.settle()
-      const taken = takeRedo(history)
-      return play(taken, REDO_BLOCKED, taken === null ? null : { past: history.past, future: taken.history.future })
+      await whenNotPaused(() => {
+        const taken = takeRedo(history)
+        return play(taken, REDO_BLOCKED, taken === null ? null : { past: history.past, future: taken.history.future })
+      })
     },
-    reset() {
-      history = EMPTY_HISTORY
-    },
+    reset: () => { history = EMPTY_HISTORY },
   }
 }
 
@@ -175,19 +186,21 @@ function createClipboard(store: StoreApi<EditorStore>, writes: Pick<Edits, 'crea
       const p = buildPaste(clip, { projectId, chapterId }, ++pasteCount, () => newId())
       const label = p.nodes.length === 1 ? 'Paste 1 node' : `Paste ${p.nodes.length} nodes`
       await group(label, async () => {
-        for (const n of p.nodes) await writes.create('nodes', n, label)
+        // Every record is handed to the outbox at once, in this order (nodes, then what hangs on them): the outbox sends
+        // strictly in order, and offline nothing may wait for an answer before the next record is stored.
         await Promise.all([
+          ...p.nodes.map((n) => writes.create('nodes', n, label)),
           ...p.lines.map((l) => writes.create('script_lines', l, label)),
           ...p.cues.map((c) => writes.create('cues', c, label)),
+          ...p.connections.map((c) => writes.create('connections', c, label)),
         ])
-        await Promise.all(p.connections.map((c) => writes.create('connections', c, label)))
       })
     },
   }
 }
 
-export function createEdits(store: StoreApi<EditorStore>, flush: () => void): Edits {
-  const rec = createRecorder(store, flush)
+export function createEdits(store: StoreApi<EditorStore>, flush: () => void, undoPaused: () => string | null = () => null): Edits {
+  const rec = createRecorder(store, flush, undoPaused)
   const raw = createWrites(store, rec)
   const writes: typeof raw = {
     create: (kind, record, label) => rec.track(raw.create(kind, record, label)),
@@ -199,4 +212,4 @@ export function createEdits(store: StoreApi<EditorStore>, flush: () => void): Ed
 }
 
 /** The app's one instance, on the editor store; undo and redo save waiting text first. */
-export const edits = createEdits(editorStore, () => pendingEdits.flushAll())
+export const edits = createEdits(editorStore, () => pendingEdits.flushAll(), undoPausedBy(appSync()))

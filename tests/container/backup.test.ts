@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { chmodSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterAll, beforeAll, expect, test } from 'vitest'
 import { EDGE_ADMIN_URL, edgeAdminToken, raw, verifiedUser } from './helpers/edge.ts'
@@ -157,6 +157,14 @@ test('restore refuses a missing or broken backup before touching data', async ()
   const truncated = restore(dir, ['--yes', cut])
   expect(truncated.status).toBe(2)
   expect(truncated.stderr).toContain(`Backup is damaged: ${cut}`)
+  // A good backup the container's user (uid 10001) cannot read is not "damaged": exit 1, a different message, nothing touched.
+  const locked = join(dir, 'locked.zip')
+  writeFileSync(locked, whole, { mode: 0o600 })
+  chmodSync(locked, 0o600)
+  const unreadable = restore(dir, ['--yes', locked])
+  expect(unreadable.status).toBe(1)
+  expect(unreadable.stderr).toContain(`Could not check the backup (docker or file permission problem, see the error above): ${locked}`)
+  expect(unreadable.stderr).not.toContain('damaged')
   expect((await raw('/api/health')).status).toBe(200)
   expect(await adminSignIn(OLD_PASSWORD)).toBe(200)
 })

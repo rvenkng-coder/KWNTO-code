@@ -32,11 +32,22 @@ ABS="$(cd "$(dirname -- "$FILE")" && pwd)/$(basename -- "$FILE")"
 
 # Integrity check BEFORE anything is stopped or emptied: a cut-off or empty zip starts with "PK" too.
 # A throwaway container of the same image (it has unzip), nothing mounted but the zip.
-if ! docker run --rm --user 10001:10001 --entrypoint sh -v "$ABS:/restore/backup.zip:ro" "$IMAGE" \
-  -c 'unzip -tq /restore/backup.zip' >/dev/null 2>&1; then
-  echo "Backup is damaged: $FILE" >&2
-  exit 2
-fi
+# Exit 3 means the zip is damaged; exit 4 means the container's user cannot read the file; any other
+# failure is Docker itself (daemon down, image missing), so the operator is not told to discard a good backup.
+CHECK=0
+docker run --rm --user 10001:10001 --entrypoint sh -v "$ABS:/restore/backup.zip:ro" "$IMAGE" \
+  -c '[ -r /restore/backup.zip ] || exit 4; unzip -tq /restore/backup.zip >/dev/null 2>&1 || exit 3' || CHECK=$?
+case "$CHECK" in
+  0) ;;
+  3)
+    echo "Backup is damaged: $FILE" >&2
+    exit 2
+    ;;
+  *)
+    echo "Could not check the backup (docker or file permission problem, see the error above): $FILE" >&2
+    exit 1
+    ;;
+esac
 
 if [ "$YES" -ne 1 ]; then
   printf 'This replaces ALL data with %s. Type RESTORE to continue: ' "$FILE"

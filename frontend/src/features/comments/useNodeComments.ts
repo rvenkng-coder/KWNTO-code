@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { create } from 'zustand'
 import { backend, type Comment, type CommentEvent } from '../../backend'
 import { errorMessage } from '../errorMessage'
+import { useSync } from '../editor/sync/syncStore'
 import { applyCommentEvent } from './commentList'
 
 interface CommentState {
@@ -66,7 +67,6 @@ async function isOwnerOf(teamId: string): Promise<boolean> {
 
 // Subscribes first, then lists, and replays what arrived in between over the list (as the media store does).
 async function openComments(projectId: string, teamId: string, isCurrent: () => boolean): Promise<() => void> {
-  useCommentStore.setState({ projectId, ...withList([]), error: null, isOwner: false })
   let loaded = false
   const early: CommentEvent[] = []
   const onEvent = (e: CommentEvent) => {
@@ -86,16 +86,26 @@ async function openComments(projectId: string, teamId: string, isCurrent: () => 
   return () => void close()
 }
 
-/** Loads and follows a project's comments while the screen is shown. `teamId` is '' for a link holder (never the owner). */
+/**
+ * Loads and follows a project's comments while the screen is shown. `teamId` is '' for a link
+ * holder (never the owner). While the editor is offline the subscription is closed, as the
+ * project's own is (a stream kept open by comments alone would change how the editor reconnects),
+ * and opened and read again when the connection is back.
+ */
 export function useNodeComments(projectId: string | null, teamId: string): void {
+  const online = useSync((s) => s?.online ?? true)
   useEffect(() => {
     if (projectId === null) return
+    useCommentStore.setState({ projectId, ...withList([]), error: null, isOwner: false })
+    return () => useCommentStore.setState({ projectId: null, ...withList([]), error: null })
+  }, [projectId])
+  useEffect(() => {
+    if (projectId === null || !online) return
     let current = true
     const closing = openComments(projectId, teamId, () => current)
     return () => {
       current = false
       void closing.then((close) => close())
-      useCommentStore.setState({ projectId: null, ...withList([]), error: null })
     }
-  }, [projectId, teamId])
+  }, [projectId, teamId, online])
 }

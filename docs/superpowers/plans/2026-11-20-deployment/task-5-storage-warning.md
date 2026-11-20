@@ -38,17 +38,17 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 5A: The decision
 
-- [ ] **Step 1: Write the failing test** C1 in `tests/hooks/storage-warning.unit.test.ts`.
-- [ ] **Step 2: Run** `npx vitest run --project unit tests/hooks/storage-warning.unit.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement.** The comparisons are `usedBytes > limitBytes` (B1), `limitBytes > 0` (B2) and `nowMs - lastWarnedMs >= DAY_MS` (B3).
-- [ ] **Step 4: Run** it. Expected: PASS. **Close checkpoint 5A** (commit `feat: storage warning decision`).
+- [x] **Step 1: Write the failing test** C1 in `tests/hooks/storage-warning.unit.test.ts`.
+- [x] **Step 2: Run** `npx vitest run --project unit tests/hooks/storage-warning.unit.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement.** The comparisons are `usedBytes > limitBytes` (B1), `limitBytes > 0` (B2) and `nowMs - lastWarnedMs >= DAY_MS` (B3).
+- [x] **Step 4: Run** it. Expected: PASS. **Close checkpoint 5A** (commit `feat: storage warning decision`).
 
 ## Checkpoint 5B: The job
 
-- [ ] **Step 5: Write the failing tests** C2 and C3 in `tests/rules/storage-warning.rules.test.ts`. The test runs the job on demand through the admin API (`POST /api/crons/kwnto_storage_check`), sets `total_warning_bytes` with the restore pattern of `setStorageSetting` (Plan 5 helper) and uploads with `uploadMedia`.
-- [ ] **Step 6: Run, expect FAIL.**
-- [ ] **Step 7: Write the migration, the `settings.js` change and the job.**
-- [ ] **Step 8: Run** `npm run test:rules` and `npm run test:unit`. Expected: PASS. Update the docs. **Close checkpoint 5B** (commit `feat: hourly storage warning for the admin`).
+- [x] **Step 5: Write the failing tests** C2 and C3 in `tests/rules/storage-warning.rules.test.ts`. The test runs the job on demand through the admin API (`POST /api/crons/kwnto_storage_check`), sets `total_warning_bytes` with the restore pattern of `setStorageSetting` (Plan 5 helper) and uploads with `uploadMedia`.
+- [x] **Step 6: Run, expect FAIL.**
+- [x] **Step 7: Write the migration, the `settings.js` change and the job.**
+- [x] **Step 8: Run** `npm run test:rules` and `npm run test:unit`. Expected: PASS. Update the docs. **Close checkpoint 5B** (commit `feat: hourly storage warning for the admin`).
 
 ## Test plan
 ### Cases

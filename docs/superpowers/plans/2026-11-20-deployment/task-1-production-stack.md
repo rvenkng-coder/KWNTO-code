@@ -31,22 +31,22 @@ export function raw(path: string, init?: RequestInit): Promise<Response> // fetc
 
 ## Checkpoint 1A: Images, compose and the decision record
 
-- [ ] **Step 1: Pin the three images** by digest: `docker pull <image>` then `docker inspect --format '{{index .RepoDigests 0}}' <image>`, for `node:22-alpine`, `caddy:2-alpine`, `tailscale/tailscale:stable`. Write `0004-deployment-images.md` (what each is for, licence: Node MIT, Caddy Apache-2.0, Tailscale BSD-3-Clause; how to bump: pull, read the release notes, replace the digest, run `npm run test:container`).
-- [ ] **Step 2: Write `compose.prod.yaml`, `compose.edge-test.yaml`, `deploy/tailscale-serve.json`** (D1, D5; the serve config uses `${TS_CERT_DOMAIN}` as Tailscale's container docs show) and change `entrypoint.sh`.
-- [ ] **Step 3: Run** `npm run test:container` (the existing four tests). Expected: PASS, unchanged. Then `docker compose -f compose.prod.yaml config` with an `.env` of dummy values: it must print no error. **Close checkpoint 1A** (commit `feat: production compose stack`).
+- [x] **Step 1: Pin the three images** by digest: `docker pull <image>` then `docker inspect --format '{{index .RepoDigests 0}}' <image>`, for `node:22-alpine`, `caddy:2-alpine`, `tailscale/tailscale:stable`. Write `0004-deployment-images.md` (what each is for, licence: Node MIT, Caddy Apache-2.0, Tailscale BSD-3-Clause; how to bump: pull, read the release notes, replace the digest, run `npm run test:container`).
+- [x] **Step 2: Write `compose.prod.yaml`, `compose.edge-test.yaml`, `deploy/tailscale-serve.json`** (D1, D5; the serve config uses `${TS_CERT_DOMAIN}` as Tailscale's container docs show) and change `entrypoint.sh`.
+- [x] **Step 3: Run** `npm run test:container` (the existing four tests). Expected: PASS, unchanged. Then `docker compose -f compose.prod.yaml config` with an `.env` of dummy values: it must print no error. **Close checkpoint 1A** (commit `feat: production compose stack`).
 
 ## Checkpoint 1B: The proxy
 
-- [ ] **Step 4: Write the failing tests** C1 to C5 in `tests/container/edge.test.ts` with the helper; `beforeAll(edgeUp)`, `afterAll(edgeDown)`. Each test signs nothing in; C2's list is a `test.each` over the paths in Review Focus 3 and D2.
-- [ ] **Step 5: Run** `npx vitest run --project container tests/container/edge.test.ts`. Expected: FAIL (no Caddyfile).
-- [ ] **Step 6: Write `deploy/Caddyfile`** (D2, D3, D4, D6). Global options: `admin off`, `auto_https off` (Tailscale terminates TLS), the `servers` block of D6. One site `:8080`. Order: `request_body`, the blocked matchers with `respond "Not found" 404`, `header` (D3), `reverse_proxy pocketbase:8090 { header_up X-Forwarded-For {client_ip} }`. Caddy logs to stdout as JSON.
-- [ ] **Step 7: Run** the edge tests. Expected: PASS. Then open one block (remove `/api/settings*` from the matcher): C2 must fail on that row; restore it and say so in the report. **Close checkpoint 1B** (commit `feat: Caddy blocks admin paths and adds security headers`).
+- [x] **Step 4: Write the failing tests** C1 to C5 in `tests/container/edge.test.ts` with the helper; `beforeAll(edgeUp)`, `afterAll(edgeDown)`. Each test signs nothing in; C2's list is a `test.each` over the paths in Review Focus 3 and D2.
+- [x] **Step 5: Run** `npx vitest run --project container tests/container/edge.test.ts`. Expected: FAIL (no Caddyfile).
+- [x] **Step 6: Write `deploy/Caddyfile`** (D2, D3, D4, D6). Global options: `admin off`, `auto_https off` (Tailscale terminates TLS), the `servers` block of D6. One site `:8080`. Order: `request_body`, the blocked matchers with `respond "Not found" 404`, `header` (D3), `reverse_proxy pocketbase:8090 { header_up X-Forwarded-For {client_ip} }`. Caddy logs to stdout as JSON.
+- [x] **Step 7: Run** the edge tests. Expected: PASS. Then open one block (remove `/api/settings*` from the matcher): C2 must fail on that row; restore it and say so in the report. **Close checkpoint 1B** (commit `feat: Caddy blocks admin paths and adds security headers`).
 
 ## Checkpoint 1C: The app behind the proxy
 
-- [ ] **Step 8: Write the failing test** C3's page half (the built `index.html` comes back for `/` and for `/#/team/x`'s base `/`, and holds no inline `<script>` without `src`), and C6.
-- [ ] **Step 9: Run, expect FAIL** until `--publicDir` and the mount are right; fix and run again. Expected: PASS.
-- [ ] **Step 10: Walk** the built app through `http://127.0.0.1:8094` in Firefox and Chromium with the developer tools console open: sign up, create a team, open a project, add a node, upload `PNG_1PX`. Record in `progress.md` that no Content-Security-Policy violation was logged (or the exact one and the D3 change that fixed it). Update `backend.md` and `testing.md`. **Close checkpoint 1C** (commit `feat: PocketBase serves the built app`).
+- [x] **Step 8: Write the failing test** C3's page half (the built `index.html` comes back for `/` and for `/#/team/x`'s base `/`, and holds no inline `<script>` without `src`), and C6.
+- [x] **Step 9: Run, expect FAIL** until `--publicDir` and the mount are right; fix and run again. Expected: PASS.
+- [x] **Step 10: Walk** the built app through `http://127.0.0.1:8094` in Firefox and Chromium with the developer tools console open: sign up, create a team, open a project, add a node, upload `PNG_1PX`. Record in `progress.md` that no Content-Security-Policy violation was logged (or the exact one and the D3 change that fixed it). Update `backend.md` and `testing.md`. **Close checkpoint 1C** (commit `feat: PocketBase serves the built app`).
 
 ## Test plan
 ### Cases

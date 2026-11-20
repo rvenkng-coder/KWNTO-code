@@ -22,23 +22,23 @@ Design 7c: sign-up needs a verified email, and resets go out by mail. PocketBase
 
 ## Checkpoint 3A: Routes and the door
 
-- [ ] **Step 1: Write the failing tests** C1 in `routes.test.ts` and C2 in `auth.test.ts` (fake `pb` as the file already does: `collection('users').confirmVerification` and `confirmPasswordReset` called with exactly the arguments; a 400 becomes `BackendError` `invalid` with the server's message).
-- [ ] **Step 2: Run** `npx vitest run --project unit frontend/src/features/shell/routes.test.ts frontend/src/backend/auth.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement** the two routes and the two door methods. The token test is one constant `const TOKEN = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/` used with `token.length <= 2048 && TOKEN.test(token)` (B1, B2).
-- [ ] **Step 4: Run** it. Expected: PASS. **Close checkpoint 3A** (commit `feat: verify and reset routes in the door`).
+- [x] **Step 1: Write the failing tests** C1 in `routes.test.ts` and C2 in `auth.test.ts` (fake `pb` as the file already does: `collection('users').confirmVerification` and `confirmPasswordReset` called with exactly the arguments; a 400 becomes `BackendError` `invalid` with the server's message).
+- [x] **Step 2: Run** `npx vitest run --project unit frontend/src/features/shell/routes.test.ts frontend/src/backend/auth.test.ts`. Expected: FAIL.
+- [x] **Step 3: Implement** the two routes and the two door methods. The token test is one constant `const TOKEN = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/` used with `token.length <= 2048 && TOKEN.test(token)` (B1, B2).
+- [x] **Step 4: Run** it. Expected: PASS. **Close checkpoint 3A** (commit `feat: verify and reset routes in the door`).
 
 ## Checkpoint 3B: The templates
 
-- [ ] **Step 5: Write the failing test** C3 in `tests/rules/mail-links.rules.test.ts`; run it, expect FAIL.
-- [ ] **Step 6: Find out how a test can get a real token.** In 0.40.6, read how `NewVerificationToken` and `NewPasswordResetToken` sign (claims and key: expected `id`, `type`, `collectionId`, `email`, HS256 with the record's `tokenKey` followed by the collection's `verificationToken.secret` or `passwordResetToken.secret`), and whether a superuser can read the record's `tokenKey` and the collection's secrets through the API. Write what you found in the checkpoint's `progress.md` row. If both are readable, write `mintToken` with `node:crypto` (`createHmac('sha256', key)`; no new dependency) and C5 and C6 test real tokens. If not, C5 and C6 keep only their invalid-token halves and their valid halves move to M10 and M11 in Task 6; say so in the report.
-- [ ] **Step 7: Write the migration**: on the `users` collection, set `verificationTemplate.body` and `resetPasswordTemplate.body` to a short HTML body each (`<p>Hello,</p><p>Confirm your email for KWNTO: <a href="{APP_URL}/#/verify/{TOKEN}">verify my email</a>.</p><p>If you did not sign up, ignore this mail.</p>` and the reset version with `/#/reset/{TOKEN}` and `set a new password`), and the subjects `Verify your KWNTO email` and `Reset your KWNTO password`. The down migration restores the bodies it replaced (read them before writing).
-- [ ] **Step 8: Run** `npm run test:rules`. Expected: PASS. **Close checkpoint 3B** (commit `feat: mail links point into the app`).
+- [x] **Step 5: Write the failing test** C3 in `tests/rules/mail-links.rules.test.ts`; run it, expect FAIL.
+- [x] **Step 6: Find out how a test can get a real token.** In 0.40.6, read how `NewVerificationToken` and `NewPasswordResetToken` sign (claims and key: expected `id`, `type`, `collectionId`, `email`, HS256 with the record's `tokenKey` followed by the collection's `verificationToken.secret` or `passwordResetToken.secret`), and whether a superuser can read the record's `tokenKey` and the collection's secrets through the API. Write what you found in the checkpoint's `progress.md` row. If both are readable, write `mintToken` with `node:crypto` (`createHmac('sha256', key)`; no new dependency) and C5 and C6 test real tokens. If not, C5 and C6 keep only their invalid-token halves and their valid halves move to M10 and M11 in Task 6; say so in the report.
+- [x] **Step 7: Write the migration**: on the `users` collection, set `verificationTemplate.body` and `resetPasswordTemplate.body` to a short HTML body each (`<p>Hello,</p><p>Confirm your email for KWNTO: <a href="{APP_URL}/#/verify/{TOKEN}">verify my email</a>.</p><p>If you did not sign up, ignore this mail.</p>` and the reset version with `/#/reset/{TOKEN}` and `set a new password`), and the subjects `Verify your KWNTO email` and `Reset your KWNTO password`. The down migration restores the bodies it replaced (read them before writing).
+- [x] **Step 8: Run** `npm run test:rules`. Expected: PASS. **Close checkpoint 3B** (commit `feat: mail links point into the app`).
 
 ## Checkpoint 3C: The screens
 
-- [ ] **Step 9: Write the failing tests** C4 to C6 in `e2e/mail-links.spec.ts`; run `npm run test:e2e -- e2e/mail-links.spec.ts`, expect FAIL.
-- [ ] **Step 10: Implement** both screens and the shell change. Theme tokens only (Plan 3 D1), labels on every input.
-- [ ] **Step 11: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. Update the user and developer docs. **Close checkpoint 3C** (commit `feat: verify and reset screens`).
+- [x] **Step 9: Write the failing tests** C4 to C6 in `e2e/mail-links.spec.ts`; run `npm run test:e2e -- e2e/mail-links.spec.ts`, expect FAIL.
+- [x] **Step 10: Implement** both screens and the shell change. Theme tokens only (Plan 3 D1), labels on every input.
+- [x] **Step 11: Run** `npm run test:unit` and `npm run test:e2e`. Expected: PASS. Update the user and developer docs. **Close checkpoint 3C** (commit `feat: verify and reset screens`).
 
 ## Test plan
 ### Cases

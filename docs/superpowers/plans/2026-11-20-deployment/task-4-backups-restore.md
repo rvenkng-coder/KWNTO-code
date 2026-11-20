@@ -21,17 +21,17 @@ Design 7b and 10: backups run on a schedule to a destination the admin chooses. 
 
 ## Checkpoint 4A: Backup now
 
-- [ ] **Step 1: Write the failing test** C1 in `tests/container/backup.test.ts` (`beforeAll` starts the backup-test stack on a fresh volume and temp folder; `afterAll` removes both).
-- [ ] **Step 2: Run** `npx vitest run --project container tests/container/backup.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Write `backup-now.sh`** (POSIX `sh`, `set -eu`; token as in security.md 9, through `printf` and `--config -`, never in the process list) and the compose bind mount.
-- [ ] **Step 4: Run** it. Expected: PASS. **Close checkpoint 4A** (commit `feat: on-demand backup to the host folder`).
+- [x] **Step 1: Write the failing test** C1 in `tests/container/backup.test.ts` (`beforeAll` starts the backup-test stack on a fresh volume and temp folder; `afterAll` removes both).
+- [x] **Step 2: Run** `npx vitest run --project container tests/container/backup.test.ts`. Expected: FAIL.
+- [x] **Step 3: Write `backup-now.sh`** (POSIX `sh`, `set -eu`; token as in security.md 9, through `printf` and `--config -`, never in the process list) and the compose bind mount.
+- [x] **Step 4: Run** it. Expected: PASS. **Close checkpoint 4A** (commit `feat: on-demand backup to the host folder`).
 
 ## Checkpoint 4B: Restore
 
-- [ ] **Step 5: Write the failing tests** C2 to C4.
-- [ ] **Step 6: Run, expect FAIL.**
-- [ ] **Step 7: Write `restore.sh`.**
-- [ ] **Step 8: Run** `npm run test:container`. Expected: PASS. Run C2 three times in a row and record 3 of 3. Write control 8 in security.md (the steps are `deploy/restore.sh`, then the C2 checks by hand: sign in to the dashboard over the tailnet, open a project in the app). **Close checkpoint 4B** (commit `feat: tested restore from a backup`).
+- [x] **Step 5: Write the failing tests** C2 to C4.
+- [x] **Step 6: Run, expect FAIL.**
+- [x] **Step 7: Write `restore.sh`.**
+- [x] **Step 8: Run** `npm run test:container`. Expected: PASS. Run C2 three times in a row and record 3 of 3. Write control 8 in security.md (the steps are `deploy/restore.sh`, then the C2 checks by hand: sign in to the dashboard over the tailnet, open a project in the app). **Close checkpoint 4B** (commit `feat: tested restore from a backup`).
 
 ## Test plan
 ### Cases

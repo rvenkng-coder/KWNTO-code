@@ -19,8 +19,8 @@ Design 7b and 8: deployment instructions are a deliverable, and real-time must b
 
 ## Checkpoint 6A: The guide
 
-- [ ] **Step 1: Write `docs/admin/deployment.md`** with the sections above. Every command is copy-pasteable and every value says where it comes from. No secret, real hostname or email appears in it (use `kwnto.example.ts.net`, `admin@example.com`).
-- [ ] **Step 2: Run** `npm run check:docs`. Expected: PASS. **Close checkpoint 6A** (commit `docs: deployment guide`).
+- [x] **Step 1: Write `docs/admin/deployment.md`** with the sections above. Every command is copy-pasteable and every value says where it comes from. No secret, real hostname or email appears in it (use `kwnto.example.ts.net`, `admin@example.com`).
+- [x] **Step 2: Run** `npm run check:docs`. Expected: PASS. **Close checkpoint 6A** (commit `docs: deployment guide`).
 
 ## Checkpoint 6B: The walk on the VM (developer)
 
@@ -31,7 +31,7 @@ Design 7b and 8: deployment instructions are a deliverable, and real-time must b
 ## Checkpoint 6C: Close-out
 
 - [ ] **Step 6: Update the roadmap** (Plan 6 `done`; the carried items from Plans 2, 4 and 5 marked done with the case that showed it, or moved with a reason). Add the test-plan row `Deployment (proxy, headers, rate limits, backups and restore, storage warning) | 7b, 7c | container, rules, unit, manual | covered | 6`.
-- [ ] **Step 7: Run** `npm test` and `npm run check:docs`. Expected: PASS. **Close checkpoint 6C** (commit `docs: close the deployment plan`). The whole-branch review follows; it is not part of this task.
+- [x] **Step 7: Run** `npm test` and `npm run check:docs`. Expected: PASS. **Close checkpoint 6C** (commit `docs: close the deployment plan`). The whole-branch review follows; it is not part of this task.
 
 ## Test plan
 ### Cases

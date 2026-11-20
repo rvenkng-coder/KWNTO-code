@@ -43,18 +43,18 @@ Stop and report if you need to touch anything else.
 
 ## Checkpoint 2A: The settings function
 
-- [ ] **Step 1: Write the failing test** C1 in `tests/hooks/production-settings.unit.test.ts` (load with `createRequire`, as `tests/hooks/retention.unit.test.ts` does).
-- [ ] **Step 2: Run** `npx vitest run --project unit tests/hooks/production-settings.unit.test.ts`. Expected: FAIL (module missing).
-- [ ] **Step 3: Implement** `productionSettings`. The flag test is the line `if (env.KWNTO_PRODUCTION !== "1") return null` (B1); the URL test is `if (!/^https:\/\/[^\s/]+/.test(url))` (B2).
-- [ ] **Step 4: Run** it. Expected: PASS. **Close checkpoint 2A** (commit `feat: production settings values`).
+- [x] **Step 1: Write the failing test** C1 in `tests/hooks/production-settings.unit.test.ts` (load with `createRequire`, as `tests/hooks/retention.unit.test.ts` does).
+- [x] **Step 2: Run** `npx vitest run --project unit tests/hooks/production-settings.unit.test.ts`. Expected: FAIL (module missing).
+- [x] **Step 3: Implement** `productionSettings`. The flag test is the line `if (env.KWNTO_PRODUCTION !== "1") return null` (B1); the URL test is `if (!/^https:\/\/[^\s/]+/.test(url))` (B2).
+- [x] **Step 4: Run** it. Expected: PASS. **Close checkpoint 2A** (commit `feat: production settings values`).
 
 ## Checkpoint 2B: The migration and the proofs
 
-- [ ] **Step 5: Confirm the settings API** in 0.40.6: in the dev container, `grep -n "RateLimits\|TrustedProxy\|UseLeftmostIP\|BackupsConfig\|CronMaxKeep" /pb/pb_data/types.d.ts`. Write the exact JS property names in the `progress.md` row; if any differs from the shape above, keep the shape in the lib and map it in the migration.
-- [ ] **Step 6: Write the failing tests** C2 (rules), C3 (container, in `container.test.ts`), C4 to C6 (container, `production.test.ts`; one `edgeUp` with production env in `beforeAll`).
-- [ ] **Step 7: Run** `npm run test:rules -- tests/rules/production-settings.rules.test.ts` and `npx vitest run --project container tests/container/production.test.ts`. Expected: C2 passes already (nothing is written yet, which is its point; say so), C3 to C6 FAIL.
-- [ ] **Step 8: Write the migration and the entrypoint check.** The shell check: when `KWNTO_PRODUCTION` is `1` and `KWNTO_PUBLIC_URL` does not start with `https://`, print `KWNTO_PUBLIC_URL must be set when KWNTO_PRODUCTION=1` to stderr and exit 64.
-- [ ] **Step 9: Run** both suites and `npm run test:rules`, `npm run test:e2e`. Expected: PASS with no existing test changed (the dev and test backends must not rate-limit). Then set the migration's flag test to always true: C2 and the whole rules suite must fail (the rate limiter refuses the suite's parallel sign-ins); restore it and say so. Update `backend.md` and `security.md`. **Close checkpoint 2B** (commit `feat: rate limiter and trusted proxy in production`).
+- [x] **Step 5: Confirm the settings API** in 0.40.6: in the dev container, `grep -n "RateLimits\|TrustedProxy\|UseLeftmostIP\|BackupsConfig\|CronMaxKeep" /pb/pb_data/types.d.ts`. Write the exact JS property names in the `progress.md` row; if any differs from the shape above, keep the shape in the lib and map it in the migration.
+- [x] **Step 6: Write the failing tests** C2 (rules), C3 (container, in `container.test.ts`), C4 to C6 (container, `production.test.ts`; one `edgeUp` with production env in `beforeAll`).
+- [x] **Step 7: Run** `npm run test:rules -- tests/rules/production-settings.rules.test.ts` and `npx vitest run --project container tests/container/production.test.ts`. Expected: C2 passes already (nothing is written yet, which is its point; say so), C3 to C6 FAIL.
+- [x] **Step 8: Write the migration and the entrypoint check.** The shell check: when `KWNTO_PRODUCTION` is `1` and `KWNTO_PUBLIC_URL` does not start with `https://`, print `KWNTO_PUBLIC_URL must be set when KWNTO_PRODUCTION=1` to stderr and exit 64.
+- [x] **Step 9: Run** both suites and `npm run test:rules`, `npm run test:e2e`. Expected: PASS with no existing test changed (the dev and test backends must not rate-limit). Then set the migration's flag test to always true: C2 and the whole rules suite must fail (the rate limiter refuses the suite's parallel sign-ins); restore it and say so. Update `backend.md` and `security.md`. **Close checkpoint 2B** (commit `feat: rate limiter and trusted proxy in production`).
 
 ## Test plan
 ### Cases

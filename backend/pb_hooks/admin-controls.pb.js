@@ -62,7 +62,7 @@ onRecordUpdate((e) => {
     user.refreshTokenKey()
     e.app.save(user)
   } catch (error) {
-    console.error(`block: could not end the sessions of user ${userId}:`, String(error))
+    e.app.logger().error("block: could not end the sessions of a blocked user", "user", userId, "error", String(error))
     throw new ApiError(500, "The account is blocked, but its sessions could not be ended. Sign it out with the sign-out route.")
   }
   logEvent(e.app, "admin", userId, "", { action: "block", reason: e.record.getString("blocked_reason") })

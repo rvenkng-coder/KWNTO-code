@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { edgeAdminToken, edgeDown, edgeUp, raw, verifiedUser, EDGE_ADMIN_URL } from './helpers/edge.ts'
 
@@ -138,4 +139,20 @@ test('stored files keep their own CSP behind the proxy', async () => {
   expect(file.status).toBe(200)
   expect(file.headers.get('content-security-policy')).toBe("default-src 'none'; img-src 'self'; media-src 'self'; sandbox")
   expect(file.headers.get('x-content-type-options')).toBe('nosniff')
+})
+
+// Protects design 7b (PocketBase serves the built app) and that the page can run under the D3 CSP (no inline script).
+test('PocketBase serves the built web app', async () => {
+  const page = await raw('/')
+  expect(page.status).toBe(200)
+  expect(page.headers.get('content-type')).toContain('text/html')
+  const html = await page.text()
+  expect(html).toContain('<div id="root">')
+  expect(html).toBe(readFileSync('dist/index.html', 'utf8'))
+  expect(html).not.toMatch(/<script(?![^>]*\ssrc=)[^>]*>/i)
+  const asset = /(?:src|href)="(\/assets\/[^"]+\.js)"/.exec(html)?.[1]
+  expect(asset).toBeDefined()
+  const js = await raw(asset as string)
+  expect(js.status).toBe(200)
+  expect(js.headers.get('content-type')).toMatch(/javascript/)
 })

@@ -174,6 +174,10 @@ End-to-end tests verify the full stack: browser → Vite dev server → PocketBa
 ### If interrupted
 A killed Playwright run can leave Vite listening on port `5174`; the next run then fails at once because of `--strictPort`. Find it with `lsof -i :5174` and stop that one process.
 
+### Edge test (`tests/container/edge.test.ts`)
+
+Starts `compose.prod.yaml` with `compose.edge-test.yaml` (Caddy and PocketBase, no Tailscale) and tests the public address: Caddy on `127.0.0.1:8094` (`EDGE_URL`), PocketBase direct on `127.0.0.1:8095` (`EDGE_ADMIN_URL`, set-up calls only; never send an app request to it). It builds `dist/` first if it is missing, and removes the stack with `down -v` afterwards. Helpers are in `tests/container/helpers/edge.ts`. Run it alone with `npx vitest run --project container tests/container/edge.test.ts`. Ports in use across the repo: `8090` dev, `8091` test, `8092` spike, `8093` container test, `8094` and `8095` edge test.
+
 ---
 
 ## Pre-commit Hook: Secret Scan

@@ -89,11 +89,24 @@ function verifyRaceQuota(e, deps, prep) {
   let quotaExceeded = false
   let usedBefore = 0
   e.app.runInTransaction((txApp) => {
-    const records = txApp.findRecordsByFilter("media", "project.team.owner = {:owner}", "", 0, 0, { owner: prep.ownerId })
-    const rows = records.map((r) => ({
+    // Order by insertion (rowid), not by `created`: a record gets its `created` before it waits for
+    // the database write lock, so two parallel uploads can be inserted in the opposite order to their
+    // timestamps and then each see the other as "later" and both stay. Insertion order is the same for
+    // every observer, so the later insert is always the one over quota. `created` below is the
+    // position in that order, which is what `usedThrough` sorts by.
+    const found = arrayOf(new DynamicModel({ id: "", size_bytes: 0 }))
+    txApp.db()
+      .newQuery(
+        "SELECT m.id AS id, COALESCE(m.size_bytes, 0) AS size_bytes FROM media m " +
+        "JOIN projects p ON p.id = m.project JOIN teams t ON t.id = p.team " +
+        "WHERE t.owner = {:owner} ORDER BY m.rowid"
+      )
+      .bind({ owner: prep.ownerId })
+      .all(found)
+    const rows = found.map((r, position) => ({
       id: r.id,
-      created: r.getString("created"),
-      size: r.getInt("size_bytes"),
+      created: String(position).padStart(12, "0"),
+      size: Number(r.size_bytes) || 0,
     }))
     const totalThrough = deps.usedThrough(rows, e.record.id)
     if (totalThrough > prep.quotaBytes) {

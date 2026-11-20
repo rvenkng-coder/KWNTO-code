@@ -100,6 +100,7 @@ Decided by the developer during the whole-branch review. It replaces the parts o
 - **Fields (amends D3):** `uploader` is optional (who uploaded; cleared when that account is deleted, so a member leaving or being deleted never strands or frees files). New `removed_at` (date). The update rule is `IS_MEMBER`, guarded by a hook: a member may only set `removed_at`; only the owner clears it (restore).
 - **Who deletes (replaces D8):** a member can only **remove** a file (hide it for everyone; its space stays used). The team owner sees "Removed by the team" in the panel and can **restore** it or **delete it for good** (asks first, no `confirm()`, then the space is freed). `deleteRule` is owner only.
 - **Storage route:** `GET /api/kwnto/storage?project=<id>` returns the owner's usage and quota for the project, plus `isLead`; a non-member gets 404. The meter reads "Team storage: ...".
+- **Race re-check order (amends D1):** the owner's files are added up in **insertion order** (SQLite `rowid`), not in the order `created`, then `id`. A record gets its `created` before it waits for the write lock, so two parallel uploads could be inserted in the opposite order to their timestamps and both stay (measured: 10 of 60 rounds). `usedThrough` is unchanged; the hook passes each row's position as its sort key.
 - Migration `1794380100_media_team_quota.js`; design 5, 6.8 and 9, the ERD and backend.md are updated.
 
 ## Done when

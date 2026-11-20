@@ -193,4 +193,24 @@ describe('media limits and quota rules', () => {
       expect(storage.usedBytes).toBe(600)
     }
   })
+
+  // Protects: whoever the two parallel uploaders are, many rounds never leave both files in (C9, repeated).
+  // Before the check went by insertion order, about 1 round in 6 kept both.
+  test('repeated parallel uploads from two people never both stay', async () => {
+    const { owner, member, projectId, chapterId } = await memberProject()
+    const nodeId = await createNode(owner, projectId, chapterId)
+    await setQuotaOverride(owner.id, 1000)
+    const admin = await asAdmin()
+
+    for (let round = 0; round < 40; round++) {
+      const results = await Promise.all([
+        uploadMedia(owner, { project: projectId, node: nodeId }, { name: 'p1.png', bytes: sampleBytes('png', 600) }),
+        uploadMedia(member, { project: projectId, node: nodeId }, { name: 'p2.png', bytes: sampleBytes('png', 600) }),
+      ])
+      const stored = await admin.collection('media').getFullList({ filter: admin.filter('project = {:p}', { p: projectId }) })
+      expect(stored.length, `round ${round}: files kept`).toBeLessThanOrEqual(1)
+      expect(results.filter((r) => r.status === 200).length, `round ${round}: uploads accepted`).toBe(stored.length)
+      for (const row of stored) await admin.collection('media').delete(row.id)
+    }
+  }, 120_000)
 })

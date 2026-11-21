@@ -14,7 +14,7 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 | 6 | [Deployment](2026-11-20-deployment/README.md) | 1 | 2 (3 to 5 to test on) | done |
 | 6b | [Node links and video uploads off](2026-11-21-node-links/README.md) | 1 | 5, 6 | done |
 | 7 | Trash, share links, comments, presence, JSON import and export | 2 | 3, 4 | outline |
-| 8 | Export (PDF, Word, JPG, PNG) | 3 | 3 | outline |
+| 8 | [Export (PDF, Word, JPG, PNG)](2026-11-21-export/README.md) | 3 | 3 | planned |
 | 9 | Player Mode | 4 | 3 | outline |
 | 10 | Path analytics | 5 | 9 | outline |
 
@@ -170,7 +170,7 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 **Carried in from the node links plan:** `node_links` (links on a node, see [that plan](2026-11-21-node-links/README.md)) must be covered too: view links show a node's links to viewers, snapshots keep them, trash hides them with their node, and JSON import and export carry them.
 **Risks:** the most security-sensitive plan after Plan 2: every rule needs tests for member, outsider, signed-out, revoked link, snapshot.
 
-### 8. Export
+### 8. Export (planned; [detailed plan](2026-11-21-export/README.md))
 PDF (`jsPDF`), Word (`docx`), JPG and PNG (`html-to-image`) of the branch map; current chapter by default, whole project optional. These libraries need decision records before use.
 
 ### 9. Player Mode

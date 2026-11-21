@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
-import { addNodeAt, cards, connectNodes, nodePosition, ownerWithProject, readyCanvas } from './helpers/editor.ts'
-import { cornerPixel, downloadBytes, exportButton, exportDialog, exportMap, openExport, pngSize } from './helpers/export.ts'
+import { addNodeAt, cards, connectNodes, nodePosition, ownerWithProject, readyCanvas, waitForSave } from './helpers/editor.ts'
+import { cornerPixel, downloadBytes, exportButton, exportDialog, exportMap, openExport, paintCounts, pngSize } from './helpers/export.ts'
 
 async function storyWithTwoNodes(page: Page): Promise<[string, string]> {
   await ownerWithProject(page, 'Story')
@@ -117,4 +117,23 @@ test('exporting changes nothing in the editor', async ({ page }) => {
   await expect(page.locator(`.react-flow__node.selected[data-id="${a}"]`)).toHaveCount(1)
   expect(writes).toEqual([])
   await expect(cards(page)).toHaveCount(2)
+})
+
+// Protects: the connection line is drawn in the export and its label box is white, not black (SVG styles from CSS classes are lost in the capture).
+test('a connection and its label are drawn in the export', async ({ page }) => {
+  await ownerWithProject(page, 'Story')
+  await readyCanvas(page, 0)
+  const a = await addNodeAt(page, 40, 60)
+  const b = await addNodeAt(page, 300, 60)
+  const choiceId = await connectNodes(page, a, b)
+  await page.getByTestId(`rf__edge-${choiceId}`).click()
+  const named = waitForSave(page, 'connections', 'PATCH')
+  const field = page.getByTestId('editor-panel').getByLabel('Choice text')
+  await field.fill('Choice one')
+  await field.blur()
+  await named
+  const bytes = await downloadBytes(await exportMap(page, 'PNG', 'Current chapter'))
+  const { edge, black } = await paintCounts(page, bytes, 'image/png')
+  expect(edge).toBeGreaterThan(300)
+  expect(black).toBe(0)
 })

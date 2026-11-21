@@ -16,6 +16,17 @@ const nodeTypes = { card: NodeCard }
 export type StageKind = 'png' | 'jpeg'
 interface StageProps { chapterId: string; kind: StageKind; onImage(img: MapImage): void; onError(): void }
 
+// html-to-image copies no style onto SVG children, so an edge drawn with CSS classes loses its line
+// and its label box turns black. The edges therefore carry their paint inline, the light tokens of
+// index.css (--color-muted, --color-panel, --color-text, --color-border).
+const EDGE_PAINT = {
+  style: { stroke: '#6b7280', strokeWidth: 1.5 },
+  labelStyle: { fill: '#111827', fontSize: 12 },
+  labelBgStyle: { fill: '#ffffff', stroke: '#d1d5db' },
+  labelBgPadding: [6, 3] as [number, number],
+  labelBgBorderRadius: 4,
+}
+
 const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
 
 async function capture(root: HTMLElement, chapterId: string, kind: StageKind, bounds: { x: number; y: number; width: number; height: number }): Promise<MapImage> {
@@ -64,7 +75,10 @@ export function ExportStage(props: StageProps) {
   // React Flow reports the measured sizes through onNodesChange; without applying them the nodes never count as initialized.
   const [{ edges, initial }] = useState(() => {
     const content = editorStore.getState().content
-    return { initial: toFlowNodes(content, props.chapterId, nodeMarkers(content)), edges: toFlowEdges(content, props.chapterId) }
+    return {
+      initial: toFlowNodes(content, props.chapterId, nodeMarkers(content)),
+      edges: toFlowEdges(content, props.chapterId).map((e) => ({ ...e, ...EDGE_PAINT })),
+    }
   })
   const [nodes, setNodes] = useState(initial)
   return createPortal(

@@ -98,9 +98,9 @@ test('a streamed body over the limit is refused', async () => {
 
 // Protects the limits as numbers someone can live with: a valid file with 200 chapters,
 // 2,000 nodes, 20,000 lines, 10,000 cues and 10,000 connections imports; the duration is
-// printed for progress.md. The database has one write connection, so another person's write
+// printed for progress.md. "Without blocking" holds for reads: the database has one write connection, so another person's write
 // waits for the import (docs/security.md says so); it must still complete, and its wait is printed.
-test('a file at every limit imports in time and other writes still complete', { timeout: 300_000 }, async () => {
+test('a file at every limit imports in time without blocking others', { timeout: 300_000 }, async () => {
   const ctx = await memberProject()
   const writer = await createNode(ctx.member, ctx.projectId, ctx.chapterId, { title: 'probe' })
   const nodes = Array.from({ length: 2000 }, (_, i) => ({ id: `n${i}`, chapter: `c${i % 200}`, title: `Node ${i}`, color: 'slate', x: i, y: i }))

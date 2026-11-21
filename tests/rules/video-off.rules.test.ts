@@ -3,7 +3,7 @@ import { createNode, memberProject } from './helpers/content.ts'
 import { sampleBytes, setStorageSetting, uploadMedia } from './helpers/media.ts'
 import { asAdmin } from './helpers/pb.ts'
 
-const MESSAGE = 'This file type is not allowed. Allowed: WAV, MP3, JPEG, PNG.'
+const MESSAGE = 'This file type is not allowed. Allowed: WAV, MP3, OGG, M4A, OPUS, JPEG, PNG.'
 
 describe('video uploads are off by decision (plan 2026-11-21-node-links, D1)', () => {
   afterEach(async () => {

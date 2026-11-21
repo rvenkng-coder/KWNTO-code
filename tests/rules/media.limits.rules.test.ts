@@ -65,7 +65,7 @@ describe('media limits and quota rules', () => {
     expect(r4.status).toBe(400)
     const d4 = await r4.json()
     expect(d4.data?.file?.code).toBe('media_type_not_allowed')
-    expect(d4.message).toBe('This file type is not allowed. Allowed: WAV, MP3, JPEG, PNG.')
+    expect(d4.message).toBe('This file type is not allowed. Allowed: WAV, MP3, OGG, M4A, OPUS, JPEG, PNG.')
 
     // Real MP3 header as a.mp3 -> 200
     const r5 = await uploadMedia(

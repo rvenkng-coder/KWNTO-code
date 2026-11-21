@@ -2,7 +2,7 @@
 
 One detailed plan per subsystem, written when the plan before it lands (the real-time spike showed why: its result changed the data model). This page is the one place that shows what is done, what is next and what is only an outline. The build order comes from [design section 11](../specs/2026-11-11-kwnto-design.md); the deadline is the last week of November 2026.
 
-**Status values:** `done`, `in progress`, `planned` (detailed plan written, not started), `outline` (no detailed plan yet).
+**Status values:** `done`, `in progress`, `awaiting developer review` (built and checked, waiting for the developer's manual run on real infrastructure; `check:plan` does not validate status words), `planned` (detailed plan written, not started), `outline` (no detailed plan yet).
 
 | # | Plan | Design build step | Depends on | Status |
 |---|---|---|---|---|
@@ -11,7 +11,8 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 | 3 | [Editor core](2026-11-14-editor-core/README.md) | 1 | 2 | done |
 | 4 | [Offline queue, sync and conflicts](2026-11-16-offline-sync/README.md) | 1 | 3 | done |
 | 5 | [Media upload, quota and strict file checks](2026-11-16-media-upload/README.md) | 1 | 3 | done |
-| 6 | Deployment | 1 | 2 (3 to 5 to test on) | outline |
+| 6 | [Deployment](2026-11-20-deployment/README.md) | 1 | 2 (3 to 5 to test on) | done |
+| 6b | [Node links and video uploads off](2026-11-21-node-links/README.md) | 1 | 5, 6 | done |
 | 7 | [Trash, share links, comments, presence, JSON import and export](2026-11-20-sharing/README.md) | 2 | 3, 4 | done |
 | 8 | Export (PDF, Word, JPG, PNG) | 3 | 3 | outline |
 | 9 | Player Mode | 4 | 3 | outline |
@@ -33,9 +34,9 @@ Found by the whole-branch review and the scripted walk of Task 10 (2026-11-13), 
 
 | Item | What and why |
 |---|---|
-| Rate limiter and trusted proxy | Enable PocketBase's built-in rate limiter (at least the `*:auth` rule) and set `trustedProxy`, so parallel wrong-password guesses cannot beat the lockout and the lockout counts per IP behind Caddy (developer decision 2026-11-13: handle it with the reverse proxy). Already listed in the outline; keep it. |
-| Real mail | Nobody has tested a real verification or password-reset email. Set up SMTP (Gmail app password), then walk sign-up, verification and reset by hand with an address typed with capitals (a reset typed with capitals once sent no mail). |
-| Unknown-email timing | PocketBase answers an unknown email faster than a known one (it skips the password hash). Accepted while internal; add one line to `docs/security.md` section 3 and re-judge before going public. |
+| Rate limiter and trusted proxy | **Done in Plan 6**: Task 2 (production settings migration; `tests/container/production.test.ts` C2 to C6, including a spoofed `X-Forwarded-For`). Funnel passing the visitor's IP: case C4 of the walk is still open (not yet run). |
+| Real mail | **Done**: Plan 6 wrote the Gmail setup ([deployment guide](../../admin/deployment.md#mail-gmail-app-password)) and the mail-link screens (Task 3, tested with real tokens), and the developer reported on 2026-11-21 that real mails arrive and work: case C5 of the walk, test-plan M10 and M11. |
+| Unknown-email timing | **Done in Plan 6**: one line in `docs/security.md` section 10 (accepted while internal; re-judge before going public). |
 
 ## Carried over from Plan 3
 
@@ -57,11 +58,11 @@ Found while building the offline sync plan (2026-11-18 to 2026-11-20) and left o
 |---|---|---|
 | `Offline` shows only after an attempt | The top bar says `Offline` when the browser reports it or when a send finds the server unreachable. With the backend down and no edit made, nothing detects it; a dropped live connection does not change the status. Make the status follow the event stream. | 7 (**done**, Plan 7 Task 7) |
 | Opening a project needs the server | Edits are queued, reads are not: opening a project, switching teams, signing in or reloading fail while the backend is down. A read cache is a design decision (design 6.7 queues edits only). | developer decision |
-| Waiting edits are readable in the browser profile | Accepted while internal (security.md section 10, offline sync plan D10). Before a public release decide whether sign-out should offer to discard them. | 6 (before going public) |
+| Waiting edits are readable in the browser profile | Accepted while internal (security.md section 10, offline sync plan D10). Before a public release decide whether sign-out should offer to discard them. Plan 6 D15: nothing built; stays an accepted risk. | before going public |
 | Offline grouped edits share one undo step | An offline "Add line" or "Add chapter" keeps its undo group open until the server answers, so later offline edits join it and one Ctrl+Z after reconnecting undoes them together. No data is lost. Needs a decision on when an undo step closes. | 7 (**done**, Plan 7 Task 7) |
 | Smaller review findings | Page-close warning while an edit is still being stored; a saved echo repainting over a later waiting edit; no `navigator.locks` (every tab sends); a non-PocketBase 200 counted as saved; focus in the conflict dialog; IndexedDB unavailable refuses edits; quadratic outbox reads for large queues; a fast account switch. See the final-review lines of `.planning/2026-11-16-offline-sync/progress.md`. | 7 |
 | Retry right after the server returns | After a server outage a waiting edit is retried on the backoff (1, 2, 4 ... 30 s), so it saved about 10 s after the proxy came back (2026-11-20 check). The event stream reconnecting (`PB_CONNECT`) could trigger an immediate retry. | 7 (**done**, Plan 7 Task 7) |
-| Confirm the reconnect behind the public Funnel address | Checked through `tailscale serve` (tailnet only) on 2026-11-20, see decision 0002; repeat the two checks once behind the public address (test-plan M12). | 6 |
+| Confirm the reconnect behind the public Funnel address | Checked through `tailscale serve` (tailnet only) on 2026-11-20, see decision 0002; repeated behind the public address: **done**, case C6 of Plan 6's walk reported passed on 2026-11-21 (test-plan M12). | 6 (walk) |
 | Hand walk of the Flow | The developer walked the app by hand (2026-11-19 and 2026-11-20), not following the written Flow, and found two bugs (stopped backend refused edits; a line added offline vanished after reconnecting), both fixed. The written walk (every conflict kind, both browsers) was not done as such; the e2e specs `editor-offline` and `editor-conflicts` cover those cases. Repeat with M8 and M9. | developer, with M8 and M9 |
 
 ## Carried over from Plan 7
@@ -83,7 +84,17 @@ Found while building media upload, quota and strict file checks (2026-11-16 to 2
 
 | Item | What and why | Plan |
 |---|---|---|
-| Upload progress bar | The PocketBase JS SDK's `fetch` does not report upload progress (D12). If large uploads through Funnel prove slow, add upload progress reporting or chunked uploading. | 6 |
+| Upload progress bar | The PocketBase JS SDK's `fetch` does not report upload progress (D12). Large uploads through Funnel proved too slow on the first VM (2026-11-21: about 0.2 MB/s; a 30 MB and a 150 MB upload both failed). **Video upload is switched off** by the [node links plan](2026-11-21-node-links/README.md) (status: done) and writers add a link instead. Chunked or resumable upload, and a direct (non-relayed) Tailscale path, stay open. | later |
+
+## Carried over from Plan 6
+
+Plan 6 is built and checked. The developer walked the guide's "first walk" on the real VM and reported on 2026-11-21 that it works over the internet; C3 and C4 were then found not to have been run, and stay open (no per-case detail recorded for the others). C7 (backup and restore on the VM) was then run on 2026-11-21 and passed. The source is `.planning/2026-11-20-deployment/progress.md`.
+
+| Item | What and why | Plan |
+|---|---|---|
+| Upload progress or chunked upload (D13) | **Case C3 was tried on 2026-11-21 and failed** (a 30 MB and a 150 MB upload both dropped; about 0.2 MB/s through the Tailscale relay). **Video upload is switched off** by the [node links plan](2026-11-21-node-links/README.md) and writers add a link instead. Chunked or resumable upload, and a direct (non-relayed) Tailscale path, stay open. | later |
+| The visitor's IP behind Funnel (D6) | Case C4 is still open (not yet run). If a check shows `ip` is not the visitor's public address, the per-IP limits are global: move to Cloudflare Tunnel or find another way to pass the IP. Written in security.md section 10. | after the walk |
+| The walk itself | C1, C2, C5, C6 and C7 done (2026-11-21); C3 failed (see the row above). **Plan 6 closed by the developer on 2026-11-21.** C4 (the visitor's address from a phone on mobile data) was not run: Caddy did log a public address for Funnel requests, but from the VM's own site, so repeat it from a phone at the next VM visit; until then security.md section 10 treats it as unconfirmed. The links check M13 (test-plan) is also still to run on the VM. | developer |
 
 ## Later (developer decision, 2026-11-18)
 
@@ -156,7 +167,7 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 **Decide first:** where the byte check runs (hook on upload request) and how a refused upload reports which limit it hit.
 **Risks:** large uploads through Funnel; quota race when two uploads arrive together.
 
-### 6. Deployment
+### 6. Deployment (done; [detailed plan](2026-11-20-deployment/README.md))
 **Carried in from Plan 2:** the rate limiter and trusted proxy, a real-mail walk, and the unknown-email timing note (see [Carried over from Plan 2](#carried-over-from-plan-2)).
 **Carried in from Plan 4:** repeat the reconnect check behind the public Funnel address (test-plan M12).
 **Carried in from Plan 5:** large uploads through Funnel and the D12 upload progress-bar follow-up (see [Carried over from Plan 5](#carried-over-from-plan-5)).
@@ -170,6 +181,7 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 **Goal:** the second build step in design section 11: trash and restore (30 days, scheduled purge), share links (view, comment, edit; live, snapshot; revocable), comments, presence with heartbeat, project JSON import and export.
 **Fixed already:** "revoke all share links" is an incident control (security.md section 9) added to the Plan 2 runbook when `share_links` exists; view links work without an account and include media; comment and edit links need sign-in and the verified flag; JSON import is untrusted input, validated by schema with size limits (a `zod` dependency needs a decision record first).
 **Decide first:** split into two plans if it is too large (share links and comments, then trash and import/export); how a link token is checked inside access rules.
+**Carried in from the node links plan:** `node_links` (links on a node, see [that plan](2026-11-21-node-links/README.md)) must be covered too: view links show a node's links to viewers, snapshots keep them, trash hides them with their node, and JSON import and export carry them.
 **Risks:** the most security-sensitive plan after Plan 2: every rule needs tests for member, outsider, signed-out, revoked link, snapshot.
 
 ### 8. Export

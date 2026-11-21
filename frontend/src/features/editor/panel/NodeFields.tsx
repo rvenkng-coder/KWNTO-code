@@ -6,6 +6,7 @@ import { edits } from '../store/edits'
 import { useSavedText } from '../store/useSavedText'
 import { Choices } from './Choices'
 import { Cues } from './Cues'
+import { LinksSection } from '../links/LinksSection.tsx'
 import { MediaSection } from '../media/MediaSection.tsx'
 import { ScriptLines } from './ScriptLines'
 import { EditingBadge } from '../../presence/EditingBadge'
@@ -51,6 +52,7 @@ export function NodeFields({ node }: { node: StoryNode }) {
       <ScriptLines projectId={node.projectId} nodeId={node.id} />
       <Cues projectId={node.projectId} nodeId={node.id} />
       <MediaSection node={node} />
+      <LinksSection node={node} />
       <Choices node={node} />
       <CommentsSection nodeId={node.id} />
     </div>

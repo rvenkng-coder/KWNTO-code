@@ -174,6 +174,14 @@ End-to-end tests verify the full stack: browser → Vite dev server → PocketBa
 ### If interrupted
 A killed Playwright run can leave Vite listening on port `5174`; the next run then fails at once because of `--strictPort`. Find it with `lsof -i :5174` and stop that one process.
 
+### Edge test (`tests/container/edge.test.ts`)
+
+Starts `compose.prod.yaml` with `compose.edge-test.yaml` (Caddy and PocketBase, no Tailscale) and tests the public address: Caddy on `127.0.0.1:8094` (`EDGE_URL`), PocketBase direct on `127.0.0.1:8095` (`EDGE_ADMIN_URL`, set-up calls only; never send an app request to it). It builds `dist/` first if it is missing, and removes the stack with `down -v` afterwards. Helpers are in `tests/container/helpers/edge.ts`. Run it alone with `npx vitest run --project container tests/container/edge.test.ts`. Ports in use across the repo: `8090` dev, `8091` test, `8092` spike, `8093` container test, `8094` and `8095` edge test.
+
+### Backup test (`tests/container/backup.test.ts`)
+
+Starts `compose.prod.yaml` with `compose.backup-test.yaml` (project `kwnto-backup-test`): the same ports as the edge test (`8094`, `8095`), so the two files run one at a time (the container project already does). Data lives in the ordinary named volume `kwnto-data`, which Compose names `kwnto-backup-test_kwnto-data` like on the VM (the restore runs without `KWNTO_DATA_VOLUME`, so it must find the prefixed name itself) and backups in a temporary host folder (`KWNTO_BACKUP_DIR`); both are removed afterwards. It runs `deploy/backup-now.sh` (C1, also checking that the password never shows in `ps`) and `deploy/restore.sh` (C2 to C4: data, media file and admin password come back; a missing or non-zip file is refused; without `--yes` it asks first). Helpers are in `tests/container/helpers/backup.ts`. Run it alone with `npx vitest run --project container tests/container/backup.test.ts`. If a killed run left things behind: `docker compose -f compose.prod.yaml -f compose.backup-test.yaml down -v` and `docker volume rm -f kwnto-backup-test_kwnto-data`.
+
 ---
 
 ## Pre-commit Hook: Secret Scan

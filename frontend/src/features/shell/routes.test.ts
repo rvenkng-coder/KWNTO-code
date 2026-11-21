@@ -82,3 +82,19 @@ test('a share hash needs a 40-character token', () => {
   expect(parseRoute(`#/s/${token.slice(1)}`)).toEqual({ name: 'teams' })
   expect(parseRoute(`#/s/${token.slice(1)}-`)).toEqual({ name: 'teams' })
 })
+
+// Protects Plan 6 D9 / C1: the verify and reset links carry only a JWT-shaped value (three
+// dot-separated URL-safe parts, at most 2048 characters); anything else is the teams list, so a
+// crafted link cannot put arbitrary text into the route or the request that follows.
+test('verify and reset links carry only a token-shaped value', () => {
+  expect(parseRoute('#/verify/aaa.bbb.ccc')).toEqual({ name: 'verify', token: 'aaa.bbb.ccc' })
+  expect(parseRoute('#/reset/a-b.c_d.e')).toEqual({ name: 'reset', token: 'a-b.c_d.e' })
+  expect(parseRoute(`#/verify/${'a'.repeat(2049 - 4)}.b.c`)).toEqual({ name: 'teams' }) // 2049 chars
+  expect(parseRoute(`#/verify/${'a'.repeat(2048 - 4)}.b.c`)).toEqual({ name: 'verify', token: `${'a'.repeat(2044)}.b.c` }) // 2048 chars
+  expect(parseRoute('#/verify/aaa.bbb')).toEqual({ name: 'teams' })
+  expect(parseRoute('#/reset/a.b.c/extra')).toEqual({ name: 'teams' })
+  expect(parseRoute('#/verify/<script>.b.c')).toEqual({ name: 'teams' })
+  for (const r of [{ name: 'verify', token: 'aaa.bbb.ccc' } as const, { name: 'reset', token: 'a-b.c_d.e' } as const]) {
+    expect(parseRoute(routeToHash(r))).toEqual(r)
+  }
+})

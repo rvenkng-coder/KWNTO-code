@@ -9,6 +9,7 @@ export type * from './presence-types'
 export { MAX_COMMENT_LENGTH } from './comment-types'
 export type { AppSettings } from './appSettings'
 export { MAX_IMPORT_BYTES } from './projectFiles'
+export type * from './link-types'
 export { MAX_SAVE_TRIES, TOO_BUSY } from './guarded'
 export { EDIT_CONFLICT, EditConflict } from './errors'
 
@@ -62,6 +63,10 @@ export const backend: Backend = {
   get realtime() {
     if (!_backend) _backend = createBackend()
     return _backend.realtime
+  },
+  get links() {
+    if (!_backend) _backend = createBackend()
+    return _backend.links
   },
   async health() {
     if (!_backend) _backend = createBackend()

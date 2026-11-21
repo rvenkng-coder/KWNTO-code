@@ -1,35 +1,19 @@
-import { useEffect, useRef, useState, type ChangeEvent } from 'react'
+import { useEffect, useRef, type ChangeEvent } from 'react'
 import type { StoryNode } from '../../../backend/index.ts'
 import { MediaItem } from './MediaItem.tsx'
 import { mediaOf, removedOf } from './mediaList.ts'
 import { RemovedMediaItem } from './RemovedMediaItem.tsx'
 import { StorageMeter } from './StorageMeter.tsx'
 import { useSync } from '../sync/syncStore.ts'
+import { acceptFor } from './uploadCheck.ts'
+import { useOnline } from './useOnline.ts'
 import { useMediaStore } from './useProjectMedia.ts'
-
-function useBrowserOnline(): boolean {
-  const [isOnline, setIsOnline] = useState(
-    typeof navigator !== 'undefined' ? navigator.onLine : true,
-  )
-
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true)
-    const handleOffline = () => setIsOnline(false)
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
-    return () => {
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
-    }
-  }, [])
-  return isOnline
-}
 
 // Uploads are never queued (media plan D9, design 6.7), so they need the browser online AND the editor's
 // own connection: with the live stream down or the server unreachable the editor says Offline, and the
 // upload button follows it instead of failing with a banner.
 function useConnected(): boolean {
-  const browserOnline = useBrowserOnline()
+  const browserOnline = useOnline()
   const editorOnline = useSync((s) => s === null || s.online)
   return browserOnline && editorOnline
 }
@@ -84,7 +68,7 @@ export function MediaSection({ node }: { node: StoryNode }) {
         <input
           type="file"
           aria-label="Add media"
-          accept=".wav,.mp3,.mov,.mp4,.jpg,.jpeg,.png"
+          accept={acceptFor(storage?.allowedTypes ?? null)}
           disabled={!isOnline}
           onChange={handleFileChange}
           className="hidden"

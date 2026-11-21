@@ -15,4 +15,5 @@ See [docs/developer/getting-started.md](docs/developer/getting-started.md) for s
 - [Engineering principles](docs/engineering.md)
 - [Security rules](docs/security.md)
 - [Testing guide](docs/developer/testing.md)
+- [Deploying](docs/admin/deployment.md)
 - [Agent quick reference](AGENTS.md)

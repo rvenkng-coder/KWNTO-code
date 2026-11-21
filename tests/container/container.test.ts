@@ -134,3 +134,15 @@ test('with-pocketbase passes on the exit code and cleans up', () => {
   expect(left).toBe('')
 })
 
+
+// Protects D8: production mode without a public https URL would write wrong mail links and
+// settings, so the container must refuse to start (exit 64) instead.
+test('refuses production mode without a public https URL', () => {
+  const run = spawnSync(
+    'docker',
+    ['run', '--rm', '-e', `KWNTO_ADMIN_EMAIL=${EMAIL}`, '-e', 'KWNTO_ADMIN_PASSWORD=test-admin-password-1', '-e', 'KWNTO_PRODUCTION=1', IMAGE],
+    { encoding: 'utf8' },
+  )
+  expect(run.status).toBe(64)
+  expect(run.stderr).toContain('KWNTO_PUBLIC_URL must be set when KWNTO_PRODUCTION=1')
+})

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { backend } from './backend'
 import { useSession } from './features/auth/useSession'
 import { AuthScreen } from './features/auth/AuthScreen'
+import { VerifyEmailScreen } from './features/auth/VerifyEmailScreen'
+import { ResetPasswordScreen } from './features/auth/ResetPasswordScreen'
 import { TeamsScreen } from './features/teams/TeamsScreen'
 import { EditorScreen } from './features/editor/EditorScreen'
 import { TeamDetail } from './features/teams/TeamDetail'
@@ -40,6 +42,10 @@ function App() {
   }, [signedIn, refresh])
 
   useAccountTheme(signedIn)
+
+  // The two mail-link pages come before the signed-in gate: the person may or may not be signed in.
+  if (route.name === 'verify') return <VerifyEmailScreen key={route.token} token={route.token} />
+  if (route.name === 'reset') return <ResetPasswordScreen key={route.token} token={route.token} />
 
   if (!user && route.name === 'share') {
     return <AppShell><ShareScreen token={route.token} /></AppShell>

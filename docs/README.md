@@ -11,6 +11,7 @@
 | **User** | [user-requirements.md](user-requirements.md) | User requirements |
 | **User** | [accounts-and-teams.md](user/accounts-and-teams.md) | Sign up, verify, sign in, teams, invites |
 | **Admin** | [settings.md](admin/settings.md) | System settings: every field, its default and what it does |
+| **Admin** | [deployment.md](admin/deployment.md) | Deploying on the VM: first run, Tailscale, mail, backups, restore, updating, the first walk |
 | **Developer** | [getting-started.md](developer/getting-started.md) | Setup and first run |
 | **Developer** | [testing.md](developer/testing.md) | Test layers and commands |
 | **Developer** | [backend.md](developer/backend.md) | Backend development notes |

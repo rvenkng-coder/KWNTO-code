@@ -67,7 +67,8 @@ It is an internal tool, not a public product (yet). It is used by one school coh
 ### 6.2 Properties panel
 For the selected node: line-by-line script, A/V cues, lighting notes, and uploaded media.
 - Audio: WAV, MP3.
-- Video: MOV, MP4.
+- Video: MOV, MP4. **Off for now (dev decision, 2026-11-21):** large uploads did not finish through Tailscale Funnel, so video files are refused and writers add a link instead (plan node-links, D1). The admin can switch video back on in `system_storage.allowed_types`.
+- Links and other material: each node also has a list of links (a title and an `http` or `https` address) for videos and other material that is not uploaded (plan node-links).
 - Images: JPEG, PNG.
 - Upload only. Storage cap: 2 GB per user, counting files a user uploaded across all projects. Over the limit, uploads are refused with a clear message and nothing is deleted.
 - Per-file defaults: 200 MB for video, 50 MB for audio and images. **All limits and allowed file types are admin settings** (see section 7c).

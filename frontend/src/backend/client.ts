@@ -11,6 +11,7 @@ import { createShares } from './shares'
 import { createComments } from './comments'
 import { createPresence } from './presence'
 import { createRealtime } from './realtime'
+import { createLinks } from './links'
 
 export interface Backend {
   health(): Promise<boolean>
@@ -26,6 +27,7 @@ export interface Backend {
   comments: ReturnType<typeof createComments>
   presence: ReturnType<typeof createPresence>
   realtime: ReturnType<typeof createRealtime>
+  links: ReturnType<typeof createLinks>
 }
 
 export function createBackend(baseUrl?: string): Backend {
@@ -55,5 +57,6 @@ export function createBackend(baseUrl?: string): Backend {
     comments: createComments(pb),
     presence: createPresence(pb),
     realtime: createRealtime(pb),
+    links: createLinks(pb),
   }
 }

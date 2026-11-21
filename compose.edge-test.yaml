@@ -1,0 +1,30 @@
+# Test override (container layer): the same Caddy and PocketBase as production, without Tailscale.
+# Use with: docker compose -f compose.prod.yaml -f compose.edge-test.yaml up -d --build --wait
+# Ports (all on 127.0.0.1): 8094 Caddy (the public address), 8095 PocketBase direct
+# (the stand-in for the tailnet port of D5; tests use it for admin set-up calls only).
+# KWNTO_PRODUCTION and KWNTO_PUBLIC_URL pass through from the shell (edgeUp({ KWNTO_PRODUCTION: '1', ... })), so the
+# production settings can be tested; unset, the stack behaves like the test backend.
+# A project name of its own, so this stack never collides with compose.test.yaml (same folder, same service name).
+name: kwnto-edge-test
+services:
+  web:
+    profiles: [never-enabled]
+  tailscale:
+    profiles: [never-enabled]
+  pocketbase:
+    depends_on: !reset {}
+    environment:
+      KWNTO_ADMIN_EMAIL: admin@example.test # test-only credentials; the data is discarded with the container
+      KWNTO_ADMIN_PASSWORD: test-admin-password-1
+    volumes: !override
+      - ./dist:/pb/pb_public:ro
+    tmpfs:
+      - /tmp
+      - /pb/pb_data:uid=10001,gid=10001
+    ports:
+      - "127.0.0.1:8095:8090"
+  caddy:
+    environment:
+      KWNTO_MAX_REQUEST_MB: "2"
+    ports:
+      - "127.0.0.1:8094:8080"

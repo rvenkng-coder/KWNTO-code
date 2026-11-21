@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react'
+import { createContext, useContext, useSyncExternalStore } from 'react'
 
 export type Theme = 'light' | 'dark'
 
@@ -17,8 +17,17 @@ export function systemTheme(): Theme {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
-/** The theme now in effect; re-renders when `applyTheme` changes it. */
+/** Makes `useTheme()` answer this theme inside a subtree (the export stage is always light, plan 8 D4). */
+export const ThemeOverride = createContext<Theme | null>(null)
+
+/** The theme now in effect (the override of the nearest `ThemeOverride`, if any); re-renders when `applyTheme` changes it. */
 export function useTheme(): Theme {
+  const override = useContext(ThemeOverride)
+  const current = useAccountTheme()
+  return override ?? current
+}
+
+function useAccountTheme(): Theme {
   return useSyncExternalStore(
     (onChange) => {
       listeners.add(onChange)

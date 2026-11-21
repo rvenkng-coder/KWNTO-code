@@ -103,7 +103,7 @@ function EditorFrame({ projectId, projectName, chapters, active }: FrameProps) {
         <section data-testid="editor-canvas" className="panel flex min-h-0 min-w-0 flex-col gap-2 rounded-[var(--radius-lg)] p-0">
           <ChapterTabs projectId={projectId} chapters={chapters} activeId={activeId} />
           <div className="flex min-h-0 flex-1">
-            <ToolStrip chapterId={activeId} />
+            <ToolStrip chapterId={activeId} projectName={projectName} />
             {active === null
               ? <p className="p-3 text-muted">Open a chapter from ≡ All chapters.</p>
               : <Canvas projectId={projectId} chapterId={active.id} />}

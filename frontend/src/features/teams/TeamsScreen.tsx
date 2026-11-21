@@ -39,18 +39,21 @@ export function TeamsScreen() {
       <InvitesInbox onAccepted={list} />
       <section className="flex flex-col gap-2">
         <h3 className="section-label">Your teams</h3>
-        {teams.length === 0
-          ? (
-            <div className="flex flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-border p-8 text-center">
-              <p className="font-semibold">You are not in a team yet</p>
-              <p className="text-muted">Use the buttons above to create a team, or to join one with a code from a teammate.</p>
-            </div>
-          )
-          : (
-            <ul data-testid="team-list" className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(18rem,1fr))]">
-              {teams.map((team) => <TeamCard key={team.id} team={team} />)}
-            </ul>
-          )}
+        {/* Always in the page, so "no team is listed" is something a test (and a screen reader) can look at. */}
+        <div data-testid="team-list">
+          {teams.length === 0
+            ? (
+              <div className="flex flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-border p-8 text-center">
+                <p className="font-semibold">You are not in a team yet</p>
+                <p className="text-muted">Use the buttons above to create a team, or to join one with a code from a teammate.</p>
+              </div>
+            )
+            : (
+              <ul className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(18rem,1fr))]">
+                {teams.map((team) => <TeamCard key={team.id} team={team} />)}
+              </ul>
+            )}
+        </div>
       </section>
       <SharedWithMe />
       {joining && <JoinDialog onClose={() => setJoining(false)} />}

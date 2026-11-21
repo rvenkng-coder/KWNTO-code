@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { checkLinkUrl, linkHost, linkLabel } from './linkCheck.ts'
+import { checkLinkUrl, linkHost, linkLabel, safeHref } from './linkCheck.ts'
 
 const NOT_WEB = 'That is not a web address.'
 const ONLY_WEB = 'Only http:// and https:// addresses are allowed.'
@@ -34,5 +34,15 @@ describe('linkHost and linkLabel', () => {
     expect(linkHost('https://Example.COM:8080/a?b#c')).toBe('example.com:8080')
     expect(linkLabel({ title: '  ', url: 'https://x.example/p' })).toBe('x.example')
     expect(linkLabel({ title: 'Trailer', url: 'https://x.example/p' })).toBe('Trailer')
+  })
+})
+
+describe('safeHref', () => {
+  // Protects: whatever is stored (an admin edit, a restored backup), only a web address becomes a clickable href (final review, Important 1)
+  test('only a web address becomes a link target', () => {
+    expect(safeHref('https://example.com/a')).toBe('https://example.com/a')
+    for (const stored of ['javascript:alert(1)', 'data:text/html,x', 'vbscript:x', 'ftp://a.b', '', 'not a link']) {
+      expect(safeHref(stored), stored).toBeNull()
+    }
   })
 })

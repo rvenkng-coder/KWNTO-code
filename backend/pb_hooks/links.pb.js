@@ -1,13 +1,16 @@
 /// <reference path="../pb_data/types.d.ts" />
-// Links on a node: only http and https addresses are stored (plan 2026-11-21-node-links, D4).
+// Links on a node: only http and https addresses are stored (plan 2026-11-21-node-links, D4). The rule runs
+// on create and on update; the access rules already refuse updates from users, so an update here is an
+// admin edit, and it must not be able to store a non-web address either.
 
 onRecordCreate((e) => {
-  const { checkLinkUrl } = require(`${__hooks}/lib/link-check.js`)
-  const check = checkLinkUrl(e.record.getString("url"))
-  if (!check.ok) {
-    throw new BadRequestError(check.message, { url: new ValidationError(check.code, check.message) })
-  }
-  e.record.set("url", check.url)
-  e.record.set("title", e.record.getString("title").trim())
+  const { guardLinkRecord } = require(`${__hooks}/lib/link-hook.js`)
+  guardLinkRecord(e.record)
+  e.next()
+}, "node_links")
+
+onRecordUpdate((e) => {
+  const { guardLinkRecord } = require(`${__hooks}/lib/link-hook.js`)
+  guardLinkRecord(e.record)
   e.next()
 }, "node_links")

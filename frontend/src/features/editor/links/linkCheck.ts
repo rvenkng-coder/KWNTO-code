@@ -33,3 +33,11 @@ export function linkLabel(link: { title: string; url: string }): string {
   const title = link.title.trim()
   return title !== '' ? title : linkHost(link.url)
 }
+
+// The address to put in an anchor's href: the stored address when it is a web address, otherwise null.
+// The server only stores web addresses, but a record can also be written by an admin edit, a restored
+// backup or a later migration, so the browser checks again at the moment it makes a link.
+export function safeHref(url: string): string | null {
+  const check = checkLinkUrl(url)
+  return check.ok ? check.url : null
+}

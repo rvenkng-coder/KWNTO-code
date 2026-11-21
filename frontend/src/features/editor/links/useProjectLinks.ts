@@ -66,6 +66,9 @@ async function openProjectLinks(projectId: string, rawSet: SetFn): Promise<() =>
   return unsubscribe
 }
 
+// Adds in flight, so a double click or a double Enter sends one request, not two.
+const adding = new Set<string>()
+
 async function addProjectLink(
   nodeId: string,
   title: string,
@@ -81,6 +84,9 @@ async function addProjectLink(
     set(() => ({ error: check.message }))
     return false
   }
+  const key = [projectId, nodeId, title.trim(), check.url].join('\n')
+  if (adding.has(key)) return false
+  adding.add(key)
   try {
     const created = await backend.links.add(projectId, nodeId, title.trim(), check.url)
     set((s) => ({ links: applyLinkEvent(s.links, { action: 'create', record: created }), error: null }))
@@ -88,6 +94,8 @@ async function addProjectLink(
   } catch (err) {
     set(() => ({ error: messageOf(err) }))
     return false
+  } finally {
+    adding.delete(key)
   }
 }
 

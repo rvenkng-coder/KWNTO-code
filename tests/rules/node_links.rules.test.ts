@@ -142,4 +142,17 @@ describe('node_links rules and collection', () => {
       expect(await linkRows(), target).toBe(0)
     }
   })
+
+  // Protects: a record edited outside the app (the dashboard) cannot become a non-web address (final review, Important 1)
+  test('an admin edit cannot make a link a non-web address', async () => {
+    const { owner, projectId, chapterId } = await memberProject()
+    const nodeId = await createNode(owner, projectId, chapterId)
+    const created = await (await addLink(owner, { project: projectId, node: nodeId, creator: owner.id, url: 'https://example.com/v' })).json()
+    const admin = await asAdmin()
+
+    await expect(admin.collection('node_links').update(created.id, { url: 'javascript:alert(1)' })).rejects.toThrow()
+    expect((await admin.collection('node_links').getOne(created.id)).url).toBe('https://example.com/v')
+    const ok = await admin.collection('node_links').update(created.id, { url: ' https://example.com/w ' })
+    expect(ok.url).toBe('https://example.com/w')
+  })
 })

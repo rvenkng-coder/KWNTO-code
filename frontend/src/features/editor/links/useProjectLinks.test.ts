@@ -49,4 +49,20 @@ describe('links store', () => {
     expect(useLinksStore.getState().links).toEqual([])
     expect(useLinksStore.getState().projectId).toBe('B')
   })
+
+  // Protects: a double click or a double Enter adds one link, not two (final review, Important 2)
+  test('a second submit while the first is in flight adds nothing', async () => {
+    await useLinksStore.getState().open('A')
+    const slow = deferred<NodeLink>()
+    door.add.mockReturnValueOnce(slow.promise)
+
+    const first = useLinksStore.getState().add('n1', 't', 'https://ok.example')
+    const second = useLinksStore.getState().add('n1', 't', 'https://ok.example')
+    expect(await second).toBe(false)
+    slow.resolve(link('one'))
+    expect(await first).toBe(true)
+
+    expect(door.add).toHaveBeenCalledTimes(1)
+    expect(useLinksStore.getState().links.map((l) => l.id)).toEqual(['one'])
+  })
 })

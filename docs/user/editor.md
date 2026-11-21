@@ -9,7 +9,7 @@ A project is one script. Every project belongs to a team.
 - **Make one:** open the team, type a name under **Projects** and choose **New project**. Any member can do this.
 - **Open one:** choose its name. The editor opens with one chapter, `Chapter 1`.
 - **Rename one:** in the editor, double-click the project name at the top of the left panel, type, and press Enter.
-- **Move to trash:** only the team owner sees **Move to trash** next to a project. The project leaves the list. (The trash screen, to restore or delete for good, comes later.)
+- **Move to trash:** only the team owner sees **Move to trash** next to a project. The project leaves the list and appears under **Trash** below it (see "Trash" below).
 - **Delete the team:** deleting a team also deletes its projects. The question names how many: `Delete this team and its 2 projects?`
 
 If you open a project you are not allowed to see (a link from someone else's team, or a project that no longer exists), the editor says so and offers **Back to teams**. It shows nothing of the project.
@@ -141,6 +141,23 @@ Undo never overwrites a teammate's work. If someone else has changed the same th
 
 While you type in a field, only Ctrl+K is the editor's; the other keys work as usual in the field (Ctrl+Z there undoes your typing).
 
+## Trash
+
+Projects, chapters and nodes you move to the trash stay there for 30 days (the admin can change this), then they are removed for good together with their lines, cues and media files. A choice that pointed at a removed node stays, with no target.
+
+- **Chapters and nodes:** open `≡` (All chapters) at the start of the chapter bar and choose **Trash** (the last item). Each row shows the chapter or node, how long is left (`30 days left`, `1 day left`, `Removed tonight`) and **Restore**. Restoring is an ordinary edit, so **Undo** reverses it, and it also works offline.
+- **A node of a trashed chapter** says `Restore the chapter <title> first.`: restore the chapter and the node comes back with it.
+- **Projects:** the team owner sees a **Trash** section under the projects list, with **Restore** for each trashed project. Members do not see it.
+- The time counts from when the server received the change, not from your computer's clock. A node you trash while offline starts its 30 days when you are back online.
+
+## Export and import a project
+
+A project can be saved to a file and made again from it, in this team or another one (for a backup, to move a project, or to keep a copy before a big change).
+
+- **Export:** in the editor, choose **Export project file** under the project name in the left panel. The browser saves `<project name>.kwnto.json`. It is plain text you can open in any editor: the project name, its chapters, nodes (title, colour, place), script lines, cues and choices. It holds nothing internal (no team, accounts or versions). Things in the trash are left out, and so are the media files: only their names and kinds are listed, so an imported project has no media.
+- **Import:** on the team's page, under the projects list, choose **Import project** and pick a `.json` file. Any verified member of the team can do this. A new project named `<name> (imported)` is made and opens. The original is not changed, and you can import the same file again for another copy.
+- **If the file is refused:** the page says why, for example `This file is not a KWNTO project: format must be "kwnto-project".` or `This file is larger than the 5 MB import limit.` Nothing is created. Files must be 5 MB or smaller, with at most 200 chapters, 2,000 nodes, 20,000 lines, 10,000 cues and 10,000 choices.
+
 ## Search and links between chapters
 
 **Search** sits in the top bar while a project is open (Ctrl+K, ⌘+K on a Mac, puts the cursor there). Type part of a node's title: capitals, accents and extra spaces do not matter, so `cafe` finds `Café Scene`. Results show `Title · Chapter`, titles that start with what you typed first. Pick one with the arrow keys and Enter, or click it: the editor opens that chapter (also when its tab was closed), selects the node and moves the canvas to it. Escape closes the list. Nodes in the trash and untitled nodes are not found.
@@ -157,7 +174,19 @@ Two people can edit the same node at once: if you change its title while a teamm
 
 If very many people save the same thing at the same moment and your change still cannot get through after 20 tries, you see `Could not save: too many people are editing this at once. Try again.` Your change is taken back on your screen (nothing half-saved reaches your teammates); make it again.
 
+**Who is editing what.** While a teammate has a field of a node selected (its title, a script line, a cue or a choice), you see `<name> is editing` under the node's title on its card and beside that field in the panel; with several people it reads `Ana and Ben are editing` or `Ana and 2 others are editing`. It goes away when they leave the field, close the project or the tab (within about 30 seconds if their browser could not say so). You never see your own name. It is a hint, not a lock: you can still edit the same field, and both changes are kept as described above. Nothing is sent while you are offline.
+
 If the team's owner removes you from the team, the project stays on your screen until you reload or open it again; then you see `This project does not exist or you are not a member of its team.`
+
+## Comments
+
+Select a node and scroll to **Comments** at the bottom of its panel. Comments are listed oldest first, each with its author's name and time. Type in **Add a comment** and choose **Comment** (up to 2,000 characters; line breaks are kept). A node with comments shows a small count on its card.
+
+- Everyone in the team sees new comments at once, without reloading, and so do people with a comment or edit link.
+- You can delete your own comments, and the team owner can delete any: choose **Delete**, then confirm in the row (**Delete this comment?**). A comment cannot be edited.
+- Comments are shown as plain text: anything that looks like formatting or code is shown exactly as typed.
+- Comments need a connection. Offline, **Comment** is disabled (**Comments need a connection.**) and nothing is queued.
+- Comments of a node go with it when the node is purged from the trash.
 
 ## Media
 
@@ -169,7 +198,7 @@ You can attach audio and images to a node. They appear in the properties panel u
 - **Storage belongs to the team owner.** Everything uploaded in a team's projects counts against the owner's quota, whoever uploads it. The meter shows the owner's storage (e.g. `Team storage: 1 KB of 2.0 GB used`), the same for every member. Trashed nodes still count until they are purged.
 - **Remove media:** any member can choose **Remove** on an item. The panel asks first (`Remove <title> from this node? The team lead can bring it back.`). The file disappears for everyone, but it still uses the owner's storage; members cannot delete it.
 - **Restore or delete for good (team owner only):** the owner sees the removed files under **Removed by the team**, and can choose **Restore** or **Delete for good** (asks first, cannot be undone). Only deleting for good frees the space.
-- **Offline:** uploads require an active internet connection. When offline, **Add media** is disabled and a message explains that uploads need a connection. Files your teammates add or remove while you are offline show up when you are back online, without a reload.
+- **Offline:** uploads require an active internet connection (the editor's own connection, so also when the top bar says `Offline` while the browser itself is online). When offline, **Add media** is disabled and a message explains that uploads need a connection. Files your teammates add or remove while you are offline show up when you are back online, without a reload.
 
 ## Links and other material
 
@@ -197,12 +226,12 @@ Choose **Export map** in the tool strip to save the branching diagram as a file:
 
 You can keep writing when the connection drops. Every change is saved in your browser first and sent from there, so nothing is lost if the connection fails or you close the tab.
 
-- **The indicator.** The top bar shows `Offline` when the browser has no connection, `Offline, 3 changes waiting` when changes are waiting to be sent, and `Saving…` while they are being sent after the connection came back. When everything is saved, nothing is shown.
+- **The indicator.** The top bar shows `Offline` when the browser has no connection or the live connection to the server has been down for a few seconds (even if you have not changed anything), `Offline, 3 changes waiting` when changes are waiting to be sent, and `Saving…` while they are being sent after the connection came back. When everything is saved, nothing is shown.
 - **Closing the tab.** Changes that are waiting stay in your browser. Open the project again on the same browser and they are sent; they also show on your screen again on top of what your teammates did meanwhile.
-- **When you come back online.** The project is loaded again, so what your teammates did while you were away appears without a reload, and your waiting changes are sent in the order you made them.
+- **When you come back online.** The project is loaded again, so what your teammates did while you were away appears without a reload, and your waiting changes are sent in the order you made them, at once (not after a delay).
 - **When a teammate changed the same thing.** If you and a teammate changed the same thing while you were offline (for example both renamed the same node), a window opens: `Someone else changed this while you were offline`. For each thing it shows `Yours` and `Theirs`; choose `Keep mine` or `Keep theirs`. Nothing else is sent until you choose. Changes to different things (you recoloured a node, they renamed it) are merged without asking. If a teammate deleted a script line, cue or connection you changed, the window says so, and `Keep mine` puts it back with your changes.
 - **A change that could not be saved.** If the server refuses a change, the top bar says `1 change could not be saved` with a `Show` button. The list gives what it was and the server's message; the change is taken back on your screen and the changes after it are still sent. `Dismiss` removes a row.
-- **Undo.** While you are offline with changes waiting, Undo and Redo do nothing and say `Undo waits until you are back online and your changes are saved.` They work again as soon as the changes are saved.
+- **Undo.** While you are offline with changes waiting, Undo and Redo do nothing and say `Undo waits until you are back online and your changes are saved.` They work again as soon as the changes are saved. Changes you made offline are separate steps: after you are back online, one Undo takes back only your last change, not a whole stretch of offline work.
 - **Signing out.** If changes are waiting, you are asked first: `Sign out anyway` or `Stay signed in`. If you sign out anyway, they are kept in the browser and sent the next time you sign in on this browser.
 - **Shared computers.** Waiting changes are kept in the browser profile, so anyone who can open that profile can read them. On a shared computer, wait for `Saving…` to disappear before you sign out.
 - **Not covered.** Pictures and other files are not queued; they need a connection.

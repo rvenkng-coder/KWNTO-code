@@ -15,9 +15,9 @@ KWNTO is an **internal tool** for now. Some risks are knowingly accepted for tha
 - Every collection has explicit access rules. No rule means no access.
 - A person reaches a project only through **team membership** or a **valid, unrevoked share link**.
 - Share links: view, comment or edit; live or snapshot; revocable. View links work without an account. Comment and edit links require sign-in. An edit link grants one project only, never the team.
-- Tokens are long and random, so they cannot be guessed. A revoked link stops working at once, including its media.
+- Tokens are 40 characters from `A-Za-z0-9`, about 238 bits, made only by the server (`$security.randomStringWithAlphabet`), and always looked up as a bound parameter. A revoked link stops working at once, including its media. **Built (plan 7 Task 3):** view and comment links are never read through collection rules but through routes under `/api/kwnto/share/{token}` that check the token on every request; an unknown token, a revoked link and a link of a trashed project all get the same 404 with the same body (no oracle). An edit link makes a `link_grants` row (verified sign-in), and the content rules accept that one row (`link.revoked = false`, `permission = 'edit'`, same project, all in one row) next to team membership; the owner-only rules (trash a project, delete media for good) are untouched. **A project in the trash is closed to link holders too** (migration `1794400400`): every grant fragment also needs `grant.project.deleted_at` empty, and the holder's own `link_grants` rows are hidden while the project is in the trash, so a leaked link cannot keep working for the retention period; a restore gives access back (`tests/rules/share-trash.rules.test.ts`). Snapshot links are view-only. A live link also hides the media of a node or chapter in the trash (the media route checks them; a snapshot keeps what it listed), a snapshot whose file would pass the 6 MB field refuses with a message, and a person whose edit link was revoked can no longer update their presence row (`tests/rules/share-lows.rules.test.ts`). **Cost, accepted until the deployment plan turns on PocketBase's rate limiter:** every tab on a live view link re-reads the whole project every 30 s while it is visible, which is a full read of the project per poll. No rule is public.
 - Only the team owner can remove members, regenerate or disable the join code, delete projects or delete the team.
-- **Test requirement:** every collection has backend rule tests as different users (member, outsider, signed-out, link holders). **A test fails if any collection has no tested rule. (planned)**
+- **Test requirement:** every collection has backend rule tests as different users (member, outsider, signed-out, link holders). **A test fails if any collection has no tested rule.**
 
 ## 3. Accounts and sign-in
 
@@ -62,11 +62,11 @@ KWNTO is an **internal tool** for now. Some risks are knowingly accepted for tha
 
 | Risk | Defense | Check |
 |---|---|---|
-| **XSS** | React escapes text by default; the app shows plain text only | ESLint bans `dangerouslySetInnerHTML` **(planned)**; an end-to-end test saves `<script>` text as a node title and a comment and confirms it shows as text **(planned)** |
+| **XSS** | React escapes text by default; the app shows plain text only | ESLint bans `dangerouslySetInnerHTML` **(planned)**; an end-to-end test (`e2e/comments.spec.ts`) saves HTML as a node title and a comment, reloads, and confirms both show as text, nothing runs and no element is made |
 | **SQL injection** | PocketBase builds queries safely; the app never writes SQL | Rule tests send injection strings in filters; filters use bound parameters, never string concatenation **(planned)** |
 | **Broken access control** | Section 2 | The rule tests above |
 | **Malicious upload** | Section 4 | Byte detection, extension checks, quota race tests, and safe headers (`tests/rules/media.rules.test.ts`, `tests/rules/media.limits.rules.test.ts`, `tests/hooks/media-check.unit.test.ts`, `e2e/editor-media.spec.ts`) |
-| **Bad imports** | A JSON project import is untrusted input; validate it with a schema (for example `zod`), with size limits | Unit tests with malformed and oversized files **(planned)** |
+| **Bad imports** | A JSON project import is untrusted input: the server checks the size before parsing (5 MB), validates the whole file with a hand-written schema (`validateProjectFile`: fixed keys only, limits per list and text, every reference must point into the file, `__proto__` refused), gives every record a new id, and creates the project in one transaction, so a refused file leaves nothing behind; a person may start 10 imports an hour (429 after that; attempts are logged as `import`) ([project-file.md](developer/project-file.md)) | `tests/hooks/project-file.unit.test.ts` (malformed, oversized, `__proto__`), `tests/hooks/project-file.import.unit.test.ts`, `tests/rules/project-file.rules.test.ts` (too large, not JSON, unknown reference, too many nodes, a record the database refuses: nothing created), `tests/rules/project-file.edge.rules.test.ts` (JSON nested 5 million levels deep, a streamed body over 5 MB, a file at every limit imports in about 12 s; reads and `/api/health` stay fast, but the database has one write connection, so other people's saves wait for those seconds: accepted, with a limit of 10 imports an hour per person, `tests/rules/project-file.limit.rules.test.ts`), `frontend/src/backend/projectFiles.test.ts` (the door refuses over 5 MB before sending), `e2e/project-file.spec.ts` (a bad file shows the reason) |
 | **Leaked secrets** | Secrets stay out of git | gitleaks before each commit and in the workflow **(planned)** |
 | **Vulnerable libraries** | Dependency audit | `npm audit` in the workflow **(planned)** |
 | **Missing browser protections** | The proxy adds Content-Security-Policy and other headers | One test that the headers are present **(planned)** |
@@ -82,7 +82,7 @@ KWNTO is an **internal tool** for now. Some risks are knowingly accepted for tha
 
 ## 7. Data protection
 
-- **Trash:** deleted projects, chapters and nodes stay recoverable for 30 days (admin setting), then are removed for good.
+- **Trash:** deleted projects, chapters and nodes stay recoverable for 30 days (admin setting), then are removed for good. **Built (plan 7 Task 1):** the server stamps the trash time itself (`content-guard.pb.js`), so a browser with a wrong clock or a hand-made request cannot date work far back and get it purged (`tests/rules/trash.rules.test.ts`); the job `purge_trash` runs at 03:30 UTC, deletes projects, then chapters, then nodes older than `trash_retention_days` in batches of 200, and logs and skips a record that will not delete (`lib/purge.js`, `tests/hooks/purge.unit.test.ts`); PocketBase's cascades remove what hangs on them, including media files. A project in the trash is closed to link holders too (section 2). There is no "delete for good" button: the purge or a backup restore.
 - **Backups:** in production PocketBase runs its own scheduled backup every day at 02:00 UTC and keeps the last 7 (written by the production settings migration, so the admin can change both in the dashboard afterwards). Backups are plain zip files in the host folder `KWNTO_BACKUP_DIR` (default `./backups`), mounted into the container, so the admin can copy them off the VM or point the folder at a NAS mount. `deploy/backup-now.sh` makes one on demand. A zip holds the database, the uploaded media files and the admin account; protect it like a secret. After the trash period, recovery is a backup restore by the admin (`deploy/restore.sh`, section 9 control 8). **Test the restore, not just the backup:** the container test `tests/container/backup.test.ts` backs up a stack, damages it, restores over the stack's data volume (it replaces the volume's contents) and checks that the data, the media file and the admin password are back.
 - **Offline edits** queue locally in the browser's IndexedDB (an outbox) and are never discarded: an entry leaves it only when the server accepted it, the server refused it (it then shows in the failed list until the person dismisses it), or the person chose `Keep theirs`. Sync conflicts ask which version to keep (design section 6.7). Entries carry the user id, so another account on the same browser never sees or sends them; signing out with waiting edits asks first and keeps them for the next sign-in. The outbox is readable by anyone with the browser profile (section 10).
 
@@ -175,9 +175,18 @@ If it prints anything other than `eyJ`, the email or password was wrong. **A pas
 - **Confirm:** a sign-up is refused with "Sign-up is closed." (status 403); `security_events` has a `settings` entry with `registration_open` changed from `true` to `false`. Unwanted accounts already made: block them (control 3) or delete them in Collections, `users`.
 - **Undo:** turn `registration_open` back on and **Save changes**.
 
-### 6. Revoke all share links (arrives with plan 7)
+### 6. Revoke all share links
 
-Share links do not exist yet (decision D9). This entry is written when the `share_links` collection is built (Roadmap plan 7).
+- **When:** a share link may have leaked or been misused and you cannot tell which one. It stops every link of every project at once: view, comment and edit, live and snapshot. Edit-link holders lose access to the project's content at once (their saves are refused and their live events stop); team members are not affected.
+- **Steps:** with `$TOKEN` from above:
+
+  ```sh
+  printf 'header = "Authorization: %s"\n' "$TOKEN" \
+    | curl -s -i -X POST "$PB/api/kwnto/admin/share-links/revoke-all" --config -
+  ```
+
+- **Confirm:** the answer is `HTTP/1.1 200 OK` with `{"count":N}`, the number of links that were still live. In Collections, `security_events`, the newest entry is `admin` with `detail.action` `revoke-all-links` and `detail.count`. Opening an old link now shows "This link is not valid or was revoked."
+- **Undo:** none: make new links. A revoked link cannot be revived.
 
 ### 7. Reset a password by hand
 
@@ -210,6 +219,7 @@ Read the security log (Collections, `security_events`, newest first; filter for 
 Known and accepted while the tool is internal (also listed in design section 12):
 - Account enumeration through the invite-by-email message: the "doesn't exist" message lets a signed-in owner discover which emails are registered (design section 5). Limited by the shared attempt limit and an `invite` log entry per attempt (section 3, invites). Before a public release, decide whether an invite to an unknown email should get the same answer as a known one.
 - Waiting offline edits (the outbox) live in the browser's IndexedDB, readable by anyone with the browser profile, and stay there after sign-out so they are sent at the next sign-in (offline sync plan D10). Entries carry the user id: another account on the same browser never sees or sends them. Accepted while internal; before a public release decide whether sign-out should offer to discard them.
+- Plan 7 (sharing), accepted: an author who lost access to a project (left the team, or their link was revoked) can still delete their own comment; a maximum-size import (about 12 s) holds the database's one write connection, so other people's saves wait (limited to 10 imports an hour per person); every tab on a live view link re-reads the whole project every 30 s until the deployment plan turns on PocketBase's rate limiter; an import sends no live create event, so teammates see the project after a reload; a presence row can outlive a closed tab by about 30 s; a link holder who already joined can read the project's comments and presence rows until the link is revoked or the project is trashed.
 - **Unknown-email timing** (plan 6 D14): PocketBase answers an unknown email faster than a known one (it skips the password hash), so timing can reveal which emails are registered. No code; accepted while internal, re-judge before going public.
 - **The visitor's IP behind Funnel** (plan 6 D6): the walk's case C4 has not been run yet (open as of 2026-11-21); until it is, treat this as unconfirmed. If it does not, every public visitor shares one IP and the per-IP limits (the sign-in lockout and the rate limiter) become global. Fallback: Cloudflare Tunnel.
 - Open sign-up on a public address, and the disk use of 2 GB per account.

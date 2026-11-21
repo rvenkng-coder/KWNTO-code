@@ -4,9 +4,11 @@ import type { TeamMember, TeamSettings, Team } from '../../backend/types'
 import { navigate } from '../shell/useRoute'
 import { useTeams } from './useTeams'
 import { ProjectList } from '../projects/ProjectList'
+import { TeamTrash } from '../trash/TeamTrash'
 import { InviteForm } from './InviteForm'
 import { MemberList, JoinCodeRow } from './TeamParts'
 import { errorMessage } from '../errorMessage'
+import { ImportProject } from '../projectFile/ImportProject'
 
 interface TeamDetailProps {
   teamId: string
@@ -65,6 +67,9 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
   const [error, setError] = useState<string | null>(null)
   const [isOwner, setIsOwner] = useState(false)
   const [loaded, setLoaded] = useState(false)
+  // Bumped when a project is trashed or restored, so the projects list and the trash both reload.
+  const [projectsVersion, setProjectsVersion] = useState(0)
+  const refreshProjects = () => setProjectsVersion((v) => v + 1)
   const [team, setTeam] = useState<Team | null>(null)
 
   useEffect(() => {
@@ -117,7 +122,9 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
       <h2>{team?.name ?? 'Team'}</h2>
       {error && <p data-testid="form-error" role="alert">{error}</p>}
       <MemberList members={members} isOwner={isOwner} loaded={loaded} onRemove={handleRemoveMember} />
-      {team !== null && <ProjectList teamId={teamId} isOwner={isOwner} />}
+      {team !== null && <ProjectList key={`projects-${projectsVersion}`} teamId={teamId} isOwner={isOwner} onTrashed={refreshProjects} />}
+      {team !== null && <ImportProject teamId={teamId} />}
+      {team !== null && isOwner && <TeamTrash key={`trash-${projectsVersion}`} teamId={teamId} onRestored={refreshProjects} />}
       {isOwner && (
         <OwnerPanel
           teamId={teamId}

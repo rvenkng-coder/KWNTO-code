@@ -35,13 +35,16 @@ export function useProjects(teamId: string) {
     }
   }
 
-  async function trash(project: Project): Promise<void> {
+  /** Resolves true when the project was trashed, false when it failed (the error is shown). */
+  async function trash(project: Project): Promise<boolean> {
     setError(null)
     try {
       await backend.content.update('projects', project.id, { deleted: true }, project.version)
       reload()
+      return true
     } catch (err: unknown) {
       setError(errorMessage(err, 'Failed to move the project to the trash'))
+      return false
     }
   }
 

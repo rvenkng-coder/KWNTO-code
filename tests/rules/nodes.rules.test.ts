@@ -12,6 +12,8 @@ import { addMember, expectCreateRefused } from './helpers/teams.ts'
 // member; the server's purge removes it with everything that hangs off it).
 
 const TRASHED_AT = '2026-11-14 10:00:00.000Z'
+// The server stamps its own trash time (Plan 7 D11); the browser's value is ignored.
+const nearNow = (t: unknown) => Math.abs(Date.parse(String(t).replace(' ', 'T')) - Date.now()) < 10_000
 
 // Task 12 (undo) and Plan 4 (offline queue) need the browser to choose the id.
 test('a member creates a node with the id the client chose', async () => {
@@ -111,7 +113,9 @@ test('nodes are trashed by members and purged only by the server', async () => {
   await expectRefused(pb.collection('nodes').delete(nodeId))
   const trashed = await guardedUpdate(member, 'nodes', nodeId, { version: 0, deleted_at: TRASHED_AT })
   expect(trashed.status).toBe(200)
-  expect(await readAsAdmin('nodes', nodeId)).toMatchObject({ deleted_at: TRASHED_AT, version: 1 })
+  const stored = await readAsAdmin('nodes', nodeId)
+  expect(stored).toMatchObject({ version: 1 })
+  expect(nearNow(stored.deleted_at)).toBe(true)
   expect(await readAsAdmin('script_lines', lineId)).toMatchObject({ text: 'Hello' })
 
   const admin = await asAdmin()

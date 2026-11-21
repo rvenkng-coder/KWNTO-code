@@ -31,6 +31,13 @@ export function recordStep(h: History, step: Step): History {
   return { past: past.slice(-HISTORY_DEPTH), future: [] }
 }
 
+/** The history without one change (a write the server refused after it was recorded); a step left empty goes too. */
+export function withoutChange(h: History, change: Change): History {
+  const strip = (steps: Step[]) =>
+    steps.map((st) => ({ ...st, changes: st.changes.filter((c) => c !== change) })).filter((st) => st.changes.length > 0)
+  return { past: strip(h.past), future: strip(h.future) }
+}
+
 function invertChange(c: Change): Change {
   if (c.type === 'update') return { ...c, before: c.after, after: c.before }
   return { type: c.type === 'create' ? 'remove' : 'create', kind: c.kind, record: c.record }

@@ -11,6 +11,8 @@ import { addMember, expectCreateRefused } from './helpers/teams.ts'
 // D13 (deleting a team removes its projects).
 
 const TRASHED_AT = '2026-11-14 10:00:00.000Z'
+// The server stamps its own trash time (Plan 7 D11); the browser's value is ignored.
+const nearNow = (t: unknown) => Math.abs(Date.parse(String(t).replace(' ', 'T')) - Date.now()) < 10_000
 
 async function rowsOf(collection: string, projectId: string): Promise<Record<string, unknown>[]> {
   const admin = await asAdmin()
@@ -65,7 +67,9 @@ test('only the team owner moves a project to the trash', async () => {
 
   const allowed = await guardedUpdate(owner, 'projects', project.id, { version: 0, deleted_at: TRASHED_AT })
   expect(allowed.status).toBe(200)
-  expect(await readAsAdmin('projects', project.id)).toMatchObject({ deleted_at: TRASHED_AT, version: 1 })
+  const stored = await readAsAdmin('projects', project.id)
+  expect(stored).toMatchObject({ version: 1 })
+  expect(nearNow(stored.deleted_at)).toBe(true)
 })
 
 // A moved project would hand one team's work to another (design 5: teams own projects).
@@ -123,4 +127,24 @@ test('the start node must belong to the project', async () => {
   const moved = await guardedUpdate(member, 'projects', projectId, { version, start_node: second })
   expect(moved.status).toBe(200)
   expect(await readAsAdmin('projects', projectId)).toMatchObject({ start_node: second, version: version + 1 })
+})
+
+// Protects the offline-sync carry-over of plan 3 (plan 7 Task 7, D15): a project a member
+// makes reaches a teammate's open list as a live `create` event, and its settings row and
+// `Chapter 1` still exist.
+test('a new project arrives as a live create event with its settings and first chapter', async () => {
+  const { owner, member, teamId } = await memberProject()
+  const watcher = await asUser(owner)
+  const events: string[] = []
+  await watcher.collection('projects').subscribe('*', (e) => events.push(`${e.action}:${String(e.record.name)}`))
+
+  const made = await (await asUser(member)).collection('projects').create({ team: teamId, name: 'Live project' })
+  await expect.poll(() => events, { timeout: 4000 }).toContain('create:Live project')
+  await watcher.collection('projects').unsubscribe('*')
+
+  const admin = await asAdmin()
+  const filter = admin.filter('project = {:p}', { p: made.id })
+  expect(await admin.collection('project_settings').getFullList({ filter })).toHaveLength(1)
+  const chapters = await admin.collection('chapters').getFullList({ filter })
+  expect(chapters.map((c) => [c.title, c.position])).toEqual([['Chapter 1', 1]])
 })

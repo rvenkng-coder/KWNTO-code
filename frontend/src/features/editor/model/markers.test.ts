@@ -3,7 +3,7 @@ import { chapter, connection, content, node } from './fixtures'
 import { effectiveStart, nodeMarkers } from './markers'
 import { fromContent } from './state'
 
-const project = (startNodeId: string | null) => ({ id: 'p1', teamId: 't1', name: 'Story', startNodeId, deleted: false, version: 0 })
+const project = (startNodeId: string | null) => ({ id: 'p1', teamId: 't1', name: 'Story', startNodeId, deleted: false, deletedAt: null, version: 0 })
 
 // Protects: design 6.1 and D8: the start node, an end node and an unreachable node are told apart.
 test('markers for a start, a target and a lone node', () => {

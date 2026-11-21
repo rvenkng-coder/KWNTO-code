@@ -158,6 +158,13 @@ class Engine implements SyncEngine {
     this.publish()
   }
 
+  retryNow(): void {
+    if (!this.netOnline || this.timer === null) return
+    this.clearTimer()
+    this.attempt = 0
+    this.retryOrClear()
+  }
+
   private clearTimer(): void {
     if (this.timer !== null) this.deps.clock.clearTimeout(this.timer)
     this.timer = null

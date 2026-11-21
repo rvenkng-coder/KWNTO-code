@@ -46,7 +46,7 @@ test('projects are listed for members only', async () => {
   await a.content.update('projects', trashed.id, { deleted: true }, trashed.version)
 
   const listed = await b.projects.list(teamId)
-  expect(listed).toEqual([{ id: project.id, teamId, name: 'Story', startNodeId: null, deleted: false, version: project.version }])
+  expect(listed).toEqual([{ id: project.id, teamId, name: 'Story', startNodeId: null, deleted: false, deletedAt: null, version: project.version }])
 
   const second = await b.projects.create(teamId, 'Second')
   expect((await b.projects.list(teamId)).map((p) => p.name)).toEqual(['Second', 'Story'])

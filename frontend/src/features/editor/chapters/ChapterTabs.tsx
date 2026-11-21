@@ -2,6 +2,7 @@ import { useState, type PointerEvent } from 'react'
 import type { Chapter } from '../../../backend'
 import { navigate } from '../../shell/useRoute'
 import { ToolButton } from '../canvas/ToolButton'
+import { TrashPanel } from '../../trash/TrashPanel'
 import { useLeftPanel } from '../useLeftPanel'
 import { AllChaptersMenu } from './AllChaptersMenu'
 import { addChapter, renameChapter } from './chapterActions'
@@ -40,6 +41,7 @@ export function ChapterTabs({ projectId, chapters, activeId }: ChapterTabsProps)
   const { view, close, open } = useTabsView()
   const panelShown = useLeftPanel((s) => s.shown)
   const [renaming, setRenaming] = useState<string | null>(null)
+  const [trashOpen, setTrashOpen] = useState(false)
   const tabs = visibleTabs(chapters, view)
   const go = (id: string | null) => navigate({ name: 'project', projectId, chapterId: id })
   const show = (id: string) => {
@@ -54,7 +56,7 @@ export function ChapterTabs({ projectId, chapters, activeId }: ChapterTabsProps)
   return (
     <div className="flex border-b border-border">
       <ToolButton icon="panel" name={panelShown ? 'Hide project panel' : 'Show project panel'} onClick={() => useLeftPanel.getState().toggle()} />
-      <AllChaptersMenu chapters={chapters} activeId={activeId} onShow={show} />
+      <AllChaptersMenu chapters={chapters} activeId={activeId} onShow={show} onTrash={() => setTrashOpen(true)} />
       <div role="tablist" className="flex min-w-0 overflow-x-auto">
         {tabs.map((c) => {
           const width = view.widths[c.id] ?? TAB_DEFAULT
@@ -100,6 +102,7 @@ export function ChapterTabs({ projectId, chapters, activeId }: ChapterTabsProps)
       >
         +
       </button>
+      {trashOpen && <TrashPanel onClose={() => setTrashOpen(false)} />}
     </div>
   )
 }

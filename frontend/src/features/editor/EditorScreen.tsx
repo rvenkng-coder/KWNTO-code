@@ -11,11 +11,16 @@ import { useTabsView } from './chapters/useTabsView'
 import { ErrorBanner } from './ErrorBanner'
 import { useProjectLinks } from './links/useProjectLinks.ts'
 import { useProjectMedia } from './media/useProjectMedia.ts'
+import { CommentsLoader } from '../comments/CommentsLoader'
+import { PresenceLoader } from '../presence/PresenceLoader'
 import { liveChapters } from './model/state'
 import { PropertiesPanel } from './panel/PropertiesPanel'
 import { editorStore, useEditor } from './store/editorStore'
 import { edits } from './store/edits'
 import { pendingEdits, shouldWarnOnLeave } from './store/pendingEdits'
+import { ExportButton } from '../projectFile/ExportButton'
+import { MemberOnly } from '../share/MemberOnly'
+import { ShareButton } from '../share/ShareButton'
 import { useLeftPanel } from './useLeftPanel'
 import { useShortcuts } from './useShortcuts'
 
@@ -79,9 +84,9 @@ function useFirstTabRedirect(projectId: string, chapters: Chapter[], active: Cha
   }, [status, active, first, projectId])
 }
 
-interface FrameProps { projectId: string; projectName: string; chapters: Chapter[]; active: Chapter | null }
+interface FrameProps { projectId: string; teamId: string; projectName: string; chapters: Chapter[]; active: Chapter | null }
 
-function EditorFrame({ projectId, projectName, chapters, active }: FrameProps) {
+function EditorFrame({ projectId, teamId, projectName, chapters, active }: FrameProps) {
   const activeId = active === null ? null : active.id
   const leftShown = useLeftPanel((s) => s.shown)
   // The frame fills the window: each side panel scrolls on its own and the page never does.
@@ -98,6 +103,10 @@ function EditorFrame({ projectId, projectName, chapters, active }: FrameProps) {
               className="text-left text-lg font-semibold"
               onCommit={(name) => void edits.update('projects', projectId, { name }, 'Rename project')}
             />
+            <MemberOnly teamId={teamId}>
+              <ExportButton projectId={projectId} />
+              <ShareButton projectId={projectId} projectName={projectName} />
+            </MemberOnly>
           </aside>
         )}
         <section data-testid="editor-canvas" className="panel flex min-h-0 min-w-0 flex-col gap-2 rounded-[var(--radius-lg)] p-0">
@@ -133,5 +142,11 @@ export function EditorScreen({ projectId, chapterId }: { projectId: string; chap
   if (status === 'error') return <NotFound />
   if (status !== 'ready') return <p>Loading project…</p>
   const projectName = content.project === null ? '' : content.project.name
-  return <EditorFrame projectId={projectId} projectName={projectName} chapters={chapters} active={active} />
+  return (
+    <>
+      <PresenceLoader projectId={projectId} />
+      <CommentsLoader projectId={projectId} teamId={content.project === null ? '' : content.project.teamId} />
+      <EditorFrame projectId={projectId} teamId={content.project === null ? '' : content.project.teamId} projectName={projectName} chapters={chapters} active={active} />
+    </>
+  )
 }

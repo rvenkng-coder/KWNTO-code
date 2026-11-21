@@ -1,5 +1,8 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react'
 import { memo } from 'react'
+import { EditingBadge } from '../../presence/EditingBadge'
+import { useCommentStore } from '../../comments/useNodeComments'
+import { countLabel } from '../../comments/commentList'
 import { useTheme } from '../../shell/theme'
 import { NODE_COLORS } from '../model/colors'
 import { jumpToNode } from '../search/jump'
@@ -15,6 +18,13 @@ function Badges({ marker }: { marker: NodeCardData['marker'] }) {
       ))}
     </span>
   )
+}
+
+/** The number of comments on a node; nothing at 0. */
+function CommentBadge({ nodeId }: { nodeId: string }) {
+  const count = useCommentStore((s) => s.counts[nodeId] ?? 0)
+  if (count === 0) return null
+  return <span data-testid="comment-badge" aria-label={countLabel(count)} className="rounded-full bg-panel px-1.5 text-xs text-text">{count}</span>
 }
 
 function CrossLinkTag({ link }: { link: CrossLink }) {
@@ -77,8 +87,11 @@ function NodeCardView({ id, data, selected }: NodeProps<CardNode>) {
       {/* The header tint is node data from the palette (colors.ts), the one allowed inline colour. */}
       <div className="flex items-center justify-between gap-1 px-3 py-2"
         style={{ background: `color-mix(in srgb, ${tint} 24%, var(--color-card))`, borderTop: `3px solid ${tint}` }}>
-        <span className="truncate font-semibold">{data.title || 'Untitled'}</span>
-        <Badges marker={data.marker} />
+        <span className="flex min-w-0 flex-col">
+          <span className="truncate font-semibold">{data.title || 'Untitled'}</span>
+          <EditingBadge nodeId={id} />
+        </span>
+        <span className="flex items-center gap-1"><CommentBadge nodeId={id} /><Badges marker={data.marker} /></span>
       </div>
       <div className="flex flex-col gap-0.5 px-3 py-2 text-[13px]">
         {data.preview.map((p, i) => <p key={i} className="truncate">{p}</p>)}

@@ -3,7 +3,12 @@ import type { ContentKind, ContentRecords, ProjectContent, RemoteEvent } from '.
 import { BackendError } from '../../../backend/errors'
 import { chapter, content, line, node } from '../model/fixtures'
 import { UNDO_BLOCKED } from '../model/history'
+import { createMemoryOutbox } from '../sync/outboxStorage'
+import { createHookRegistry } from '../sync/hookRegistry'
+import { createSyncEngine } from '../sync/syncEngine'
+import { settle } from '../sync/fakes'
 import { createEdits } from './edits'
+import { portOf } from './editorSync'
 import { createEditorStore, type EditorDoor } from './editorStore'
 import { UNDO_PAUSED } from './editorSync'
 
@@ -156,5 +161,80 @@ test('undo waits while offline changes are waiting', async () => {
   expect(store.getState().content.nodes.n1?.title).toBe('B')
   paused = null
   await edits.undo()
+  expect(store.getState().content.nodes.n1?.title).toBe('A')
+})
+
+// Protects plan 7 D15 (the offline undo group carried over from the offline sync plan): while
+// offline a group closes when its edits are STORED, not when the server answers, so an edit
+// made after it is a step of its own. Nothing here answers the door; one undo takes back only
+// the rename.
+test('an offline group closes when its edits are stored', async () => {
+  const fake = autoDoor(content({ nodes: [node('n1', { title: 'A' })] }))
+  const door: EditorDoor = { ...fake.door, create: (() => new Promise(() => undefined)) as EditorDoor['create'], update: (() => new Promise(() => undefined)) as EditorDoor['update'] }
+  const registry = createHookRegistry()
+  const engine = createSyncEngine({
+    userId: 'u1', door, storage: createMemoryOutbox(), hooks: registry.hooks, lock: (_n, run) => run(),
+    channel: { post: () => undefined, listen: () => () => undefined },
+    clock: { now: () => 1, setTimeout: (fn, ms) => setTimeout(fn, ms), clearTimeout: (h) => clearTimeout(h as ReturnType<typeof setTimeout>) },
+  })
+  engine.start()
+  await settle()
+  const store = createEditorStore(door, portOf(engine, registry.register))
+  await store.getState().open('p1')
+  await settle()
+  engine.setOnline(false)
+  await settle()
+  const edits = createEdits(store, () => undefined)
+
+  await edits.group('Add line', async () => {
+    await edits.create('script_lines', line('L1', { nodeId: 'n1' }), 'Add line')
+  })
+  await edits.update('nodes', 'n1', { title: 'B' }, 'Rename node')
+  expect(store.getState().content.lines.L1).toBeDefined()
+  expect(store.getState().content.nodes.n1?.title).toBe('B')
+
+  await edits.undo()
+  expect(store.getState().content.nodes.n1?.title).toBe('A')
+  expect(store.getState().content.lines.L1).toBeDefined()
+})
+
+// Protects the whole-branch review finding M3 (plan 7 D15): an offline edit resolves when stored,
+// so its undo step exists before the server has answered. When the server refuses it after the
+// reconnect, the screen is put back AND the step leaves the history; otherwise Ctrl+Z would meet
+// a step for a change that is not there and stay blocked in front of every earlier step.
+test('an offline edit the server later refuses leaves no dead undo step', async () => {
+  const fake = autoDoor(content({ nodes: [node('n1', { title: 'A' })] }))
+  const refuse = (changes: Record<string, unknown>) => 'color' in changes
+  const door: EditorDoor = {
+    ...fake.door,
+    update: ((kind: ContentKind, id: string, changes: Record<string, unknown>, ...rest: unknown[]) => {
+      if (refuse(changes)) return Promise.reject(new BackendError('forbidden', 403, {}, 'no'))
+      return (fake.door.update as (...a: unknown[]) => Promise<unknown>)(kind, id, changes, ...rest)
+    }) as EditorDoor['update'],
+  }
+  const registry = createHookRegistry()
+  const engine = createSyncEngine({
+    userId: 'u1', door, storage: createMemoryOutbox(), hooks: registry.hooks, lock: (_n, run) => run(),
+    channel: { post: () => undefined, listen: () => () => undefined },
+    clock: { now: () => 1, setTimeout: (fn, ms) => setTimeout(fn, ms), clearTimeout: (h) => clearTimeout(h as ReturnType<typeof setTimeout>) },
+  })
+  engine.start()
+  await settle()
+  const store = createEditorStore(door, portOf(engine, registry.register))
+  await store.getState().open('p1')
+  await settle()
+  engine.setOnline(false)
+  await settle()
+  const edits = createEdits(store, () => undefined)
+
+  expect(await edits.update('nodes', 'n1', { title: 'B' }, 'Rename node')).toBe(true)
+  expect(await edits.update('nodes', 'n1', { color: 'red' }, 'Recolour node')).toBe(true)
+  engine.setOnline(true)
+  await settle()
+  await settle()
+  expect(store.getState().content.nodes.n1?.color).not.toBe('red')
+
+  await edits.undo()
+  expect(store.getState().error).not.toBe(UNDO_BLOCKED)
   expect(store.getState().content.nodes.n1?.title).toBe('A')
 })

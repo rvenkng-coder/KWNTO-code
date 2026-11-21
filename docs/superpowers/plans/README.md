@@ -13,8 +13,8 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 | 5 | [Media upload, quota and strict file checks](2026-11-16-media-upload/README.md) | 1 | 3 | done |
 | 6 | [Deployment](2026-11-20-deployment/README.md) | 1 | 2 (3 to 5 to test on) | done |
 | 6b | [Node links and video uploads off](2026-11-21-node-links/README.md) | 1 | 5, 6 | done |
-| 7 | Trash, share links, comments, presence, JSON import and export | 2 | 3, 4 | outline |
-| 8 | [Export (PDF, Word, JPG, PNG)](2026-11-21-export/README.md) | 3 | 3 | awaiting developer review |
+| 7 | [Trash, share links, comments, presence, JSON import and export](2026-11-20-sharing/README.md) | 2 | 3, 4 | done |
+| 8 | [Export (PDF, Word, JPG, PNG)](2026-11-21-export/README.md) | 3 | 3 | done |
 | 9 | Player Mode | 4 | 3 | outline |
 | 10 | Path analytics | 5 | 9 | outline |
 
@@ -44,7 +44,7 @@ Found while building the editor core (2026-11-14 to 2026-11-16) and left out of 
 
 | Item | What and why | Plan |
 |---|---|---|
-| Live creates of teams and projects | A create hook that moves the record's own insert into a transaction (`e.app = txApp; e.next()`) makes PocketBase 0.40.6 send no realtime create event (found by Task 14 for nodes, fixed there). `teams.pb.js` and the project create hook in `projects.pb.js` still use it. Nothing subscribes to those creates today; a live team or project list (presence, Plan 7) would miss new ones. Restructure as the `nodes` hook does, with a rule test of the create event. | 7 |
+| Live creates of teams and projects | A create hook that moves the record's own insert into a transaction (`e.app = txApp; e.next()`) makes PocketBase 0.40.6 send no realtime create event (found by Task 14 for nodes, fixed there). `teams.pb.js` and the project create hook in `projects.pb.js` still use it. Nothing subscribes to those creates today; a live team or project list (presence, Plan 7) would miss new ones. Restructure as the `nodes` hook does, with a rule test of the create event. | 7 (**done**, Plan 7 Task 7) |
 | Watch for a card re-mount loop | Once (Tasks 11 to 13 `npm test`), after switching back to Chapter 1 a node card kept re-mounting for 60 s ("element was detached from the DOM"). Not reproduced in 106 runs. If it shows again, capture a trace before rerunning. Plan 4: no "detached" failure in the repeated runs of the offline and conflict specs (10 repeats, both browsers, several full `npm test` runs); keep watching. | 4 (watched, not seen) |
 | Hygiene checker false positives | `check:hygiene` reads `test.setTimeout(...)` and `test.info()` as new tests without a header, and `.fail` on any object (`fake.fail.next`) as Vitest's `.fail`. Match only test-defining calls. | tooling (next plan that touches it) |
 
@@ -56,14 +56,27 @@ Found while building the offline sync plan (2026-11-18 to 2026-11-20) and left o
 
 | Item | What and why | Plan |
 |---|---|---|
-| `Offline` shows only after an attempt | The top bar says `Offline` when the browser reports it or when a send finds the server unreachable. With the backend down and no edit made, nothing detects it; a dropped live connection does not change the status. Make the status follow the event stream. | 7 |
+| `Offline` shows only after an attempt | The top bar says `Offline` when the browser reports it or when a send finds the server unreachable. With the backend down and no edit made, nothing detects it; a dropped live connection does not change the status. Make the status follow the event stream. | 7 (**done**, Plan 7 Task 7) |
 | Opening a project needs the server | Edits are queued, reads are not: opening a project, switching teams, signing in or reloading fail while the backend is down. A read cache is a design decision (design 6.7 queues edits only). | developer decision |
 | Waiting edits are readable in the browser profile | Accepted while internal (security.md section 10, offline sync plan D10). Before a public release decide whether sign-out should offer to discard them. Plan 6 D15: nothing built; stays an accepted risk. | before going public |
-| Offline grouped edits share one undo step | An offline "Add line" or "Add chapter" keeps its undo group open until the server answers, so later offline edits join it and one Ctrl+Z after reconnecting undoes them together. No data is lost. Needs a decision on when an undo step closes. | 7 |
+| Offline grouped edits share one undo step | An offline "Add line" or "Add chapter" keeps its undo group open until the server answers, so later offline edits join it and one Ctrl+Z after reconnecting undoes them together. No data is lost. Needs a decision on when an undo step closes. | 7 (**done**, Plan 7 Task 7) |
 | Smaller review findings | Page-close warning while an edit is still being stored; a saved echo repainting over a later waiting edit; no `navigator.locks` (every tab sends); a non-PocketBase 200 counted as saved; focus in the conflict dialog; IndexedDB unavailable refuses edits; quadratic outbox reads for large queues; a fast account switch. See the final-review lines of `.planning/2026-11-16-offline-sync/progress.md`. | 7 |
-| Retry right after the server returns | After a server outage a waiting edit is retried on the backoff (1, 2, 4 ... 30 s), so it saved about 10 s after the proxy came back (2026-11-20 check). The event stream reconnecting (`PB_CONNECT`) could trigger an immediate retry. | 7 |
+| Retry right after the server returns | After a server outage a waiting edit is retried on the backoff (1, 2, 4 ... 30 s), so it saved about 10 s after the proxy came back (2026-11-20 check). The event stream reconnecting (`PB_CONNECT`) could trigger an immediate retry. | 7 (**done**, Plan 7 Task 7) |
 | Confirm the reconnect behind the public Funnel address | Checked through `tailscale serve` (tailnet only) on 2026-11-20, see decision 0002; repeated behind the public address: **done**, case C6 of Plan 6's walk reported passed on 2026-11-21 (test-plan M12). | 6 (walk) |
 | Hand walk of the Flow | The developer walked the app by hand (2026-11-19 and 2026-11-20), not following the written Flow, and found two bugs (stopped backend refused edits; a line added offline vanished after reconnecting), both fixed. The written walk (every conflict kind, both browsers) was not done as such; the e2e specs `editor-offline` and `editor-conflicts` cover those cases. Repeat with M8 and M9. | developer, with M8 and M9 |
+
+## Carried over from Plan 7
+
+Found while building trash, share links, comments, presence and project files (2026-11-20 to 2026-11-21). The source is `.planning/2026-11-20-sharing/progress.md` (the whole-branch review rows). Everything below is accepted and documented in security.md section 10 or the developer guides; none loses data.
+
+| Item | What and why | Plan |
+|---|---|---|
+| Offline media upload queue | Uploads are disabled while the editor is offline. See "Later" below for the decisions a queue needs. | later (no plan) |
+| Import sends no live create event | The import runs in one transaction, so teammates see the new project after a reload. | polish |
+| Live view poll cost | Every tab on a live view link re-reads the whole project every 30 s. Cache the built file per project version, or rely on PocketBase's rate limiter. | 6 |
+| Presence phantom row | A heartbeat in flight when the project closes can leave a row for about 30 s. Make `set` and `clear` one request each. | polish |
+| Plan 4's smaller review findings | Page-close warning while an edit is still being stored; a saved echo repainting over a later waiting edit; no `navigator.locks`; a non-PocketBase 200 counted as saved; focus in the conflict dialog; IndexedDB unavailable refuses edits; quadratic outbox reads; a fast account switch (D15). | polish |
+| Media panel error when going offline | Fixed in Plan 7 (the section follows the editor's connection); the same pattern may exist in other panels that load on their own. | polish |
 
 ## Carried over from Plan 5
 
@@ -91,6 +104,7 @@ Asked for while the editor tabs plan was designed and left out of it on purpose.
 |---|---|
 | Custom node colours (hex or RGB) | Change `nodes.color` from an 8-value select to a validated hex text field, and pick black or white header text by contrast so it stays readable. |
 | Duplicate chapter | Copy nodes, lines, cues and connections, and decide what happens to cross-chapter links. |
+| Offline media upload queue (developer, 2026-11-21) | Keep a chosen audio, video or image file in the browser (IndexedDB blobs) while offline and send it when the connection is back, as edits are today. For now uploads are disabled while the editor is offline (design 6.7, media plan D9). To decide first: the browser's storage quota and eviction; a local preview and an "uploading when online" state; sending after the node it belongs to exists; the server can still refuse the file hours later (team quota, file checks, a trashed node), so the failed list must explain it; many tabs and sign-out with files waiting. About the size of the offline sync plan. |
 
 ## UI problems found after the editor cards plan (developer, 2026-11-18)
 
@@ -162,7 +176,7 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 **Decide first:** backup destination and default schedule; the SMTP setup guide (Gmail app password).
 **Risks:** Funnel bandwidth for video and large media uploads (fallback: Cloudflare Tunnel).
 
-### 7. Trash, share links, comments, presence, JSON import and export
+### 7. Trash, share links, comments, presence, JSON import and export (planned; [detailed plan](2026-11-20-sharing/README.md))
 **Carried in from Plan 3:** live creates of teams and projects (see [Carried over from Plan 3](#carried-over-from-plan-3)).
 **Goal:** the second build step in design section 11: trash and restore (30 days, scheduled purge), share links (view, comment, edit; live, snapshot; revocable), comments, presence with heartbeat, project JSON import and export.
 **Fixed already:** "revoke all share links" is an incident control (security.md section 9) added to the Plan 2 runbook when `share_links` exists; view links work without an account and include media; comment and edit links need sign-in and the verified flag; JSON import is untrusted input, validated by schema with size limits (a `zod` dependency needs a decision record first).
@@ -170,7 +184,7 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 **Carried in from the node links plan:** `node_links` (links on a node, see [that plan](2026-11-21-node-links/README.md)) must be covered too: view links show a node's links to viewers, snapshots keep them, trash hides them with their node, and JSON import and export carry them.
 **Risks:** the most security-sensitive plan after Plan 2: every rule needs tests for member, outsider, signed-out, revoked link, snapshot.
 
-### 8. Export (built, awaiting developer review; [detailed plan](2026-11-21-export/README.md))
+### 8. Export (done; [detailed plan](2026-11-21-export/README.md))
 PDF (`jsPDF`), Word (`docx`), JPG and PNG (`html-to-image`) of the branch map; current chapter by default, whole project optional. Decision record: [0005](../../decisions/0005-export-libraries.md).
 
 ### 9. Player Mode

@@ -35,9 +35,9 @@ Everything an admin can tune lives in settings tables, edited in the PocketBase 
 
 | Field | Default | What it does | Used by |
 |---|---|---|---|
-| `presence_timeout_seconds` | `30` | How long after the last heartbeat someone stops showing as editing a node. | later |
+| `presence_timeout_seconds` | `30` | How long after the last heartbeat someone stops showing as editing a node. Read at run time: browsers use it to decide who is still editing, and the `purge_presence` job (every minute) removes rows not refreshed for twice this time. | Plan 7 |
 | `analytics_retention_days` | `365` | How long play-through analytics are kept. | later |
-| `trash_retention_days` | `30` | How long deleted projects, chapters and nodes stay recoverable before they are removed for good. | later |
+| `trash_retention_days` | `30` | How long deleted projects, chapters and nodes stay recoverable before they are removed for good. The job `purge_trash` (every day at 03:30 UTC) deletes what was trashed longer ago than this, with its lines, cues, choices and media files. | Plan 7 |
 | `security_retention_days` | `365` | How long security log entries are kept. | Task 1 |
 | `max_failed_logins` | `3` | Failed sign-ins of one account from one IP within `lockout_minutes` before that account is locked out from that IP. A successful sign-in resets the count. `0` turns the lockout off. | Task 4 |
 | `lockout_minutes` | `5` | The window in which failures are counted, and so how long a lockout lasts: it ends when the oldest counted failure is this many minutes old. The person is told "Try again after N minutes." `0` turns the lockout off. | Task 4 |

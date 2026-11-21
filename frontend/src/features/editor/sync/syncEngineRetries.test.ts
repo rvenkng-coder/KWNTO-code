@@ -7,6 +7,7 @@ import type { SyncEngine } from './syncEngine'
 // Retry behaviour of the engine (offline sync plan, whole-branch review I3, I5, I6).
 type Add = Parameters<SyncEngine['add']>[0]
 const upd = (id: string): Add => ({ projectId: 'p1', op: 'update', kind: 'nodes', id, changes: { title: 'B' }, baseVersion: 3, baseValues: { title: 'A' }, snapshot: null })
+const unreachable = () => new BackendError('unreachable', 0, {}, 'The server cannot be reached.')
 async function started() {
   const t = tab()
   t.engine.start()
@@ -76,4 +77,33 @@ test('an ended session is not used to send waiting edits', async () => {
   await settle()
   expect(t.door.calls).toHaveLength(1)
   expect(checks).toBeGreaterThanOrEqual(2)
+})
+
+// Protects plan 7 D15 (offline sync plan's carried-over item): a waiting edit whose retry is
+// on the backoff is sent at once when the connection is known to be back (`retryNow`), and the
+// backoff then starts again from its first step.
+test('retryNow sends a waiting edit at once', async () => {
+  const t = await started()
+  t.door.on('update', () => { throw unreachable() })
+  await t.engine.add(upd('n1'))
+  await settle()
+  t.clock.advance(1000)
+  await settle()
+  expect(t.door.calls.filter((c) => c.method === 'update')).toHaveLength(2)
+  expect(t.engine.snapshot()).toMatchObject({ online: false, waiting: 1 })
+
+  t.engine.retryNow()
+  await settle()
+  expect(t.door.calls.filter((c) => c.method === 'update')).toHaveLength(3)
+  t.clock.advance(999)
+  await settle()
+  expect(t.door.calls.filter((c) => c.method === 'update')).toHaveLength(3)
+  t.clock.advance(1)
+  await settle()
+  expect(t.door.calls.filter((c) => c.method === 'update')).toHaveLength(4)
+
+  t.door.on('update', (c) => node(c.id, { version: 9 }))
+  t.engine.retryNow()
+  await settle()
+  expect(t.engine.snapshot()).toMatchObject({ online: true, waiting: 0 })
 })

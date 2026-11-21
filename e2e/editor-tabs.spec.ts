@@ -81,10 +81,10 @@ test('trashing the open chapter shows its neighbour', async ({ page }) => {
   await ownerWithProject(page, 'Story')
   await addChapter(page)
   await expect(page.getByRole('tab', { name: 'Chapter 2' })).toHaveAttribute('aria-selected', 'true')
-  page.once('dialog', (d) => d.accept())
   const trashed = waitForSave(page, 'chapters', 'PATCH')
   await page.getByRole('button', { name: 'Menu for Chapter 2' }).click()
   await page.getByRole('menuitem', { name: 'Move to trash' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Move to trash' }).click()
   await trashed
   await expect.poll(() => tabTitles(page)).toEqual(['Chapter 1'])
   await expect(page.getByRole('tab', { name: 'Chapter 1' })).toHaveAttribute('aria-selected', 'true')

@@ -63,9 +63,9 @@ test('a project exported and imported again keeps its chapters, lines and links'
 
   await page.getByRole('button', { name: 'Back to teams' }).click()
   await openTeam(page, 'Crew')
-  await page.getByLabel('Import project').setInputFiles(saved)
+  await page.getByLabel('Choose project file').setInputFiles(saved)
 
-  await expect(page.getByTestId('editor-left')).toContainText('Story (imported)')
+  await expect(page.getByRole('banner')).toContainText('Story (imported)')
   await expect(tab(page, 'Chapter 1')).toBeVisible()
   await expect(tab(page, 'Chapter 2')).toBeVisible()
   await readyCanvas(page, 1)
@@ -88,7 +88,7 @@ test('a file that is not a project is refused with the reason', async ({ page })
   await expect(projects).toHaveAttribute('data-loaded', 'true')
   await expect(projects.getByRole('listitem')).toHaveCount(1)
 
-  await page.getByLabel('Import project').setInputFiles({
+  await page.getByLabel('Choose project file').setInputFiles({
     name: 'other.json',
     mimeType: 'application/json',
     buffer: Buffer.from('{"format":"other"}'),
@@ -97,5 +97,5 @@ test('a file that is not a project is refused with the reason', async ({ page })
     'This file is not a KWNTO project: format must be "kwnto-project".',
   )
   await expect(projects.getByRole('listitem')).toHaveCount(1)
-  await expect(page.getByLabel('Import project')).toBeEnabled()
+  await expect(page.getByLabel('Choose project file')).toBeEnabled()
 })

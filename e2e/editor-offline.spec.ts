@@ -162,6 +162,7 @@ test('signing out with waiting changes asks first', async ({ page, context }) =>
   await goOffline(context, page)
   await rename(page, id, 'Waiting')
   await expect(syncStatus(page)).toHaveText('Offline, 1 change waiting')
+  await page.getByTestId('session-user').click()
   await page.getByRole('button', { name: 'Sign out' }).click()
   await expect(page.getByRole('alertdialog')).toContainText(
     '1 change has not been saved yet. It will be saved the next time you sign in on this browser. Sign out anyway?',

@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import { backend } from './backend'
+import { useEffect } from 'react'
 import { useSession } from './features/auth/useSession'
 import { AuthScreen } from './features/auth/AuthScreen'
 import { VerifyEmailScreen } from './features/auth/VerifyEmailScreen'
@@ -12,22 +11,9 @@ import { navigate, useRoute } from './features/shell/useRoute'
 import { useAccountTheme } from './features/shell/useAccountTheme'
 import { ShareScreen } from './features/share/ShareScreen'
 
-function Backend({ status }: { status: 'checking' | 'connected' | 'unreachable' }) {
-  return (
-    <p data-testid="backend-status" className="p-4 text-sm text-muted">
-      Backend: {status === 'checking' ? 'checking…' : status === 'connected' ? 'connected' : 'unreachable'}
-    </p>
-  )
-}
-
 function App() {
-  const [status, setStatus] = useState<'checking' | 'connected' | 'unreachable'>('checking')
   const { user, refresh } = useSession()
   const route = useRoute()
-
-  useEffect(() => {
-    backend.health().then((ok) => setStatus(ok ? 'connected' : 'unreachable'))
-  }, [])
 
   // The stored session keeps the `verified` flag it had at sign-in. Refresh it when the
   // app opens and when the window regains focus (for example after the email link),
@@ -55,7 +41,6 @@ function App() {
     return (
       <>
         <h1 className="p-4 text-lg font-semibold">KWNTO</h1>
-        <Backend status={status} />
         <AuthScreen />
       </>
     )
@@ -63,7 +48,6 @@ function App() {
 
   return (
     <AppShell>
-      <Backend status={status} />
       {route.name === 'share' ? (
         <ShareScreen token={route.token} />
       ) : route.name === 'team' ? (

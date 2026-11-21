@@ -42,7 +42,7 @@ test('the chosen theme follows the account', async ({ page, browser }) => {
   const saved = page.waitForResponse(
     (r) => r.url().includes('/user_preferences/') && r.request().method() === 'PATCH' && r.ok(),
   )
-  await page.getByRole('button', { name: 'Switch to light theme' }).click()
+  await page.getByRole('switch', { name: 'Dark theme' }).click()
   await saved
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
   await page.reload()

@@ -6,6 +6,7 @@ import { JoinByCodeForm } from './JoinByCodeForm'
 import { InvitesInbox } from './InvitesInbox'
 import { VerifyGate } from '../auth/VerifyGate'
 import { SharedWithMe } from '../share/SharedWithMe'
+import { askText } from '../shell/dialogs'
 
 export function TeamsScreen() {
   const { user } = useSession()
@@ -29,10 +30,7 @@ export function TeamsScreen() {
       <button
         className="btn-primary self-start"
         onClick={() => {
-          if (user.verified) {
-            const name = prompt('Team name:')
-            if (name) void useTeams.getState().create(name)
-          }
+          if (user.verified) void askText('Team name').then((name) => (name === null ? undefined : useTeams.getState().create(name)))
         }}
         disabled={!user.verified}
       >

@@ -8,7 +8,7 @@ import { cutSelection, trashSelection } from './selectionActions'
 import { ToolButton } from './ToolButton'
 import { useSelection } from './useSelection'
 
-/** The tool strip at the left edge of the canvas (editor cards design, goal 3): every tool names its shortcut in its tooltip. */
+/** The tools in the toolbar above the canvas (editor cards design, goal 3): every tool names its shortcut in its tooltip. */
 export function ToolStrip({ chapterId, projectName }: { chapterId: string | null; projectName: string }) {
   const [exporting, setExporting] = useState(false)
   const nodeIds = useSelection((s) => s.nodeIds)
@@ -18,7 +18,7 @@ export function ToolStrip({ chapterId, projectName }: { chapterId: string | null
   const mac = isMacPlatform(navigator.platform)
   const none = nodeIds.length === 0
   return (
-    <div data-testid="tool-strip" role="toolbar" aria-label="Tools" aria-orientation="vertical" className="flex shrink-0 flex-col gap-1 border-r border-border p-1">
+    <div data-testid="tool-strip" role="toolbar" aria-label="Tools" className="flex shrink-0 items-center gap-1">
       <ToolButton icon="add" name="Add node" hint="or double-click the canvas" disabled={addNode === null} onClick={() => addNode?.()} />
       <ToolButton icon="cut" name="Cut" hint={shortcutLabel('X', mac)} disabled={none} onClick={() => void cutSelection()} />
       <ToolButton icon="copy" name="Copy" hint={shortcutLabel('C', mac)} disabled={none} onClick={() => edits.copy(nodeIds)} />

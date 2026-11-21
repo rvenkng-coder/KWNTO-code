@@ -40,7 +40,7 @@ export function ToolButton({ icon, name, hint, onClick, disabled = false, presse
         <Icon name={icon} />
       </button>
       {shown && (
-        <span id={tipId} role="tooltip" className="panel pointer-events-none absolute left-full top-1/2 z-30 ml-1 -translate-y-1/2 whitespace-nowrap px-2 py-1 text-xs">
+        <span id={tipId} role="tooltip" className="panel pointer-events-none absolute left-1/2 top-full z-30 mt-1 -translate-x-1/2 whitespace-nowrap px-2 py-1 text-xs">
           {hint === undefined ? name : `${name} (${hint})`}
         </span>
       )}

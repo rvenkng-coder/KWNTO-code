@@ -107,7 +107,6 @@ test('text typed just before moving on is saved', async ({ page }) => {
   await page.getByRole('tab', { name: 'Chapter 2' }).click()
   await titleSent
   await Promise.all([lineSaved, titleSaved])
-  page.on('dialog', (d) => void d.accept())
   await page.reload()
   await page.getByRole('tab', { name: 'Chapter 1' }).click()
   await readyCanvas(page, 2)

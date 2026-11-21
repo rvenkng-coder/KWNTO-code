@@ -1,3 +1,4 @@
+import { askConfirm } from '../shell/dialogs'
 import { useState, type FormEvent } from 'react'
 import { navigate } from '../shell/useRoute'
 import { useProjects } from './useProjects'
@@ -35,7 +36,7 @@ export function ProjectList({ teamId, isOwner, onTrashed }: { teamId: string; is
                 type="button"
                 className="btn-danger"
                 onClick={() => {
-                  if (confirm(`Move "${p.name}" to the trash?`)) void trash(p).then((ok) => ok && onTrashed?.())
+                  void askConfirm(`Move "${p.name}" to the trash?`, 'Move to trash').then((yes) => yes && trash(p)).then((ok) => ok && onTrashed?.())
                 }}
               >
                 Move to trash

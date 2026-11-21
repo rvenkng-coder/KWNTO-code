@@ -1,3 +1,4 @@
+import { askConfirm } from '../shell/dialogs'
 import { useEffect, useState } from 'react'
 import { backend } from '../../backend'
 import type { TeamMember, TeamSettings, Team } from '../../backend/types'
@@ -107,7 +108,7 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
     try {
       const count = (await backend.projects.list(teamId)).length
       const noun = count === 1 ? 'project' : 'projects'
-      if (confirm(count === 0 ? 'Delete this team?' : `Delete this team and its ${count} ${noun}?`)) {
+      if (await askConfirm(count === 0 ? 'Delete this team?' : `Delete this team and its ${count} ${noun}?`, 'Delete team')) {
         await useTeams.getState().remove(teamId)
         navigate({ name: 'teams' })
       }

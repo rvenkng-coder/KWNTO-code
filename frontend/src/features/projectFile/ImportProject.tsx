@@ -28,8 +28,10 @@ export function ImportProject({ teamId }: { teamId: string }) {
 
   return (
     <div data-testid="import-project" className="panel flex flex-col gap-2">
-      <label htmlFor={inputId} className="font-semibold">Import project</label>
-      <input id={inputId} type="file" accept=".json,application/json" disabled={busy} onChange={(e) => void choose(e)} />
+      <h3 className="font-semibold">Import project</h3>
+      <p className="text-sm text-muted">Start a new project in this team from a project file (.json) exported from KWNTO.</p>
+      <input id={inputId} type="file" accept=".json,application/json" className="sr-only" disabled={busy} onChange={(e) => void choose(e)} />
+      <label htmlFor={inputId} className={`btn-primary self-start ${busy ? 'opacity-50' : 'cursor-pointer'}`}>Choose project file…</label>
       {busy && <p>Importing…</p>}
       {error !== null && <p role="alert">{error}</p>}
     </div>

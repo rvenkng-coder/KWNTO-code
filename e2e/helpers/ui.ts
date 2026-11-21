@@ -47,11 +47,12 @@ export async function signUpVerifyAndSignIn(
 }
 
 /**
- * Creates a team via the UI prompt() and waits for it to appear in team-list.
+ * Creates a team through the in-page dialog and waits for it to appear in team-list.
  */
 export async function createTeam(page: Page, name: string): Promise<void> {
-  page.once('dialog', (dialog) => dialog.accept(name))
   await page.getByRole('button', { name: 'Create team' }).click()
+  await page.getByRole('dialog').getByLabel('Team name').fill(name)
+  await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
   await expect(page.getByTestId('team-list')).toContainText(name, {
     timeout: 10_000,
   })

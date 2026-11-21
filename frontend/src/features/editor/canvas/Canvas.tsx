@@ -187,7 +187,7 @@ function CanvasView({ projectId, chapterId }: { projectId: string; chapterId: st
   const anyNode = useEditor((s) => liveNodes(s.content).length > 0)
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2">
-      <CanvasToolbar showNoStart={anyNode && !flow.hasStart} minimapVisible={minimap} onToggleMinimap={toggleMinimap} />
+      <CanvasToolbar chapterId={chapterId} showNoStart={anyNode && !flow.hasStart} minimapVisible={minimap} onToggleMinimap={toggleMinimap} />
       <div ref={canvasRef} data-testid="canvas" data-node-count={count} data-ready={inited && flow.synced ? 'true' : 'false'} className="kwnto-canvas relative min-h-0 flex-1" onDoubleClick={actions.createAt}>
         {link.linking && <div role="status" className="panel absolute left-1/2 top-2 z-10 -translate-x-1/2">{LINK_BANNER}</div>}
         <ReactFlow<CardNode>

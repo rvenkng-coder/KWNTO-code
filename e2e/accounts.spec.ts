@@ -123,8 +123,8 @@ test('remove and delete', async ({ page, browser }) => {
   await settled(page2)
   await expect(page2.getByTestId('team-list')).not.toContainText('Crew')
   // Owner deletes the team
-  page.once('dialog', (dialog) => dialog.accept())
   await page.getByRole('button', { name: 'Delete team' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Delete team' }).click()
   await expect(page.getByRole('button', { name: 'Create team' })).toBeVisible()
   await settled(page)
   await expect(page.getByTestId('team-list')).not.toContainText('Crew')
@@ -214,6 +214,7 @@ test('session survives reload; sign-out clears it', async ({ page }) => {
   await expect(page.getByTestId('session-user')).toContainText('Session')
   await page.reload()
   await expect(page.getByTestId('session-user')).toContainText('Session')
+  await page.getByTestId('session-user').click()
   await page.getByRole('button', { name: 'Sign out' }).click()
   await expect(page.getByRole('button', { name: 'Sign up' })).toBeVisible()
   await page.reload()

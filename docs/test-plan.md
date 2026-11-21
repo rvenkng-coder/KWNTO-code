@@ -41,7 +41,7 @@ Which test layers must cover each feature, and how far each feature is. The laye
 | Project JSON import and export | 8b | unit, e2e | not started | 7 |
 | Project activity history | 6.9 | to be decided | not started | later (no plan) |
 
-The Deployment row is `covered` for its container, rules and unit layers. The developer reported on 2026-11-21 that cases C1 to C6 of the [first walk](admin/deployment.md#the-first-walk-for-the-developer) passed on the real VM (M10, M11 and M12 included; no per-case detail was recorded). Case C7 (backup and restore on the VM) was run on 2026-11-21 and passed (see `.planning/2026-11-20-deployment/progress.md`; the VM held no media, which the container test covers). The plan waits only for the developer's review of the branch before it is `done`.
+The Deployment row is `covered` for its container, rules and unit layers. The developer reported on 2026-11-21 that the [first walk](admin/deployment.md#the-first-walk-for-the-developer) works on the real VM; cases C1, C2, C5 and C6 are recorded as passed (M10, M11 and M12 included; no per-case detail was recorded), and C3 (150 MB upload) and C4 (visitor's IP) were found not yet run and are open. Case C7 (backup and restore on the VM) was run on 2026-11-21 and passed (see `.planning/2026-11-20-deployment/progress.md`; the VM held no media, which the container test covers). The plan waits for C3, C4 and the developer's review of the branch before it is `done`.
 
 ## Manual sign-off checklist
 

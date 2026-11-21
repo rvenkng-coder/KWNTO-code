@@ -33,7 +33,7 @@ Found by the whole-branch review and the scripted walk of Task 10 (2026-11-13), 
 
 | Item | What and why |
 |---|---|
-| Rate limiter and trusted proxy | **Done in Plan 6**: Task 2 (production settings migration; `tests/container/production.test.ts` C2 to C6, including a spoofed `X-Forwarded-For`). Funnel passing the visitor's IP: case C4 of the walk reported passed by the developer on 2026-11-21 (the address itself was not recorded). |
+| Rate limiter and trusted proxy | **Done in Plan 6**: Task 2 (production settings migration; `tests/container/production.test.ts` C2 to C6, including a spoofed `X-Forwarded-For`). Funnel passing the visitor's IP: case C4 of the walk is still open (not yet run). |
 | Real mail | **Done**: Plan 6 wrote the Gmail setup ([deployment guide](../../admin/deployment.md#mail-gmail-app-password)) and the mail-link screens (Task 3, tested with real tokens), and the developer reported on 2026-11-21 that real mails arrive and work: case C5 of the walk, test-plan M10 and M11. |
 | Unknown-email timing | **Done in Plan 6**: one line in `docs/security.md` section 10 (accepted while internal; re-judge before going public). |
 
@@ -74,13 +74,13 @@ Found while building media upload, quota and strict file checks (2026-11-16 to 2
 
 ## Carried over from Plan 6
 
-Plan 6 is built and checked. The developer walked the guide's "first walk" on the real VM up to C6 and reported on 2026-11-21 that it works over the internet (no per-case detail recorded). C7 (backup and restore on the VM) was then run on 2026-11-21 and passed. The source is `.planning/2026-11-20-deployment/progress.md`.
+Plan 6 is built and checked. The developer walked the guide's "first walk" on the real VM and reported on 2026-11-21 that it works over the internet; C3 and C4 were then found not to have been run, and stay open (no per-case detail recorded for the others). C7 (backup and restore on the VM) was then run on 2026-11-21 and passed. The source is `.planning/2026-11-20-deployment/progress.md`.
 
 | Item | What and why | Plan |
 |---|---|---|
-| Upload progress or chunked upload (D13) | **C3 reported passed on 2026-11-21 (time not recorded), so nothing is added now.** The rule stays: add it if case C3 (a 150 MB MP4 through Funnel) takes over 3 minutes or fails, and re-judge the Cloudflare Tunnel fallback. Nothing is built until then. | after the walk |
-| The visitor's IP behind Funnel (D6) | Case C4 was reported passed on 2026-11-21. If a later check shows `ip` is not the visitor's public address, the per-IP limits are global: move to Cloudflare Tunnel or find another way to pass the IP. Written in security.md section 10. | after the walk |
-| The walk itself | C1 to C7 done (2026-11-21). Mark Plan 6 `done` when the developer has reviewed the branch. | developer |
+| Upload progress or chunked upload (D13) | **Case C3 is still open (not yet run).** The rule: add it if case C3 (a 150 MB MP4 through Funnel) takes over 3 minutes or fails, and re-judge the Cloudflare Tunnel fallback. Nothing is built until then. | after the walk |
+| The visitor's IP behind Funnel (D6) | Case C4 is still open (not yet run). If a check shows `ip` is not the visitor's public address, the per-IP limits are global: move to Cloudflare Tunnel or find another way to pass the IP. Written in security.md section 10. | after the walk |
+| The walk itself | C1, C2, C5, C6 and C7 done (2026-11-21); C3 and C4 open. Mark Plan 6 `done` when the developer has reviewed the branch. | developer |
 
 ## Later (developer decision, 2026-11-18)
 

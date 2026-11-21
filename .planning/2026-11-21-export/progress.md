@@ -1,0 +1,12 @@
+# Progress: export (PDF, Word, JPG, PNG)
+
+Plan: [docs/superpowers/plans/2026-11-21-export](../../docs/superpowers/plans/2026-11-21-export/README.md)
+
+| Date | Task | Built by | What happened | Review | Escaped | Next |
+|---|---|---|---|---|---|---|
+| 2026-11-21 | Plan written | - | Plan written from design 6.5 (4 tasks); waiting for the developer's review and approval of the three libraries (D1) | none | 0 | Task 1 |
+| 2026-11-21 | Task 1: decision record, dependencies, pure export rules | strong | Done by test-first: 4 unit cases (C1 to C4), 10 probes, 4 breaks caught; `check:task` PASS; `npm audit --omit=dev` 0 vulnerabilities. Full `npm test` showed 5 e2e failures in editor-add-node, editor-canvas and editor-chapters (no UI touched by this task); rerun blocked by port 5174 in use | none | 0 | Task 2 |
+| 2026-11-21 | Task 2: PDF and Word builders | strong | Done test-first: 4 unit cases (C1 to C4), 9 probes, 4 breaks caught; `check:task` PASS | none | 0 | Task 3 |
+| 2026-11-21 | Task 3: light override, stage, dialog, every format (current chapter) | strong | Done test-first: 8 e2e cases (C1 to C8, both browsers), 3 probes; `check:task` PASS. Found on the way: React Flow needs `onNodesChange` applied or nodes never count as initialized. Tooling: e2e and test PocketBase ports now move with `E2E_PORT`, `E2E_PREVIEW_PORT`, `KWNTO_TEST_PB_PORT` (defaults unchanged) so two worktrees can test at once. The 5 Task 1 e2e failures did not repeat on their own ports (contention); `accounts.spec` failed once in a full run and passed 60 of 60 alone | none | 0 | Task 4 |
+| 2026-11-21 | Task 4: whole project, large maps, docs, closeout | strong | Done: 5 e2e cases (C1 to C5, both browsers), 4 probes; the guarded node update in C5 needed the current `version` (test setup only, no product change). Docs: user guide, test plan row, roadmap row 8 `awaiting developer review`. Full `npm test` green (710 unit, 43 container, 234 rules, 254 e2e). Manual M4 to M7 (case C6) still open for the developer | none | 0 | developer review and M4 to M7 |
+| 2026-11-21 | Manual items M4 to M7 (case C6) | strong | Run at the developer's request on a seeded project in Chromium and Firefox: PDF, Word, JPG, PNG, current chapter and whole project, dark account; read through poppler, LibreOffice and an image viewer. All legible and complete; marked `done` in the test plan. Not opened in Microsoft Word or Adobe Reader. One cosmetic note: a chapter with a single node is scaled up to fill the page | none | 0 | developer review |

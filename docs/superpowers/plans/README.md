@@ -14,7 +14,7 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 | 6 | [Deployment](2026-11-20-deployment/README.md) | 1 | 2 (3 to 5 to test on) | done |
 | 6b | [Node links and video uploads off](2026-11-21-node-links/README.md) | 1 | 5, 6 | done |
 | 7 | [Trash, share links, comments, presence, JSON import and export](2026-11-20-sharing/README.md) | 2 | 3, 4 | done |
-| 8 | Export (PDF, Word, JPG, PNG) | 3 | 3 | outline |
+| 8 | [Export (PDF, Word, JPG, PNG)](2026-11-21-export/README.md) | 3 | 3 | done |
 | 9 | Player Mode | 4 | 3 | outline |
 | 10 | Path analytics | 5 | 9 | outline |
 
@@ -184,8 +184,8 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 **Carried in from the node links plan:** `node_links` (links on a node, see [that plan](2026-11-21-node-links/README.md)) must be covered too: view links show a node's links to viewers, snapshots keep them, trash hides them with their node, and JSON import and export carry them.
 **Risks:** the most security-sensitive plan after Plan 2: every rule needs tests for member, outsider, signed-out, revoked link, snapshot.
 
-### 8. Export
-PDF (`jsPDF`), Word (`docx`), JPG and PNG (`html-to-image`) of the branch map; current chapter by default, whole project optional. These libraries need decision records before use.
+### 8. Export (done; [detailed plan](2026-11-21-export/README.md))
+PDF (`jsPDF`), Word (`docx`), JPG and PNG (`html-to-image`) of the branch map; current chapter by default, whole project optional. Decision record: [0005](../../decisions/0005-export-libraries.md).
 
 ### 9. Player Mode
 Node-by-node playback with transitions, media, screenplay-style lines, restart, back, history; works for viewers through share links. An empty choice (written but never linked) shows as a dead end (editor cards plan).

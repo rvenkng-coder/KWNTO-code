@@ -1,7 +1,11 @@
 import { defineConfig, devices } from '@playwright/test'
 
 const PERF = /editor-performance\.spec\.ts/
-const PREVIEW = 'http://localhost:5175'
+// Ports can be moved (E2E_PORT, E2E_PREVIEW_PORT) so two worktrees can run e2e at once.
+const PORT = process.env.E2E_PORT ?? '5174'
+const PREVIEW_PORT = process.env.E2E_PREVIEW_PORT ?? '5175'
+const BASE = `http://localhost:${PORT}`
+const PREVIEW = `http://localhost:${PREVIEW_PORT}`
 
 export default defineConfig({
   testDir: 'e2e',
@@ -10,21 +14,21 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   timeout: 60_000,
   use: {
-    baseURL: 'http://localhost:5174',
+    baseURL: BASE,
     trace: 'on-first-retry',
   },
   webServer: [
     {
-      command: 'npm run dev -- --port 5174 --strictPort',
-      url: 'http://localhost:5174',
+      command: `npm run dev -- --port ${PORT} --strictPort`,
+      url: BASE,
       reuseExistingServer: false,
     },
     // The performance spec times the real app: a production build, served by `vite preview`
     // (which uses the dev server's /api proxy). Developer decision 2026-11-18, after the
     // dev server took 3.9 s in Firefox on a GitHub runner.
     {
-      command: 'npx vite build frontend && npx vite preview frontend --port 5175 --strictPort',
-      url: 'http://localhost:5175',
+      command: `npx vite build frontend && npx vite preview frontend --port ${PREVIEW_PORT} --strictPort`,
+      url: PREVIEW,
       reuseExistingServer: false,
       timeout: 180_000,
     },

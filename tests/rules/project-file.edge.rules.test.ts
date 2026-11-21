@@ -67,8 +67,9 @@ test('choices to trashed nodes survive an export and an import', async () => {
 })
 
 // Protects security.md 5: JSON nested millions of levels deep is refused (400 or 413) and
-// the server keeps answering afterwards.
-test('deeply nested JSON is refused and the server survives', async () => {
+// the server keeps answering afterwards. Two bodies of about 5 MB each go up, which the default
+// 5 s limit is too tight for on a slow CI runner (it timed out on the Plan 8 pull request).
+test('deeply nested JSON is refused and the server survives', { timeout: 60_000 }, async () => {
   const ctx = await memberProject()
   const token = await tokenOf(ctx.member)
   for (const body of ['['.repeat(5_000_000), '{"a":'.repeat(1_000_000)]) {

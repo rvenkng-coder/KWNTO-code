@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { ExportDialog } from '../export/ExportDialog'
 import { isMacPlatform, shortcutLabel } from '../model/shortcutLabel'
 import { useEditor } from '../store/editorStore'
 import { edits } from '../store/edits'
@@ -7,7 +9,8 @@ import { ToolButton } from './ToolButton'
 import { useSelection } from './useSelection'
 
 /** The tool strip at the left edge of the canvas (editor cards design, goal 3): every tool names its shortcut in its tooltip. */
-export function ToolStrip({ chapterId }: { chapterId: string | null }) {
+export function ToolStrip({ chapterId, projectName }: { chapterId: string | null; projectName: string }) {
+  const [exporting, setExporting] = useState(false)
   const nodeIds = useSelection((s) => s.nodeIds)
   const hasClip = useEditor((s) => s.hasClip)
   const addNode = useCanvasCommands((s) => s.addNode)
@@ -24,6 +27,8 @@ export function ToolStrip({ chapterId }: { chapterId: string | null }) {
       <ToolButton icon="trash" name="Move to trash" hint="Delete" disabled={none} onClick={() => void trashSelection()} />
       <ToolButton icon="select" name="Area select" hint="or Shift+drag" pressed={areaSelect}
         onClick={() => useCanvasCommands.getState().toggleAreaSelect()} />
+      <ToolButton icon="export" name="Export map" disabled={chapterId === null} onClick={() => setExporting(true)} />
+      {exporting && <ExportDialog projectName={projectName} chapterId={chapterId} onClose={() => setExporting(false)} />}
     </div>
   )
 }

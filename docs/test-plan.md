@@ -32,7 +32,7 @@ Which test layers must cover each feature, and how far each feature is. The laye
 | Chapters | 6.3 | unit, rules, e2e | covered | 3 |
 | Player Mode | 6.4 | unit, e2e, manual | not started | 9 |
 | Path analytics (anonymous per-choice counts) | 6.4 | unit, rules, e2e | not started | 10 |
-| Export (PDF, Word, JPG, PNG) | 6.5 | unit, manual | not started | 8 |
+| Export (PDF, Word, JPG, PNG): `exportPlan.test.ts`, `documents.test.ts`, `e2e/editor-export.spec.ts`, `e2e/editor-export-project.spec.ts`; manual M4 to M7 `done` 2026-11-21 | 6.5 | unit, e2e, manual | covered | 8 |
 | Look and feel (light and dark, theme toggle, layout) | 6.6 | e2e, manual M1 and M2 (signed 2026-11-18) | covered | 3 |
 | Offline queue, sync and conflicts: `e2e/editor-offline.spec.ts`, `e2e/editor-conflicts.spec.ts` | 6.7 | unit, rules, e2e | covered | 4 |
 | Deployment (proxy, headers, rate limits, backups and restore, storage warning) | 7b, 7c | container, rules, unit, manual | covered | 6 |
@@ -54,10 +54,10 @@ Design sections 8 and 8b make this the developer's sign-off sheet. A person runs
 | M1 | Light mode looks as designed (white panels, soft shadows, dot grid, one blue accent) | 6.6, 8b | done 2026-11-18 |
 | M2 | Dark mode looks as designed (flat solid panels, thin borders, dot grid, one blue accent) | 6.6, 8b | done 2026-11-18 |
 | M3 | Player Mode slide and fade transitions | 6.4, 8b | open |
-| M4 | PDF export: map legible, current chapter and whole project | 6.5, 8b | open |
-| M5 | Word export: map legible, current chapter and whole project | 6.5, 8b | open |
-| M6 | JPG export: map legible | 6.5, 8b | open |
-| M7 | PNG export: map legible | 6.5, 8b | open |
+| M4 | PDF export: map legible, current chapter and whole project (run by Claude Code on a seeded project (three nodes with lines, cues, choices and a cross-chapter link, a second chapter, a dark-theme account) in Chromium and Firefox; files rendered with poppler `pdftoppm` and read: titles, three-line previews, cues, choices, the `→ The Harbour: The Dock` tag, labelled connections and the page headings are legible on a white page; whole project gave 2 pages. Not opened in Adobe Reader) | 6.5, 8b | done 2026-11-21 |
+| M5 | Word export: map legible, current chapter and whole project (run by Claude Code on a seeded project (three nodes with lines, cues, choices and a cross-chapter link, a second chapter, a dark-theme account) in Chromium and Firefox; opened by converting with LibreOffice and reading the pages: landscape, a heading and the map per chapter, 2 pages for the whole project. Not opened in Microsoft Word) | 6.5, 8b | done 2026-11-21 |
+| M6 | JPG export: map legible (run by Claude Code on a seeded project (three nodes with lines, cues, choices and a cross-chapter link, a second chapter, a dark-theme account) in Chromium and Firefox; the 1368 × 922 JPG was read in an image viewer: complete and legible, white background) | 6.5, 8b | done 2026-11-21 |
+| M7 | PNG export: map legible (run by Claude Code on a seeded project (three nodes with lines, cues, choices and a cross-chapter link, a second chapter, a dark-theme account) in Chromium and Firefox; the 1368 × 922 PNG was read in an image viewer: complete and legible, white background) | 6.5, 8b | done 2026-11-21 |
 | M8 | Every feature in design section 6 tried by hand in Firefox | 8 | open |
 | M9 | Every feature in design section 6 tried by hand in Chrome | 8 | open |
 | M10 | A real verification email arrives and its link verifies the account (Plan 6 wrote the guide and the screens; reported passed by the developer on 2026-11-21, walk case C5) | Plan 2 | done 2026-11-21 |

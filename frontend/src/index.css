@@ -4,7 +4,8 @@
    utilities (bg-panel, text-muted, ...) and never write a colour of their own.
    Light: white panels with a soft shadow. Dark: flat solid panels, thin borders,
    no shadow. No blur and no transparency on panels. */
-:root {
+:root,
+[data-theme="light"] {
   --color-bg: #f3f4f6;
   --color-panel: #ffffff;
   --color-border: #d1d5db;

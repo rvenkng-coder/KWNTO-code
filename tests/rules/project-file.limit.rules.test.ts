@@ -29,6 +29,7 @@ function post(token: string, teamId: string): Promise<Response> {
   })
 }
 
+// Protects: M2, the limit of 10 imports an hour per person (429 on the 11th, nothing made, others unaffected).
 test('the eleventh import in an hour is refused with 429', { timeout: 120_000 }, async () => {
   const ctx = await memberProject()
   const token = await tokenOf(ctx.member)

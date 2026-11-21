@@ -34,5 +34,6 @@ function useAccountTheme(): Theme {
       return () => listeners.delete(onChange)
     },
     () => current,
+    () => current,
   )
 }

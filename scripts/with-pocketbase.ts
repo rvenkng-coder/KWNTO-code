@@ -1,7 +1,8 @@
 import { spawnSync } from 'node:child_process'
 
 const COMPOSE_FILE = 'compose.test.yaml'
-const PB_URL = process.env.KWNTO_PB_URL ?? 'http://127.0.0.1:8091'
+// KWNTO_TEST_PB_PORT moves the test PocketBase so two worktrees can run at once.
+const PB_URL = process.env.KWNTO_PB_URL ?? `http://127.0.0.1:${process.env.KWNTO_TEST_PB_PORT ?? '8091'}`
 
 const command = process.argv.slice(2)
 if (command.length === 0) {

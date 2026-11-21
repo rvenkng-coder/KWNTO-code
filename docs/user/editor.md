@@ -112,7 +112,7 @@ Select one node and the panel on the right shows it:
   - **Backspace** in a line whose character and text are both empty deletes it and moves the cursor to the line above.
   - **Move up** and **Move down** change the order; **Delete line** removes one.
 - **Cues:** notes for sound, light or anything else, each with a type (`audio`, `lighting`, `other`) and a note. **Add cue**, **Move up**, **Move down** and **Delete cue** work as for lines.
-- **Media:** attach audio, video and images to a node. Audio and video play in place with player controls, and images show as thumbnails (see [Media](#media) below).
+- **Media:** attach audio and images to a node. Audio plays in place with player controls, and images show as thumbnails (see [Media](#media) below). Video files are not accepted for now; a way to link a video comes next.
 
 - **Choices:** one block for each choice of the node, in the order the card shows them. Each has its **Choice text**, a status (`Linked → <target>` or `Not linked`), **Link** or **Re-link**, **Unlink** (when linked) and **Delete**. **Add choice** adds an empty one. **Link to another chapter** (below) adds a choice to a node elsewhere.
 
@@ -161,11 +161,11 @@ If the team's owner removes you from the team, the project stays on your screen 
 
 ## Media
 
-You can attach audio, video and images to a node. They appear in the properties panel under **Media**:
+You can attach audio and images to a node. They appear in the properties panel under **Media**:
 
-- **Allowed types:** audio (WAV, MP3), video (MOV, MP4) and images (JPEG, PNG).
+- **Allowed types:** audio (WAV, MP3) and images (JPEG, PNG). Video files are not accepted for now; add a link to the video instead.
 - **Add media:** choose **Add media** to upload a file. The server checks the file's real type (by its first bytes, not just its extension), size limits and your quota.
-- **In-place playback:** audio and video play right in the panel with controls, and images show thumbnail previews.
+- **In-place playback:** audio plays right in the panel with controls, and images show thumbnail previews.
 - **Storage belongs to the team owner.** Everything uploaded in a team's projects counts against the owner's quota, whoever uploads it. The meter shows the owner's storage (e.g. `Team storage: 1 KB of 2.0 GB used`), the same for every member. Trashed nodes still count until they are purged.
 - **Remove media:** any member can choose **Remove** on an item. The panel asks first (`Remove <title> from this node? The team lead can bring it back.`). The file disappears for everyone, but it still uses the owner's storage; members cannot delete it.
 - **Restore or delete for good (team owner only):** the owner sees the removed files under **Removed by the team**, and can choose **Restore** or **Delete for good** (asks first, cannot be undone). Only deleting for good frees the space.

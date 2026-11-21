@@ -28,7 +28,7 @@ Everything an admin can tune lives in settings tables, edited in the PocketBase 
 | `max_video_mb` | `200` | Largest video file, in MB. | Plan 5 (media upload) |
 | `max_audio_mb` | `50` | Largest audio file, in MB. | Plan 5 (media upload) |
 | `max_image_mb` | `50` | Largest image file, in MB. | Plan 5 (media upload) |
-| `allowed_types` | `["wav","mp3","mov","mp4","jpeg","png"]` | File types that can be uploaded. | Plan 5 (media upload) |
+| `allowed_types` | `["wav","mp3","jpeg","png"]` | File types that can be uploaded. Video is off by decision (plan node-links): large uploads did not finish through Funnel, and writers link a video instead. Add `mov` and `mp4` to switch it back on. | Plan 5 (media upload), node-links |
 
 ## `system_behavior`
 

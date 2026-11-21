@@ -25,7 +25,7 @@ export function checkLinkUrl(raw: string): LinkCheck {
 // The host (and port) of a stored address, lower-cased, to show beside a link.
 export function linkHost(url: string): string {
   const match = WEB_ADDRESS.exec(url)
-  return match ? match[2].toLowerCase() : ''
+  return match?.[2]?.toLowerCase() ?? ''
 }
 
 // What a link is called in the list: its title, or its host when it has none.

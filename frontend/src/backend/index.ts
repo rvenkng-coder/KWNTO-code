@@ -3,6 +3,7 @@ import { createBackend, type Backend } from './client'
 export { createBackend, type Backend }
 export type * from './content-types'
 export type * from './media-types'
+export type * from './link-types'
 export { MAX_SAVE_TRIES, TOO_BUSY } from './guarded'
 export { EDIT_CONFLICT, EditConflict } from './errors'
 
@@ -32,6 +33,10 @@ export const backend: Backend = {
   get media() {
     if (!_backend) _backend = createBackend()
     return _backend.media
+  },
+  get links() {
+    if (!_backend) _backend = createBackend()
+    return _backend.links
   },
   async health() {
     if (!_backend) _backend = createBackend()

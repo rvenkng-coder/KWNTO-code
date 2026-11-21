@@ -35,9 +35,32 @@ test('file names are cleaned', () => {
   expect(exportFileName('Tab\tand\nline', null, 'png')).toBe('Tab and line.png')
   const long = exportFileName('é🎭'.repeat(150), null, 'png')
   const name = long.slice(0, -'.png'.length)
-  expect(Array.from(name)).toHaveLength(100)
+  // A part is cut at 100 characters or 120 UTF-8 bytes, whichever comes first, on a whole character.
+  expect(new TextEncoder().encode(name).length).toBeLessThanOrEqual(120)
   expect(name.endsWith('🎭') || name.endsWith('é')).toBe(true)
   expect(name).not.toMatch(/[\ud800-\udbff](?![\udc00-\udfff])/)
+  expect(Array.from(exportFileName('x'.repeat(300), null, 'png'))).toHaveLength(104)
+})
+
+// Protects: a name never ends or starts with a space or dot (browsers and Windows rewrite those), even after the cut, and a reserved Windows device name is not used bare.
+test('file names have no stray edges and no reserved names', () => {
+  expect(exportFileName('Act 1 .', null, 'pdf')).toBe('Act 1.pdf')
+  expect(exportFileName('Story', ' . x .. ', 'png')).toBe('Story - x.png')
+  expect(exportFileName('a'.repeat(99) + ' b', null, 'png')).toBe(`${'a'.repeat(99)}.png`)
+  expect(exportFileName('CON', null, 'pdf')).toBe('_CON.pdf')
+  expect(exportFileName('nul', null, 'docx')).toBe('_nul.docx')
+  expect(exportFileName('Console', null, 'pdf')).toBe('Console.pdf')
+})
+
+// Protects: a whole-project export tells how many empty chapters it left out, so a short file is not a surprise.
+test('the export counts the chapters it skipped', () => {
+  const s = fromContent(content({
+    chapters: [chapter('A', { position: 1 }), chapter('B', { position: 2 }), chapter('C', { position: 3 }), chapter('D', { position: 4, deleted: true })],
+    nodes: [node('a1', { chapterId: 'A' })],
+  }))
+  const skipped = (r: ReturnType<typeof exportChapters>) => (r.ok ? r.skipped : -1)
+  expect(skipped(exportChapters(s, 'project', 'A'))).toBe(2)
+  expect(skipped(exportChapters(s, 'chapter', 'A'))).toBe(0)
 })
 
 // Protects: a huge map is scaled so the image stays inside the browser canvas limits (a bigger canvas comes out blank).

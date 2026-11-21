@@ -41,6 +41,9 @@ test('a whole-project PDF has a page per chapter with nodes', async ({ page }) =
   expect(text).toContain('Story - Chapter 1')
   expect(text).toContain('Story - Chapter 3')
   expect(text).not.toContain('Story - Chapter 2')
+  await expect(exportDialog(page).getByRole('status')).toHaveText('1 empty chapter was skipped.')
+  await exportDialog(page).getByRole('button', { name: 'Close' }).click()
+  await expect(exportDialog(page)).toBeHidden()
 })
 
 // Protects: a whole-project Word file holds a heading and a map for each chapter with nodes.

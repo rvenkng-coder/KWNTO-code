@@ -29,7 +29,7 @@ const EDGE_PAINT = {
 
 const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
 
-async function capture(root: HTMLElement, chapterId: string, kind: StageKind, bounds: { x: number; y: number; width: number; height: number }): Promise<MapImage> {
+async function capture(root: HTMLElement, title: string, kind: StageKind, bounds: { x: number; y: number; width: number; height: number }): Promise<MapImage> {
   await document.fonts.ready
   await nextFrame()
   await nextFrame()
@@ -48,11 +48,10 @@ async function capture(root: HTMLElement, chapterId: string, kind: StageKind, bo
     style: { width: `${width}px`, height: `${height}px`, transform: `translate(${-x}px, ${-y}px) scale(1)` },
   }
   const dataUrl = kind === 'jpeg' ? await toJpeg(viewport, { ...options, quality: 0.92 }) : await toPng(viewport, options)
-  const title = editorStore.getState().content.chapters[chapterId]?.title ?? ''
   return { chapterTitle: title, dataUrl, width: Math.round(width * ratio), height: Math.round(height * ratio), small: isSmallText(ratio) }
 }
 
-function Capture({ root, chapterId, kind, onImage, onError }: StageProps & { root: React.RefObject<HTMLDivElement | null> }) {
+function Capture({ root, title, kind, onImage, onError }: Omit<StageProps, 'chapterId'> & { root: React.RefObject<HTMLDivElement | null>; title: string }) {
   const flow = useReactFlow()
   const ready = useNodesInitialized()
   const started = useRef(false)
@@ -60,8 +59,8 @@ function Capture({ root, chapterId, kind, onImage, onError }: StageProps & { roo
     const element = root.current
     if (!ready || started.current || element === null) return
     started.current = true
-    capture(element, chapterId, kind, getNodesBounds(flow.getNodes())).then(onImage, onError)
-  }, [ready, root, flow, chapterId, kind, onImage, onError])
+    capture(element, title, kind, getNodesBounds(flow.getNodes())).then(onImage, onError)
+  }, [ready, root, flow, title, kind, onImage, onError])
   return null
 }
 
@@ -73,9 +72,10 @@ export function ExportStage(props: StageProps) {
   const root = useRef<HTMLDivElement | null>(null)
   // A snapshot of the chapter taken when the stage opens, so an edit during the export cannot change the picture.
   // React Flow reports the measured sizes through onNodesChange; without applying them the nodes never count as initialized.
-  const [{ edges, initial }] = useState(() => {
+  const [{ edges, initial, title }] = useState(() => {
     const content = editorStore.getState().content
     return {
+      title: content.chapters[props.chapterId]?.title ?? '',
       initial: toFlowNodes(content, props.chapterId, nodeMarkers(content)),
       edges: toFlowEdges(content, props.chapterId).map((e) => ({ ...e, ...EDGE_PAINT })),
     }
@@ -89,7 +89,7 @@ export function ExportStage(props: StageProps) {
           <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} onNodesChange={(c) => setNodes((n) => applyNodeChanges(c, n))}
             nodesDraggable={false} nodesConnectable={false} elementsSelectable={false}
             panOnDrag={false} zoomOnScroll={false} zoomOnPinch={false} zoomOnDoubleClick={false} preventScrolling={false}>
-            <Capture root={root} {...props} />
+            <Capture root={root} title={title} kind={props.kind} onImage={props.onImage} onError={props.onError} />
           </ReactFlow>
         </ReactFlowProvider>
       </ThemeOverride.Provider>

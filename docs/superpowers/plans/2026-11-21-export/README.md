@@ -31,6 +31,7 @@
   - note shown for JPG and PNG, with `Whole project` disabled: `Images export the current chapter only.`
   - buttons `Export` and `Cancel` (and `Close` after the large-map message); status while working `Exporting…`
   - errors: `This chapter has no nodes to export.`, `This project has no nodes to export.`, `The export failed. Try again, or export one chapter at a time.`
+  - after a whole-project run that left out empty chapters: `1 empty chapter was skipped.` or `N empty chapters were skipped.` (shown with the next note, then a `Close` button)
   - after a run where any map was scaled below half size: `Some maps were large, so their labels may be small in the export.`
   - document heading per chapter: `<project name> - <chapter title>`
 - **File names:** `<project> - <chapter>.<ext>` for one chapter, `<project>.<ext>` for the whole project; extensions `pdf`, `docx`, `jpg`, `png` (Task 1 pins the cleaning rule).

@@ -137,3 +137,57 @@ test('a connection and its label are drawn in the export', async ({ page }) => {
   expect(edge).toBeGreaterThan(300)
   expect(black).toBe(0)
 })
+
+// Protects: the dialog is modal for the keyboard too: Tab stays inside it and the editor's shortcuts do nothing behind it.
+test('the dialog keeps the keyboard inside and shields the editor shortcuts', async ({ page }) => {
+  const [a] = await storyWithTwoNodes(page)
+  await page.locator(`[data-testid="node-card"][data-node-id="${a}"]`).click()
+  const writes: string[] = []
+  page.on('request', (r) => {
+    if (r.method() !== 'GET' && r.url().includes('/api/')) writes.push(r.method())
+  })
+  await exportButton(page).click()
+  const dialog = exportDialog(page)
+  for (let i = 0; i < 12; i++) {
+    await page.keyboard.press(i % 2 === 0 ? 'Tab' : 'Shift+Tab')
+    expect(await dialog.evaluate((el) => el.contains(document.activeElement))).toBe(true)
+  }
+  for (let i = 0; i < 12; i++) await page.keyboard.press('Tab')
+  expect(await dialog.evaluate((el) => el.contains(document.activeElement))).toBe(true)
+  await page.keyboard.press('Delete')
+  await page.keyboard.press('Control+x')
+  await page.getByRole('button', { name: 'Cancel' }).click()
+  await expect(cards(page)).toHaveCount(2)
+  expect(writes).toEqual([])
+})
+
+// Protects: a PDF whose chapter name the built-in font cannot draw still shows it (drawn as a picture); a Latin name stays text.
+test('a PDF heading in another script is drawn as a picture', async ({ page }) => {
+  await ownerWithProject(page, 'Story')
+  await readyCanvas(page, 0)
+  await addNodeAt(page, 40, 60)
+  const images = (text: string) => text.match(/\/Subtype \/Image/g)?.length ?? 0
+  const latin = (await downloadBytes(await exportMap(page, 'PDF', 'Current chapter'))).toString('latin1')
+  expect(latin).toContain('(Story - Chapter 1)')
+  await page.getByRole('tab', { name: 'Chapter 1' }).dblclick()
+  const renamed = waitForSave(page, 'chapters', 'PATCH')
+  await page.getByRole('textbox', { name: 'Chapter title' }).fill('第一章')
+  await page.getByRole('textbox', { name: 'Chapter title' }).press('Enter')
+  await renamed
+  const other = (await downloadBytes(await exportMap(page, 'PDF', 'Current chapter'))).toString('latin1')
+  expect(other).not.toContain('(Story - ')
+  expect(images(other)).toBeGreaterThan(images(latin))
+})
+
+// Protects: an export whose picture never arrives ends with a message after 30 s and the dialog can be used again, not "Exporting…" for ever.
+test('an export that never finishes fails with a message', async ({ page }) => {
+  await storyWithTwoNodes(page)
+  await page.route(/html-to-image/, () => undefined)
+  await page.clock.install()
+  await openExport(page, 'PNG', 'Current chapter')
+  await exportDialog(page).getByRole('button', { name: 'Export', exact: true }).click()
+  await expect(exportDialog(page).getByRole('status')).toHaveText('Exporting…')
+  await page.clock.fastForward(31_000)
+  await expect(exportDialog(page).getByRole('alert')).toHaveText('The export failed. Try again, or export one chapter at a time.')
+  await expect(exportDialog(page).getByRole('button', { name: 'Export', exact: true })).toBeEnabled()
+})

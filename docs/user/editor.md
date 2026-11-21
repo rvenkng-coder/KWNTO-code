@@ -189,7 +189,7 @@ Choose **Export map** in the tool strip to save the branching diagram as a file:
 - **What to export:** **Current chapter** (the default) or **Whole project**. The whole project is offered for PDF and Word only; images export the current chapter only.
 - **What is in it:** the node cards (title, colour, Start, End and Unreachable marks, the first lines, cues, choices and the tags of links into other chapters) and the connections between them, as on the canvas. The script itself is not included.
 - **Always light:** the export is on a white background in the light look, even if your account uses the dark theme.
-- **Empty chapters are skipped.** A chapter or project with no nodes is refused with a message and nothing is downloaded. Trashed nodes and chapters never appear.
+- **Empty chapters are skipped.** A whole-project export leaves out chapters with no nodes and says how many (`1 empty chapter was skipped.`). A chapter or project with no nodes at all is refused with a message and nothing is downloaded. Trashed nodes and chapters never appear.
 - **Large maps:** a very large map is scaled to fit one image. If it had to be made small, the dialog says `Some maps were large, so their labels may be small in the export.`, and you can export one chapter at a time instead.
 - **Offline:** export uses what is already in your browser, so it works offline. It changes nothing in the project.
 

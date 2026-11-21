@@ -46,3 +46,10 @@ test('an empty list is refused', async () => {
   await expect(buildPdf('Story', [])).rejects.toThrow('Nothing to export.')
   await expect(buildDocx('Story', [])).rejects.toThrow('Nothing to export.')
 })
+
+// Protects: a chapter with no title gets the same "Untitled" in its page heading as in its file name.
+test('an untitled chapter is headed Untitled in both formats', async () => {
+  const untitled = [map('  ', 800, 600)]
+  expect(new TextDecoder('latin1').decode(await bytesOf(await buildPdf('Story', untitled)))).toContain('(Story - Untitled)')
+  expect(zipEntryText(await bytesOf(await buildDocx('Story', untitled)), 'word/document.xml')).toContain('Story - Untitled')
+})

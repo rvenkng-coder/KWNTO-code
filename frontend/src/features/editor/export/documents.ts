@@ -19,7 +19,32 @@ function pageOrientation(map: MapImage): 'landscape' | 'portrait' {
   return orientation
 }
 
-const heading = (projectName: string, map: MapImage) => `${projectName} - ${map.chapterTitle}`
+// The same fallbacks as the file name (exportFileName), so a page and its file agree.
+const heading = (projectName: string, map: MapImage) =>
+  `${projectName.trim() === '' ? 'KWNTO map' : projectName} - ${map.chapterTitle.trim() === '' ? 'Untitled' : map.chapterTitle}`
+
+const isLatin1 = (text: string): boolean => Array.from(text).every((ch) => (ch.codePointAt(0) ?? 0) <= 0xff)
+const HEADING_SCALE = 3
+
+/**
+ * jsPDF's built-in font draws Latin-1 only, so a heading in another script (CJK, Cyrillic, emoji) is
+ * drawn into a picture with the browser's own fonts. Null outside a browser, where the text is used.
+ */
+function headingPicture(text: string): { dataUrl: string; width: number; height: number } | null {
+  if (typeof document === 'undefined') return null
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+  if (ctx === null) return null
+  const font = `${PDF_HEADING * HEADING_SCALE}px sans-serif`
+  ctx.font = font
+  canvas.width = Math.max(1, Math.ceil(ctx.measureText(text).width))
+  canvas.height = Math.ceil(PDF_HEADING * HEADING_SCALE * 1.4)
+  ctx.font = font
+  ctx.fillStyle = '#000000'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(text, 0, canvas.height / 2)
+  return { dataUrl: canvas.toDataURL('image/png'), width: canvas.width / HEADING_SCALE, height: canvas.height / HEADING_SCALE }
+}
 
 export async function buildPdf(projectName: string, maps: MapImage[]): Promise<Blob> {
   const first = maps[0]
@@ -35,7 +60,14 @@ export async function buildPdf(projectName: string, maps: MapImage[]): Promise<B
     const width = doc.internal.pageSize.getWidth()
     const height = doc.internal.pageSize.getHeight()
     doc.setFontSize(PDF_HEADING)
-    doc.text(heading(projectName, map), PDF_MARGIN, PDF_MARGIN + PDF_HEADING)
+    const text = heading(projectName, map)
+    const picture = isLatin1(text) ? null : headingPicture(text)
+    if (picture === null) {
+      doc.text(text, PDF_MARGIN, PDF_MARGIN + PDF_HEADING)
+    } else {
+      const size = fitInto(picture.width, picture.height, { width: width - 2 * PDF_MARGIN, height: picture.height })
+      doc.addImage(picture.dataUrl, 'PNG', PDF_MARGIN, PDF_MARGIN, size.width, size.height)
+    }
     const top = PDF_MARGIN + PDF_HEADING + HEADING_GAP
     const size = fitInto(map.width, map.height, { width: width - 2 * PDF_MARGIN, height: height - PDF_MARGIN - top })
     doc.addImage(map.dataUrl, 'PNG', PDF_MARGIN, top, size.width, size.height)

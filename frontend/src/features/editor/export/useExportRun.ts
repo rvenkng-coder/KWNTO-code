@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Chapter } from '../../../backend'
 import { editorStore } from '../store/editorStore'
 import { buildDocx, buildPdf, dataUrlBytes } from './documents'
@@ -9,8 +9,15 @@ import type { StageKind } from './ExportStage'
 export const FAILED = 'The export failed. Try again, or export one chapter at a time.'
 export const SMALL = 'Some maps were large, so their labels may be small in the export.'
 
-export type RunStatus = 'idle' | 'working' | 'error' | 'small'
-interface Run { format: ExportFormat; scope: ExportScope; chapters: Chapter[]; images: MapImage[] }
+/** How long one chapter's picture may take before the run is given up (a stuck stage must not trap the dialog). */
+export const STAGE_TIMEOUT_MS = 30_000
+
+export type RunStatus = 'idle' | 'working' | 'error' | 'note'
+interface Run { format: ExportFormat; scope: ExportScope; chapters: Chapter[]; skipped: number; images: MapImage[] }
+
+function skippedNote(count: number): string {
+  return `${count} empty ${count === 1 ? 'chapter was' : 'chapters were'} skipped.`
+}
 
 async function buildFile(projectName: string, format: ExportFormat, images: MapImage[]): Promise<Blob> {
   const first = images[0]
@@ -39,7 +46,7 @@ export function useExportRun(projectName: string, activeChapterId: string | null
     if (!plan.ok) return fail(plan.message)
     const first = plan.chapters[0]
     if (first === undefined) return fail(FAILED)
-    run.current = { format, scope, chapters: plan.chapters, images: [] }
+    run.current = { format, scope, chapters: plan.chapters, skipped: plan.skipped, images: [] }
     setStatus('working')
     setMessage(null)
     setStage({ chapterId: first.id, kind: format === 'jpg' ? 'jpeg' : 'png' })
@@ -51,9 +58,10 @@ export function useExportRun(projectName: string, activeChapterId: string | null
     downloadBlob(name, await buildFile(projectName, r.format, r.images))
     run.current = null
     setStage(null)
-    if (r.images.some((i) => i.small)) {
-      setStatus('small')
-      setMessage(SMALL)
+    const notes = [r.skipped > 0 ? skippedNote(r.skipped) : null, r.images.some((i) => i.small) ? SMALL : null].filter((n) => n !== null)
+    if (notes.length > 0) {
+      setStatus('note')
+      setMessage(notes.join(' '))
     } else setStatus('idle')
   }, [projectName])
 
@@ -67,5 +75,10 @@ export function useExportRun(projectName: string, activeChapterId: string | null
   }, [finish, fail])
 
   const onError = useCallback(() => fail(FAILED), [fail])
+  useEffect(() => {
+    if (stage === null) return
+    const timer = setTimeout(() => fail(FAILED), STAGE_TIMEOUT_MS)
+    return () => clearTimeout(timer)
+  }, [stage, fail])
   return { status, message, stage, start, onImage, onError }
 }

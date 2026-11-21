@@ -5,7 +5,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { adminRecord } from './helpers/admin'
 import { addNodeAt, card, cards, ownerWithProject, readyCanvas } from './helpers/editor'
-import { goOffline, goOnline, syncStatus } from './helpers/offline'
+import { syncStatus } from './helpers/offline'
 import { rename } from './helpers/pair'
 
 const mod = process.platform === 'darwin' ? 'Meta' : 'Control'
@@ -75,20 +75,36 @@ test('a waiting edit is sent as soon as the connection is back', async ({ page }
 // Protects D15: edits made offline are separate undo steps once they are saved. A paste is a group;
 // it closed only when the server answered, so everything done after it offline fell into it and one
 // Ctrl+Z undid both. Now the group closes when its records are stored: one Ctrl+Z takes back only
-// the rename, and the pasted node stays.
-test('edits made offline undo one step at a time after reconnecting', async ({ page, context }) => {
+// the rename, and the pasted node stays (the check waits for the whole undo, because it undoes the
+// rename first and would trash the pasted node a moment later). The connection is cut the way the other tests here cut it
+// (requests refused, stream cut) and the test waits for `Offline` before it pastes, so the engine
+// knows it is offline when the paste starts: that is the only case the fix is about, and without it
+// the rename joins the paste's open group and this test fails.
+test('edits made offline undo one step at a time after reconnecting', async ({ page }) => {
   const id = await projectWithNode(page)
   await card(page, id).click()
   await page.keyboard.press(`${mod}+c`)
-  await goOffline(context, page)
+  await page.route('**/api/collections/**', (route) => route.abort())
+  await cutStream(page)
+  await expect(syncStatus(page)).toContainText('Offline', { timeout: 5000 })
+
   await page.keyboard.press(`${mod}+v`)
   await expect(cards(page)).toHaveCount(2)
   await rename(page, id, 'Offline title')
-  await goOnline(context, page)
-  await expect(syncStatus(page)).toHaveCount(0)
+  await expect(syncStatus(page)).toContainText('waiting')
+
+  await page.unroute('**/api/collections/**')
+  await page.unroute(STREAM)
+  await expect(syncStatus(page)).toHaveCount(0, { timeout: 10000 })
   await expect.poll(async () => (await adminRecord('nodes', id)).title).toBe('Offline title')
 
   await page.keyboard.press(`${mod}+z`)
   await expect(card(page, id)).not.toContainText('Offline title')
+  // An undo applies the step's changes one after another: the rename first, then (if the paste is in
+  // the same step) the pasted node goes to the trash. The count is 2 right after the rename is undone
+  // in both cases, so wait for the whole undo to be sent, then look at the screen and at the server.
+  await expect.poll(async () => (await adminRecord('nodes', id)).title).not.toBe('Offline title')
+  await expect(syncStatus(page)).toHaveCount(0)
+  await page.waitForTimeout(1500)
   await expect(cards(page)).toHaveCount(2)
 })

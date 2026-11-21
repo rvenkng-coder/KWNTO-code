@@ -64,6 +64,19 @@ Found while building the offline sync plan (2026-11-18 to 2026-11-20) and left o
 | Confirm the reconnect behind the public Funnel address | Checked through `tailscale serve` (tailnet only) on 2026-11-20, see decision 0002; repeat the two checks once behind the public address (test-plan M12). | 6 |
 | Hand walk of the Flow | The developer walked the app by hand (2026-11-19 and 2026-11-20), not following the written Flow, and found two bugs (stopped backend refused edits; a line added offline vanished after reconnecting), both fixed. The written walk (every conflict kind, both browsers) was not done as such; the e2e specs `editor-offline` and `editor-conflicts` cover those cases. Repeat with M8 and M9. | developer, with M8 and M9 |
 
+## Carried over from Plan 7
+
+Found while building trash, share links, comments, presence and project files (2026-11-20 to 2026-11-21). The source is `.planning/2026-11-20-sharing/progress.md` (the whole-branch review rows). Everything below is accepted and documented in security.md section 10 or the developer guides; none loses data.
+
+| Item | What and why | Plan |
+|---|---|---|
+| Offline media upload queue | Uploads are disabled while the editor is offline. See "Later" below for the decisions a queue needs. | later (no plan) |
+| Import sends no live create event | The import runs in one transaction, so teammates see the new project after a reload. | polish |
+| Live view poll cost | Every tab on a live view link re-reads the whole project every 30 s. Cache the built file per project version, or rely on PocketBase's rate limiter. | 6 |
+| Presence phantom row | A heartbeat in flight when the project closes can leave a row for about 30 s. Make `set` and `clear` one request each. | polish |
+| Plan 4's smaller review findings | Page-close warning while an edit is still being stored; a saved echo repainting over a later waiting edit; no `navigator.locks`; a non-PocketBase 200 counted as saved; focus in the conflict dialog; IndexedDB unavailable refuses edits; quadratic outbox reads; a fast account switch (D15). | polish |
+| Media panel error when going offline | Fixed in Plan 7 (the section follows the editor's connection); the same pattern may exist in other panels that load on their own. | polish |
+
 ## Carried over from Plan 5
 
 Found while building media upload, quota and strict file checks (2026-11-16 to 2026-11-19). The source is `.planning/2026-11-16-media-upload/progress.md`.

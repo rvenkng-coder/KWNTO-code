@@ -35,9 +35,10 @@ Which test layers must cover each feature, and how far each feature is. The laye
 | Export (PDF, Word, JPG, PNG) | 6.5 | unit, manual | not started | 8 |
 | Look and feel (light and dark, theme toggle, layout) | 6.6 | e2e, manual M1 and M2 (signed 2026-11-18) | covered | 3 |
 | Offline queue, sync and conflicts: `e2e/editor-offline.spec.ts`, `e2e/editor-conflicts.spec.ts` | 6.7 | unit, rules, e2e | covered | 4 |
-| Trash and recovery (30 days, restore, purge) | 6.8 | unit, rules, e2e | not started | 7 |
-| Share links (view, comment, edit; live, snapshot; revoke) | 5, 6.9 | rules, e2e | not started | 7 |
-| Project JSON import and export | 8b | unit, e2e | not started | 7 |
+| Trash and recovery (30 days, restore, purge): `tests/rules/trash.rules.test.ts`, `tests/rules/share-lows.rules.test.ts`, `tests/hooks/trash.unit.test.ts`, `tests/hooks/purge.unit.test.ts`, `e2e/trash.spec.ts` | 6.8 | unit, rules, e2e | covered | 7 |
+| Share links (view, comment, edit; live, snapshot; revoke): `tests/rules/share_links.rules.test.ts`, `tests/rules/link_grants.rules.test.ts`, `tests/rules/share-routes.rules.test.ts`, `tests/rules/share-access.rules.test.ts`, `tests/rules/share-trash.rules.test.ts`, `e2e/share-links.spec.ts`, `e2e/share-viewer-xss.spec.ts` | 5, 6.9 | unit, rules, e2e | covered | 7 |
+| Project JSON import and export: `tests/hooks/project-file.unit.test.ts`, `tests/rules/project-file.rules.test.ts`, `tests/rules/project-file.edge.rules.test.ts`, `tests/rules/project-file.limit.rules.test.ts`, `e2e/project-file.spec.ts` | 8b | unit, rules, e2e | covered | 7 |
+| Comments and presence: `tests/rules/comments.rules.test.ts`, `tests/rules/presence.rules.test.ts`, `frontend/src/features/comments/commentList.test.ts`, `frontend/src/features/presence/presenceModel.test.ts`, `e2e/comments.spec.ts`, `e2e/presence.spec.ts` | 5 | rules, unit, e2e | covered | 7 |
 | Project activity history | 6.9 | to be decided | not started | later (no plan) |
 
 ## Manual sign-off checklist

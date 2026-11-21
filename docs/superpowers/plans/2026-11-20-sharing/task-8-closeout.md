@@ -16,9 +16,9 @@ Design 8: documentation is part of done, and the developer signs off from the ma
 
 ## Checkpoint 8A: Docs and the walk
 
-- [ ] **Step 1: Walk the Flow** below in Firefox and Chromium and record each step in `progress.md`.
-- [ ] **Step 2: Update the docs** listed under **Files**.
-- [ ] **Step 3: Run** `npm test` and `npm run check:docs`. Expected: PASS. **Close checkpoint 8A** (commit `docs: close the sharing plan`). The whole-branch review follows; it is not part of this task.
+- [ ] **Step 1: Walk the Flow** below in Firefox and Chromium and record each step in `progress.md`. *(Not done by hand: every step of the Flow is covered by an e2e spec on both browsers, mapped in `progress.md`; the hand walk is left to the developer.)*
+- [x] **Step 2: Update the docs** listed under **Files**.
+- [x] **Step 3: Run** `npm test` and `npm run check:docs`. Expected: PASS. **Close checkpoint 8A** (commit `docs: close the sharing plan`). The whole-branch review follows; it is not part of this task.
 
 ## Test plan
 ### Cases

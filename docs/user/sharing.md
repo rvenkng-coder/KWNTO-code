@@ -24,6 +24,10 @@ A **live** view follows the project: it refreshes by itself about every 30 secon
 
 People with a **Can comment** link click a node in the viewer and see its comments under the node's text, with a box to add their own. They can delete their own comments. Their comments appear for the team at once, with their account name. When you revoke the link they can no longer comment, and what they wrote stays.
 
+## When the project is in the trash
+
+While a project is in the trash, its live links and the edit and comment access of people who already joined stop working, and it disappears from their **Shared with me** list. When the owner restores the project, they work again; nothing needs to be shared a second time. A snapshot keeps showing what it listed.
+
 ## Republishing a snapshot
 
 Choose **Republish** on the snapshot's row. People who already have the link see the new version the next time they open or reload it.

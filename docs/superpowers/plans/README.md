@@ -166,6 +166,7 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 **Goal:** the second build step in design section 11: trash and restore (30 days, scheduled purge), share links (view, comment, edit; live, snapshot; revocable), comments, presence with heartbeat, project JSON import and export.
 **Fixed already:** "revoke all share links" is an incident control (security.md section 9) added to the Plan 2 runbook when `share_links` exists; view links work without an account and include media; comment and edit links need sign-in and the verified flag; JSON import is untrusted input, validated by schema with size limits (a `zod` dependency needs a decision record first).
 **Decide first:** split into two plans if it is too large (share links and comments, then trash and import/export); how a link token is checked inside access rules.
+**Carried in from the node links plan:** `node_links` (links on a node, see [that plan](2026-11-21-node-links/README.md)) must be covered too: view links show a node's links to viewers, snapshots keep them, trash hides them with their node, and JSON import and export carry them.
 **Risks:** the most security-sensitive plan after Plan 2: every rule needs tests for member, outsider, signed-out, revoked link, snapshot.
 
 ### 8. Export

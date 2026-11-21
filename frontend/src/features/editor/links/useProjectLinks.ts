@@ -66,6 +66,9 @@ async function openProjectLinks(projectId: string, rawSet: SetFn): Promise<() =>
   return unsubscribe
 }
 
+// The most characters a link title can have (the same limit as the node_links collection).
+export const TITLE_MAX = 120
+
 // Adds in flight, so a double click or a double Enter sends one request, not two.
 const adding = new Set<string>()
 
@@ -82,6 +85,10 @@ async function addProjectLink(
   const check = checkLinkUrl(url)
   if (!check.ok) {
     set(() => ({ error: check.message }))
+    return false
+  }
+  if (title.trim().length > TITLE_MAX) {
+    set(() => ({ error: `The title is longer than ${TITLE_MAX} characters.` }))
     return false
   }
   const key = [projectId, nodeId, title.trim(), check.url].join('\n')

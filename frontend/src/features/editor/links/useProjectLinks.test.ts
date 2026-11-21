@@ -65,4 +65,16 @@ describe('links store', () => {
     expect(door.add).toHaveBeenCalledTimes(1)
     expect(useLinksStore.getState().links.map((l) => l.id)).toEqual(['one'])
   })
+
+  // Protects: a title over the 120-character limit is refused in the browser with a clear message, not PocketBase's generic one
+  test('a title over 120 characters is refused with a clear message', async () => {
+    await useLinksStore.getState().open('A')
+    const refused = await useLinksStore.getState().add('n1', 'x'.repeat(121), 'https://ok.example')
+    expect(refused).toBe(false)
+    expect(useLinksStore.getState().error).toBe('The title is longer than 120 characters.')
+    expect(door.add).not.toHaveBeenCalled()
+
+    door.add.mockResolvedValueOnce(link('ok'))
+    expect(await useLinksStore.getState().add('n1', 'x'.repeat(120), 'https://ok.example')).toBe(true)
+  })
 })

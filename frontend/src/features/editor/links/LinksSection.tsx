@@ -3,7 +3,7 @@ import type { StoryNode } from '../../../backend/index.ts'
 import { useOnline } from '../media/useOnline.ts'
 import { LinkItem } from './LinkItem.tsx'
 import { linksOf } from './linksList.ts'
-import { useLinksStore } from './useProjectLinks.ts'
+import { TITLE_MAX, useLinksStore } from './useProjectLinks.ts'
 
 // Links and other material on a node: a title and a web address each (plan 2026-11-21-node-links).
 export function LinksSection({ node }: { node: StoryNode }) {
@@ -39,7 +39,7 @@ export function LinksSection({ node }: { node: StoryNode }) {
       <h4 className="text-sm font-semibold">Links and other material</h4>
 
       <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-1">
-        <input className="field" aria-label="Link title" placeholder="Title (optional)" value={title} onChange={(e) => setTitle(e.target.value)} />
+        <input className="field" aria-label="Link title" maxLength={TITLE_MAX} placeholder="Title (optional)" value={title} onChange={(e) => setTitle(e.target.value)} />
         <input className="field" aria-label="Link address" placeholder="https://" value={address} onChange={(e) => setAddress(e.target.value)} />
         <button type="submit" className="btn self-start text-sm" disabled={!isOnline}>Add link</button>
       </form>

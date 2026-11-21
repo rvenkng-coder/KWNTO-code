@@ -12,7 +12,7 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 | 4 | [Offline queue, sync and conflicts](2026-11-16-offline-sync/README.md) | 1 | 3 | done |
 | 5 | [Media upload, quota and strict file checks](2026-11-16-media-upload/README.md) | 1 | 3 | done |
 | 6 | Deployment | 1 | 2 (3 to 5 to test on) | outline |
-| 7 | [Trash, share links, comments, presence, JSON import and export](2026-11-20-sharing/README.md) | 2 | 3, 4 | in progress |
+| 7 | [Trash, share links, comments, presence, JSON import and export](2026-11-20-sharing/README.md) | 2 | 3, 4 | done |
 | 8 | Export (PDF, Word, JPG, PNG) | 3 | 3 | outline |
 | 9 | Player Mode | 4 | 3 | outline |
 | 10 | Path analytics | 5 | 9 | outline |

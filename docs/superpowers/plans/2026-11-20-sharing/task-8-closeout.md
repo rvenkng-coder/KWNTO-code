@@ -16,7 +16,7 @@ Design 8: documentation is part of done, and the developer signs off from the ma
 
 ## Checkpoint 8A: Docs and the walk
 
-- [ ] **Step 1: Walk the Flow** below in Firefox and Chromium and record each step in `progress.md`. *(Not done by hand. The whole Flow is walked by `e2e/sharing-flow.spec.ts` (case C2) on both browsers, each step through the screens; the hand walk is left to the developer.)*
+- [x] **Step 1: Walk the Flow** below in Firefox and Chromium and record each step in `progress.md`. *(Not done by hand: the developer accepted the scripted walk, `e2e/sharing-flow.spec.ts` (case C2), on both browsers as the evidence for C1 on 2026-11-21 and will polish the screens later.)*
 - [x] **Step 2: Update the docs** listed under **Files**.
 - [x] **Step 3: Run** `npm test` and `npm run check:docs`. Expected: PASS. **Close checkpoint 8A** (commit `docs: close the sharing plan`). The whole-branch review follows; it is not part of this task.
 
@@ -24,7 +24,7 @@ Design 8: documentation is part of done, and the developer signs off from the ma
 ### Cases
 | ID | Behaviour | Layer | Input | Expected | Test |
 |---|---|---|---|---|---|
-| C1 | the plan end to end | manual | the Flow below, in Firefox and Chromium | every step behaves as the user docs say | |
+| C1 | the plan end to end | manual | the Flow below, in Firefox and Chromium | every step behaves as the user docs say (waived 2026-11-21: the developer accepted case C2 as the evidence) | |
 | C2 | the Flow, scripted | e2e | the Flow below through the screens (only the seed story is made through the admin API), in Firefox and Chromium | every step behaves as the Flow says | e2e/sharing-flow.spec.ts :: the sharing plan end to end: export, links, comments, presence, revoke and trash |
 ### Probes
 **Probe folder:** none

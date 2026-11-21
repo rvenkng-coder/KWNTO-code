@@ -1,29 +1,12 @@
-import { useEffect, useRef, useState, type ChangeEvent } from 'react'
+import { useEffect, useRef, type ChangeEvent } from 'react'
 import type { StoryNode } from '../../../backend/index.ts'
 import { MediaItem } from './MediaItem.tsx'
 import { mediaOf, removedOf } from './mediaList.ts'
 import { RemovedMediaItem } from './RemovedMediaItem.tsx'
 import { StorageMeter } from './StorageMeter.tsx'
 import { acceptFor } from './uploadCheck.ts'
+import { useOnline } from './useOnline.ts'
 import { useMediaStore } from './useProjectMedia.ts'
-
-function useOnline(): boolean {
-  const [isOnline, setIsOnline] = useState(
-    typeof navigator !== 'undefined' ? navigator.onLine : true,
-  )
-
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true)
-    const handleOffline = () => setIsOnline(false)
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
-    return () => {
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
-    }
-  }, [])
-  return isOnline
-}
 
 export function MediaSection({ node }: { node: StoryNode }) {
   const media = useMediaStore((s) => s.media)

@@ -209,6 +209,8 @@ Do this before an update, before a risky change, and before you restore somethin
    ls -lh backups/
    ```
 
+   Next to each zip PocketBase keeps a small `.zip.attrs` file. Restore reads only the `.zip`, so you may copy off just the zips.
+
 If it fails: `Failed to authenticate` means the admin email or password is wrong (the rate limiter also allows only about 2 sign-in tries every 3 seconds, so do not retry in a hurry); a connection error means `PB_IP` is empty (`pocketbase` is not running: `docker compose -f compose.prod.yaml ps`). Two backups in the same second get the same name and the second fails: wait a second.
 
 ### Copy backups off the VM
@@ -298,6 +300,7 @@ If unwanted accounts appear, turn off `registration_open` ([runbook control 5](.
 - **The public address does not load (Funnel not reachable):** `docker compose -f compose.prod.yaml logs tailscale` (look for an expired or rejected auth key: make a new one, put it in `.env`, and recreate with `docker compose -f compose.prod.yaml up -d --force-recreate tailscale`); check that the access policy of "First run" step 1 is saved, that HTTPS certificates and Funnel are on for the tailnet, and `docker compose -f compose.prod.yaml exec tailscale tailscale serve status` shows `Funnel on` for port 443.
 - **The dashboard on 8443 does not load:** you must be on the tailnet; check the same `serve status` output.
 - **A page loads blank:** the `web` build failed: `docker compose -f compose.prod.yaml logs web`.
+- **Links in mails point to the wrong address:** PocketBase builds them from Settings, Application URL, which is written only once, on the first start of an empty data volume. If the public address later changed (Tailscale adds `-1` to the name when it clashes with a stale device), change Application URL in the dashboard to the address in `KWNTO_PUBLIC_URL`. Links in mails already sent stay wrong; use **Resend verification email**.
 - **Mail does not arrive:** the verification mail is sent when the account is created; a failed send does not stop the sign-up and shows as `verification mail: could not send to user ...` in `docker compose -f compose.prod.yaml logs pocketbase`. The person can press **Resend verification email**. The dashboard's Logs (filter for `mail` or `email`) show `Failed to send` with the reason; check the app password, the port and the "Send test email" result, look in the spam folder, and remember the 500-a-day limit.
 
 ## The first walk (for the developer)

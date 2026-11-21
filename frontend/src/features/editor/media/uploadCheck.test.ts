@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import type { StorageInfo } from '../../../backend/media-types.ts'
-import { earlyProblem, formatSize } from './uploadCheck.ts'
+import { acceptFor, earlyProblem, formatSize } from './uploadCheck.ts'
 
 describe('early upload check and formatSize', () => {
   // Protects: the browser refuses early with the server's words (C3)
@@ -39,5 +39,23 @@ describe('early upload check and formatSize', () => {
     expect(formatSize(0)).toBe('0 KB')
     expect(formatSize(12000)).toBe('12 KB')
     expect(formatSize(209715200)).toBe('200.0 MB')
+  })
+})
+
+describe('acceptFor', () => {
+  // Protects: the picker offers exactly the allowed types (plan node-links, Task 1 C1)
+  test('acceptFor lists every allowed extension', () => {
+    expect(acceptFor(['wav', 'mp3', 'mov', 'mp4', 'jpeg', 'png'])).toBe('.wav,.mp3,.mov,.mp4,.jpg,.jpeg,.png')
+  })
+
+  // Protects: video off means the picker no longer offers video (C2)
+  test('acceptFor leaves out a type that is off', () => {
+    expect(acceptFor(['wav', 'mp3', 'jpeg', 'png'])).toBe('.wav,.mp3,.jpg,.jpeg,.png')
+  })
+
+  // Protects: before the list is known the picker does not filter; the server still refuses (C3)
+  test('acceptFor gives no filter without a list', () => {
+    expect(acceptFor(null)).toBe('')
+    expect(acceptFor([])).toBe('')
   })
 })

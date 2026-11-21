@@ -4,6 +4,7 @@ import { MediaItem } from './MediaItem.tsx'
 import { mediaOf, removedOf } from './mediaList.ts'
 import { RemovedMediaItem } from './RemovedMediaItem.tsx'
 import { StorageMeter } from './StorageMeter.tsx'
+import { acceptFor } from './uploadCheck.ts'
 import { useMediaStore } from './useProjectMedia.ts'
 
 function useOnline(): boolean {
@@ -69,7 +70,7 @@ export function MediaSection({ node }: { node: StoryNode }) {
         <input
           type="file"
           aria-label="Add media"
-          accept=".wav,.mp3,.mov,.mp4,.jpg,.jpeg,.png"
+          accept={acceptFor(storage?.allowedTypes ?? null)}
           disabled={!isOnline}
           onChange={handleFileChange}
           className="hidden"

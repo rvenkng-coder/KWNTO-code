@@ -98,9 +98,11 @@ test('a streamed body over the limit is refused', async () => {
 
 // Protects the limits as numbers someone can live with: a valid file with 200 chapters,
 // 2,000 nodes, 20,000 lines, 10,000 cues and 10,000 connections imports; the duration is
-// printed for progress.md, and other requests are still answered while it runs.
-test('a file at every limit imports in time without blocking others', { timeout: 300_000 }, async () => {
+// printed for progress.md. The database has one write connection, so another person's write
+// waits for the import (docs/security.md says so); it must still complete, and its wait is printed.
+test('a file at every limit imports in time and other writes still complete', { timeout: 300_000 }, async () => {
   const ctx = await memberProject()
+  const writer = await createNode(ctx.member, ctx.projectId, ctx.chapterId, { title: 'probe' })
   const nodes = Array.from({ length: 2000 }, (_, i) => ({ id: `n${i}`, chapter: `c${i % 200}`, title: `Node ${i}`, color: 'slate', x: i, y: i }))
   const file = {
     format: 'kwnto-project',
@@ -117,17 +119,22 @@ test('a file at every limit imports in time without blocking others', { timeout:
   const started = Date.now()
   const running = post(await tokenOf(ctx.member), ctx.teamId, JSON.stringify(file))
   const probes: number[] = []
+  const writes: number[] = []
   let done = false
   void running.then(() => { done = true })
   while (!done) {
     const t = Date.now()
     await healthy()
     probes.push(Date.now() - t)
+    const w = Date.now()
+    const version = Number((await readAsAdmin('nodes', writer)).version)
+    expect((await guardedUpdate(ctx.member, 'nodes', writer, { title: `probe ${w}`, version })).status).toBe(200)
+    writes.push(Date.now() - w)
     await new Promise((r) => setTimeout(r, 250))
   }
   const reply = await running
   const seconds = (Date.now() - started) / 1000
-  console.log(`MAX IMPORT: status ${reply.status}, ${seconds.toFixed(1)} s, slowest health call during it ${Math.max(0, ...probes)} ms (${probes.length} calls)`)
+  console.log(`MAX IMPORT: status ${reply.status}, ${seconds.toFixed(1)} s, slowest health call ${Math.max(0, ...probes)} ms, slowest write ${Math.max(0, ...writes)} ms (${probes.length} rounds)`)
   expect(reply.status).toBe(200)
   const admin = await asAdmin()
   const { projectId } = (await reply.json()) as { projectId: string }

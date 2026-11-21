@@ -46,9 +46,30 @@ function listeners(pb: PocketBase): Set<ConnectionListener> {
 
 const announce = (pb: PocketBase, connected: boolean): void => listeners(pb).forEach((l) => l(connected))
 
+const PROBE_WAIT_MS = 2000
+
+// Opens the live stream on its own for a moment: true when the server answers with its connect event.
+// The health route would not do: a stream that is blocked while the server is up must stay "down".
+// The address comes from the client, so a backend on another origin is probed, not this page's host.
+function streamAnswers(pb: PocketBase): Promise<boolean> {
+  return new Promise((resolve) => {
+    const source = new EventSource(pb.buildURL('/api/realtime'))
+    const done = (ok: boolean) => {
+      clearTimeout(timer)
+      source.close()
+      resolve(ok)
+    }
+    const timer = setTimeout(() => done(false), PROBE_WAIT_MS)
+    source.addEventListener('PB_CONNECT', () => done(true))
+    source.addEventListener('error', () => done(false))
+  })
+}
+
 /** Whether the live stream is up, for the sync status: `true` on every connect, `false` when it drops. */
 export function createRealtime(pb: PocketBase) {
   return {
+    /** Opens the stream once and resolves true if the server connects it within two seconds. */
+    probe: (): Promise<boolean> => streamAnswers(pb),
     onConnectionChange(listener: ConnectionListener): () => void {
       listeners(pb).add(listener)
       return () => {

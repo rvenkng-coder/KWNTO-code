@@ -49,6 +49,8 @@ routerAdd("GET", "/api/kwnto/projects/{id}/export", (e) => {
 routerAdd("POST", "/api/kwnto/teams/{id}/import", (e) => {
   const { FILE_LIMITS, validateProjectFile, importPlan, importedName, utf8Length } = require(`${__hooks}/lib/project-file.js`)
   const { createImportedProject } = require(`${__hooks}/lib/project-import.js`)
+  const { importLimitReached } = require(`${__hooks}/lib/import-limit.js`)
+  const { logEvent } = require(`${__hooks}/lib/security-log.js`)
   // Constants of this file are not visible inside a handler (isolated scopes), so they live here.
   const TOO_LARGE = "This file is larger than the 5 MB import limit."
   const NOT_A_PROJECT = "This file is not a KWNTO project: "
@@ -64,6 +66,13 @@ routerAdd("POST", "/api/kwnto/teams/{id}/import", (e) => {
   if (membership.length === 0) {
     throw new NotFoundError("No team with this id.")
   }
+
+  // An import can hold the only write connection for seconds, so the number an hour is limited.
+  // Only accepted attempts are logged: a refusal by the limit does not extend the wait.
+  if (importLimitReached(e.app, e.auth.id)) {
+    throw new ApiError(429, "Too many imports. Try again later.", {})
+  }
+  logEvent(e.app, "import", e.auth.id, e.realIP(), { teamId: teamId })
 
   // The size is checked before anything is parsed: first the length the client declared
   // (the server never delivers more than that), then the bytes actually read, never more

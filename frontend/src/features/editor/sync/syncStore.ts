@@ -35,23 +35,6 @@ function browserChannel(): SyncDeps['channel'] {
 let built: SyncLifecycle | undefined
 
 const PROBE_MS = 1000
-const PROBE_WAIT_MS = 2000
-
-// Opens the live stream on its own for a moment: true when the server answers with its connect
-// event. The health route would not do: a stream that is blocked while the server is up must stay "down".
-function streamAnswers(): Promise<boolean> {
-  return new Promise((resolve) => {
-    const source = new EventSource('/api/realtime')
-    const done = (ok: boolean) => {
-      clearTimeout(timer)
-      source.close()
-      resolve(ok)
-    }
-    const timer = setTimeout(() => done(false), PROBE_WAIT_MS)
-    source.addEventListener('PB_CONNECT', () => done(true))
-    source.addEventListener('error', () => done(false))
-  })
-}
 
 // Tells the engine whether the connection is usable (plan 7 Task 7). Besides the browser's own
 // online and offline events it follows the live stream: when the stream drops and stays down for
@@ -77,7 +60,7 @@ function watchConnection(lifecycle: SyncLifecycle): void {
   const check = () => {
     evaluate()
     if (told !== false || !navigator.onLine) return
-    void streamAnswers().then((ok) => {
+    void backend.realtime.probe().then((ok) => {
       if (!ok || streamUp) return
       streamUp = true
       downSince = null

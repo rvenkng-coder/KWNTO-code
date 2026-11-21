@@ -1,5 +1,5 @@
-import type PocketBase from 'pocketbase'
-import { expect, test } from 'vitest'
+import PocketBase from 'pocketbase'
+import { expect, test, vi } from 'vitest'
 import { createRealtime, subscribeProject } from './realtime'
 
 // A fake pb: records the callbacks of collection subscriptions and of realtime.subscribe('PB_CONNECT').
@@ -82,4 +82,45 @@ test('connection listeners hear connects and drops only while subscribed', async
   connect()
   expect((pb as unknown as { realtime: { onDisconnect?: unknown } }).realtime.onDisconnect).toBeUndefined()
   expect(heard).toHaveLength(5)
+})
+
+// Protects review finding M4 of plan 2026-11-20-sharing: the stream probe is built from the client's
+// own base URL (a backend on another origin is probed, not the page's host), answers true on the
+// server's connect event, and false on an error or when nothing answers within two seconds.
+test('the stream probe uses the client address and answers on connect, error or timeout', async () => {
+  const opened: Array<{ url: string; fire(type: string): void; closed: boolean }> = []
+  class FakeSource {
+    closed = false
+    private handlers = new Map<string, () => void>()
+    url: string
+    constructor(url: string) {
+      this.url = url
+      opened.push(this)
+    }
+    addEventListener(type: string, fn: () => void) { this.handlers.set(type, fn) }
+    fire(type: string) { this.handlers.get(type)?.() }
+    close() { this.closed = true }
+  }
+  vi.stubGlobal('EventSource', FakeSource)
+  vi.useFakeTimers()
+  try {
+    const realtime = createRealtime(new PocketBase('http://backend.test:8090'))
+    const first = realtime.probe()
+    expect(opened[0]?.url).toBe('http://backend.test:8090/api/realtime')
+    opened[0]?.fire('PB_CONNECT')
+    expect(await first).toBe(true)
+    expect(opened[0]?.closed).toBe(true)
+
+    const second = realtime.probe()
+    opened[1]?.fire('error')
+    expect(await second).toBe(false)
+
+    const third = realtime.probe()
+    await vi.advanceTimersByTimeAsync(2000)
+    expect(await third).toBe(false)
+    expect(opened[2]?.closed).toBe(true)
+  } finally {
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+  }
 })

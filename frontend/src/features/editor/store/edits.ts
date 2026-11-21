@@ -2,7 +2,7 @@ import type { StoreApi } from 'zustand'
 import type { ContentKind, ContentRecords, CreatableKind, EditableFields, RemovableKind } from '../../../backend'
 import { buildPaste, copySelection, type Clip } from '../model/clipboard'
 import {
-  canApply, EMPTY_HISTORY, recordStep, REDO_BLOCKED, takeRedo, takeUndo, UNDO_BLOCKED, type Change, type History, type Step,
+  canApply, EMPTY_HISTORY, recordStep, REDO_BLOCKED, takeRedo, takeUndo, UNDO_BLOCKED, withoutChange, type Change, type History, type Step,
 } from '../model/history'
 import { newId } from '../model/ids'
 import { getRecord } from '../model/state'
@@ -11,7 +11,8 @@ import { appSync, undoPausedBy } from './editorSync'
 import { pendingEdits } from './pendingEdits'
 
 // Every content change a screen makes goes through here (plan Task 12), so it lands in the
-// undo history (D5). A step is recorded only after its writes succeed. Undo and redo write
+// undo history (D5). A step is recorded only after its writes succeed (offline: are stored; a
+// write the server refuses after the reconnect leaves the history again). Undo and redo write
 // ordinary guarded updates and never force a change someone else has touched since.
 
 type Edits = {
@@ -59,6 +60,8 @@ type Recorder = Pick<Edits, 'group' | 'undo' | 'redo' | 'reset'> & {
    * while some later group is open is not counted into that group. */
   openGroup(): Change[] | null
   record(group: Change[] | null, label: string, change: Change): void
+  /** Takes a recorded change out of the open group and of the history (the server refused it later). */
+  discard(change: Change): void
   /** Keeps a write in the in-flight set until it settles, so undo can wait for it. */
   track(write: Promise<boolean>): Promise<boolean>
 }
@@ -81,6 +84,22 @@ function createInFlight(flush: () => void) {
   }
 }
 
+// Applies a step if every change still fits the state; otherwise skips it with `blocked`.
+async function play(
+  store: StoreApi<EditorStore>, setHistory: (h: History) => void,
+  taken: { history: History; step: Step } | null, blocked: string, skipped: History | null,
+): Promise<void> {
+  if (taken === null) return
+  const content = store.getState().content
+  if (!taken.step.changes.every((c) => canApply(c, content))) {
+    setHistory(skipped ?? taken.history)
+    store.setState({ error: blocked })
+    return
+  }
+  setHistory(taken.history)
+  for (const c of taken.step.changes) if (!(await applyChange(store, c))) return
+}
+
 // The history: recording, groups, undo and redo.
 function createRecorder(store: StoreApi<EditorStore>, flush: () => void, undoPaused: () => string | null): Recorder {
   let history: History = EMPTY_HISTORY
@@ -88,18 +107,7 @@ function createRecorder(store: StoreApi<EditorStore>, flush: () => void, undoPau
   const inFlight = createInFlight(flush)
   const whenNotPaused = pauseGate(store, undoPaused, inFlight.settle)
 
-  // Applies a step if every change still fits the state; otherwise skips it with `blocked`.
-  async function play(taken: { history: History; step: Step } | null, blocked: string, skipped: History | null): Promise<void> {
-    if (taken === null) return
-    const content = store.getState().content
-    if (!taken.step.changes.every((c) => canApply(c, content))) {
-      history = skipped ?? taken.history
-      store.setState({ error: blocked })
-      return
-    }
-    history = taken.history
-    for (const c of taken.step.changes) if (!(await applyChange(store, c))) return
-  }
+  const setHistory = (h: History): void => void (history = h)
 
   return {
     openGroup: () => collecting,
@@ -122,16 +130,40 @@ function createRecorder(store: StoreApi<EditorStore>, flush: () => void, undoPau
     async undo() {
       await whenNotPaused(() => {
         const taken = takeUndo(history)
-        return play(taken, UNDO_BLOCKED, taken === null ? null : { past: taken.history.past, future: history.future })
+        return play(store, setHistory, taken, UNDO_BLOCKED, taken === null ? null : { past: taken.history.past, future: history.future })
       })
     },
     async redo() {
       await whenNotPaused(() => {
         const taken = takeRedo(history)
-        return play(taken, REDO_BLOCKED, taken === null ? null : { past: history.past, future: taken.history.future })
+        return play(store, setHistory, taken, REDO_BLOCKED, taken === null ? null : { past: history.past, future: taken.history.future })
       })
     },
+    discard(change) {
+      const at = collecting?.indexOf(change) ?? -1
+      if (at >= 0) collecting?.splice(at, 1)
+      history = withoutChange(history, change)
+    },
     reset: () => { history = EMPTY_HISTORY },
+  }
+}
+
+// One write's link to the history. Offline a write resolves true once STORED; if the server refuses it
+// after the reconnect, `onLate` takes its step out of the history, so undo never meets a step for a
+// change that is not there.
+function voidable(rec: Recorder) {
+  let recorded: Change | null = null
+  let voided = false
+  return {
+    onLate() {
+      voided = true
+      if (recorded !== null) rec.discard(recorded)
+    },
+    record(into: Change[] | null, label: string, change: Change) {
+      if (voided) return
+      recorded = change
+      rec.record(into, label, change)
+    },
   }
 }
 
@@ -140,23 +172,26 @@ function createWrites(store: StoreApi<EditorStore>, rec: Recorder): Pick<Edits, 
   return {
     async create(kind, record, label) {
       const into = rec.openGroup()
-      if (!(await store.getState().create(kind, record))) return false
-      if (isTrashable(kind)) rec.record(into, label, { type: 'update', kind, id: record.id, before: { deleted: true }, after: { deleted: false } })
-      else rec.record(into, label, { type: 'create', kind: kind as RemovableKind, record: record as ContentRecords[RemovableKind] })
+      const w = voidable(rec)
+      if (!(await store.getState().create(kind, record, w.onLate))) return false
+      if (isTrashable(kind)) w.record(into, label, { type: 'update', kind, id: record.id, before: { deleted: true }, after: { deleted: false } })
+      else w.record(into, label, { type: 'create', kind: kind as RemovableKind, record: record as ContentRecords[RemovableKind] })
       return true
     },
     async update(kind, id, changes, label) {
       const before = pick(getRecord(store.getState().content, kind, id), Object.keys(changes))
       const into = rec.openGroup()
-      const ok = await store.getState().update(kind, id, changes)
-      if (ok) rec.record(into, label, { type: 'update', kind, id, before, after: { ...changes } })
+      const w = voidable(rec)
+      const ok = await store.getState().update(kind, id, changes, w.onLate)
+      if (ok) w.record(into, label, { type: 'update', kind, id, before, after: { ...changes } })
       return ok
     },
     async remove(kind, id, label) {
       const current = getRecord(store.getState().content, kind, id)
       const into = rec.openGroup()
-      const ok = current !== undefined && (await store.getState().remove(kind, id))
-      if (ok) rec.record(into, label, { type: 'remove', kind, record: current })
+      const w = voidable(rec)
+      const ok = current !== undefined && (await store.getState().remove(kind, id, w.onLate))
+      if (ok) w.record(into, label, { type: 'remove', kind, record: current })
       return ok
     },
   }

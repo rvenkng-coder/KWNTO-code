@@ -1,10 +1,13 @@
-import { expect, test } from 'vitest'
+import { afterEach, expect, test } from 'vitest'
 import { createNode, guardedUpdate, memberProject, readAsAdmin, type MemberProject } from './helpers/content.ts'
 import { send, setVerified, tokenOf, unverifiedUser } from './helpers/invites.ts'
-import { PNG_1PX, uploadMedia } from './helpers/media.ts'
+import { deleteAllMedia, PNG_1PX, uploadMedia } from './helpers/media.ts'
 import { adminSend, asAdmin, asUser, createUser, rawSend, type TestUser } from './helpers/pb.ts'
 import { createLink, joinShare, openShare, revokeLink, shareMedia } from './helpers/share.ts'
 import { addMember } from './helpers/teams.ts'
+
+// Media made here must not outlive the file: other rule files count the whole table.
+afterEach(deleteAllMedia)
 
 // The share routes of backend/pb_hooks/share.pb.js (design 5; plan 2026-11-20-sharing Task 3,
 // D2, D8 and D10): the view of a project through a token, media through a token, joining a

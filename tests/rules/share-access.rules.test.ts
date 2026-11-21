@@ -1,10 +1,13 @@
-import { expect, test } from 'vitest'
+import { afterEach, expect, test } from 'vitest'
 import { createBackend } from '../../frontend/src/backend/client'
 import type { RemoteEvent } from '../../frontend/src/backend/content-types'
 import { createLine, createNode, createProject, guardedUpdate, memberProject, readAsAdmin, type MemberProject } from './helpers/content.ts'
-import { PNG_1PX, uploadMedia } from './helpers/media.ts'
+import { deleteAllMedia, PNG_1PX, uploadMedia } from './helpers/media.ts'
 import { asUser, createUser, PB_URL, type TestUser } from './helpers/pb.ts'
 import { createLink, joinShare, revokeLink } from './helpers/share.ts'
+
+// Media made here must not outlive the file: other rule files count the whole table.
+afterEach(deleteAllMedia)
 
 // What an edit link opens in the content rules (design 5; plan 2026-11-20-sharing Task 3,
 // D2 and D8): one project, never the team, only through ONE live grant row of permission

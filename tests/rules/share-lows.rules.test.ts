@@ -1,8 +1,11 @@
-import { expect, test } from 'vitest'
+import { afterEach, expect, test } from 'vitest'
 import { createNode, guardedUpdate, memberProject, readAsAdmin } from './helpers/content.ts'
-import { PNG_1PX, uploadMedia } from './helpers/media.ts'
+import { deleteAllMedia, PNG_1PX, uploadMedia } from './helpers/media.ts'
 import { asAdmin, asUser, createUser } from './helpers/pb.ts'
 import { createLink, joinShare, revokeLink, shareMedia } from './helpers/share.ts'
+
+// Media made here must not outlive the file: other rule files count the whole table.
+afterEach(deleteAllMedia)
 
 // Whole-branch review findings L1, L2 and L3 of plan 2026-11-20-sharing: who may still touch a
 // project after a link is revoked or its content is trashed.

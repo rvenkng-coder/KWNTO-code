@@ -35,7 +35,7 @@ async function revokeFirst(page: Page, alreadyRevoked: number): Promise<void> {
 
 // Protects: Task 8 case C2 (the Flow), see the file header; one test so the people and their links carry through every step.
 test('the sharing plan end to end: export, links, comments, presence, revoke and trash', async ({ browser }, testInfo) => {
-  test.setTimeout(300_000)
+  testInfo.setTimeout(300_000)
   const { a: owner, b: member } = await ownerAndMember(browser, 0)
   const projectId = projectIdOf(owner)
   const { gate, door, far } = await seedTwoChapters(projectId)

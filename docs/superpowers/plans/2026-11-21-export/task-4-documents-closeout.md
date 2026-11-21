@@ -49,7 +49,7 @@ Part of the [plan](README.md). **Read the router first:** its Global Constraints
 none
 
 ### Flow
-The manual items M4 (PDF), M5 (Word), M6 (JPG) and M7 (PNG) in `docs/test-plan.md`, run as case C6: the developer marks each `done` with the date.
+The manual items M4 (PDF), M5 (Word), M6 (JPG) and M7 (PNG) in `docs/test-plan.md`, run as case C6: the developer marks each `done` with the date. (Run by Claude Code on 2026-11-21 at the developer's request and recorded in the test plan; Microsoft Word and Adobe Reader were not available, so the Word file was read through LibreOffice and the PDF through poppler.)
 
 ### Evidence
 The full output of `npm run check:task`, the `npm test` summary and any failing e2e run from Checkpoint 4A step 2.

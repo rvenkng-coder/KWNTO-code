@@ -53,10 +53,10 @@
 
 | Task | What | Status |
 |---|---|---|
-| [1](task-1-export-plan.md) | Decision record, dependencies, the pure export rules (scope, file names, scale, fit) | planned |
-| [2](task-2-documents.md) | PDF and Word builders | planned |
-| [3](task-3-stage-dialog.md) | The light theme override, the stage, the dialog and every format (current chapter) | planned |
-| [4](task-4-documents-closeout.md) | Whole project, large maps, docs, closeout | planned |
+| [1](task-1-export-plan.md) | Decision record, dependencies, the pure export rules (scope, file names, scale, fit) | done |
+| [2](task-2-documents.md) | PDF and Word builders | done |
+| [3](task-3-stage-dialog.md) | The light theme override, the stage, the dialog and every format (current chapter) | done |
+| [4](task-4-documents-closeout.md) | Whole project, large maps, docs, closeout | done |
 
 ## Review Focus
 

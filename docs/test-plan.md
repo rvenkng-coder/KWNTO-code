@@ -32,7 +32,7 @@ Which test layers must cover each feature, and how far each feature is. The laye
 | Chapters | 6.3 | unit, rules, e2e | covered | 3 |
 | Player Mode | 6.4 | unit, e2e, manual | not started | 9 |
 | Path analytics (anonymous per-choice counts) | 6.4 | unit, rules, e2e | not started | 10 |
-| Export (PDF, Word, JPG, PNG) | 6.5 | unit, manual | not started | 8 |
+| Export (PDF, Word, JPG, PNG): `exportPlan.test.ts`, `documents.test.ts`, `e2e/editor-export.spec.ts`, `e2e/editor-export-project.spec.ts`; manual M4 to M7 still `open` | 6.5 | unit, e2e, manual | covered | 8 |
 | Look and feel (light and dark, theme toggle, layout) | 6.6 | e2e, manual M1 and M2 (signed 2026-11-18) | covered | 3 |
 | Offline queue, sync and conflicts: `e2e/editor-offline.spec.ts`, `e2e/editor-conflicts.spec.ts` | 6.7 | unit, rules, e2e | covered | 4 |
 | Deployment (proxy, headers, rate limits, backups and restore, storage warning) | 7b, 7c | container, rules, unit, manual | covered | 6 |

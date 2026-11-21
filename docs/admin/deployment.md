@@ -272,13 +272,22 @@ A backup you have never restored is a guess. After the first real backup, restor
 
 ## Updating
 
-1. Make a backup first, as in [Backups](#backups) (`PB=http://$PB_IP:8090 deploy/backup-now.sh`).
-2. Update (with option C of "Getting the code onto the VM", unpack the new archive instead of `git pull`):
+Run this on the VM, in the repository folder, while the stack is running:
 
 ```sh
-git pull
-docker compose -f compose.prod.yaml up -d --build --force-recreate
+deploy/update.sh
 ```
+
+It asks for the admin email and the admin password (the password is not shown), as [Make a backup now](#make-a-backup-now) does. Then it:
+
+1. refuses to start if tracked files were changed on the VM (`git status` shows them), and fetches. If nothing is new it prints `Already up to date` and stops, with no backup made;
+2. makes a backup with `deploy/backup-now.sh`. If the backup fails, nothing else happens;
+3. fast-forwards to the new commit, then runs `docker compose -f compose.prod.yaml up -d --build --force-recreate`;
+4. waits up to 180 seconds (`KWNTO_HEALTH_SECONDS`) until PocketBase and Caddy both answer `/api/health`, then prints `Updated to <commit>`.
+
+If step 3 or 4 fails, it prints the backup's name, the command that goes back to the previous commit (`git reset --keep <old commit>`, then the rebuild), and the `deploy/restore.sh` command, for when the new version damaged data. It goes back only when you run those commands.
+
+With option C of "Getting the code onto the VM", unpack the new archive first and run `deploy/update.sh --no-pull`: it skips git and always makes a backup and rebuilds.
 
 `--force-recreate` makes the `web` service build the new app again; accounts, projects, media and the settings you changed live in volumes and survive (a container test pins that data and settings survive an update). The image digests in `compose.prod.yaml` and `backend/Dockerfile` are pinned ([decision 0004](../decisions/0004-deployment-images.md)): once a month check for newer versions, change the digest and the comment next to it, rebuild and run `npm run test:container` on a development machine before deploying.
 

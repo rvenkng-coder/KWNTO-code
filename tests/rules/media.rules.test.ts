@@ -327,7 +327,7 @@ describe('media rules and collection', () => {
     expect(data.quotaBytes).toBe(2147483648)
     expect(data.isLead).toBe(true)
     expect(data.maxBytes.video).toBe(209715200)
-    expect(data.allowedTypes).toEqual(['wav', 'mp3', 'mov', 'mp4', 'jpeg', 'png'])
+    expect(data.allowedTypes).toEqual(['wav', 'mp3', 'jpeg', 'png'])
 
     // The member sees the same meter but is not the lead
     const memberRes = await rawSend((await asUser(member)).authStore.token, path)

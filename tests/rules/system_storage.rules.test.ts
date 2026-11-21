@@ -7,12 +7,13 @@ adminOnlyTests('system_storage', { default_quota_bytes: 1 })
 singleRecordTest('system_storage')
 
 // Defaults from design 7c and security.md section 4: 2 GB per user, 200 MB video,
-// 50 MB audio and images, and only the six allowed file types.
+// 50 MB audio and images. Video (mov, mp4) is off by decision (plan 2026-11-21-node-links, D1),
+// so only four file types are allowed.
 test('system_storage starts with the spec defaults', async () => {
   const record = await readOnlyRecord('system_storage')
   expect(record.default_quota_bytes).toBe(2147483648)
   expect(record.max_video_mb).toBe(200)
   expect(record.max_audio_mb).toBe(50)
   expect(record.max_image_mb).toBe(50)
-  expect(record.allowed_types).toEqual(['wav', 'mp3', 'mov', 'mp4', 'jpeg', 'png'])
+  expect(record.allowed_types).toEqual(['wav', 'mp3', 'jpeg', 'png'])
 })

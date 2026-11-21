@@ -70,7 +70,7 @@ Found while building media upload, quota and strict file checks (2026-11-16 to 2
 
 | Item | What and why | Plan |
 |---|---|---|
-| Upload progress bar | The PocketBase JS SDK's `fetch` does not report upload progress (D12). If large uploads through Funnel prove slow, add upload progress reporting or chunked uploading. **Moved to "Carried over from Plan 6"**: Plan 6 D13 builds nothing; case C3 of the walk decides. | 6 (walk) |
+| Upload progress bar | The PocketBase JS SDK's `fetch` does not report upload progress (D12). Large uploads through Funnel proved too slow on the first VM (2026-11-21: about 0.2 MB/s; a 30 MB and a 150 MB upload both failed). **Video upload is switched off** by the [node links plan](2026-11-21-node-links/README.md) (status: awaiting developer review) and writers add a link instead. Chunked or resumable upload, and a direct (non-relayed) Tailscale path, stay open. | later |
 
 ## Carried over from Plan 6
 
@@ -78,9 +78,9 @@ Plan 6 is built and checked. The developer walked the guide's "first walk" on th
 
 | Item | What and why | Plan |
 |---|---|---|
-| Upload progress or chunked upload (D13) | **Case C3 is still open (not yet run).** The rule: add it if case C3 (a 150 MB MP4 through Funnel) takes over 3 minutes or fails, and re-judge the Cloudflare Tunnel fallback. Nothing is built until then. | after the walk |
+| Upload progress or chunked upload (D13) | **Case C3 was tried on 2026-11-21 and failed** (a 30 MB and a 150 MB upload both dropped; about 0.2 MB/s through the Tailscale relay). **Video upload is switched off** by the [node links plan](2026-11-21-node-links/README.md) and writers add a link instead. Chunked or resumable upload, and a direct (non-relayed) Tailscale path, stay open. | later |
 | The visitor's IP behind Funnel (D6) | Case C4 is still open (not yet run). If a check shows `ip` is not the visitor's public address, the per-IP limits are global: move to Cloudflare Tunnel or find another way to pass the IP. Written in security.md section 10. | after the walk |
-| The walk itself | C1, C2, C5, C6 and C7 done (2026-11-21); C3 and C4 open. Mark Plan 6 `done` when the developer has reviewed the branch. | developer |
+| The walk itself | C1, C2, C5, C6 and C7 done (2026-11-21); C3 failed (see the row above); C4 open. Mark Plan 6 `done` when the developer has reviewed the branch. | developer |
 
 ## Later (developer decision, 2026-11-18)
 

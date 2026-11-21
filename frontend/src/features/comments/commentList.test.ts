@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import type { Comment } from '../../backend'
-import { applyCommentEvent, canDelete, commentsOf, countLabel } from './commentList'
+import { applyCommentEvent, canDelete, commentLength, commentsOf, countLabel } from './commentList'
 
 const make = (id: string, nodeId: string, created: string, authorId: string | null = 'u1'): Comment => ({
   id, projectId: 'p', nodeId, authorId, authorName: 'Mara', body: id, created,
@@ -26,4 +26,11 @@ test('comments are listed once, in order, and deleted only by author or owner', 
   expect([countLabel(0), countLabel(1), countLabel(3)]).toEqual(['', '1 comment', '3 comments'])
   expect([canDelete(a, 'u1', false), canDelete(a, 'u2', false), canDelete(a, 'u2', true)]).toEqual([true, false, true])
   expect(canDelete(make('x', 'n1', '', null), 'u1', false)).toBe(false)
+})
+
+// Protects review finding L10: the 2000 limit counts characters like the server, so an emoji is one, not two.
+test('commentLength counts characters, not UTF-16 units', () => {
+  expect(commentLength('abc')).toBe(3)
+  expect(commentLength('😀'.repeat(1500))).toBe(1500)
+  expect(commentLength('')).toBe(0)
 })

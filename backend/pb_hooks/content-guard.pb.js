@@ -38,6 +38,16 @@ onRecordUpdateRequest((e) => {
     e.record.set("deleted_at", serverDeletedAt(sentText, nowIso))
   }
 
+  // A node comes back with its chapter, never before it (design 6.8, plan 7 D11): restoring a
+  // node whose chapter is still in the trash would leave it hidden and out of the export. The
+  // trash panel says the same; this is the check for a request that skips the panel.
+  if (e.record.collection().name === "nodes" && e.record.original().getString("deleted_at") !== "" && e.record.getString("deleted_at") === "") {
+    const chapter = e.app.findRecordById("chapters", e.record.getString("chapter"))
+    if (chapter.getString("deleted_at") !== "") {
+      throw new BadRequestError("Restore the chapter " + chapter.getString("title") + " first.")
+    }
+  }
+
   const names = []
   for (const field of e.record.collection().fields) names.push(field.getName())
   const original = e.record.original()

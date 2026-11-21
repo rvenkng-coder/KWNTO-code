@@ -27,3 +27,14 @@ test('the door passes the server\'s link messages on', async () => {
   expect(shares.mediaUrl('T', 'm1')).toBe('http://pb.test/api/kwnto/share/T/media/m1')
   expect(shares.mediaUrl('T', 'm1', true)).toBe('http://pb.test/api/kwnto/share/T/media/m1?thumb=100x100')
 })
+
+// Protects review finding L8: two edit links of one project list the project once, newest first.
+test('myGrants lists a project once even with two grants', async () => {
+  const rows = [
+    { project: 'p1', project_name: 'Story', permission: 'edit' },
+    { project: 'p2', project_name: 'Other', permission: 'edit' },
+    { project: 'p1', project_name: 'Story', permission: 'edit' },
+  ]
+  const pb = { collection: () => ({ getFullList: () => Promise.resolve(rows) }) } as unknown as PocketBase
+  expect((await createShares(pb).myGrants()).map((g) => g.projectId)).toEqual(['p1', 'p2'])
+})

@@ -21,3 +21,8 @@ export function countLabel(n: number): string {
 export function canDelete(c: Comment, userId: string, isOwner: boolean): boolean {
   return c.authorId === userId || isOwner
 }
+
+/** Characters, as the server counts them: an emoji is one, though it is two UTF-16 units. */
+export function commentLength(text: string): number {
+  return Array.from(text).length
+}

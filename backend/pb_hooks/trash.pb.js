@@ -13,18 +13,19 @@ cronAdd("purge_trash", "30 3 * * *", () => {
   // Read at run time, so a changed setting applies at the next run.
   const cutoff = cutoffIso(Date.now(), getSystemBehavior($app).trashRetentionDays)
   const filter = "deleted_at != '' && deleted_at < {:cutoff}"
+  const { purgeInBatches, withoutSkipped } = require(`${__hooks}/lib/purge.js`)
 
   // In this order, so a trashed project goes before its own trashed chapters and nodes are
-  // looked at. Deletes in batches, so a large backlog is never loaded into memory at once.
+  // looked at. Deletes in batches, so a large backlog is never loaded into memory at once. A
+  // record that cannot be deleted is logged and skipped, so it cannot stall the rest every night.
   for (const name of ["projects", "chapters", "nodes"]) {
-    for (;;) {
-      const expired = $app.findRecordsByFilter(name, filter, "", 200, 0, { cutoff: cutoff })
-      if (expired.length === 0) {
-        break
-      }
-      for (const record of expired) {
-        $app.delete(record)
-      }
-    }
+    purgeInBatches(
+      (skipIds) => {
+        const params = { cutoff: cutoff }
+        return $app.findRecordsByFilter(name, withoutSkipped(filter, skipIds, params), "", 200, 0, params)
+      },
+      (record) => $app.delete(record),
+      (record, error) => $app.logger().error("purge_trash: could not delete a record", "collection", name, "id", record.id, "error", String(error)),
+    )
   }
 })

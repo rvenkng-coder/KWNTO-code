@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { MAX_COMMENT_LENGTH } from '../../backend'
 import { useSession } from '../auth/useSession'
-import { canDelete, commentsOf } from './commentList'
+import { canDelete, commentLength, commentsOf } from './commentList'
 import { CommentRow } from './CommentRow'
 import { useCommentStore } from './useNodeComments'
 import { useOnline } from './useOnline'
@@ -17,7 +17,8 @@ export function CommentsSection({ nodeId }: { nodeId: string }) {
   const [text, setText] = useState('')
   const online = useOnline()
   const list = commentsOf(all, nodeId)
-  const tooLong = text.length > MAX_COMMENT_LENGTH
+  const length = commentLength(text)
+  const tooLong = length > MAX_COMMENT_LENGTH
   const disabled = !online || text.trim() === '' || tooLong
 
   async function submit() {
@@ -37,7 +38,7 @@ export function CommentsSection({ nodeId }: { nodeId: string }) {
       </label>
       <div className="flex flex-wrap items-center gap-2">
         <button type="button" className="btn" disabled={disabled} onClick={() => void submit()}>Comment</button>
-        <span className={`text-xs ${tooLong ? 'text-accent' : 'text-muted'}`}>{text.length}/{MAX_COMMENT_LENGTH}</span>
+        <span className={`text-xs ${tooLong ? 'text-accent' : 'text-muted'}`}>{length}/{MAX_COMMENT_LENGTH}</span>
         {!online && <span className="text-xs">{OFFLINE_COMMENTS}</span>}
       </div>
       {error !== null && <p role="alert" className="text-sm">{error}</p>}

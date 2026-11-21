@@ -41,16 +41,17 @@ function useLiveRefresh(kind: 'live' | 'snapshot' | null, reload: () => Promise<
 }
 
 // Opens the link: an edit link joins and goes to the editor (no answer to show), a comment link
-// joins and views, a view link views.
-async function load(token: string): Promise<Answer | null> {
+// joins and views, a view link views. A live refresh passes `join = false`: the grant exists already,
+// and joining again every 30 s would be a write per viewer per poll.
+async function load(token: string, join = true): Promise<Answer | null> {
   try {
     const opened = await backend.shares.open(token)
     if (opened.permission === 'edit') {
-      await backend.shares.join(token)
+      if (join) await backend.shares.join(token)
       navigate({ name: 'project', projectId: opened.projectId, chapterId: null })
       return null
     }
-    if (opened.permission === 'comment') await backend.shares.join(token)
+    if (opened.permission === 'comment' && join) await backend.shares.join(token)
     return { status: 'viewing', open: opened }
   } catch (err: unknown) {
     return { status: 'refused', message: errorMessage(err, 'Could not open this link.') }
@@ -62,7 +63,7 @@ function useOpenLink(token: string, userId: string | null): [State, () => Promis
   const key = `${token}/${userId ?? ''}`
   const [answer, setAnswer] = useState<{ key: string; value: Answer } | null>(null)
   const reload = useCallback(async () => {
-    const value = await load(token)
+    const value = await load(token, false)
     if (value !== null) setAnswer({ key, value })
   }, [token, key])
   useEffect(() => {

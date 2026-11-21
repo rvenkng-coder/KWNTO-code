@@ -15,14 +15,14 @@ cronAdd("purge_presence", "* * * * *", () => {
   const { staleCutoffIso } = require(`${__hooks}/lib/presence.js`)
 
   // The timeout is read at run time, so a changed setting applies at the next run.
+  const { purgeInBatches, withoutSkipped } = require(`${__hooks}/lib/purge.js`)
   const cutoff = staleCutoffIso(Date.now(), getSystemBehavior($app).presenceTimeoutSeconds)
-  for (;;) {
-    const stale = $app.findRecordsByFilter("presence", "updated < {:cutoff}", "", 200, 0, { cutoff: cutoff })
-    if (stale.length === 0) {
-      break
-    }
-    for (const row of stale) {
-      $app.delete(row)
-    }
-  }
+  purgeInBatches(
+    (skipIds) => {
+      const params = { cutoff: cutoff }
+      return $app.findRecordsByFilter("presence", withoutSkipped("updated < {:cutoff}", skipIds, params), "", 200, 0, params)
+    },
+    (row) => $app.delete(row),
+    (row, error) => $app.logger().error("purge_presence: could not delete a row", "id", row.id, "error", String(error)),
+  )
 })

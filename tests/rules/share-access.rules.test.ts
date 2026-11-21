@@ -73,15 +73,23 @@ test('an edit link opens one project, never the team, until revoked', async () =
   expect(await rename(member, nodeId, 'while linked')).toBe(200)
   await expect.poll(() => seen.length, { timeout: 4000 }).toBeGreaterThan(0)
 
+  // A member's own stream is the positive control: events do flow after the revoke, so the
+  // holder's silence below is the revoke's doing and not slowness.
+  const memberLive = createBackend(PB_URL)
+  await memberLive.auth.signIn(member.email, member.password)
+  const memberSeen: RemoteEvent[] = []
+  const closeMember = await memberLive.content.subscribe(projectId, (event) => memberSeen.push(event))
+
   await revokeLink(member, linkId)
   const before = seen.length
   expect(await rename(holder, nodeId, 'after revoke')).toBe(404)
   expect(await rename(member, nodeId, 'after revoke by member')).toBe(200)
   expect(await rename(member, nodeId, 'once more')).toBe(200)
-  await new Promise((resolve) => setTimeout(resolve, 500))
+  await expect.poll(() => memberSeen.length, { timeout: 4000 }).toBeGreaterThanOrEqual(2)
   expect(seen.length).toBe(before)
   expect(await failure(asHolder.collection('nodes').getOne(nodeId))).toBe(404)
   await close()
+  await closeMember()
 })
 
 // Protects D2: the grant is one row, so a comment grant on one project plus an edit grant on

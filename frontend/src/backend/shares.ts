@@ -28,7 +28,11 @@ async function fetchMedia(pb: PocketBase, url: string): Promise<Blob> {
 
 async function editGrants(pb: PocketBase): Promise<Grant[]> {
   const rows = await pb.collection('link_grants').getFullList({ filter: "permission = 'edit'", sort: '-created' })
-  return rows.map((row) => ({ projectId: String(row.project), projectName: String(row.project_name), permission: row.permission as SharePermission }))
+  // Two edit links of one project make two rows (newest first); the person sees the project once.
+  const seen = new Set<string>()
+  return rows
+    .filter((row) => !seen.has(String(row.project)) && seen.add(String(row.project)))
+    .map((row) => ({ projectId: String(row.project), projectName: String(row.project_name), permission: row.permission as SharePermission }))
 }
 
 /** Share links (design 5): members make and revoke them; anyone opens one through the server's routes. */

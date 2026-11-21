@@ -66,6 +66,10 @@ If the file passes but the database still refuses a record (for example two conn
 
 A choice whose target is trashed is exported with `to: null`, like an empty choice, and keeps its text. A node may have several such choices: the unique pair index on `connections` covers only choices that have a target (`WHERE to_node != ''`, migration 1794370200), so they import. Pinned by `tests/rules/project-file.edge.rules.test.ts`.
 
+## Live events and import
+
+An import creates its records inside one transaction, and PocketBase sends no live create events for records made in a transaction. So a teammate who has the team's project list open does not see the imported project until the list is loaded again (a reload or opening the team). Known and accepted: the person who imported is taken to the project.
+
 ## Code layout
 
 `lib/project-file.js` only joins four files: `project-file-limits.js` (`FILE_LIMITS` and the value lists), `project-file-build.js` (`buildProjectFile`), `project-file-validate.js` (`validateProjectFile`) and `project-file-plan.js` (`importPlan` and the route helpers). Each is under 300 lines.

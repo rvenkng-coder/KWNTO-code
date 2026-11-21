@@ -158,14 +158,25 @@ function serveFile(e, media) {
   }
 }
 
+// True when the media's node, or that node's chapter, is in the trash.
+function mediaIsTrashed(app, media) {
+  const node = findOrNull(app, "nodes", media.getString("node"))
+  if (node === null || node.getString("deleted_at") !== "") return true
+  const chapter = findOrNull(app, "chapters", node.getString("chapter"))
+  return chapter === null || chapter.getString("deleted_at") !== ""
+}
+
 // GET /api/kwnto/share/{token}/media/{mediaId}
 function handleMedia(e) {
   const { snapshotMediaIds } = require(`${__hooks}/lib/share.js`)
   const { link, project, mode } = openLink(e, e.request.pathValue("token"))
   const media = mode === "edit" ? null : findOrNull(e.app, "media", e.request.pathValue("mediaId"))
   const usable = media !== null && media.getString("project") === project.id && media.getString("removed_at") === ""
-  const listed = link.getString("kind") !== "snapshot" || snapshotMediaIds(storedSnapshot(link)).includes(media === null ? "" : media.id)
-  if (!usable || !listed) throw new NotFoundError(BAD_LINK)
+  const live = link.getString("kind") !== "snapshot"
+  const listed = live || snapshotMediaIds(storedSnapshot(link)).includes(media === null ? "" : media.id)
+  // A live link shows what the project shows: the media of a node or chapter in the trash is hidden
+  // with it, as the file the viewer reads leaves it out. A snapshot keeps what it listed.
+  if (!usable || !listed || (live && mediaIsTrashed(e.app, media))) throw new NotFoundError(BAD_LINK)
   serveFile(e, media)
 }
 

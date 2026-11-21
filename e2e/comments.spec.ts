@@ -102,6 +102,7 @@ test('a comment link holder comments until the link is revoked', async ({ page, 
 
   await guest.getByLabel('Add a comment').fill('Too late')
   await guest.getByRole('button', { name: 'Comment', exact: true }).click()
-  await expect(guest.getByRole('alert')).toBeVisible()
+  // The comment section's own alert (not any alert on the page) carries a message.
+  await expect(guest.getByRole('region', { name: 'Comments' }).getByRole('alert')).toHaveText(/\S/)
   await expect(rows(page)).toHaveCount(1)
 })

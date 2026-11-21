@@ -85,8 +85,9 @@ export async function enableJoinCode(page: Page): Promise<string> {
 
 /** Types a join code on the Teams screen and waits for the team to appear. */
 export async function joinWithCode(page: Page, code: string, teamName: string): Promise<void> {
+  await page.getByRole('button', { name: 'Join with code' }).click()
   await page.getByPlaceholder('Join code').fill(code)
-  await page.getByRole('button', { name: 'Join' }).click()
+  await page.getByRole('button', { name: 'Join', exact: true }).click()
   await expect(page.getByTestId('team-list')).toContainText(teamName)
 }
 

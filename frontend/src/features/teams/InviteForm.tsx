@@ -26,7 +26,7 @@ export function InviteForm({ teamId }: InviteFormProps) {
 
   return (
     <form onSubmit={handleInvite} className="flex max-w-sm w-full flex-col gap-2">
-      <h3>Invite</h3>
+      <h3 className="section-label">Invite</h3>
       <input
         className="field"
         type="email"

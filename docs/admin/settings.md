@@ -28,7 +28,7 @@ Everything an admin can tune lives in settings tables, edited in the PocketBase 
 | `max_video_mb` | `200` | Largest video file, in MB. | Plan 5 (media upload) |
 | `max_audio_mb` | `50` | Largest audio file, in MB. | Plan 5 (media upload) |
 | `max_image_mb` | `50` | Largest image file, in MB. | Plan 5 (media upload) |
-| `allowed_types` | `["wav","mp3","jpeg","png"]` | File types that can be uploaded. Video is off by decision (plan node-links): large uploads did not finish through Funnel, and writers link a video instead. Add `mov` and `mp4` to switch it back on. | Plan 5 (media upload), node-links |
+| `allowed_types` | `["wav","mp3","ogg","m4a","opus","jpeg","png"]` | File types that can be uploaded. Video is off by decision (plan node-links): large uploads did not finish through Funnel, and writers link a video instead. Add `mov` and `mp4` to switch it back on. | Plan 5 (media upload), node-links |
 | `total_warning_bytes` | `21474836480` (20 GB) | The disk-usage warning: when all uploaded files together pass this many bytes, you are warned. The job `kwnto_storage_check` runs every hour; it writes a `storage` entry to the security log and, if outgoing mail is set up, mails every admin account. At most one warning a day. `0` turns the warning off. It counts uploaded files only; watch the VM's own free space with `df -h` and the Proxmox dashboard. | Plan 6 (deployment) |
 
 ## `system_behavior`

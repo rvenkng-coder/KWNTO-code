@@ -35,7 +35,7 @@ export function LinksSection({ node }: { node: StoryNode }) {
   }
 
   return (
-    <div data-testid="links-section" className="flex flex-col gap-2 border-t border-border pt-2">
+    <div data-testid="links-section" className="flex flex-col gap-2 border-t border-border pt-4">
       <h4 className="text-sm font-semibold">Links and other material</h4>
 
       <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-1">

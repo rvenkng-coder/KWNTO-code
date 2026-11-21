@@ -24,7 +24,7 @@ export function contentFromFile(file: ProjectFile, projectId: string): ProjectCo
   const base = { projectId, version: 0 }
   const chapters: Chapter[] = file.chapters.map((c) => ({ ...base, id: c.id, title: c.title, position: c.position, deleted: false, deletedAt: null }))
   const nodes: StoryNode[] = file.nodes.map((n) => ({
-    ...base, id: n.id, chapterId: n.chapter, title: n.title, color: n.color as NodeColor, x: n.x, y: n.y, deleted: false, deletedAt: null,
+    ...base, id: n.id, chapterId: n.chapter, title: n.title, color: n.color as NodeColor, x: n.x, y: n.y, width: 0, height: 0, deleted: false, deletedAt: null,
   }))
   const lines: ScriptLine[] = file.lines.map((l) => ({ ...base, id: l.id, nodeId: l.node, character: l.character, text: l.text, sortOrder: l.sortOrder }))
   const cues: Cue[] = file.cues.map((q) => ({ ...base, id: q.id, nodeId: q.node, type: q.type as Cue['type'], text: q.text, sortOrder: q.sortOrder }))

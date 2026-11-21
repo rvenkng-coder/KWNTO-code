@@ -24,7 +24,7 @@ test('set sends only the changed preference', async () => {
   const { pb, update } = fakePb()
   const result = await createPreferences(pb).set({ minimapVisible: false })
   expect(update).toHaveBeenCalledWith(ROW.id, { minimap_visible: false })
-  expect(result).toEqual({ theme: 'dark', minimapVisible: false })
+  expect(result).toEqual({ theme: 'dark', minimapVisible: false, cardFontSize: 0 })
 })
 
 // Protects: the row is found by the signed-in user id, never by a guess.
@@ -33,7 +33,7 @@ test('get finds the signed-in user\'s row and maps it', async () => {
   const prefs = await createPreferences(pb).get()
   expect(filter).toHaveBeenCalledWith('user = {:user}', { user: 'user1' })
   expect(getFirstListItem).toHaveBeenCalledOnce()
-  expect(prefs).toEqual({ theme: 'dark', minimapVisible: true })
+  expect(prefs).toEqual({ theme: 'dark', minimapVisible: true, cardFontSize: 0 })
 })
 
 // Protects: callers see one error type from the door, not the SDK error.
@@ -42,4 +42,11 @@ test('a failed call rejects with a BackendError, not the raw SDK error', async (
   const err = await createPreferences(pb).get().catch((e: unknown) => e)
   expect(err).not.toBeInstanceOf(ClientResponseError)
   expect((err as { kind?: string }).kind).toBeDefined()
+})
+
+// Protects: the card font size is saved on its own and a size never chosen reads as 0 (the default).
+test('set sends the card font size alone', async () => {
+  const { pb, update } = fakePb()
+  await createPreferences(pb).set({ cardFontSize: 16 })
+  expect(update).toHaveBeenCalledWith(ROW.id, { card_font_size: 16 })
 })

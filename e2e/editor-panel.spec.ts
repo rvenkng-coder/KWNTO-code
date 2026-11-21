@@ -45,7 +45,9 @@ test('script lines keep their text, characters and order', async ({ page }) => {
     await typeAndSave(page, lineText(page, i), text, 'script_lines')
   }
   const moved = waitForSave(page, 'script_lines', 'PATCH')
-  await lineRows(page).nth(2).getByRole('button', { name: 'Move up' }).click()
+  // Rows are reordered by dragging the grip; Alt+Up on the focused grip is the keyboard way.
+  await lineRows(page).nth(2).getByRole('button', { name: 'Drag line' }).focus()
+  await page.keyboard.press('Alt+ArrowUp')
   await moved
   await page.reload()
   await readyCanvas(page, 1)

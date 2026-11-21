@@ -36,7 +36,7 @@ export function NodeFields({ node }: { node: StoryNode }) {
   const isStart = useEditor((s) => s.content.project?.startNodeId === node.id)
   const makeStart = () => void edits.update('projects', node.projectId, { startNodeId: node.id }, 'Make start node')
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4 [&>section]:border-t [&>section]:border-border [&>section]:pt-4">
       <label className="flex flex-col gap-1">
         <span className="flex items-baseline gap-2">Title <EditingBadge nodeId={node.id} field="title" /></span>
         <input className="field" value={title} onChange={(e) => setTitle(e.target.value)} {...presenceFocus(node.id, 'title')}

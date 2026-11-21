@@ -19,21 +19,19 @@ interface TeamDetailProps {
 function OwnerPanel({
   teamId,
   settings,
-  onDelete,
   onToggle,
   onRegenerate,
   onError,
 }: {
   teamId: string
   settings: TeamSettings | null
-  onDelete: () => void
   onToggle: (enabled: boolean) => void
   onRegenerate: (code: string) => void
   onError: (msg: string) => void
 }) {
   return (
     <div className="panel flex flex-col gap-3">
-      <h3>Join Code</h3>
+      <h3 className="section-label">Join code</h3>
       {settings && (
         <JoinCodeRow
           settings={settings}
@@ -57,7 +55,6 @@ function OwnerPanel({
         />
       )}
       <InviteForm teamId={teamId} />
-      <button className="btn-danger self-start" onClick={onDelete}>Delete team</button>
     </div>
   )
 }
@@ -117,25 +114,45 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
     }
   }
 
+  const [projectCount, setProjectCount] = useState<number | null>(null)
   return (
-    <div className="flex flex-col gap-3">
-      <button className="btn self-start" onClick={onBack}>← Back</button>
-      <h2>{team?.name ?? 'Team'}</h2>
+    <div className="flex flex-col gap-4">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-muted">
+        <button type="button" className="link-button" onClick={onBack}>Teams</button>
+        <span aria-hidden="true">/</span>
+        <span>{team?.name ?? 'Team'}</span>
+      </nav>
+      <header className="flex flex-col">
+        <h2 className="text-2xl">{team?.name ?? 'Team'}</h2>
+        <p className="text-sm text-muted">
+          {projectCount !== null && `${projectCount} ${projectCount === 1 ? 'project' : 'projects'} · `}
+          {members.length} {members.length === 1 ? 'member' : 'members'}
+        </p>
+      </header>
       {error && <p data-testid="form-error" role="alert">{error}</p>}
-      <MemberList members={members} isOwner={isOwner} loaded={loaded} onRemove={handleRemoveMember} />
-      {team !== null && <ProjectList key={`projects-${projectsVersion}`} teamId={teamId} isOwner={isOwner} onTrashed={refreshProjects} />}
-      {team !== null && <ImportProject teamId={teamId} />}
-      {team !== null && isOwner && <TeamTrash key={`trash-${projectsVersion}`} teamId={teamId} onRestored={refreshProjects} />}
-      {isOwner && (
-        <OwnerPanel
-          teamId={teamId}
-          settings={settings}
-          onDelete={handleDeleteTeam}
-          onToggle={(enabled) => setSettings((s) => (s ? { ...s, joinCodeEnabled: enabled } : null))}
-          onRegenerate={(code) => setSettings((s) => (s ? { ...s, joinCode: code } : null))}
-          onError={setError}
-        />
-      )}
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="flex min-w-0 flex-col gap-4">
+          {team !== null && (
+            <ProjectList key={`projects-${projectsVersion}`} teamId={teamId} isOwner={isOwner} onTrashed={refreshProjects} onCount={setProjectCount}>
+              <ImportProject teamId={teamId} />
+            </ProjectList>
+          )}
+          {team !== null && isOwner && <TeamTrash key={`trash-${projectsVersion}`} teamId={teamId} onRestored={refreshProjects} />}
+        </div>
+        <aside className="flex flex-col gap-4">
+          <MemberList members={members} isOwner={isOwner} loaded={loaded} onRemove={handleRemoveMember} />
+          {isOwner && (
+            <OwnerPanel
+              teamId={teamId}
+              settings={settings}
+              onToggle={(enabled) => setSettings((s) => (s ? { ...s, joinCodeEnabled: enabled } : null))}
+              onRegenerate={(code) => setSettings((s) => (s ? { ...s, joinCode: code } : null))}
+              onError={setError}
+            />
+          )}
+          {isOwner && <button type="button" className="btn-quiet self-start text-danger" onClick={handleDeleteTeam}>Delete team</button>}
+        </aside>
+      </div>
     </div>
   )
 }

@@ -46,8 +46,9 @@ test('the join notice clears on the next action', async ({ page, browser }) => {
   const page2 = await browser.newPage()
   await page2.goto('/')
   await signUpVerifyAndSignIn(page2, uniqueEmail(), 'Member')
+  await page2.getByRole('button', { name: 'Join with code' }).click()
   await page2.getByPlaceholder('Join code').fill(joinCode)
-  await page2.getByRole('button', { name: 'Join' }).click()
+  await page2.getByRole('button', { name: 'Join', exact: true }).click()
 
   // The join notice should be visible
   await expect(page2.getByText(/^Joined Crew 7\.$/)).toBeVisible({ timeout: 10_000 })

@@ -5,29 +5,31 @@ import { edits } from '../store/edits'
 import { EditingBadge } from '../../presence/EditingBadge'
 import { presenceFocus } from '../../presence/usePresence'
 import { useSavedText } from '../store/useSavedText'
+import { ToolButton } from '../canvas/ToolButton'
+import { CARD } from './RowControls'
 
-/** One choice of the selected node: its text, where it leads, and Link or Re-link, Unlink and Delete. */
+/** One choice of the selected node: its text, where it leads, and the Link or Re-link, Unlink and Delete icons. */
 export function ChoiceRow({ choice, autoFocus }: { choice: Connection; autoFocus: boolean }) {
   const [text, setText, flush] = useSavedText('connections', choice.id, 'label', choice.label)
   const target = useEditor((s) => (choice.toNodeId === null ? undefined : s.content.nodes[choice.toNodeId]))
   const linked = choice.toNodeId !== null
   const marks = presenceFocus(choice.fromNodeId, `choice:${choice.id}`)
   return (
-    <li data-testid="panel-choice" className="flex flex-col gap-1 border-b border-border pb-2">
+    <li data-testid="panel-choice" className={`${CARD} border-border`}>
       <EditingBadge nodeId={choice.fromNodeId} field={`choice:${choice.id}`} />
-      <input className="field" aria-label="Choice text" placeholder="Choice text" autoFocus={autoFocus}
-        value={text} onChange={(e) => setText(e.target.value)} onFocus={marks.onFocus} onBlur={() => {
-          marks.onBlur()
-          flush()
-        }} />
-      <p className="text-muted">{linked ? `Linked → ${target?.title || 'Untitled'}` : 'Not linked'}</p>
-      <div className="flex gap-1">
-        <button type="button" className="btn-quiet" onClick={() => useLinkMode.getState().start(choice.id)}>{linked ? 'Re-link' : 'Link'}</button>
+      <div className="flex items-center gap-1">
+        <input className="field min-w-0 flex-1" aria-label="Choice text" placeholder="Choice text" autoFocus={autoFocus}
+          value={text} onChange={(e) => setText(e.target.value)} onFocus={marks.onFocus} onBlur={() => {
+            marks.onBlur()
+            flush()
+          }} />
+        <ToolButton icon="link" name={linked ? 'Re-link' : 'Link'} align="end" onClick={() => useLinkMode.getState().start(choice.id)} />
         {linked && (
-          <button type="button" className="btn-quiet" onClick={() => void edits.update('connections', choice.id, { toNodeId: null }, 'Unlink choice')}>Unlink</button>
+          <ToolButton icon="unlink" name="Unlink" align="end" onClick={() => void edits.update('connections', choice.id, { toNodeId: null }, 'Unlink choice')} />
         )}
-        <button type="button" className="btn-danger" onClick={() => void edits.remove('connections', choice.id, 'Delete choice')}>Delete</button>
+        <ToolButton icon="trash" name="Delete" danger align="end" onClick={() => void edits.remove('connections', choice.id, 'Delete choice')} />
       </div>
+      <p className="text-muted">{linked ? `Linked → ${target?.title || 'Untitled'}` : 'Not linked'}</p>
     </li>
   )
 }

@@ -192,7 +192,7 @@ Select a node and scroll to **Comments** at the bottom of its panel. Comments ar
 
 You can attach audio and images to a node. They appear in the properties panel under **Media**:
 
-- **Allowed types:** audio (WAV, MP3) and images (JPEG, PNG). Video files are not accepted for now; add a link to the video instead.
+- **Allowed types:** audio (WAV, MP3, OGG, M4A, OPUS) and images (JPEG, PNG). Video files are not accepted for now; add a link to the video instead.
 - **Add media:** choose **Add media** to upload a file. The server checks the file's real type (by its first bytes, not just its extension), size limits and your quota.
 - **In-place playback:** audio plays right in the panel with controls, and images show thumbnail previews.
 - **Storage belongs to the team owner.** Everything uploaded in a team's projects counts against the owner's quota, whoever uploads it. The meter shows the owner's storage (e.g. `Team storage: 1 KB of 2.0 GB used`), the same for every member. Trashed nodes still count until they are purged.

@@ -153,3 +153,7 @@
   --xy-selection-border: 1px dotted var(--color-accent);
   --xy-attribution-background-color: transparent;
 }
+/* Bigger connection points (16 px, centred on the card edge) so a link is easy to start and to drop on. */
+.kwnto-canvas .react-flow__handle { width: 16px; height: 16px; }
+.kwnto-canvas .react-flow__handle-left { left: -8px; }
+.kwnto-canvas .react-flow__handle-right { right: -8px; }

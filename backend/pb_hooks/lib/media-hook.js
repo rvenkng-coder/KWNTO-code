@@ -152,6 +152,9 @@ function applyDownloadHeaders(response, name) {
   const contentTypes = {
     wav: "audio/wav",
     mp3: "audio/mpeg",
+    ogg: "audio/ogg",
+    opus: "audio/ogg",
+    m4a: "audio/mp4",
     mov: "video/quicktime",
     mp4: "video/mp4",
     jpg: "image/jpeg",

@@ -33,7 +33,7 @@ const READERS: { [K in ContentKind]: (r: Raw) => ContentRecords[K] } = {
   }),
   nodes: (r) => ({
     id: text(r.id), projectId: text(r.project), chapterId: text(r.chapter), title: text(r.title),
-    color: color(r.color), x: num(r.x), y: num(r.y), deleted: trashed(r.deleted_at), deletedAt: deletedAt(r.deleted_at), version: num(r.version),
+    color: color(r.color), x: num(r.x), y: num(r.y), width: num(r.width), height: num(r.height), deleted: trashed(r.deleted_at), deletedAt: deletedAt(r.deleted_at), version: num(r.version),
   }),
   script_lines: (r) => ({
     id: text(r.id), projectId: text(r.project), nodeId: text(r.node), character: text(r.character),
@@ -65,7 +65,7 @@ const EDITABLE: { [K in ContentKind]: ReadonlyArray<keyof EditableFields[K]> } =
   projects: ['name', 'startNodeId'],
   project_settings: ['analyticsEnabled'],
   chapters: ['title', 'position'],
-  nodes: ['title', 'color', 'x', 'y'],
+  nodes: ['title', 'color', 'x', 'y', 'width', 'height'],
   script_lines: ['character', 'text', 'sortOrder'],
   cues: ['type', 'text', 'sortOrder'],
   connections: ['label', 'toNodeId'],

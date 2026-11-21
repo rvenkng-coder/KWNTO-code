@@ -80,6 +80,7 @@ Asked for while the editor tabs plan was designed and left out of it on purpose.
 |---|---|
 | Custom node colours (hex or RGB) | Change `nodes.color` from an 8-value select to a validated hex text field, and pick black or white header text by contrast so it stays readable. |
 | Duplicate chapter | Copy nodes, lines, cues and connections, and decide what happens to cross-chapter links. |
+| Offline media upload queue (developer, 2026-11-21) | Keep a chosen audio, video or image file in the browser (IndexedDB blobs) while offline and send it when the connection is back, as edits are today. For now uploads are disabled while the editor is offline (design 6.7, media plan D9). To decide first: the browser's storage quota and eviction; a local preview and an "uploading when online" state; sending after the node it belongs to exists; the server can still refuse the file hours later (team quota, file checks, a trashed node), so the failed list must explain it; many tabs and sign-out with files waiting. About the size of the offline sync plan. |
 
 ## UI problems found after the editor cards plan (developer, 2026-11-18)
 

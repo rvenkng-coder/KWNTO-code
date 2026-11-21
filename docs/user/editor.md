@@ -198,7 +198,7 @@ You can attach audio, video and images to a node. They appear in the properties 
 - **Storage belongs to the team owner.** Everything uploaded in a team's projects counts against the owner's quota, whoever uploads it. The meter shows the owner's storage (e.g. `Team storage: 1 KB of 2.0 GB used`), the same for every member. Trashed nodes still count until they are purged.
 - **Remove media:** any member can choose **Remove** on an item. The panel asks first (`Remove <title> from this node? The team lead can bring it back.`). The file disappears for everyone, but it still uses the owner's storage; members cannot delete it.
 - **Restore or delete for good (team owner only):** the owner sees the removed files under **Removed by the team**, and can choose **Restore** or **Delete for good** (asks first, cannot be undone). Only deleting for good frees the space.
-- **Offline:** uploads require an active internet connection. When offline, **Add media** is disabled and a message explains that uploads need a connection. Files your teammates add or remove while you are offline show up when you are back online, without a reload.
+- **Offline:** uploads require an active internet connection (the editor's own connection, so also when the top bar says `Offline` while the browser itself is online). When offline, **Add media** is disabled and a message explains that uploads need a connection. Files your teammates add or remove while you are offline show up when you are back online, without a reload.
 
 ## Working offline
 

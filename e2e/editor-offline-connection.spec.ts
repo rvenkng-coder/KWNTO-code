@@ -108,3 +108,25 @@ test('edits made offline undo one step at a time after reconnecting', async ({ p
   await page.waitForTimeout(1500)
   await expect(cards(page)).toHaveCount(2)
 })
+
+// Protects the developer's decision (2026-11-21, media plan D9): media uploads are never queued, so the
+// upload button is disabled while the editor is offline, also when only the live connection is down and
+// the browser still says online; no red banner is shown for it, and the button works again afterwards.
+test('media uploads are disabled while the editor is offline', async ({ page }) => {
+  const id = await projectWithNode(page)
+  await card(page, id).click()
+  const add = page.getByTestId('editor-panel').getByLabel('Add media')
+  await expect(add).toBeEnabled()
+  await page.route('**/api/collections/**', (route) => route.abort())
+  await cutStream(page)
+  await expect(syncStatus(page)).toContainText('Offline', { timeout: 5000 })
+  await expect(add).toBeDisabled()
+  await expect(page.getByTestId('editor-panel')).toContainText('Uploads need a connection')
+  await expect(page.getByTestId('editor-panel').getByRole('alert')).toHaveCount(0)
+
+  await page.unroute('**/api/collections/**')
+  await page.unroute(STREAM)
+  await expect(syncStatus(page)).toHaveCount(0, { timeout: 10000 })
+  await expect(add).toBeEnabled()
+})
+

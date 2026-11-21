@@ -43,10 +43,7 @@ export function TeamsScreen() {
           ? (
             <div className="flex flex-col items-center gap-2 rounded-[var(--radius-lg)] border border-dashed border-border p-8 text-center">
               <p className="font-semibold">You are not in a team yet</p>
-              <p className="text-muted">Create a team, or join one with a code from a teammate.</p>
-              <div className="flex gap-2">
-                <button type="button" className="btn-primary" onClick={create} disabled={!user.verified}>Create team</button>
-              </div>
+              <p className="text-muted">Use the buttons above to create a team, or to join one with a code from a teammate.</p>
             </div>
           )
           : (

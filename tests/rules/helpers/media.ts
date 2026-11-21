@@ -82,3 +82,11 @@ export async function setStorageSetting(field: string, value: unknown): Promise<
     await admin.collection('system_storage').update(record.id, { [field]: previous })
   }
 }
+
+// Deletes every media record. Other rule files (video-off) count the whole table, so a file that
+// uploads media cleans up after itself.
+export async function deleteAllMedia(): Promise<void> {
+  const admin = await asAdmin()
+  for (const row of await admin.collection('media').getFullList()) await admin.collection('media').delete(row.id)
+}
+

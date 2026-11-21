@@ -13,7 +13,7 @@ import type { EditorDoor, EditorStore } from './editorStore'
 export const SAVE_FAILED = 'Could not save this change.'
 
 type Set = (partial: Partial<EditorStore> | ((s: EditorStore) => Partial<EditorStore>)) => void
-type Waiter = { finish(ok: boolean): void; undo(s: ContentState): ContentState }
+type Waiter = { finish(ok: boolean): void; undo(s: ContentState): ContentState; early: boolean; onLate?: () => void }
 
 const REMOVABLE: ReadonlySet<ContentKind> = new Set<RemovableKind>(['script_lines', 'cues', 'connections'])
 
@@ -90,23 +90,35 @@ function createHooks(c: Ctx): SyncHooks {
       for (const w of [...list].reverse()) {
         c.edit(w.undo)
         w.finish(false)
+        if (w.early) w.onLate?.()
       }
       c.set({ error: errorMessage(error, SAVE_FAILED) })
     },
     theirs(entry, server) {
       if (inProject(c, entry)) c.edit(showRecord(entry.kind, entry.id, server))
-      for (const w of c.waiters.take(entry.seq, false)) w.finish(false)
+      for (const w of c.waiters.take(entry.seq, false)) {
+        w.finish(false)
+        if (w.early) w.onLate?.()
+      }
     },
   }
 }
 
 // Hands one edit to the outbox; resolves true when the server accepted it, false when it was refused.
+// While the engine is offline the edit resolves true as soon as it is STORED in the outbox (plan 7
+// Task 7, D15): nothing can answer it until the connection is back, and an undo group that waited for
+// an answer would stay open and swallow every later edit into one step. If the server refuses it after
+// the reconnect, the waiter still takes the change back from the screen and shows the error, and
+// calls `onLate` so the caller can take the step it recorded out of the undo history.
 function createSubmit(c: Ctx, sync: EditorSyncPort) {
-  return (entry: EngineEntry, undo: (s: ContentState) => ContentState): Promise<boolean> => {
+  return (entry: EngineEntry, undo: (s: ContentState) => ContentState, onLate?: () => void): Promise<boolean> => {
     c.set((st) => ({ saving: st.saving + 1 }))
+    const offline = sync.snapshot()?.online === false
     return new Promise<boolean>((resolve) => {
       const waiter: Waiter = {
         undo,
+        early: false,
+        onLate,
         finish(ok) {
           c.set((st) => ({ saving: st.saving - 1 }))
           resolve(ok)
@@ -115,7 +127,14 @@ function createSubmit(c: Ctx, sync: EditorSyncPort) {
       const answered = (ok: boolean, w: Waiter) => (ok ? w.finish(true) : (c.edit(w.undo), w.finish(false)))
       c.waiters.begin()
       sync.add(entry).then(
-        (seq) => (seq === 0 ? waiter.finish(true) : c.waiters.attach(seq, waiter, answered)),
+        (seq) => {
+          if (seq === 0) return waiter.finish(true)
+          c.waiters.attach(seq, waiter, answered)
+          if (offline) {
+            waiter.early = true
+            resolve(true)
+          }
+        },
         (err: unknown) => {
           c.edit(undo)
           c.set({ error: errorMessage(err, SAVE_FAILED) })
@@ -133,31 +152,35 @@ export function createEdits(door: EditorDoor, sync: EditorSyncPort, set: Set, ge
   const submit = createSubmit(c, sync)
 
   return {
-    create(kind, record) {
+    create(kind, record, onLate) {
       edit((s) => putRecord(s, kind, record))
-      return submit({ projectId: record.projectId, op: 'create', kind, id: record.id, record }, (s) => dropRecord(s, kind, record.id))
+      return submit({ projectId: record.projectId, op: 'create', kind, id: record.id, record }, (s) => dropRecord(s, kind, record.id), onLate)
     },
 
-    update(kind, id, changes) {
+    update(kind, id, changes, onLate) {
       const before = getRecord(get().content, kind, id)
       const projectId = get().content.project?.id
       if (before === undefined || projectId === undefined) return Promise.resolve(false)
       const keys = Object.keys(changes)
-      const after = { ...before, ...changes }
+      // The server stamps the trash time (plan 7 D11); until it answers, a record that just
+      // changed its trash state has no time here (the trash lists it as "just now").
+      const stamp = 'deleted' in changes ? { deletedAt: null } : {}
+      const after = { ...before, ...changes, ...stamp }
       edit((s) => putRecord(s, kind, after))
       const snapshot = REMOVABLE.has(kind) ? (after as ContentRecords[RemovableKind]) : null
       return submit(
         { projectId, op: 'update', kind, id, changes, baseVersion: before.version, baseValues: pick(before, keys), snapshot },
         (s) => restoreFields(s, kind, id, before, keys),
+        onLate,
       )
     },
 
-    remove(kind, id) {
+    remove(kind, id, onLate) {
       const before = getRecord(get().content, kind, id)
       const projectId = get().content.project?.id
       if (before === undefined || projectId === undefined) return Promise.resolve(false)
       edit((s) => dropRecord(s, kind, id))
-      return submit({ projectId, op: 'remove', kind, id, record: before }, (s) => putRecord(s, kind, before))
+      return submit({ projectId, op: 'remove', kind, id, record: before }, (s) => putRecord(s, kind, before), onLate)
     },
   }
 }

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, type KeyboardEvent } from 'react'
 import type { ScriptLine } from '../../../backend'
 import { characterSuggestions } from '../model/characters'
+import { EditingBadge } from '../../presence/EditingBadge'
+import { presenceFocus } from '../../presence/usePresence'
 import { useSavedText } from '../store/useSavedText'
 
 export interface LineRowProps {
@@ -24,6 +26,8 @@ export function ScriptLineRow({ line, allLines, focus, onFocused, onEnter, onBac
   const textRef = useRef<HTMLTextAreaElement>(null)
   const names = useMemo(() => characterSuggestions(allLines, who), [allLines, who])
   const listId = `characters-${line.id}`
+  const field = `line:${line.id}`
+  const marks = presenceFocus(line.nodeId, field)
 
   useEffect(() => {
     if (!focus) return
@@ -44,11 +48,18 @@ export function ScriptLineRow({ line, allLines, focus, onFocused, onEnter, onBac
 
   return (
     <li data-testid="line-row" className="flex flex-col gap-1 border-b border-border pb-2">
+      <EditingBadge nodeId={line.nodeId} field={field} />
       <input className="field" aria-label="Character" placeholder="Character" value={who} list={listId}
-        onChange={(e) => setWho(e.target.value)} onBlur={flushWho} />
+        onChange={(e) => setWho(e.target.value)} onFocus={marks.onFocus} onBlur={() => {
+          marks.onBlur()
+          flushWho()
+        }} />
       <datalist id={listId}>{names.map((n) => <option key={n} value={n} />)}</datalist>
       <textarea ref={textRef} className="field" aria-label="Line text" placeholder="Line" rows={2} value={text}
-        onChange={(e) => setText(e.target.value)} onBlur={flushText} onKeyDown={onKeyDown} />
+        onChange={(e) => setText(e.target.value)} onFocus={marks.onFocus} onBlur={() => {
+          marks.onBlur()
+          flushText()
+        }} onKeyDown={onKeyDown} />
       <div className="flex gap-1">
         <button type="button" className="btn-quiet" disabled={isFirst} onClick={() => onMove(-1)}>Move up</button>
         <button type="button" className="btn-quiet" disabled={isLast} onClick={() => onMove(1)}>Move down</button>

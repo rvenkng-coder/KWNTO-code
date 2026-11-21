@@ -4,6 +4,9 @@ import { createProject, guardedUpdate, readAsAdmin } from './helpers/content.ts'
 import { asAnonymous, asUser, createTeam, createUser, type TestUser } from './helpers/pb.ts'
 import { addMember, expectCreateRefused } from './helpers/teams.ts'
 
+// The server stamps its own trash time (Plan 7 D11); the browser's value is ignored.
+const nearNow = (t: unknown) => Math.abs(Date.parse(String(t).replace(' ', 'T')) - Date.now()) < 10_000
+
 // Protects design section 5 (teams own projects and everything in them; any member edits
 // chapters; only the owner deletes a project) and docs/security.md section 2 (deny by
 // default). Chapters are the first collection checked against the version guard
@@ -83,7 +86,9 @@ test('members create, rename and trash chapters', async () => {
 
   const trashed = await guardedUpdate(member, 'chapters', created.id, { version: 1, deleted_at: '2026-11-14 10:00:00.000Z' })
   expect(trashed.status).toBe(200)
-  expect(await readAsAdmin('chapters', created.id)).toMatchObject({ title: 'Act II', deleted_at: '2026-11-14 10:00:00.000Z', version: 2 })
+  const stored = await readAsAdmin('chapters', created.id)
+  expect(stored).toMatchObject({ title: 'Act II', version: 2 })
+  expect(nearNow(stored.deleted_at)).toBe(true)
 
   await expectRefused(pb.collection('chapters').delete(created.id))
   expect(await readAsAdmin('chapters', created.id)).toMatchObject({ version: 2 })

@@ -4,9 +4,19 @@ import { MediaItem } from './MediaItem.tsx'
 import { mediaOf, removedOf } from './mediaList.ts'
 import { RemovedMediaItem } from './RemovedMediaItem.tsx'
 import { StorageMeter } from './StorageMeter.tsx'
+import { useSync } from '../sync/syncStore.ts'
 import { acceptFor } from './uploadCheck.ts'
 import { useOnline } from './useOnline.ts'
 import { useMediaStore } from './useProjectMedia.ts'
+
+// Uploads are never queued (media plan D9, design 6.7), so they need the browser online AND the editor's
+// own connection: with the live stream down or the server unreachable the editor says Offline, and the
+// upload button follows it instead of failing with a banner.
+function useConnected(): boolean {
+  const browserOnline = useOnline()
+  const editorOnline = useSync((s) => s === null || s.online)
+  return browserOnline && editorOnline
+}
 
 export function MediaSection({ node }: { node: StoryNode }) {
   const media = useMediaStore((s) => s.media)
@@ -19,7 +29,12 @@ export function MediaSection({ node }: { node: StoryNode }) {
   const restore = useMediaStore((s) => s.restore)
   const deletePermanently = useMediaStore((s) => s.deletePermanently)
 
-  const isOnline = useOnline()
+  const isOnline = useConnected()
+  // An error caused by going offline (a load or upload that lost the connection) is not shown and is
+  // dropped, so it does not come back as a stale banner after the editor reconnects.
+  useEffect(() => {
+    if (!isOnline) useMediaStore.getState().setError(null)
+  }, [isOnline])
 
   // An error belongs to the node it happened on. Moving to another node clears it; the first
   // render does not, so an error from opening the project stays visible.
@@ -66,7 +81,7 @@ export function MediaSection({ node }: { node: StoryNode }) {
         </p>
       )}
 
-      {error && (
+      {error && isOnline && (
         <div role="alert" className="text-xs text-danger">
           {error}
         </div>

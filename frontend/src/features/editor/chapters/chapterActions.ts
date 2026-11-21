@@ -14,7 +14,7 @@ export async function addChapter(projectId: string, ordered: Chapter[]): Promise
   await edits.group('Add chapter', async () => {
     // A renumber of the other chapters is rare (only after about 50 inserts in one gap).
     if (placement.kind === 'renumber') await renumberOthers(placement.orders, id)
-    await edits.create('chapters', { id, projectId, title: `Chapter ${ordered.length + 1}`, position, deleted: false, version: 0 }, 'Add chapter')
+    await edits.create('chapters', { id, projectId, title: `Chapter ${ordered.length + 1}`, position, deleted: false, deletedAt: null, version: 0 }, 'Add chapter')
   })
   return id
 }

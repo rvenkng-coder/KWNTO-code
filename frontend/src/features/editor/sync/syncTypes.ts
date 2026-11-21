@@ -33,6 +33,8 @@ export interface SyncEngine {
   /** Resolves with the seq once stored; 0 when the edit cancelled waiting work and nothing was stored. */
   add(entry: EngineEntry): Promise<number>
   setOnline(online: boolean): void
+  /** When online and an entry waits on the backoff: send it now and start the backoff again from its first step. */
+  retryNow(): void
   resolve(choice: 'mine' | 'theirs'): Promise<void>
   dismiss(seq: number): Promise<void>
   snapshot(): SyncSnapshot

@@ -14,24 +14,26 @@ const CUE_TYPES: readonly CueType[] = ['audio', 'lighting', 'other']
 const text = (v: unknown): string => (typeof v === 'string' ? v : '')
 const num = (v: unknown): number => (typeof v === 'number' ? v : 0)
 const trashed = (v: unknown): boolean => typeof v === 'string' && v !== ''
+// The trash time as ISO text ("2026-11-20T10:00:00.000Z"), or null when not trashed.
+const deletedAt = (v: unknown): string | null => (trashed(v) ? (v as string).replace(' ', 'T') : null)
 const color = (v: unknown): NodeColor => COLORS.find((c) => c === v) ?? 'slate'
 const cueType = (v: unknown): CueType => CUE_TYPES.find((t) => t === v) ?? 'other'
 
 const READERS: { [K in ContentKind]: (r: Raw) => ContentRecords[K] } = {
   projects: (r) => ({
     id: text(r.id), teamId: text(r.team), name: text(r.name),
-    startNodeId: text(r.start_node) || null, deleted: trashed(r.deleted_at), version: num(r.version),
+    startNodeId: text(r.start_node) || null, deleted: trashed(r.deleted_at), deletedAt: deletedAt(r.deleted_at), version: num(r.version),
   }),
   project_settings: (r) => ({
     id: text(r.id), projectId: text(r.project), analyticsEnabled: r.analytics_enabled === true, version: num(r.version),
   }),
   chapters: (r) => ({
     id: text(r.id), projectId: text(r.project), title: text(r.title), position: num(r.position),
-    deleted: trashed(r.deleted_at), version: num(r.version),
+    deleted: trashed(r.deleted_at), deletedAt: deletedAt(r.deleted_at), version: num(r.version),
   }),
   nodes: (r) => ({
     id: text(r.id), projectId: text(r.project), chapterId: text(r.chapter), title: text(r.title),
-    color: color(r.color), x: num(r.x), y: num(r.y), deleted: trashed(r.deleted_at), version: num(r.version),
+    color: color(r.color), x: num(r.x), y: num(r.y), deleted: trashed(r.deleted_at), deletedAt: deletedAt(r.deleted_at), version: num(r.version),
   }),
   script_lines: (r) => ({
     id: text(r.id), projectId: text(r.project), nodeId: text(r.node), character: text(r.character),

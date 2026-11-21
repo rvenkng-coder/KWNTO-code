@@ -1,4 +1,6 @@
 const ID = /^[a-z0-9]{15}$/
+// A share link's token: 40 letters or digits (plan 2026-11-20-sharing).
+const SHARE_TOKEN = /^[A-Za-z0-9]{40}$/
 // A mail link carries a JWT: three URL-safe parts joined by dots.
 const TOKEN = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/
 
@@ -6,6 +8,7 @@ export type Route =
   | { name: 'teams' }
   | { name: 'team'; teamId: string }
   | { name: 'project'; projectId: string; chapterId: string | null }
+  | { name: 'share'; token: string }
   | { name: 'verify'; token: string }
   | { name: 'reset'; token: string }
 
@@ -29,6 +32,11 @@ function parseProject(parts: string[]): Route | undefined {
   return undefined
 }
 
+function parseShare(parts: string[]): Route | undefined {
+  if (parts[0] !== 's' || parts.length !== 2) return undefined
+  return SHARE_TOKEN.test(parts[1]!) ? { name: 'share', token: parts[1]! } : undefined
+}
+
 function parseMailLink(parts: string[]): Route | undefined {
   const name = parts[0]
   if ((name !== 'verify' && name !== 'reset') || parts.length !== 2) return undefined
@@ -37,7 +45,7 @@ function parseMailLink(parts: string[]): Route | undefined {
 }
 
 function parseSegments(parts: string[]): Route {
-  return parseTeam(parts) ?? parseProject(parts) ?? parseMailLink(parts) ?? FALLBACK
+  return parseTeam(parts) ?? parseProject(parts) ?? parseShare(parts) ?? parseMailLink(parts) ?? FALLBACK
 }
 
 export function parseRoute(hash: string): Route {
@@ -59,6 +67,8 @@ export function routeToHash(route: Route): string {
       return '#/'
     case 'team':
       return `#/team/${route.teamId}`
+    case 'share':
+      return `#/s/${route.token}`
     case 'verify':
       return `#/verify/${route.token}`
     case 'reset':

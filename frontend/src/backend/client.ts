@@ -5,6 +5,12 @@ import { createPreferences } from './preferences'
 import { createProjects } from './projects'
 import { createContent } from './content'
 import { createMedia } from './media'
+import { createAppSettings } from './appSettings'
+import { createProjectFiles } from './projectFiles'
+import { createShares } from './shares'
+import { createComments } from './comments'
+import { createPresence } from './presence'
+import { createRealtime } from './realtime'
 import { createLinks } from './links'
 
 export interface Backend {
@@ -15,6 +21,12 @@ export interface Backend {
   projects: ReturnType<typeof createProjects>
   content: ReturnType<typeof createContent>
   media: ReturnType<typeof createMedia>
+  appSettings: ReturnType<typeof createAppSettings>
+  projectFiles: ReturnType<typeof createProjectFiles>
+  shares: ReturnType<typeof createShares>
+  comments: ReturnType<typeof createComments>
+  presence: ReturnType<typeof createPresence>
+  realtime: ReturnType<typeof createRealtime>
   links: ReturnType<typeof createLinks>
 }
 
@@ -39,6 +51,12 @@ export function createBackend(baseUrl?: string): Backend {
     projects: createProjects(pb),
     content: createContent(pb),
     media: createMedia(pb),
+    appSettings: createAppSettings(pb),
+    projectFiles: createProjectFiles(pb),
+    shares: createShares(pb),
+    comments: createComments(pb),
+    presence: createPresence(pb),
+    realtime: createRealtime(pb),
     links: createLinks(pb),
   }
 }

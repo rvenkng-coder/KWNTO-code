@@ -3,7 +3,7 @@ services:
     build: ./backend
     image: kwnto-pocketbase:dev
     ports:
-      - "127.0.0.1:8091:8090"
+      - "127.0.0.1:${KWNTO_PB_PORT:-8091}:8090"
     # Lets the rule tests point PocketBase's SMTP setting at a fake mail server on the host.
     extra_hosts:
       - "host.docker.internal:host-gateway"

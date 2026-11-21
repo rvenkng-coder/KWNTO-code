@@ -62,7 +62,7 @@ onRecordUpdate((e) => {
     user.refreshTokenKey()
     e.app.save(user)
   } catch (error) {
-    console.error(`block: could not end the sessions of user ${userId}:`, String(error))
+    e.app.logger().error("block: could not end the sessions of a blocked user", "user", userId, "error", String(error))
     throw new ApiError(500, "The account is blocked, but its sessions could not be ended. Sign it out with the sign-out route.")
   }
   logEvent(e.app, "admin", userId, "", { action: "block", reason: e.record.getString("blocked_reason") })
@@ -110,3 +110,9 @@ onRecordUpdate((e) => {
     return record.getString(name)
   }
 }, "system_access", "system_storage", "system_behavior", "user_limits", "user_status")
+
+// Incident control 6 (docs/security.md section 9): every share link stops working at once.
+// A revoked link cannot be un-revoked; people make new links afterwards.
+routerAdd("POST", "/api/kwnto/admin/share-links/revoke-all", (e) => {
+  return require(`${__hooks}/lib/share-routes.js`).handleRevokeAll(e)
+}, $apis.requireSuperuserAuth())

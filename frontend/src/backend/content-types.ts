@@ -4,10 +4,10 @@
 
 export type NodeColor = 'slate' | 'red' | 'orange' | 'amber' | 'green' | 'teal' | 'blue' | 'purple'
 export type CueType = 'audio' | 'lighting' | 'other'
-export interface Project { id: string; teamId: string; name: string; startNodeId: string | null; deleted: boolean; version: number }
+export interface Project { id: string; teamId: string; name: string; startNodeId: string | null; deleted: boolean; deletedAt: string | null; version: number }
 export interface ProjectSettings { id: string; projectId: string; analyticsEnabled: boolean; version: number }
-export interface Chapter { id: string; projectId: string; title: string; position: number; deleted: boolean; version: number }
-export interface StoryNode { id: string; projectId: string; chapterId: string; title: string; color: NodeColor; x: number; y: number; deleted: boolean; version: number }
+export interface Chapter { id: string; projectId: string; title: string; position: number; deleted: boolean; deletedAt: string | null; version: number }
+export interface StoryNode { id: string; projectId: string; chapterId: string; title: string; color: NodeColor; x: number; y: number; deleted: boolean; deletedAt: string | null; version: number }
 export interface ScriptLine { id: string; projectId: string; nodeId: string; character: string; text: string; sortOrder: number; version: number }
 export interface Cue { id: string; projectId: string; nodeId: string; type: CueType; text: string; sortOrder: number; version: number }
 export interface Connection { id: string; projectId: string; fromNodeId: string; toNodeId: string | null; label: string; created: string; version: number }

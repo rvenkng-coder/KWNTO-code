@@ -72,6 +72,17 @@ test('project chapter without an id falls back to teams', () => {
   expect(parseRoute('#/project/abcdefghijk0123/chapter')).toEqual({ name: 'teams' })
 })
 
+// Protects D8: a share address carries a 40-character token of letters and digits and
+// nothing else; a short token, a long one or one with another character is not a share route.
+test('a share hash needs a 40-character token', () => {
+  const token = 'aB3'.repeat(13) + 'x'
+  expect(token).toHaveLength(40)
+  expect(parseRoute(`#/s/${token}`)).toEqual({ name: 'share', token })
+  expect(routeToHash({ name: 'share', token })).toBe(`#/s/${token}`)
+  expect(parseRoute(`#/s/${token.slice(1)}`)).toEqual({ name: 'teams' })
+  expect(parseRoute(`#/s/${token.slice(1)}-`)).toEqual({ name: 'teams' })
+})
+
 // Protects Plan 6 D9 / C1: the verify and reset links carry only a JWT-shaped value (three
 // dot-separated URL-safe parts, at most 2048 characters); anything else is the teams list, so a
 // crafted link cannot put arbitrary text into the route or the request that follows.

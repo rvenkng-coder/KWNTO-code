@@ -22,9 +22,10 @@ export interface EditorStore {
   hasClip: boolean
   open(projectId: string): Promise<void>
   close(): Promise<void>
-  create<K extends CreatableKind>(kind: K, record: ContentRecords[K]): Promise<boolean>
-  update<K extends ContentKind>(kind: K, id: string, changes: Partial<EditableFields[K]>): Promise<boolean>
-  remove(kind: RemovableKind, id: string): Promise<boolean>
+  /** `onLate` runs if the write resolved true while offline (stored, not answered) and the server refused it later. */
+  create<K extends CreatableKind>(kind: K, record: ContentRecords[K], onLate?: () => void): Promise<boolean>
+  update<K extends ContentKind>(kind: K, id: string, changes: Partial<EditableFields[K]>, onLate?: () => void): Promise<boolean>
+  remove(kind: RemovableKind, id: string, onLate?: () => void): Promise<boolean>
   dismissError(): void
 }
 

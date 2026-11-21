@@ -30,7 +30,7 @@ Design 7b and 8: deployment instructions are a deliverable, and real-time must b
 
 ## Checkpoint 6C: Close-out
 
-- [ ] **Step 6: Update the roadmap** (Plan 6 `done`; the carried items from Plans 2, 4 and 5 marked done with the case that showed it, or moved with a reason). Add the test-plan row `Deployment (proxy, headers, rate limits, backups and restore, storage warning) | 7b, 7c | container, rules, unit, manual | covered | 6`.
+- [x] **Step 6: Update the roadmap** (Plan 6 `done`; the carried items from Plans 2, 4 and 5 marked done with the case that showed it, or moved with a reason). Add the test-plan row `Deployment (proxy, headers, rate limits, backups and restore, storage warning) | 7b, 7c | container, rules, unit, manual | covered | 6`.
 - [x] **Step 7: Run** `npm test` and `npm run check:docs`. Expected: PASS. **Close checkpoint 6C** (commit `docs: close the deployment plan`). The whole-branch review follows; it is not part of this task.
 
 ## Test plan

@@ -95,7 +95,7 @@ The roadmap's "Decide first" items and calls where the spec is silent. Each is c
 | 3 | [Mail links and the verify and reset screens](task-3-mail-links.md) | strong | 1 | 3A 3B 3C | done |
 | 4 | [Backups and a tested restore](task-4-backups-restore.md) | strong | 2 | 4A 4B | done |
 | 5 | [The disk-usage warning](task-5-storage-warning.md) | mid (5A local) | 2 | 5A 5B | done |
-| 6 | [Deployment guide, the walk on the VM and close-out](task-6-guide-closeout.md) | mid | 1 to 5 | 6A 6B 6C | awaiting review |
+| 6 | [Deployment guide, the walk on the VM and close-out](task-6-guide-closeout.md) | mid | 1 to 5 | 6A 6B 6C | done |
 
 **Status values:** `not started`, `in progress`, `awaiting review`, `done`. Run tasks one at a time (implementers never run in parallel). Tasks 3 and 4 do not depend on each other and may be taken in either order.
 

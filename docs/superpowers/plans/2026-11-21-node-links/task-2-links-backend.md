@@ -20,18 +20,18 @@ Part of the [plan](README.md). **Read the router first:** its Global Constraints
 
 ## Checkpoint 2A: the address check (pure)
 
-- [ ] **Step 1: Write failing tests** `tests/hooks/link-check.unit.test.ts` (Test plan C1 to C3).
-- [ ] **Step 2: Run, expect FAIL**: `npx vitest run tests/hooks/link-check.unit.test.ts`.
-- [ ] **Step 3: Implement `checkLinkUrl`**. PocketBase's JS runtime has no `URL` class, so use the regex. Write these two lines exactly (breaks target them):
+- [x] **Step 1: Write failing tests** `tests/hooks/link-check.unit.test.ts` (Test plan C1 to C3).
+- [x] **Step 2: Run, expect FAIL**: `npx vitest run tests/hooks/link-check.unit.test.ts`.
+- [x] **Step 3: Implement `checkLinkUrl`**. PocketBase's JS runtime has no `URL` class, so use the regex. Write these two lines exactly (breaks target them):
   `const MAX_LENGTH = 2000` and `const WEB_ADDRESS = /^(https?):\/\/([^\s\/?#@\\]+)([\/?#]\S*)?$/i`. Order of checks: trim; empty (`link_url_empty`); longer than `MAX_LENGTH` (`link_url_too_long`); matches `WEB_ADDRESS` (ok). Otherwise choose the refusal: if the trimmed text starts with `http://` or `https://` (case-insensitive) it is `link_url_invalid` (this covers `https://`, a space in the address and a user name in front); else if it starts with `//` or with a scheme (`/^[a-z][a-z0-9+.-]*:/i`) it is `link_url_scheme`; else `link_url_invalid`.
-- [ ] **Step 4: Run, expect PASS. Commit** `feat: the link address check`.
+- [x] **Step 4: Run, expect PASS. Commit** `feat: the link address check`.
 
 ## Checkpoint 2B: collection, hook, rules
 
-- [ ] **Step 1: Write failing rules tests** `tests/rules/node_links.rules.test.ts` using the helpers `memberProject`, `createNode`, `asUser`, `asAdmin`, `createUser`, `addMember` as `media.rules.test.ts` does; clean the collection in `afterEach` as it does (C4 to C9).
-- [ ] **Step 2: Run, expect FAIL** (collection missing): `npm run test:rules -- tests/rules/node_links.rules.test.ts`.
-- [ ] **Step 3: Write the migration** `1794400100_node_links.js` (pattern: `1794380000_media.js`). Write `links.pb.js` with `onRecordCreate((e) => { ... }, "node_links")` that requires `${__hooks}/lib/link-check.js`, runs `checkLinkUrl(e.record.getString("url"))`, on failure throws `new BadRequestError(message, { url: new ValidationError(code, message) })`, and on success sets the record's `url` to the trimmed value and its `title` to the trimmed title; then `e.next()`.
-- [ ] **Step 4: Run, expect PASS**: `npm run test:rules`, `npm run test:unit`. Close the checkpoint (one commit).
+- [x] **Step 1: Write failing rules tests** `tests/rules/node_links.rules.test.ts` using the helpers `memberProject`, `createNode`, `asUser`, `asAdmin`, `createUser`, `addMember` as `media.rules.test.ts` does; clean the collection in `afterEach` as it does (C4 to C9).
+- [x] **Step 2: Run, expect FAIL** (collection missing): `npm run test:rules -- tests/rules/node_links.rules.test.ts`.
+- [x] **Step 3: Write the migration** `1794400100_node_links.js` (pattern: `1794380000_media.js`). Write `links.pb.js` with `onRecordCreate((e) => { ... }, "node_links")` that requires `${__hooks}/lib/link-check.js`, runs `checkLinkUrl(e.record.getString("url"))`, on failure throws `new BadRequestError(message, { url: new ValidationError(code, message) })`, and on success sets the record's `url` to the trimmed value and its `title` to the trimmed title; then `e.next()`.
+- [x] **Step 4: Run, expect PASS**: `npm run test:rules`, `npm run test:unit`. Close the checkpoint (one commit).
 
 ## Test plan
 

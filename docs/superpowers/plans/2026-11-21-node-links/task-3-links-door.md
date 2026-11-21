@@ -19,17 +19,17 @@ Part of the [plan](README.md). **Read the router first:** its Global Constraints
 
 ## Checkpoint 3A: the client check (pure)
 
-- [ ] **Step 1: Write failing tests** `linkCheck.test.ts` (C1 to C3).
-- [ ] **Step 2: Run, expect FAIL**: `npx vitest run frontend/src/features/editor/links/linkCheck.test.ts`.
-- [ ] **Step 3: Implement** the three functions. Write these two lines exactly (breaks target them): `const MAX_LENGTH = 2000` and `const WEB_ADDRESS = /^(https?):\/\/([^\s/?#@\\]+)([/?#]\S*)?$/i`. Same order of checks and the same message choice as `checkLinkUrl` in `backend/pb_hooks/lib/link-check.js` (read it; the code field is dropped here).
-- [ ] **Step 4: Run, expect PASS. Commit** `feat: the client link address check`.
+- [x] **Step 1: Write failing tests** `linkCheck.test.ts` (C1 to C3).
+- [x] **Step 2: Run, expect FAIL**: `npx vitest run frontend/src/features/editor/links/linkCheck.test.ts`.
+- [x] **Step 3: Implement** the three functions. Write these two lines exactly (breaks target them): `const MAX_LENGTH = 2000` and `const WEB_ADDRESS = /^(https?):\/\/([^\s/?#@\\]+)([/?#]\S*)?$/i`. Same order of checks and the same message choice as `checkLinkUrl` in `backend/pb_hooks/lib/link-check.js` (read it; the code field is dropped here).
+- [x] **Step 4: Run, expect PASS. Commit** `feat: the client link address check`.
 
 ## Checkpoint 3B: the door
 
-- [ ] **Step 1: Write failing tests** `tests/rules/links-door.rules.test.ts` in the style of `media-door.rules.test.ts` (a `doorFor(user)` helper, a recorder for live events) (C4 to C6).
-- [ ] **Step 2: Run, expect FAIL**: `npm run test:rules -- tests/rules/links-door.rules.test.ts`.
-- [ ] **Step 3: Implement** `link-types.ts`, `links.ts`, and wire `client.ts` and `index.ts`.
-- [ ] **Step 4: Run, expect PASS**: `npm run test:rules`, `npm run test:unit`, `npm run typecheck`. Close the checkpoint (one commit).
+- [x] **Step 1: Write failing tests** `tests/rules/links-door.rules.test.ts` in the style of `media-door.rules.test.ts` (a `doorFor(user)` helper, a recorder for live events) (C4 to C6).
+- [x] **Step 2: Run, expect FAIL**: `npm run test:rules -- tests/rules/links-door.rules.test.ts`.
+- [x] **Step 3: Implement** `link-types.ts`, `links.ts`, and wire `client.ts` and `index.ts`.
+- [x] **Step 4: Run, expect PASS**: `npm run test:rules`, `npm run test:unit`, `npm run typecheck`. Close the checkpoint (one commit).
 
 ## Test plan
 

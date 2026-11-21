@@ -47,10 +47,10 @@
 
 | Task | What | Status |
 |---|---|---|
-| [1](task-1-video-off.md) | Videos off: migration, `acceptFor`, test and doc updates | not started |
-| [2](task-2-links-backend.md) | `node_links` collection, address check, hook, rules tests | not started |
-| [3](task-3-links-door.md) | The door, client address check, door tests | not started |
-| [4](task-4-links-ui-closeout.md) | Section in the node panel, store, e2e, docs, closeout | not started |
+| [1](task-1-video-off.md) | Videos off: migration, `acceptFor`, test and doc updates | done |
+| [2](task-2-links-backend.md) | `node_links` collection, address check, hook, rules tests | done |
+| [3](task-3-links-door.md) | The door, client address check, door tests | done |
+| [4](task-4-links-ui-closeout.md) | Section in the node panel, store, e2e, docs, closeout | done |
 
 ## Review Focus
 

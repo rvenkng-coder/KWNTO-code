@@ -70,7 +70,7 @@ Found while building media upload, quota and strict file checks (2026-11-16 to 2
 
 | Item | What and why | Plan |
 |---|---|---|
-| Upload progress bar | The PocketBase JS SDK's `fetch` does not report upload progress (D12). If large uploads through Funnel prove slow, add upload progress reporting or chunked uploading. | 6 |
+| Upload progress bar | The PocketBase JS SDK's `fetch` does not report upload progress (D12). Large uploads through Funnel proved too slow on the first VM (2026-11-21: about 0.2 MB/s; a 30 MB and a 150 MB upload both failed). **Video upload is switched off** by the [node links plan](2026-11-21-node-links/README.md) (status: awaiting developer review) and writers add a link instead. Chunked or resumable upload, and a direct (non-relayed) Tailscale path, stay open. | later |
 
 ## Later (developer decision, 2026-11-18)
 

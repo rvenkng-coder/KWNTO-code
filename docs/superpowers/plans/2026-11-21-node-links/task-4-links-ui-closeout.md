@@ -19,29 +19,29 @@ Part of the [plan](README.md). **Read the router first:** its Global Constraints
 
 ## Checkpoint 4A: the pure list and the store
 
-- [ ] **Step 1: Write failing tests** `linksList.test.ts` and `useProjectLinks.test.ts` (C1 to C3; mock `backend.links` as `useProjectMedia.test.ts` mocks `backend.media`).
-- [ ] **Step 2: Run, expect FAIL**: `npx vitest run frontend/src/features/editor/links`.
-- [ ] **Step 3: Implement** `linksList.ts` and `useProjectLinks.ts`; write `linksOf` with the exact text `.filter((l) => l.nodeId === nodeId)` (a break targets it).
-- [ ] **Step 4: Run, expect PASS. Commit** `feat: the links list and store`.
+- [x] **Step 1: Write failing tests** `linksList.test.ts` and `useProjectLinks.test.ts` (C1 to C3; mock `backend.links` as `useProjectMedia.test.ts` mocks `backend.media`).
+- [x] **Step 2: Run, expect FAIL**: `npx vitest run frontend/src/features/editor/links`.
+- [x] **Step 3: Implement** `linksList.ts` and `useProjectLinks.ts`; write `linksOf` with the exact text `.filter((l) => l.nodeId === nodeId)` (a break targets it).
+- [x] **Step 4: Run, expect PASS. Commit** `feat: the links list and store`.
 
 ## Checkpoint 4B: the section, wiring and the end-to-end test
 
-- [ ] **Step 1: Write the failing e2e** `e2e/editor-links.spec.ts`, reusing the setup helpers of `e2e/editor-media.spec.ts` (C4 to C7).
-- [ ] **Step 2: Run, expect FAIL**: `npm run test:e2e -- e2e/editor-links.spec.ts`.
-- [ ] **Step 3: Implement** `LinksSection.tsx` and `LinkItem.tsx`, move `useOnline`, and wire `NodeFields.tsx` and `EditorScreen.tsx`. Behaviour: heading `Links and other material`; two inputs labelled `Link title` and `Link address` and a button `Add link` (disabled while offline, with the line `Links need a connection. Try again when you are back online.`); each item is an `<a>` whose text is `linkLabel(link)` with the host in muted text beside it, `href` the stored address, `target="_blank"` and `rel="noopener noreferrer"`, and a button `Delete link` that deletes at once (no confirmation: a link is cheap to add again, D5); an error shows as `role="alert"` text in the danger colour and is cleared when another node is selected (as `MediaSection` does); the form clears after a successful add. The title is rendered as text only. Each file stays under 300 lines.
-- [ ] **Step 4: Run, expect PASS**: `npm run test:unit`, `npm run test:e2e -- e2e/editor-links.spec.ts e2e/editor-media.spec.ts`. Close the checkpoint (one commit).
+- [x] **Step 1: Write the failing e2e** `e2e/editor-links.spec.ts`, reusing the setup helpers of `e2e/editor-media.spec.ts` (C4 to C7).
+- [x] **Step 2: Run, expect FAIL**: `npm run test:e2e -- e2e/editor-links.spec.ts`.
+- [x] **Step 3: Implement** `LinksSection.tsx` and `LinkItem.tsx`, move `useOnline`, and wire `NodeFields.tsx` and `EditorScreen.tsx`. Behaviour: heading `Links and other material`; two inputs labelled `Link title` and `Link address` and a button `Add link` (disabled while offline, with the line `Links need a connection. Try again when you are back online.`); each item is an `<a>` whose text is `linkLabel(link)` with the host in muted text beside it, `href` the stored address, `target="_blank"` and `rel="noopener noreferrer"`, and a button `Delete link` that deletes at once (no confirmation: a link is cheap to add again, D5); an error shows as `role="alert"` text in the danger colour and is cleared when another node is selected (as `MediaSection` does); the form clears after a successful add. The title is rendered as text only. Each file stays under 300 lines.
+- [x] **Step 4: Run, expect PASS**: `npm run test:unit`, `npm run test:e2e -- e2e/editor-links.spec.ts e2e/editor-media.spec.ts`. Close the checkpoint (one commit).
 
 ## Checkpoint 4C: docs and closeout
 
-- [ ] **Step 1: Update the docs.**
+- [x] **Step 1: Update the docs.**
   - `docs/user/editor.md`: a "Links and other material" subsection after Media (what it is, adding, deleting, only web addresses, "to share a video, link it").
   - `docs/security.md`: a control for link addresses (the rule, where it is enforced twice, the `noopener noreferrer`, why `javascript:` is refused).
   - `docs/superpowers/specs/2026-11-11-kwnto-erd.md`: the `node_links` entity next to `media`.
   - `docs/test-plan.md`: a row for this plan, layers covered, and the manual case M-links (the Flow below).
   - `docs/superpowers/plans/README.md`: add this plan to the roadmap with status `awaiting developer review`, and under the open items change "Upload progress or chunked upload (D13)" to say video upload is switched off by this plan and chunked upload stays open (the first VM measured about 0.2 MB/s through Funnel on 2026-11-21; a 30 MB and a 150 MB upload both failed).
   - `.planning/2026-11-21-node-links/progress.md`: copy the table from `docs/superpowers/plans/PROGRESS-TEMPLATE.md` and add a row per closed checkpoint.
-- [ ] **Step 2: Run everything:** `npm test`, `npm run test:e2e`, then `npm run check:task` for this task. Paste the full output.
-- [ ] **Step 3: Commit** `docs: node links` and stop. The plan is `awaiting developer review`; only the developer marks it `done`.
+- [x] **Step 2: Run everything:** `npm test`, `npm run test:e2e`, then `npm run check:task` for this task. Paste the full output.
+- [x] **Step 3: Commit** `docs: node links` and stop. The plan is `awaiting developer review`; only the developer marks it `done`.
 
 ## Test plan
 

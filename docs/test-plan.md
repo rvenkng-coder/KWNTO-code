@@ -35,6 +35,7 @@ Which test layers must cover each feature, and how far each feature is. The laye
 | Export (PDF, Word, JPG, PNG) | 6.5 | unit, manual | not started | 8 |
 | Look and feel (light and dark, theme toggle, layout) | 6.6 | e2e, manual M1 and M2 (signed 2026-11-18) | covered | 3 |
 | Offline queue, sync and conflicts: `e2e/editor-offline.spec.ts`, `e2e/editor-conflicts.spec.ts` | 6.7 | unit, rules, e2e | covered | 4 |
+| Node links and video uploads off (plan 2026-11-21-node-links): `tests/hooks/link-check.unit.test.ts`, `tests/rules/node_links.rules.test.ts`, `tests/rules/links-door.rules.test.ts`, `tests/rules/video-off.rules.test.ts`, `e2e/editor-links.spec.ts` | 6.2 | unit, rules, e2e, manual M13 | covered (M13 open) | node-links |
 | Trash and recovery (30 days, restore, purge) | 6.8 | unit, rules, e2e | not started | 7 |
 | Share links (view, comment, edit; live, snapshot; revoke) | 5, 6.9 | rules, e2e | not started | 7 |
 | Project JSON import and export | 8b | unit, e2e | not started | 7 |
@@ -58,3 +59,4 @@ Design sections 8 and 8b make this the developer's sign-off sheet. A person runs
 | M10 | A real verification email arrives and its link verifies the account (once SMTP exists, Plan 6) | Plan 2 | open |
 | M11 | A real password-reset email arrives, also for an address typed with capitals, and its link sets the new password (once SMTP exists, Plan 6) | Plan 2 | open |
 | M12 | Reconnect through Tailscale Funnel: with the app behind Funnel, drop one laptop's network for 10 seconds while a teammate edits; after reconnecting the teammate's edit appears within a few seconds without a reload and the edits made during the drop are saved (done 2026-11-20 through `tailscale serve` on the tailnet: passed; repeat once behind the public Funnel address in Plan 6) | 6.7 | open (public Funnel) |
+| M13 | On the VM, add a link to a real video to a node, click it (opens in a new tab, the app tab stays), and see `javascript:alert(1)` refused | node-links | open |

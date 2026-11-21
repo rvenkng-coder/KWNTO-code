@@ -21,7 +21,7 @@ Part of the [plan](README.md). **Read the router first:** its Global Constraints
 
 - [ ] **Step 1: Write failing tests** `linkCheck.test.ts` (C1 to C3).
 - [ ] **Step 2: Run, expect FAIL**: `npx vitest run frontend/src/features/editor/links/linkCheck.test.ts`.
-- [ ] **Step 3: Implement** the three functions. Write these two lines exactly (breaks target them): `const MAX_LENGTH = 2000` and `const WEB_ADDRESS = /^(https?):\/\/([^\s\/?#@\\]+)([\/?#]\S*)?$/i`. Same order of checks and the same message choice as `checkLinkUrl` in `backend/pb_hooks/lib/link-check.js` (read it; the code field is dropped here).
+- [ ] **Step 3: Implement** the three functions. Write these two lines exactly (breaks target them): `const MAX_LENGTH = 2000` and `const WEB_ADDRESS = /^(https?):\/\/([^\s/?#@\\]+)([/?#]\S*)?$/i`. Same order of checks and the same message choice as `checkLinkUrl` in `backend/pb_hooks/lib/link-check.js` (read it; the code field is dropped here).
 - [ ] **Step 4: Run, expect PASS. Commit** `feat: the client link address check`.
 
 ## Checkpoint 3B: the door
@@ -49,9 +49,9 @@ Part of the [plan](README.md). **Read the router first:** its Global Constraints
 ### Breaks
 | ID | File | Find | Replace | Tests |
 |---|---|---|---|---|
-| B1 | frontend/src/features/editor/links/linkCheck.ts | `const WEB_ADDRESS = /^(https?):\/\/([^\s\/?#@\\]+)([\/?#]\S*)?$/i` | `const WEB_ADDRESS = /^(https?\|ftp):\/\/([^\s\/?#@\\]+)([\/?#]\S*)?$/i` | frontend/src/features/editor/links/linkCheck.test.ts |
+| B1 | frontend/src/features/editor/links/linkCheck.ts | `const WEB_ADDRESS = /^(https?):\/\/([^\s/?#@\\]+)([/?#]\S*)?$/i` | `const WEB_ADDRESS = /^(https?\|ftp):\/\/([^\s/?#@\\]+)([/?#]\S*)?$/i` | frontend/src/features/editor/links/linkCheck.test.ts |
 | B2 | frontend/src/features/editor/links/linkCheck.ts | `const MAX_LENGTH = 2000` | `const MAX_LENGTH = 20000` | frontend/src/features/editor/links/linkCheck.test.ts |
-| B3 | frontend/src/features/editor/links/linkCheck.ts | `const WEB_ADDRESS = /^(https?):\/\/([^\s\/?#@\\]+)([\/?#]\S*)?$/i` | `const WEB_ADDRESS = /^(https?):\/\/([^\s\/?#\\]+)([\/?#]\S*)?$/i` | frontend/src/features/editor/links/linkCheck.test.ts |
+| B3 | frontend/src/features/editor/links/linkCheck.ts | `const WEB_ADDRESS = /^(https?):\/\/([^\s/?#@\\]+)([/?#]\S*)?$/i` | `const WEB_ADDRESS = /^(https?):\/\/([^\s/?#\\]+)([/?#]\S*)?$/i` | frontend/src/features/editor/links/linkCheck.test.ts |
 
 ### Flow
 none

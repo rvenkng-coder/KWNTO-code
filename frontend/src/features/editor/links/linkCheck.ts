@@ -2,7 +2,7 @@
 // backend/pb_hooks/lib/link-check.js (plan 2026-11-21-node-links, D4): only http and https addresses with
 // a host; no spaces, no user name in front of the host, no other scheme. A rules test keeps the two in step.
 const MAX_LENGTH = 2000
-const WEB_ADDRESS = /^(https?):\/\/([^\s\/?#@\\]+)([\/?#]\S*)?$/i
+const WEB_ADDRESS = /^(https?):\/\/([^\s/?#@\\]+)([/?#]\S*)?$/i
 
 export type LinkCheck = { ok: true; url: string } | { ok: false; message: string }
 

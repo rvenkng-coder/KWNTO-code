@@ -1,0 +1,31 @@
+# Test override (container layer, tests/container/backup.test.ts): the production PocketBase and Caddy without
+# Tailscale, with data in the ordinary named volume kwnto-data, which Compose names kwnto-backup-test_kwnto-data
+# (as on the VM, so restore.sh must find the prefixed name itself) and backups bound
+# to the host folder given as KWNTO_BACKUP_DIR. Use with:
+#   KWNTO_BACKUP_DIR=/some/folder docker compose -f compose.prod.yaml -f compose.backup-test.yaml up -d --build --wait
+# Ports (127.0.0.1): 8094 Caddy, 8095 PocketBase direct (admin set-up calls only).
+# A project name of its own, so this stack never collides with the other container tests.
+# If interrupted: docker compose -f compose.prod.yaml -f compose.backup-test.yaml down -v
+#                 docker volume rm -f kwnto-backup-test_kwnto-data
+name: kwnto-backup-test
+services:
+  web:
+    profiles: [never-enabled]
+  tailscale:
+    profiles: [never-enabled]
+  pocketbase:
+    depends_on: !reset {}
+    environment:
+      KWNTO_ADMIN_EMAIL: admin@example.test # test-only credentials; the volume is removed after the test
+      KWNTO_ADMIN_PASSWORD: test-admin-password-1
+    volumes: !override
+      - kwnto-data:/pb/pb_data
+      - ./dist:/pb/pb_public:ro
+      - ${KWNTO_BACKUP_DIR:?KWNTO_BACKUP_DIR must be set}:/pb/pb_data/backups
+    ports:
+      - "127.0.0.1:8095:8090"
+  caddy:
+    environment:
+      KWNTO_MAX_REQUEST_MB: "2"
+    ports:
+      - "127.0.0.1:8094:8080"

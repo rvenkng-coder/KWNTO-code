@@ -61,29 +61,28 @@ test('an uploaded image shows on its node and stays after reload', async ({ page
   await expect(mediaItems(page).first()).toContainText('a.png')
 })
 
-// Protects: design 6.2: audio and video play in place with file URL and fresh token.
-test('audio and video files get players', async ({ page }) => {
+// Protects: design 6.2: audio plays in place with file URL and fresh token; video is off by decision
+// (plan 2026-11-21-node-links D1), so the picker does not offer it and a chosen mp4 is refused clearly.
+test('audio files get players and video is refused', async ({ page }) => {
   await setupNode(page)
   const input = panel(page).getByLabel('Add media')
+
+  const accept = (await input.getAttribute('accept')) ?? ''
+  expect(accept).not.toContain('mp4')
+  expect(accept).not.toContain('mov')
 
   const savedMp3 = waitForSave(page, 'media', 'POST')
   await input.setInputFiles({ name: 'line.mp3', mimeType: 'audio/mpeg', buffer: sampleBytes('mp3', 200) })
   await savedMp3
 
-  const savedMp4 = waitForSave(page, 'media', 'POST')
   await input.setInputFiles({ name: 'clip.mp4', mimeType: 'video/mp4', buffer: sampleBytes('mp4', 200) })
-  await savedMp4
+  await expect(alertBox(page)).toHaveText('This file type is not allowed. Allowed: WAV, MP3, JPEG, PNG.')
 
-  await expect(mediaItems(page)).toHaveCount(2)
+  await expect(mediaItems(page)).toHaveCount(1)
   const audio = panel(page).locator('audio[controls]')
-  const video = panel(page).locator('video[controls]')
   await expect(audio).toBeVisible()
-  await expect(video).toBeVisible()
-
-  const audioSrc = await audio.getAttribute('src')
-  const videoSrc = await video.getAttribute('src')
-  expect(audioSrc).toMatch(/token=/)
-  expect(videoSrc).toMatch(/token=/)
+  await expect(panel(page).locator('video[controls]')).toHaveCount(0)
+  expect(await audio.getAttribute('src')).toMatch(/token=/)
 })
 
 // Protects: Review Focus 2: server magic bytes check refuses forged extensions with clear message.
@@ -111,7 +110,7 @@ test('a file the browser can already refuse is never sent', async ({ page }) => 
   })
 
   await input.setInputFiles({ name: 'test.gif', mimeType: 'image/gif', buffer: Buffer.from('GIF89a') })
-  await expect(alertBox(page)).toHaveText('This file type is not allowed. Allowed: WAV, MP3, MOV, MP4, JPEG, PNG.')
+  await expect(alertBox(page)).toHaveText('This file type is not allowed. Allowed: WAV, MP3, JPEG, PNG.')
   expect(requestSent).toBe(false)
 })
 

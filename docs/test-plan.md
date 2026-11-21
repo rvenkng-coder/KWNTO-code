@@ -35,10 +35,14 @@ Which test layers must cover each feature, and how far each feature is. The laye
 | Export (PDF, Word, JPG, PNG) | 6.5 | unit, manual | not started | 8 |
 | Look and feel (light and dark, theme toggle, layout) | 6.6 | e2e, manual M1 and M2 (signed 2026-11-18) | covered | 3 |
 | Offline queue, sync and conflicts: `e2e/editor-offline.spec.ts`, `e2e/editor-conflicts.spec.ts` | 6.7 | unit, rules, e2e | covered | 4 |
+| Deployment (proxy, headers, rate limits, backups and restore, storage warning) | 7b, 7c | container, rules, unit, manual | covered | 6 |
+| Node links and video uploads off (plan 2026-11-21-node-links): `tests/hooks/link-check.unit.test.ts`, `tests/rules/node_links.rules.test.ts`, `tests/rules/links-door.rules.test.ts`, `tests/rules/video-off.rules.test.ts`, `e2e/editor-links.spec.ts` | 6.2 | unit, rules, e2e, manual M13 | covered (M13 open) | node-links |
 | Trash and recovery (30 days, restore, purge) | 6.8 | unit, rules, e2e | not started | 7 |
 | Share links (view, comment, edit; live, snapshot; revoke) | 5, 6.9 | rules, e2e | not started | 7 |
 | Project JSON import and export | 8b | unit, e2e | not started | 7 |
 | Project activity history | 6.9 | to be decided | not started | later (no plan) |
+
+The Deployment row is `covered` for its container, rules and unit layers. The developer reported on 2026-11-21 that the [first walk](admin/deployment.md#the-first-walk-for-the-developer) works on the real VM; cases C1, C2, C5 and C6 are recorded as passed (M10, M11 and M12 included; no per-case detail was recorded), C3 (150 MB upload) was tried and failed (video upload is now off, plan node-links), and C4 (visitor's IP) is not yet run. Case C7 (backup and restore on the VM) was run on 2026-11-21 and passed (see `.planning/2026-11-20-deployment/progress.md`; the VM held no media, which the container test covers). Plan 6 was closed by the developer on 2026-11-21; C4 (the visitor's address from a phone) and M13 stay open as manual items.
 
 ## Manual sign-off checklist
 
@@ -55,6 +59,7 @@ Design sections 8 and 8b make this the developer's sign-off sheet. A person runs
 | M7 | PNG export: map legible | 6.5, 8b | open |
 | M8 | Every feature in design section 6 tried by hand in Firefox | 8 | open |
 | M9 | Every feature in design section 6 tried by hand in Chrome | 8 | open |
-| M10 | A real verification email arrives and its link verifies the account (once SMTP exists, Plan 6) | Plan 2 | open |
-| M11 | A real password-reset email arrives, also for an address typed with capitals, and its link sets the new password (once SMTP exists, Plan 6) | Plan 2 | open |
-| M12 | Reconnect through Tailscale Funnel: with the app behind Funnel, drop one laptop's network for 10 seconds while a teammate edits; after reconnecting the teammate's edit appears within a few seconds without a reload and the edits made during the drop are saved (done 2026-11-20 through `tailscale serve` on the tailnet: passed; repeat once behind the public Funnel address in Plan 6) | 6.7 | open (public Funnel) |
+| M10 | A real verification email arrives and its link verifies the account (Plan 6 wrote the guide and the screens; reported passed by the developer on 2026-11-21, walk case C5) | Plan 2 | done 2026-11-21 |
+| M11 | A real password-reset email arrives, also for an address typed with capitals, and its link sets the new password (Plan 6 wrote the guide and the screens; reported passed by the developer on 2026-11-21, walk case C5) | Plan 2 | done 2026-11-21 |
+| M12 | Reconnect through Tailscale Funnel: with the app behind Funnel, drop one laptop's network for 10 seconds while a teammate edits; after reconnecting the teammate's edit appears within a few seconds without a reload and the edits made during the drop are saved (done 2026-11-20 through `tailscale serve` on the tailnet: passed; repeated behind the public Funnel address: reported passed by the developer on 2026-11-21, Plan 6 case C6) | 6.7 | done 2026-11-21 |
+| M13 | On the VM, add a link to a real video to a node, click it (opens in a new tab, the app tab stays), and see `javascript:alert(1)` refused | node-links | open |

@@ -31,6 +31,23 @@ function kindOf(type: string): MediaKind {
   return 'image'
 }
 
+const EXTENSIONS: Record<string, string> = {
+  wav: '.wav',
+  mp3: '.mp3',
+  mov: '.mov',
+  mp4: '.mp4',
+  jpeg: '.jpg,.jpeg',
+  png: '.png',
+}
+
+// The file picker's `accept` list for the allowed types; empty (no filter) until the list is known.
+export function acceptFor(allowedTypes: string[] | null): string {
+  if (!allowedTypes) return ''
+  return ORDERED_TYPES.filter((t) => allowedTypes.includes(t))
+    .map((t) => EXTENSIONS[t])
+    .join(',')
+}
+
 function formatAllowed(allowedTypes: string[]): string {
   return ORDERED_TYPES.filter((t) => allowedTypes.includes(t))
     .map((t) => t.toUpperCase())

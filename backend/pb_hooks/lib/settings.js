@@ -40,6 +40,7 @@ function getSystemStorage(app) {
       image: record.getInt("max_image_mb"),
     },
     allowedTypes: record.getStringSlice("allowed_types"),
+    totalWarningBytes: record.getInt("total_warning_bytes"),
   }
 }
 

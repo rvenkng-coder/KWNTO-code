@@ -1,6 +1,7 @@
 import type { MediaKind, StorageInfo } from '../../../backend/media-types.ts'
 
-const ORDERED_TYPES = ['wav', 'mp3', 'mov', 'mp4', 'jpeg', 'png']
+const ORDERED_TYPES = ['wav', 'mp3', 'ogg', 'm4a', 'opus', 'mov', 'mp4', 'jpeg', 'png']
+const AUDIO_TYPES = ['wav', 'mp3', 'ogg', 'm4a', 'opus']
 const MIB = 1048576
 const GIB = 1024 * MIB
 
@@ -26,7 +27,7 @@ function getExtension(fileName: string): string | null {
 }
 
 function kindOf(type: string): MediaKind {
-  if (type === 'wav' || type === 'mp3') return 'audio'
+  if (AUDIO_TYPES.includes(type)) return 'audio'
   if (type === 'mov' || type === 'mp4') return 'video'
   return 'image'
 }
@@ -34,6 +35,9 @@ function kindOf(type: string): MediaKind {
 const EXTENSIONS: Record<string, string> = {
   wav: '.wav',
   mp3: '.mp3',
+  ogg: '.ogg',
+  m4a: '.m4a',
+  opus: '.opus',
   mov: '.mov',
   mp4: '.mp4',
   jpeg: '.jpg,.jpeg',

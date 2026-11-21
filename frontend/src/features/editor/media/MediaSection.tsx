@@ -57,8 +57,8 @@ export function MediaSection({ node }: { node: StoryNode }) {
   const removedMedia = storage?.isLead ? removedOf(media, node.id) : []
 
   return (
-    <div data-testid="media-section" className="flex flex-col gap-2 border-t border-border pt-2">
-      <div className="flex items-center justify-between">
+    <div data-testid="media-section" className="flex flex-col gap-2 border-t border-border pt-4">
+      <div className="flex flex-col gap-0.5">
         <h4 className="text-sm font-semibold">Media</h4>
         <StorageMeter info={storage} />
       </div>

@@ -14,7 +14,7 @@ export function projectIdOf(page: Page): string {
   return id
 }
 
-/** Opens the Share dialog from the editor's left panel. */
+/** Opens the Share dialog from the editor's title bar. */
 export async function openShareDialog(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Share' }).click()
   await expect(shareDialog(page)).toBeVisible()

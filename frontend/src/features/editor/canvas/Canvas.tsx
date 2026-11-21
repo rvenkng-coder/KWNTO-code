@@ -3,8 +3,7 @@ import {
   type Connection as FlowConnection, type Edge, type EdgeChange, type NodeChange, type OnNodeDrag,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
-import { backend } from '../../../backend'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent } from 'react'
 import { toFlowEdges, toFlowNodes, type CardNode } from '../model/flow'
 import { effectiveStart, nodeMarkers } from '../model/markers'
 import { liveNodes } from '../model/state'
@@ -21,6 +20,7 @@ import { useAddNode } from './useAddNode'
 import { useCanvasFocus } from './useCanvasFocus'
 import { plural } from './selectionActions'
 import { useSelection } from './useSelection'
+import { useViewPrefs } from './useViewPrefs'
 
 // The canvas of one chapter (design 6.1) on React Flow. The store holds the content; React
 // Flow keeps its own copy of the nodes (measured sizes, positions while dragging) that is
@@ -42,8 +42,8 @@ function mergeNodes(prev: CardNode[], next: CardNode[], selected: Set<string>): 
     const isSelected = selected.has(n.id)
     if (o === undefined) return { ...n, selected: isSelected }
     const position = o.dragging === true ? o.position : n.position
-    const unchanged = o.position.x === position.x && o.position.y === position.y && o.selected === isSelected && sameData(o.data, n.data)
-    return unchanged ? o : { ...o, position, selected: isSelected, data: sameData(o.data, n.data) ? o.data : n.data }
+    const unchanged = o.position.x === position.x && o.position.y === position.y && o.selected === isSelected && o.width === n.width && o.height === n.height && sameData(o.data, n.data)
+    return unchanged ? o : { ...o, position, selected: isSelected, width: n.width, height: n.height, data: sameData(o.data, n.data) ? o.data : n.data }
   })
 }
 
@@ -150,33 +150,10 @@ function useLinkClicks() {
   return { linking, onNodeClick, onPaneClick }
 }
 
-// The minimap choice of the account (user_preferences.minimap_visible), shown until it loads.
-function useMinimap(): [boolean, () => void] {
-  const [visible, setVisible] = useState(true)
-  useEffect(() => {
-    let cancelled = false
-    backend.preferences.get()
-      .then((p) => {
-        if (!cancelled) setVisible(p.minimapVisible)
-      })
-      .catch(() => undefined)
-    return () => {
-      cancelled = true
-    }
-  }, [])
-  const toggle = useCallback(() => {
-    setVisible((v) => {
-      void backend.preferences.set({ minimapVisible: !v }).catch(() => undefined)
-      return !v
-    })
-  }, [])
-  return [visible, toggle]
-}
-
 function CanvasView({ projectId, chapterId }: { projectId: string; chapterId: string }) {
   const flow = useFlowState(chapterId)
   const actions = useCanvasActions(projectId, chapterId)
-  const [minimap, toggleMinimap] = useMinimap()
+  const prefs = useViewPrefs()
   useFocusRequest(chapterId)
   const link = useLinkClicks()
   const areaSelect = useCanvasCommands((s) => s.areaSelect)
@@ -187,8 +164,8 @@ function CanvasView({ projectId, chapterId }: { projectId: string; chapterId: st
   const anyNode = useEditor((s) => liveNodes(s.content).length > 0)
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2">
-      <CanvasToolbar showNoStart={anyNode && !flow.hasStart} minimapVisible={minimap} onToggleMinimap={toggleMinimap} />
-      <div ref={canvasRef} data-testid="canvas" data-node-count={count} data-ready={inited && flow.synced ? 'true' : 'false'} className="kwnto-canvas relative min-h-0 flex-1" onDoubleClick={actions.createAt}>
+      <CanvasToolbar chapterId={chapterId} showNoStart={anyNode && !flow.hasStart} prefs={prefs} />
+      <div ref={canvasRef} data-testid="canvas" data-node-count={count} data-ready={inited && flow.synced ? 'true' : 'false'} className="kwnto-canvas relative min-h-0 flex-1" style={{ '--card-font-size': `${prefs.fontSize}px` } as CSSProperties} onDoubleClick={actions.createAt}>
         {link.linking && <div role="status" className="panel absolute left-1/2 top-2 z-10 -translate-x-1/2">{LINK_BANNER}</div>}
         <ReactFlow<CardNode>
           nodes={flow.nodes} edges={flow.edges} nodeTypes={nodeTypes}
@@ -202,7 +179,7 @@ function CanvasView({ projectId, chapterId }: { projectId: string; chapterId: st
           onlyRenderVisibleElements
         >
           <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} />
-          {minimap && <MiniMap pannable zoomable />}
+          {prefs.minimap && <MiniMap pannable zoomable />}
           <Controls />
         </ReactFlow>
       </div>

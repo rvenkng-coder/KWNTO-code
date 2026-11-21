@@ -1,6 +1,9 @@
 // Pure helpers for media upload checks and quotas (design 6.2, 7c).
-const TYPES = ['wav', 'mp3', 'mov', 'mp4', 'jpeg', 'png']
+const TYPES = ['wav', 'mp3', 'ogg', 'm4a', 'opus', 'mov', 'mp4', 'jpeg', 'png']
 const VIDEO = ['mov', 'mp4']
+// .ogg and .opus are both an Ogg container, and the first bytes cannot tell the codecs apart, so either name fits it.
+const OGG = ['ogg', 'opus']
+const AUDIO = ['wav', 'mp3', 'ogg', 'm4a', 'opus']
 const PNG_HEADER = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]
 const MIB = 1048576
 const GIB = 1024 * MIB
@@ -53,7 +56,9 @@ function detectIsoVideo(head) {
   const at4 = ascii4(head, 4)
   if (at4 === 'ftyp') {
     if (head.length < 12) return 'mp4'
-    return ascii4(head, 8) === 'qt  ' ? 'mov' : 'mp4'
+    const brand = ascii4(head, 8)
+    if (brand === 'qt  ') return 'mov'
+    return brand === 'M4A ' || brand === 'M4B ' ? 'm4a' : 'mp4'
   }
   return ['moov', 'mdat', 'wide', 'free', 'skip'].includes(at4) ? 'mov' : null
 }
@@ -66,18 +71,23 @@ function detectId3(head) {
   return head.length >= 3 && head[0] === 0x49 && head[1] === 0x44 && head[2] === 0x33
 }
 
+function detectOgg(head) {
+  return head.length >= 4 && ascii4(head, 0) === 'OggS'
+}
+
 function detectType(head) {
   if (!head || head.length < 2) return null
   if (detectPng(head)) return 'png'
   if (detectJpeg(head)) return 'jpeg'
   if (detectWav(head)) return 'wav'
   if (detectId3(head)) return 'mp3'
+  if (detectOgg(head)) return 'ogg'
   if (head[0] === 0xff && (head[1] & 0xe0) === 0xe0) return "mp3"
   return detectIsoVideo(head)
 }
 
 function kindOf(type) {
-  if (type === 'wav' || type === 'mp3') return 'audio'
+  if (AUDIO.includes(type)) return 'audio'
   if (type === 'mov' || type === 'mp4') return 'video'
   return 'image'
 }
@@ -113,6 +123,16 @@ function checkSizeAndQuota(input, kind) {
   return null
 }
 
+// The type the content really is, given the name's claim; null when they do not fit. An Ogg file
+// is whichever of ogg or opus the name says. A .m4a may carry any ISO brand (an audio-only mp4).
+function sameFamilyType(claimed, detected) {
+  if (!detected) return null
+  if (detected === claimed || (VIDEO.includes(detected) && VIDEO.includes(claimed))) return detected
+  if (OGG.includes(detected) && OGG.includes(claimed)) return claimed
+  if (claimed === 'm4a' && detected === 'mp4') return 'm4a'
+  return null
+}
+
 function checkUpload(input) {
   const claimed = extensionType(input.fileName)
   if (!claimed || !input.allowedTypes.includes(claimed)) {
@@ -122,9 +142,8 @@ function checkUpload(input) {
       message: `This file type is not allowed. Allowed: ${formatAllowed(input.allowedTypes)}.`,
     }
   }
-  const detected = detectType(input.head)
-  const sameFamily = detected === claimed || (VIDEO.includes(detected) && VIDEO.includes(claimed))
-  if (!detected || !sameFamily) {
+  const detected = sameFamilyType(claimed, detectType(input.head))
+  if (!detected) {
     return {
       ok: false,
       code: 'media_not_real',

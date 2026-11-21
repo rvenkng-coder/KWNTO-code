@@ -76,7 +76,7 @@ test('audio files get players and video is refused', async ({ page }) => {
   await savedMp3
 
   await input.setInputFiles({ name: 'clip.mp4', mimeType: 'video/mp4', buffer: sampleBytes('mp4', 200) })
-  await expect(alertBox(page)).toHaveText('This file type is not allowed. Allowed: WAV, MP3, JPEG, PNG.')
+  await expect(alertBox(page)).toHaveText('This file type is not allowed. Allowed: WAV, MP3, OGG, M4A, OPUS, JPEG, PNG.')
 
   await expect(mediaItems(page)).toHaveCount(1)
   const audio = panel(page).locator('audio[controls]')
@@ -110,7 +110,7 @@ test('a file the browser can already refuse is never sent', async ({ page }) => 
   })
 
   await input.setInputFiles({ name: 'test.gif', mimeType: 'image/gif', buffer: Buffer.from('GIF89a') })
-  await expect(alertBox(page)).toHaveText('This file type is not allowed. Allowed: WAV, MP3, JPEG, PNG.')
+  await expect(alertBox(page)).toHaveText('This file type is not allowed. Allowed: WAV, MP3, OGG, M4A, OPUS, JPEG, PNG.')
   expect(requestSent).toBe(false)
 })
 

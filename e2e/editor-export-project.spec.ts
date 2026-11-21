@@ -61,10 +61,10 @@ test('a whole-project Word file has a heading and map per chapter with nodes', a
 // Protects: trashed chapters and trashed nodes never reach an export.
 test('trashed chapters are not exported', async ({ page }) => {
   const [a] = await threeChapters(page)
-  page.once('dialog', (d) => d.accept())
   const trashedChapter = waitForSave(page, 'chapters', 'PATCH')
   await page.getByRole('button', { name: 'Menu for Chapter 3' }).click()
   await page.getByRole('menuitem', { name: 'Move to trash' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Move to trash' }).click()
   await trashedChapter
   await page.getByRole('tab', { name: 'Chapter 1' }).click()
   await readyCanvas(page, 2)

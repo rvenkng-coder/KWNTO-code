@@ -17,6 +17,10 @@ export interface NodeCardData extends Record<string, unknown> {
 }
 export type CardNode = Node<NodeCardData, 'card'>
 
+/** The width of a card that has no size of its own (w-56). */
+export const DEFAULT_CARD_WIDTH = 224
+export const MIN_CARD_WIDTH = 160
+export const MIN_CARD_HEIGHT = 90
 export const PREVIEW_LINES = 3
 export const PREVIEW_CHARS = 80
 export const CUE_LINES = 2
@@ -105,7 +109,8 @@ export function toFlowNodes(s: ContentState, chapterId: string, markers: Map<str
       cues: ownCues.slice(0, CUE_LINES).map((q) => ({ tag: CUE_TAG[q.type], text: q.text })),
       moreCues: Math.max(0, ownCues.length - CUE_LINES),
     }
-    return { id: n.id, type: 'card', position: { x: n.x, y: n.y }, data }
+    // A size of 0 is the default: the default width, and a height that follows the content.
+    return { id: n.id, type: 'card', position: { x: n.x, y: n.y }, width: n.width > 0 ? n.width : DEFAULT_CARD_WIDTH, height: n.height > 0 ? n.height : undefined, data }
   })
 }
 

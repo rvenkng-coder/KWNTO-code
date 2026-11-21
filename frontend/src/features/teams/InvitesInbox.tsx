@@ -49,10 +49,10 @@ export function InvitesInbox({ onAccepted }: InvitesInboxProps) {
   }
 
   return (
-    <div data-testid="invite-inbox" className="panel">
-      <h3>Invites</h3>
+    <div data-testid="invite-inbox" className="panel flex flex-col gap-2">
+      <h3 className="section-label">Invitations</h3>
       {error && <p data-testid="form-error" role="alert">{error}</p>}
-      <ul>
+      <ul className="flex flex-col gap-1">
         {invites.map((invite) => (
           <li key={invite.id} className="flex flex-wrap items-center gap-2">
             {invite.teamName} (invited by {invite.invitedByName})

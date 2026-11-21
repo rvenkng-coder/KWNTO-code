@@ -45,7 +45,9 @@ test('script lines keep their text, characters and order', async ({ page }) => {
     await typeAndSave(page, lineText(page, i), text, 'script_lines')
   }
   const moved = waitForSave(page, 'script_lines', 'PATCH')
-  await lineRows(page).nth(2).getByRole('button', { name: 'Move up' }).click()
+  // Rows are reordered by dragging the grip; Alt+Up on the focused grip is the keyboard way.
+  await lineRows(page).nth(2).getByRole('button', { name: 'Drag line' }).focus()
+  await page.keyboard.press('Alt+ArrowUp')
   await moved
   await page.reload()
   await readyCanvas(page, 1)
@@ -107,7 +109,6 @@ test('text typed just before moving on is saved', async ({ page }) => {
   await page.getByRole('tab', { name: 'Chapter 2' }).click()
   await titleSent
   await Promise.all([lineSaved, titleSaved])
-  page.on('dialog', (d) => void d.accept())
   await page.reload()
   await page.getByRole('tab', { name: 'Chapter 1' }).click()
   await readyCanvas(page, 2)

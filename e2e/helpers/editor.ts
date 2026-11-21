@@ -11,8 +11,9 @@ export function waitForSave(page: Page, collection: string, method: 'POST' | 'PA
 
 /** On the team screen: makes a project and waits for it to appear in the list. */
 export async function createProject(page: Page, name: string): Promise<void> {
-  await page.getByLabel('Project name').fill(name)
   await page.getByRole('button', { name: 'New project' }).click()
+  await page.getByLabel('Project name').fill(name)
+  await page.getByRole('button', { name: 'Create project' }).click()
   await expect(page.getByTestId('project-list')).toContainText(name)
 }
 

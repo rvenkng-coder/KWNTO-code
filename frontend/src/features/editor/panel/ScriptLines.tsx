@@ -4,6 +4,7 @@ import { linesOf } from '../model/state'
 import { useEditor } from '../store/editorStore'
 import { edits } from '../store/edits'
 import { insertRow, moveRow } from './rowActions'
+import { AddButton } from './RowControls'
 import { ScriptLineRow } from './ScriptLineRow'
 import { SectionLabel } from './SectionLabel'
 
@@ -36,12 +37,11 @@ export function ScriptLines({ projectId, nodeId }: { projectId: string; nodeId: 
           <ScriptLineRow
             key={line.id} line={line} allLines={allLines} focus={focusId === line.id} onFocused={clearFocus}
             onEnter={() => void add(i + 1)} onBackspaceEmpty={() => remove(i, true)} onDelete={() => remove(i, false)}
-            onMove={(by) => void moveRow('script_lines', lines, line.id, i + by)}
-            isFirst={i === 0} isLast={i === lines.length - 1}
+            index={i} onMove={(id, to) => void moveRow('script_lines', lines, id, to)}
           />
         ))}
       </ol>
-      <button type="button" className="btn self-start" onClick={() => void add(lines.length)}>Add line</button>
+      <AddButton name="Add line" onClick={() => void add(lines.length)} />
     </section>
   )
 }

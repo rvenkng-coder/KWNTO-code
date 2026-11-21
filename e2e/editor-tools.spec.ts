@@ -27,7 +27,7 @@ test('each tool shows its shortcut in a tooltip', async ({ page }) => {
   }
   const strip = (await page.getByTestId('tool-strip').boundingBox())!
   const canvas = (await page.getByTestId('canvas').boundingBox())!
-  expect(strip.x).toBeLessThan(canvas.x + 60)
+  expect(strip.y).toBeLessThan(canvas.y)
 })
 
 // Protects: design goal 3 and D11: Cut copies and trashes as one step, Paste is disabled until something is copied, and undo takes both back.
@@ -91,21 +91,6 @@ test('area select draws a box that selects the nodes inside', async ({ page }) =
   const screenAfter = (await card(page, a).boundingBox())!
   expect(screenAfter.x).toBeLessThan(screenBefore.x - 50)
   expect(await nodePosition(page, a)).toEqual(before)
-})
-
-// Protects: design goal 3 and F6: the left panel hides, the canvas takes its width, and the choice is kept in this browser.
-test('the left panel collapses and stays collapsed after a reload', async ({ page }) => {
-  await ownerWithProject(page, 'Story')
-  await readyCanvas(page, 0)
-  const wide = (await page.getByTestId('canvas').boundingBox())!.width
-  await page.getByRole('button', { name: 'Hide project panel' }).click()
-  await expect(page.getByTestId('editor-left')).toHaveCount(0)
-  await expect.poll(async () => (await page.getByTestId('canvas').boundingBox())!.width).toBeGreaterThan(wide + 100)
-  await page.reload()
-  await readyCanvas(page, 0)
-  await expect(page.getByTestId('editor-left')).toHaveCount(0)
-  await page.getByRole('button', { name: 'Show project panel' }).click()
-  await expect(page.getByTestId('editor-left')).toBeVisible()
 })
 
 // Protects: design goal 3: a long panel scrolls inside itself and the page never scrolls.

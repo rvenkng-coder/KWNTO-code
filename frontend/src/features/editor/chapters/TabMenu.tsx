@@ -1,3 +1,4 @@
+import { askConfirm } from '../../shell/dialogs'
 import { useCallback, useState, type ReactNode } from 'react'
 import type { Chapter } from '../../../backend'
 import { shiftChapter, trashChapter } from './chapterActions'
@@ -30,9 +31,11 @@ export function TabMenu({ chapter, ordered, onRename, onTrash }: TabMenuProps) {
     action()
   }
   const trash = () => {
-    if (!confirm(`Move "${chapter.title}" to the trash?`)) return
-    onTrash()
-    void trashChapter(chapter.id)
+    void askConfirm(`Move "${chapter.title}" to the trash?`, 'Move to trash').then((yes) => {
+      if (!yes) return
+      onTrash()
+      void trashChapter(chapter.id)
+    })
   }
   return (
     <>

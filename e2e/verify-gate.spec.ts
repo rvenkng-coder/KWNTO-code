@@ -107,7 +107,7 @@ test('join and accept are disabled until verified', async ({ page, browser }) =>
   await expect(page2.getByRole('button', { name: 'Create team' })).toBeDisabled()
 
   // Join button should be disabled
-  await expect(page2.getByRole('button', { name: 'Join' })).toBeDisabled()
+  await expect(page2.getByRole('button', { name: 'Join with code' })).toBeDisabled()
 
   // Accept button in the invite inbox should be disabled
   await expect(page2.getByTestId('invite-inbox')).toBeVisible()

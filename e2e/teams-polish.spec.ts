@@ -11,8 +11,8 @@ test('a deleted team is gone from the list at once', async ({ page }) => {
 
   // Open the team detail and delete it
   await openTeam(page, 'Crew 7')
-  page.once('dialog', (dialog) => dialog.accept())
   await page.getByRole('button', { name: 'Delete team' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Delete team' }).click()
 
   // The handler navigates to #/ after delete; wait for the teams screen to be shown
   await settled(page)
@@ -46,15 +46,17 @@ test('the join notice clears on the next action', async ({ page, browser }) => {
   const page2 = await browser.newPage()
   await page2.goto('/')
   await signUpVerifyAndSignIn(page2, uniqueEmail(), 'Member')
+  await page2.getByRole('button', { name: 'Join with code' }).click()
   await page2.getByPlaceholder('Join code').fill(joinCode)
-  await page2.getByRole('button', { name: 'Join' }).click()
+  await page2.getByRole('button', { name: 'Join', exact: true }).click()
 
   // The join notice should be visible
   await expect(page2.getByText(/^Joined Crew 7\.$/)).toBeVisible({ timeout: 10_000 })
 
   // Now create a new team on the same page — the notice should clear
-  page2.once('dialog', (dialog) => dialog.accept('New Team'))
   await page2.getByRole('button', { name: 'Create team' }).click()
+  await page2.getByRole('dialog').getByLabel('Team name').fill('New Team')
+  await page2.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
   await expect(page2.getByTestId('team-list')).toContainText('New Team', {
     timeout: 10_000,
   })

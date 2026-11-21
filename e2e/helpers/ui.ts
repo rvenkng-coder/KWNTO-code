@@ -47,11 +47,12 @@ export async function signUpVerifyAndSignIn(
 }
 
 /**
- * Creates a team via the UI prompt() and waits for it to appear in team-list.
+ * Creates a team through the in-page dialog and waits for it to appear in team-list.
  */
 export async function createTeam(page: Page, name: string): Promise<void> {
-  page.once('dialog', (dialog) => dialog.accept(name))
   await page.getByRole('button', { name: 'Create team' }).click()
+  await page.getByRole('dialog').getByLabel('Team name').fill(name)
+  await page.getByRole('dialog').getByRole('button', { name: 'Create' }).click()
   await expect(page.getByTestId('team-list')).toContainText(name, {
     timeout: 10_000,
   })
@@ -84,8 +85,9 @@ export async function enableJoinCode(page: Page): Promise<string> {
 
 /** Types a join code on the Teams screen and waits for the team to appear. */
 export async function joinWithCode(page: Page, code: string, teamName: string): Promise<void> {
+  await page.getByRole('button', { name: 'Join with code' }).click()
   await page.getByPlaceholder('Join code').fill(code)
-  await page.getByRole('button', { name: 'Join' }).click()
+  await page.getByRole('button', { name: 'Join', exact: true }).click()
   await expect(page.getByTestId('team-list')).toContainText(teamName)
 }
 

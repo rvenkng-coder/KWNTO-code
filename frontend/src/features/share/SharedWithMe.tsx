@@ -14,10 +14,11 @@ export function SharedWithMe() {
       cancelled = true
     }
   }, [])
+  // Nothing shared: the section stays out of the way (it is still in the page, hidden).
+  if (grants.length === 0) return <section data-testid="shared-with-me" hidden />
   return (
-    <section data-testid="shared-with-me" className="panel flex flex-col gap-1">
-      <h3 className="font-semibold">Shared with me</h3>
-      {grants.length === 0 && <p className="text-sm text-muted">Nothing is shared with you.</p>}
+    <section data-testid="shared-with-me" className="flex flex-col gap-2">
+      <h3 className="section-label">Shared with me</h3>
       <ul className="flex flex-col gap-1">
         {grants.map((g) => (
           <li key={g.projectId}>

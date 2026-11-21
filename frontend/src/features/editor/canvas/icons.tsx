@@ -3,7 +3,7 @@
 
 import type { ReactElement } from 'react'
 
-export type IconName = 'add' | 'cut' | 'copy' | 'paste' | 'trash' | 'select' | 'panel' | 'export'
+export type IconName = 'add' | 'cut' | 'copy' | 'paste' | 'trash' | 'select' | 'panel' | 'export' | 'undo' | 'redo' | 'map' | 'link' | 'unlink' | 'grip'
 
 const SHAPES: Record<IconName, ReactElement> = {
   add: <path d="M8 3v10M3 8h10" />,
@@ -29,6 +29,18 @@ const SHAPES: Record<IconName, ReactElement> = {
   trash: <path d="M3 4.5h10M6 4.5V3h4v1.5M4.5 4.5l.7 8.5h5.6l.7-8.5" />,
   select: <rect x="2.5" y="2.5" width="11" height="11" strokeDasharray="2 2" />,
   export: <path d="M2.5 9.5v3a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-3M8 10V2.5M5.2 5.2 8 2.5l2.8 2.7" />,
+  undo: <path d="M3 6.5h6.5a3 3 0 0 1 0 6H6M3 6.5l2.8-2.7M3 6.5l2.8 2.7" />,
+  redo: <path d="M13 6.5H6.5a3 3 0 0 0 0 6H10M13 6.5l-2.8-2.7M13 6.5l-2.8 2.7" />,
+  map: <path d="M2 4l4-1.5 4 1.5 4-1.5v9.5l-4 1.5-4-1.5-4 1.5zM6 2.5V12M10 4v9.5" />,
+  link: <path d="M6.5 9.5l3-3M7 4.5l.8-.8a2.5 2.5 0 0 1 3.5 3.5l-.8.8M9 11.5l-.8.8a2.5 2.5 0 0 1-3.5-3.5l.8-.8" />,
+  unlink: <path d="M7 4.5l.8-.8a2.5 2.5 0 0 1 3.5 3.5l-.8.8M9 11.5l-.8.8a2.5 2.5 0 0 1-3.5-3.5l.8-.8M3 3l10 10" />,
+  grip: (
+    <>
+      <circle cx="6" cy="4" r="0.9" /><circle cx="10" cy="4" r="0.9" />
+      <circle cx="6" cy="8" r="0.9" /><circle cx="10" cy="8" r="0.9" />
+      <circle cx="6" cy="12" r="0.9" /><circle cx="10" cy="12" r="0.9" />
+    </>
+  ),
   panel: (
     <>
       <rect x="2" y="3" width="12" height="10" rx="1.5" />

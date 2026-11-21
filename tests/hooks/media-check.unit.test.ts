@@ -309,3 +309,39 @@ describe('media-check type detection and full check', () => {
     expect(usedThrough(rows, 'zz')).toBe(1300)
   })
 })
+
+describe('media-check ogg, m4a and opus', () => {
+  const allowedTypes = ['wav', 'mp3', 'ogg', 'm4a', 'opus', 'jpeg', 'png']
+  const base = { size: 1000, allowedTypes, maxMb: { audio: 50, video: 200, image: 50 }, usedBytes: 0, quotaBytes: 2 * 1024 * MIB }
+  const oggHead = [...stringToBytes('OggS'), 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  const m4aHead = [0, 0, 0, 0x20, ...stringToBytes('ftyp'), ...stringToBytes('M4A '), 0, 0, 0, 0]
+  const isomHead = [0, 0, 0, 0x20, ...stringToBytes('ftyp'), ...stringToBytes('isom'), 0, 0, 0, 0]
+
+  // Protects: the three new audio formats are recognised by name, by content and as audio
+  test('the new formats are known by name and by their first bytes', () => {
+    expect(extensionType('a.ogg')).toBe('ogg')
+    expect(extensionType('a.M4A')).toBe('m4a')
+    expect(extensionType('a.opus')).toBe('opus')
+    expect(detectType(oggHead)).toBe('ogg')
+    expect(detectType(m4aHead)).toBe('m4a')
+    for (const t of ['ogg', 'm4a', 'opus']) expect(kindOf(t)).toBe('audio')
+  })
+
+  // Protects: an uploaded .ogg, .opus or .m4a is accepted as audio when its bytes fit
+  test('real files are accepted as audio', () => {
+    expect(checkUpload({ ...base, fileName: 'a.ogg', head: oggHead })).toEqual({ ok: true, type: 'ogg', kind: 'audio' })
+    expect(checkUpload({ ...base, fileName: 'a.opus', head: oggHead })).toEqual({ ok: true, type: 'opus', kind: 'audio' })
+    expect(checkUpload({ ...base, fileName: 'a.m4a', head: m4aHead })).toEqual({ ok: true, type: 'm4a', kind: 'audio' })
+    expect(checkUpload({ ...base, fileName: 'a.m4a', head: isomHead })).toEqual({ ok: true, type: 'm4a', kind: 'audio' })
+  })
+
+  // Protects: a wrong name, wrong bytes or a switched-off type is still refused, and a video is not an m4a
+  test('the wrong bytes or a type switched off are refused', () => {
+    const fake = checkUpload({ ...base, fileName: 'a.ogg', head: stringToBytes('<!doctype html>') })
+    expect(fake).toMatchObject({ ok: false, code: 'media_not_real' })
+    expect(checkUpload({ ...base, fileName: 'a.mp3', head: oggHead })).toMatchObject({ ok: false, code: 'media_not_real' })
+    expect(checkUpload({ ...base, fileName: 'a.ogg', head: m4aHead })).toMatchObject({ ok: false, code: 'media_not_real' })
+    expect(checkUpload({ ...base, allowedTypes: ['wav', 'mp3'], fileName: 'a.opus', head: oggHead })).toMatchObject({ ok: false, code: 'media_type_not_allowed' })
+    expect(checkUpload({ ...base, fileName: 'a.mp4', head: m4aHead })).toMatchObject({ ok: false })
+  })
+})

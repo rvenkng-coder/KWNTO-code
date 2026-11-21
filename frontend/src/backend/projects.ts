@@ -3,6 +3,7 @@ import type { Project } from './content-types'
 import { fromRecord } from './content-mappers'
 import { createContent } from './content'
 import { toBackendError } from './errors'
+import type { ProjectPreview } from './types'
 
 /** The projects of a team (design 5): any member lists and creates them. */
 export function createProjects(pb: PocketBase) {
@@ -23,7 +24,7 @@ export function createProjects(pb: PocketBase) {
           filter: pb.filter("team = {:team} && deleted_at = ''", { team: teamId }),
           sort: '-updated',
         })
-        return rows.map((row) => fromRecord('projects', row))
+        return rows.map((row) => ({ ...fromRecord('projects', row), updated: String(row.updated ?? '') }))
       })
     },
 
@@ -41,6 +42,21 @@ export function createProjects(pb: PocketBase) {
     /** Brings a project back from the trash: an ordinary guarded edit (only the owner's is accepted). */
     async restore(project: Project): Promise<Project> {
       return content.update('projects', project.id, { deleted: false }, project.version)
+    },
+
+    /** Counts and the node boxes of the first chapter (at most 80), for the project card's picture. */
+    async preview(projectId: string): Promise<ProjectPreview> {
+      return wrapped(async () => {
+        const live = pb.filter("project = {:p} && deleted_at = ''", { p: projectId })
+        const chapters = await pb.collection('chapters').getList(1, 1, { filter: live, sort: 'position' })
+        const all = await pb.collection('nodes').getList(1, 1, { filter: live })
+        const first = chapters.items[0]
+        const rows = first === undefined ? [] : (await pb.collection('nodes').getList(1, 80, {
+          filter: pb.filter("project = {:p} && chapter = {:c} && deleted_at = ''", { p: projectId, c: first.id }),
+        })).items
+        const nodes = rows.map((row) => fromRecord('nodes', row)).map((n) => ({ x: n.x, y: n.y, width: n.width, height: n.height }))
+        return { chapterCount: chapters.totalItems, nodeCount: all.totalItems, nodes }
+      })
     },
 
     /** The server hook adds the project's settings and its first chapter (plan D6). */

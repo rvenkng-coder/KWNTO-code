@@ -6,35 +6,38 @@ import { edits } from '../store/edits'
 import { EditingBadge } from '../../presence/EditingBadge'
 import { presenceFocus } from '../../presence/usePresence'
 import { useSavedText } from '../store/useSavedText'
+import { ToolButton } from '../canvas/ToolButton'
 import { insertRow, moveRow } from './rowActions'
+import { useRowDrag } from './rowDrag'
+import { AddButton, CARD, Grip } from './RowControls'
 import { SectionLabel } from './SectionLabel'
 
 // The cues of one node (design 6.2): audio, lighting or other, each with a note. Media files are Plan 5.
 
 const CUE_TYPES: CueType[] = ['audio', 'lighting', 'other']
 
-interface CueRowProps { cue: Cue; isFirst: boolean; isLast: boolean; onMove(by: -1 | 1): void }
+interface CueRowProps { cue: Cue; index: number; onMove(id: string, toIndex: number): void }
 
-function CueRow({ cue, isFirst, isLast, onMove }: CueRowProps) {
+function CueRow({ cue, index, onMove }: CueRowProps) {
   const [text, setText, flush] = useSavedText('cues', cue.id, 'text', cue.text)
   const marks = presenceFocus(cue.nodeId, `cue:${cue.id}`)
+  const drag = useRowDrag('cues', cue.id, index, (to) => onMove(cue.id, to), (from) => onMove(from, index))
   return (
-    <li data-testid="cue-row" className="flex flex-col gap-1 border-b border-border pb-2">
-      <select className="field" aria-label="Cue type" value={cue.type}
-        onChange={(e) => void edits.update('cues', cue.id, { type: e.target.value as CueType }, 'Change cue type')}>
-        {CUE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-      </select>
+    <li data-testid="cue-row" className={`${CARD} ${drag.over ? 'border-accent' : 'border-border'}`} {...drag.row}>
+      <div className="flex items-center gap-1">
+        <Grip what="cue" extra={drag.grip} />
+        <select className="field min-w-0 flex-1" aria-label="Cue type" value={cue.type}
+          onChange={(e) => void edits.update('cues', cue.id, { type: e.target.value as CueType }, 'Change cue type')}>
+          {CUE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+        </select>
+        <ToolButton icon="trash" name="Delete cue" danger align="end" onClick={() => void edits.remove('cues', cue.id, 'Delete cue')} />
+      </div>
       <EditingBadge nodeId={cue.nodeId} field={`cue:${cue.id}`} />
       <input className="field" aria-label="Cue text" placeholder="Cue" value={text}
         onChange={(e) => setText(e.target.value)} onFocus={marks.onFocus} onBlur={() => {
           marks.onBlur()
           flush()
         }} />
-      <div className="flex gap-1">
-        <button type="button" className="btn-quiet" disabled={isFirst} onClick={() => onMove(-1)}>Move up</button>
-        <button type="button" className="btn-quiet" disabled={isLast} onClick={() => onMove(1)}>Move down</button>
-        <button type="button" className="btn-danger" onClick={() => void edits.remove('cues', cue.id, 'Delete cue')}>Delete cue</button>
-      </div>
     </li>
   )
 }
@@ -51,11 +54,10 @@ export function Cues({ projectId, nodeId }: { projectId: string; nodeId: string 
       <SectionLabel>Cues</SectionLabel>
       <ol className="flex flex-col gap-2">
         {cues.map((cue, i) => (
-          <CueRow key={cue.id} cue={cue} isFirst={i === 0} isLast={i === cues.length - 1}
-            onMove={(by) => void moveRow('cues', cues, cue.id, i + by)} />
+          <CueRow key={cue.id} cue={cue} index={i} onMove={(id, to) => void moveRow('cues', cues, id, to)} />
         ))}
       </ol>
-      <button type="button" className="btn self-start" onClick={add}>Add cue</button>
+      <AddButton name="Add cue" onClick={add} />
     </section>
   )
 }

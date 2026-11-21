@@ -42,7 +42,7 @@ test('cards and panels use the soft look in both themes', async ({ page }) => {
   const first = (await html.getAttribute('data-theme')) === 'dark' ? 'dark' : 'light'
   const second = first === 'dark' ? 'light' : 'dark'
   await check()
-  await page.getByRole('button', { name: `Switch to ${second} theme` }).click()
+  await page.getByRole('switch', { name: 'Dark theme' }).click()
   await expect(html).toHaveAttribute('data-theme', second)
   await check()
 })

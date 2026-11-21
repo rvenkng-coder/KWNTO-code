@@ -11,7 +11,7 @@ const allChapters = (page: import('@playwright/test').Page) => page.getByRole('m
 // Protects: a new project opens in the editor with its first chapter and the three regions.
 test('a new project opens with Chapter 1', async ({ page }) => {
   await ownerWithProject(page, 'Story')
-  await expect(page.getByTestId('editor-left')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Back to teams' })).toBeVisible()
   await expect(page.getByTestId('editor-canvas')).toBeVisible()
   await expect(page.getByTestId('editor-panel')).toBeVisible()
   expect(await tabTitles(page)).toEqual(['Chapter 1'])
@@ -52,10 +52,10 @@ test('closing a tab hides it and trashing removes the chapter', async ({ page })
   await expect(allChapters(page).getByRole('menuitem', { name: 'Chapter 2' })).toHaveCount(1)
   await allChapters(page).getByRole('menuitem', { name: 'Chapter 2' }).click()
   await expect(page.getByRole('tab', { name: 'Chapter 2' })).toBeVisible()
-  page.once('dialog', (d) => d.accept())
   const trashed = waitForSave(page, 'chapters', 'PATCH')
   await page.getByRole('button', { name: 'Menu for Chapter 2' }).click()
   await page.getByRole('menuitem', { name: 'Move to trash' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Move to trash' }).click()
   await trashed
   await page.reload()
   await expect(page.getByRole('tab', { name: 'Chapter 1' })).toBeVisible()
@@ -80,8 +80,8 @@ test('only the owner can move a project to the trash', async ({ page, browser })
   await expect(memberPage.getByTestId('project-list')).toContainText('Story')
   await expect(memberPage.getByRole('button', { name: 'Move to trash' })).toHaveCount(0)
   await expect(page.getByTestId('project-list')).toHaveAttribute('data-loaded', 'true')
-  page.once('dialog', (d) => d.accept())
   await page.getByRole('button', { name: 'Move to trash' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Move to trash' }).click()
   await expect(page.getByTestId('project-list')).not.toContainText('Story')
   await memberPage.close()
 })
@@ -92,10 +92,9 @@ test('deleting a team names its project count', async ({ page }) => {
   await page.getByRole('button', { name: 'Back to teams' }).click()
   await openTeam(page, 'Crew')
   await createProject(page, 'Two')
-  let message = ''
-  page.once('dialog', (d) => { message = d.message(); void d.dismiss() })
   await page.getByRole('button', { name: 'Delete team' }).click()
-  await expect.poll(() => message).toBe('Delete this team and its 2 projects?')
+  await expect(page.getByRole('dialog')).toContainText('Delete this team and its 2 projects?')
+  await page.getByRole('dialog').getByRole('button', { name: 'Cancel' }).click()
 })
 
 // Protects: someone outside the team gets the not-found text and no project content.

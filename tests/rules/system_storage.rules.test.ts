@@ -15,5 +15,5 @@ test('system_storage starts with the spec defaults', async () => {
   expect(record.max_video_mb).toBe(200)
   expect(record.max_audio_mb).toBe(50)
   expect(record.max_image_mb).toBe(50)
-  expect(record.allowed_types).toEqual(['wav', 'mp3', 'jpeg', 'png'])
+  expect(record.allowed_types).toEqual(['wav', 'mp3', 'ogg', 'm4a', 'opus', 'jpeg', 'png'])
 })

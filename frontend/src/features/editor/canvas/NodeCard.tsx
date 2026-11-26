@@ -1,12 +1,16 @@
 import { Handle, NodeResizer, Position, type NodeProps } from '@xyflow/react'
-import { memo } from 'react'
+import { memo, useState } from 'react'
 import { EditingBadge } from '../../presence/EditingBadge'
 import { useCommentStore } from '../../comments/useNodeComments'
 import { countLabel } from '../../comments/commentList'
+import { backend } from '../../../backend'
+import { coverOf } from '../media/mediaList'
+import { useMediaStore } from '../media/useProjectMedia'
 import { useTheme } from '../../shell/theme'
 import { NODE_COLORS } from '../model/colors'
 import { jumpToNode } from '../search/jump'
 import { CardAttachments } from './NodeCardAttachments'
+import { MediaViewer } from './MediaViewer'
 import { edits } from '../store/edits'
 import { choiceHandleId, MIN_CARD_HEIGHT, MIN_CARD_WIDTH, NEW_CHOICE_HANDLE, type CardChoice, type CardCue, type CardNode, type CrossLink, type NodeCardData } from '../model/flow'
 
@@ -27,6 +31,31 @@ function CommentBadge({ nodeId }: { nodeId: string }) {
   const count = useCommentStore((s) => s.counts[nodeId] ?? 0)
   if (count === 0) return null
   return <span data-testid="comment-badge" aria-label={countLabel(count)} className="rounded-full bg-panel px-1.5 text-[0.85em] text-text">{count}</span>
+}
+
+/**
+ * The node's cover image, on top of the card at the card's width and its own proportions (never
+ * cropped or stretched). It is set in the panel's Cover image section, apart from the media; a
+ * click opens it full size, like the media thumbnails. Nothing is drawn until the file token is there.
+ */
+function CoverImage({ coverMediaId }: { coverMediaId: string }) {
+  const cover = useMediaStore((s) => coverOf(s.media, coverMediaId))
+  const token = useMediaStore((s) => s.fileToken)
+  const [open, setOpen] = useState(false)
+  if (cover === undefined || !token) return null
+  return (
+    <>
+      {/* nodrag: a press must not start a drag of the card. */}
+      <button type="button" data-testid="node-cover" title={`View ${cover.title}`} className="nodrag block w-full cursor-pointer border-0 bg-transparent p-0"
+        onClick={(e) => {
+          e.stopPropagation()
+          setOpen(true)
+        }}>
+        <img src={backend.media.fileUrl(cover, token)} alt={cover.title} loading="lazy" draggable={false} className="block h-auto max-h-64 w-full object-contain" />
+      </button>
+      {open && <MediaViewer media={cover} token={token} onClose={() => setOpen(false)} />}
+    </>
+  )
 }
 
 function CrossLinkTag({ link }: { link: CrossLink }) {
@@ -92,6 +121,7 @@ function NodeCardView({ id, data, selected }: NodeProps<CardNode>) {
         onResizeEnd={(_, p) => void edits.update('nodes', id, { x: Math.round(p.x), y: Math.round(p.y), width: Math.round(p.width), height: Math.round(p.height) }, 'Resize node')} />
       <Handle type="target" position={Position.Left} />
       <div className="min-h-0 flex-1 overflow-hidden rounded-t-[var(--radius-lg)]">
+        <CoverImage coverMediaId={data.coverMediaId} />
         {/* The header tint is node data from the palette (colors.ts), the one allowed inline colour. */}
         <div className="flex items-center justify-between gap-1 px-3 py-2"
           style={{ background: `color-mix(in srgb, ${tint} 24%, var(--color-card))`, borderTop: `3px solid ${tint}` }}>
@@ -106,7 +136,7 @@ function NodeCardView({ id, data, selected }: NodeProps<CardNode>) {
           {data.more > 0 && <p className="text-muted">+{data.more} more</p>}
         </div>
         <Cues cues={data.cues} more={data.moreCues} />
-        <CardAttachments nodeId={id} />
+        <CardAttachments nodeId={id} coverMediaId={data.coverMediaId} />
       </div>
       <Choices choices={data.choices} />
     </div>

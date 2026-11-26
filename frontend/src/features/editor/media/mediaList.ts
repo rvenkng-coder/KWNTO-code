@@ -17,9 +17,15 @@ export function applyMediaEvent(list: Media[], event: MediaEvent): Media[] {
   return list
 }
 
-// Media in use on a node; removed media is hidden from everyone.
-export function mediaOf(list: Media[], nodeId: string): Media[] {
-  return list.filter((m) => m.nodeId === nodeId && m.removedAt === '')
+// The picture shown on top of a node's card: the media file the node names as its cover, while it is an image still in use.
+export function coverOf(list: Media[], coverMediaId: string): Media | undefined {
+  if (coverMediaId === '') return undefined
+  return list.find((m) => m.id === coverMediaId && m.kind === 'image' && m.removedAt === '')
+}
+
+// Media in the node's media section and on its card: the cover is shown on its own, so it is left out.
+export function mediaOf(list: Media[], nodeId: string, coverMediaId = ''): Media[] {
+  return list.filter((m) => m.nodeId === nodeId && m.removedAt === '' && m.id !== coverMediaId)
 }
 
 // Media a member removed from a node, which only the team lead sees and can restore or delete.

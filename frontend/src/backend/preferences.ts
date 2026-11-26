@@ -7,6 +7,7 @@ function toPreferences(record: Record<string, unknown>): Preferences {
     theme: record.theme === 'light' ? 'light' : 'dark',
     minimapVisible: record.minimap_visible !== false,
     cardFontSize: typeof record.card_font_size === 'number' && record.card_font_size > 0 ? record.card_font_size : 0,
+    cardMediaSize: typeof record.card_media_size === 'number' && record.card_media_size > 0 ? record.card_media_size : 0,
   }
 }
 
@@ -34,6 +35,7 @@ export function createPreferences(pb: PocketBase) {
       if (changes.theme !== undefined) body.theme = changes.theme
       if (changes.minimapVisible !== undefined) body.minimap_visible = changes.minimapVisible
       if (changes.cardFontSize !== undefined) body.card_font_size = changes.cardFontSize
+      if (changes.cardMediaSize !== undefined) body.card_media_size = changes.cardMediaSize
       try {
         const current = await row()
         return toPreferences(await pb.collection('user_preferences').update(current.id as string, body))

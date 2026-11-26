@@ -157,3 +157,19 @@
 .kwnto-canvas .react-flow__handle { width: 16px; height: 16px; }
 .kwnto-canvas .react-flow__handle-left { left: -8px; }
 .kwnto-canvas .react-flow__handle-right { right: -8px; }
+
+/* Player Mode (plan 2026-11-26-player-mode, D9): the node on screen slides in from the right, from the left
+   (Back) or fades in (first screen and Restart). Nothing moves for people who ask for reduced motion. */
+@keyframes player-slide-forward { from { opacity: 0; transform: translateX(2rem); } to { opacity: 1; transform: none; } }
+@keyframes player-slide-back { from { opacity: 0; transform: translateX(-2rem); } to { opacity: 1; transform: none; } }
+@keyframes player-fade { from { opacity: 0; } to { opacity: 1; transform: none; } }
+.player-step[data-transition='slide-forward'] { animation: player-slide-forward 250ms ease-out; }
+.player-step[data-transition='slide-back'] { animation: player-slide-back 250ms ease-out; }
+.player-step[data-transition='fade'] { animation: player-fade 250ms ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .player-step[data-transition] { animation: none; }
+}
+/* Screenplay look: the character's name over the line, an action line in italics. */
+.player-dialogue { display: flex; flex-direction: column; gap: 0.125rem; }
+.player-character { color: var(--color-muted); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.player-action { font-style: italic; }

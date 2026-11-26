@@ -67,10 +67,8 @@ test('a sign-up that sends verified: true does not get a verified account', asyn
   expect((await admin.collection('users').getOne((outcome as { id: string }).id)).verified).toBe(false)
 })
 
-// Protects docs/security.md section 3 and the router's Global Constraints: emails are
-// private to everyone except the admin. A visitor who signs up with
-// `emailVisibility: true` must still get a private email, or teammates (who will see
-// each other's user records from Task 6) would read it.
+// Protects docs/security.md section 3: emails are private to everyone except the admin. A visitor who signs up with
+// `emailVisibility: true` must still get a private email.
 test('a sign-up that sends emailVisibility: true stores a private email', async () => {
   const { id } = await signUp(newEmail(), GOOD_PASSWORD, { emailVisibility: true })
   expect((await (await asAdmin()).collection('users').getOne(id)).emailVisibility).toBe(false)

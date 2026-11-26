@@ -4,12 +4,10 @@
 // CommonJS so hooks can load it with require(`${__hooks}/lib/team-invites.js`).
 // Uses the PocketBase app and the global Record, so it is checked by the rule tests.
 
-// The users account `typed` (trimmed, case as typed; lib/invite-email.js) names, or
-// null. PocketBase 0.40.6 stores an address as it was typed at sign-up and
-// app.findAuthRecordByEmail compares case-sensitively (it missed an account stored as
-// "Mixed-...@Example.TEST"; findings.md, Task 8), so the lookup ignores case on both
-// sides. Accounts can no longer differ only in case (1794360700 migration), so at most one
-// matches; chooseAccountIndex stays as a safeguard that never picks the first of several. The email is a bound parameter.
+// The users account `typed` (trimmed, case as typed; lib/invite-email.js) names, or null. The lookup ignores
+// case on both sides, so it does not depend on how the address was typed or stored. Accounts cannot differ only
+// in case (the users email index ignores case), so at most one matches; chooseAccountIndex stays as a safeguard
+// that never picks the first of several. The email is a bound parameter.
 function findUserByEmail(app, typed) {
   const { chooseAccountIndex } = require(`${__hooks}/lib/invite-email.js`)
 

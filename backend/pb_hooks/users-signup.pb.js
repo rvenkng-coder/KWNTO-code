@@ -27,8 +27,8 @@ onRecordCreateRequest((e) => {
     // A visitor must prove the email address; never trust a verified flag they send.
     // (PocketBase 0.40.6 already refuses one; this keeps it so if that ever changes.)
     e.record.setVerified(false)
-    // Emails are private to everyone but the admin; teammates can see each other's
-    // user records, so a visitor may not publish their email there.
+    // Emails are private to everyone but the admin, so a visitor may not publish theirs. The access rules already
+    // hide other people's user records; this keeps the address hidden even if a later rule shows them.
     e.record.setEmailVisibility(false)
   }
 

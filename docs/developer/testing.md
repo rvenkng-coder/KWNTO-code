@@ -159,6 +159,7 @@ End-to-end tests verify the full stack: browser → Vite dev server → PocketBa
 ### Running E2E Tests
 - **Standalone:** `npm run test:e2e` (starts PocketBase via `with-pocketbase.ts`, then Playwright).
 - **Full suite:** `npm test` (includes e2e as the last layer).
+- **Safe next to the dev backend.** `compose.test.yaml` sets `name: kwnto-test`, so the harness's `docker compose down -v --remove-orphans` only touches its own container. Without a name, tests and `npm run dev:backend` shared one Compose project and removed each other's container (issue 25). `scripts/compose-names.test.ts` fails if a test compose file loses its name. Leftover web servers on 5174 or 5175 from an interrupted run still stop the next run (`strictPort`); stop them first.
 
 ### Writing E2E Tests
 1. Create a file in `e2e/` named `<feature>.spec.ts`.

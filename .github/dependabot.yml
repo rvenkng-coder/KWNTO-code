@@ -1,0 +1,28 @@
+# Monthly pull requests for outdated dependencies. Each one runs the normal CI (checks, backend, e2e, secrets), so a
+# bump that breaks something shows as a red pull request instead of a surprise. Review and merge them like your own.
+# Not covered, still a monthly manual check: the Docker image digests pinned in compose.prod.yaml and
+# backend/Dockerfile, and the PocketBase server version (docs/developer/backend.md, "Pinned version and how to bump it").
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    # Minor and patch updates arrive as one pull request; a major version gets its own, so it can be read on its own.
+    groups:
+      minor-and-patch:
+        update-types: ["minor", "patch"]
+    ignore:
+      # The PocketBase JS client is bumped by hand: the live-connection code (frontend/src/backend/realtime.ts) relies on
+      # how this client behaves, and it must match the server version. See docs/developer/backend.md before changing it.
+      - dependency-name: "pocketbase"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "chore(ci)"

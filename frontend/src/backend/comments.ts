@@ -1,6 +1,7 @@
 import type PocketBase from 'pocketbase'
 import type { Comment, CommentEvent } from './comment-types'
 import { toBackendError } from './errors'
+import { closesQuietly } from './subscriptions'
 
 export function toComment(row: Record<string, unknown>): Comment {
   const author = String(row.author ?? '')
@@ -36,6 +37,6 @@ export function createComments(pb: PocketBase) {
     subscribe: (projectId: string, onEvent: (e: CommentEvent) => void): Promise<() => Promise<void>> =>
       wrapped(() => pb.collection('comments').subscribe('*', (e) => {
         if (e.action === 'create' || e.action === 'delete') onEvent({ action: e.action, record: toComment(e.record) })
-      }, { filter: filterOf(projectId) })),
+      }, { filter: filterOf(projectId) }).then(closesQuietly)),
   }
 }

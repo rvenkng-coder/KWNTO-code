@@ -4,33 +4,51 @@ A map of the whole system in one place, for someone who has to read or change it
 
 ## The running system
 
+Two kinds of people reach the system, and each has **their own route**. Read the picture from the person's side.
+
 ```mermaid
-flowchart LR
-  subgraph Browser["Browser (React app)"]
-    UI["frontend/src<br/>React + Zustand<br/>React Flow canvas"]
-    OB[("IndexedDB<br/>outbox of waiting edits")]
+flowchart TB
+  User(["<b>A user</b><br/>any browser, any network"])
+  Admin(["<b>You, the admin</b><br/>a device on your tailnet"])
+
+  subgraph VM["The VM (Docker Compose)"]
+    TS["<b>tailscale</b><br/>the network door"]
+    CD["<b>caddy</b><br/>checks every public request"]
+    PB["<b>pocketbase</b><br/>the app, the API and the dashboard"]
+    DATA[("<b>volumes</b><br/>database and uploads")]
   end
-  Admin(["Admin (you)<br/>device on the tailnet"])
-  subgraph VM["The VM"]
-    TS["tailscale<br/>Funnel and serve"]
-    CD["caddy :8080<br/>hides admin and schema paths<br/>size limits, security headers"]
-    PB["pocketbase :8090<br/>SQLite + hooks + rules<br/>serves the built app"]
-    VOL[("volumes<br/>kwnto-data: database, uploads<br/>kwnto-web: the built app")]
-  end
-  UI -->|"edits go here first"| OB
-  UI -->|"public https :443"| TS
-  Admin -->|"tailnet-only https :8443"| TS
-  TS -->|"public path"| CD
-  CD --> PB
-  TS -->|"admin path, skips caddy"| PB
-  PB --- VOL
-  PB -.->|"live events"| UI
+
+  User ==>|"step 1: the public https address"| TS
+  TS ==>|"step 2: public traffic"| CD
+  CD ==>|"step 3: allowed requests only"| PB
+
+  Admin -.->|"route A: private https, port 8443"| TS
+  TS -.->|"route B: admin traffic skips caddy"| PB
+
+  PB --- DATA
+
+  linkStyle 0,1,2 stroke:#3b82f6,stroke-width:3px
+  linkStyle 3,4 stroke:#f59e0b,stroke-width:3px
 ```
 
-- **One backend, no separate app server.** PocketBase stores data in SQLite, enforces access, runs our server code, serves the API and streams live changes. It also serves the built web app (from the `kwnto-web` volume).
-- **Four services** in `compose.prod.yaml`: `web` (builds the app once and exits; `Exited (0)` is normal), `pocketbase`, `caddy` (the front door that hides admin paths) and `tailscale` (publishes the site with Funnel). Data lives in volumes, so rebuilding a container never deletes it.
-- **Two ways in.** The public address (443) goes through Caddy, which blocks the dashboard and admin routes. The admin dashboard is only on port 8443 and only for devices on the tailnet. See [deployment](../admin/deployment.md).
+- **Blue, thick (steps 1 to 3): everything a user does.** Signing in, loading the app's own files, opening a project, saving an edit, uploading, opening a share link, the live updates. The app asks for `/`, meaning "the address this page came from", so a user's browser can only ever reach the **public address**, and that always passes through Caddy. A user cannot reach PocketBase directly.
+- **Orange, dashed (routes A and B): you, the admin.** Port 8443 is open only to devices on your tailnet and goes **straight to PocketBase**, so you can open the dashboard (`/_/`). It is not published on the internet.
+
+Caddy is the checkpoint on the user's route:
+
+```mermaid
+flowchart TD
+  R["A public request reaches caddy"] --> Q{"Is it an admin, dashboard,<br/>settings, backup or schema path?"}
+  Q -->|"yes"| N["Answer 404 Not found<br/>pocketbase never sees it"]
+  Q -->|"no"| F["Forward it to pocketbase<br/>and tell it the visitor's real IP address"]
+  F --> H["The answer goes back with<br/>security headers added"]
+```
+
+- **One backend, no separate app server.** PocketBase stores data in SQLite, enforces access, runs our server code, serves the API, streams live changes and serves the built web app (from the `kwnto-web` volume).
+- **Four services** in `compose.prod.yaml`: `web` (builds the app once and exits; `Exited (0)` is normal), `pocketbase`, `caddy` and `tailscale` (publishes the site with Funnel). Data lives in volumes, so rebuilding a container never deletes it.
+- **Caddy also limits request sizes.** It sets the security headers and the largest body it accepts. Details: [deployment](../admin/deployment.md).
 - **Updates and backups** are scripts in `deploy/`: `update.sh` (backs up first), `backup-now.sh`, `restore.sh`.
+- **In development there is no Caddy:** the Vite dev server forwards `/api` to PocketBase on port 8090, which is why the same `/` address works on your laptop.
 
 ## The code, in three layers
 

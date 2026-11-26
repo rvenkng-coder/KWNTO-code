@@ -37,7 +37,7 @@ test('a view link plays the story without an account', async ({ page, browser })
   await expect(guest.getByRole('button', { name: 'Sign in', exact: true })).toHaveCount(0)
 })
 
-// Protects Review Focus 5 and security.md 5: HTML in the story shows as typed text on a share link's player.
+// Protects security.md 5: HTML in the story shows as typed text on a share link's player.
 test('titles, lines and choices with HTML show as text on a share link', async ({ page, browser }) => {
   const story = await playableProject(page)
   await changeRecord('nodes', story.gate, { title: TITLE })
@@ -65,7 +65,7 @@ test('a snapshot plays the story as it was published', async ({ page, browser })
   await expect(dialog.getByTestId('player-title')).toHaveText('Gate')
 })
 
-// Protects design 5 and plan D8: a comment link signs the person in first, and its media is fetched with their
+// Protects design 5: a comment link signs the person in first, and its media is fetched with their
 // token (a blob), because a browser cannot add a header to an audio element.
 test("a comment link plays with media loaded under the person's token", async ({ page, browser }) => {
   await playableProject(page)
@@ -85,7 +85,7 @@ test("a comment link plays with media loaded under the person's token", async ({
   await expect.poll(() => audio.evaluate((a: HTMLAudioElement) => a.currentSrc.startsWith('blob:'))).toBe(true)
 })
 
-// Protects Review Focus 1 and D4: when the start node is in the trash the file has no start, and the player says so.
+// Protects: when the start node is in the trash the file has no start, and the player says so.
 test('a link to a project whose start node is trashed says there is nothing to play', async ({ page, browser }) => {
   const story = await playableProject(page)
   await changeRecord('nodes', story.gate, { deleted_at: new Date().toISOString() })
@@ -98,7 +98,7 @@ test('a link to a project whose start node is trashed says there is nothing to p
   await expect(dialog.getByRole('button', { name: 'Close', exact: true })).toBeVisible()
 })
 
-// Protects D3: a live view re-reads the project every 30 s, but the open player keeps the story it started with
+// Protects: a live view re-reads the project every 30 s, but the open player keeps the story it started with
 // and shows the new text only when it is opened again.
 test('a live view refresh waits for the player to be reopened', async ({ page, browser }) => {
   const story = await playableProject(page)

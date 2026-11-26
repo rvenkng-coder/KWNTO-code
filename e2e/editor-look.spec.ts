@@ -1,4 +1,4 @@
-// Protects: the cleaner look (editor cards plan, Task 5; design goal 4), in both themes: node cards are
+// Protects: the cleaner look (editor cards design, goal 4), in both themes: node cards are
 // soft (a large radius and a shadow), panel section labels are small uppercase labels, and the page
 // still never scrolls.
 import { expect, test, type Page } from '@playwright/test'

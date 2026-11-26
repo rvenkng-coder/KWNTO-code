@@ -99,7 +99,7 @@ test('PDF and Word files of the current chapter download', async ({ page }) => {
 // Protects: a dark-theme account never gets a dark, unprintable export.
 test('a dark account still gets a light map on white', async ({ page }) => {
   await storyWithTwoNodes(page)
-  // A new account starts dark (shell.spec.ts C11), so the page is dark here.
+  // A new account starts dark (see the theme test in shell.spec.ts), so the page is dark here.
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
   const download = await exportMap(page, 'PNG', 'Current chapter')
   expect(await cornerPixel(page, await downloadBytes(download), 'image/png')).toEqual([255, 255, 255])

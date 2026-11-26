@@ -3,9 +3,8 @@ import { adminPB } from './helpers/admin'
 import { card, ownerWithProject } from './helpers/editor'
 import { makeLink, projectIdOf, seedStory } from './helpers/share'
 
-// Protects design 5 (view links) and the roadmap's rule that share views show what a person put on
-// a node: a signed-out viewer sees the card at its saved size with its cover image, and the node's
-// links in the panel, opening in a new tab.
+// Protects design 5 (view links): share views show what a person put on a node: a signed-out viewer sees the card at
+// its saved size with its cover image, and the node's links in the panel, opening in a new tab.
 test("a view link shows a node's size, cover and links", async ({ page, browser }) => {
   await ownerWithProject(page, 'Story')
   const projectId = projectIdOf(page)

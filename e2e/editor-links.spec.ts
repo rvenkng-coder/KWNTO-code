@@ -69,7 +69,7 @@ test('a link is added and opens safely', async ({ page }) => {
   await expect(section(page).getByLabel('Link address')).toHaveValue('')
 })
 
-// Protects: Review Focus 1 and 3: unsafe input is refused and nothing is added; a title with markup stays text.
+// Protects: unsafe input is refused and nothing is added; a title with markup stays text.
 test('unsafe addresses are refused and titles stay text', async ({ page }) => {
   await setupNode(page)
   const alert = section(page).getByRole('alert')
@@ -114,7 +114,7 @@ test('links persist, belong to their node and can be deleted', async ({ page }) 
   await expect(items(page)).toHaveCount(0)
 })
 
-// Protects: Review Focus 4 and live updates: a teammate sees a link appear and go without a reload.
+// Protects: live updates: a teammate sees a link appear and go without a reload.
 test('a teammate sees links appear and go without a reload', async ({ page, browser }) => {
   const { a, b } = await ownerAndMember(page, browser)
   const nodeId = await addNodeAt(a, 40, 60)

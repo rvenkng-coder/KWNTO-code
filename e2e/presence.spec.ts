@@ -1,14 +1,13 @@
-// Protects design 5, 8b and 9c and plan 2026-11-20-sharing D14: when a teammate is editing a
-// node, the card and the very field show "<name> is editing" for everyone else (never for the
-// person themselves), it moves with their focus, and it clears when they leave the field or
-// close the tab.
+// Protects design 5, 8b and 9c: when a teammate is editing a node, the card and the very field show "<name> is editing"
+// for everyone else (never for the person themselves), it moves with their focus, and it clears when they leave the
+// field or close the tab.
 import { expect, test } from '@playwright/test'
 import { card } from './helpers/editor'
 import { ownerAndMember, panel, titleField } from './helpers/pair'
 
 const SOON = { timeout: 12_000 }
 
-// Protects D14 and design 8b: two browsers on one node. The member focuses the title (the
+// Protects design 8b: two browsers on one node. The member focuses the title (the
 // owner sees it on the card and beside the title), then a script line (the badge moves beside
 // that line), then leaves (it clears). The member never sees their own name.
 test('a teammate editing a node shows on the card and the field', async ({ browser }) => {
@@ -36,7 +35,7 @@ test('a teammate editing a node shows on the card and the field', async ({ brows
   await expect(card(a, id).getByTestId('editing-badge')).toHaveCount(0, SOON)
 })
 
-// Protects D14: a person who closes the tab is no longer shown as editing: the page's own
+// Protects: a person who closes the tab is no longer shown as editing: the page's own
 // clean-up, or at the latest the timeout.
 test('closing the tab clears the indicator', async ({ browser }) => {
   const { a, b, ids } = await ownerAndMember(browser, 1)

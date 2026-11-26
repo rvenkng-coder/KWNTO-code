@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 import { uniqueEmail } from './helpers/admin'
 import { signUp } from './helpers/ui'
 
-// C5: an unverified user can resend the verification email
+// An unverified user can resend the verification email
 test('an unverified user can resend the verification email', async ({ page }) => {
   const email = uniqueEmail()
   await page.goto('/')
@@ -71,7 +71,7 @@ test('the resend button stays visible after a failure', async ({ page }) => {
 // Protects: join and accept are disabled for unverified users; the gate text is shown once.
 import { signUpVerifyAndSignIn, createTeam, openTeam, settled } from './helpers/ui'
 
-// C6: join and accept are disabled until verified
+// Join and accept are disabled until verified
 test('join and accept are disabled until verified', async ({ page, browser }) => {
   // Owner creates a team and invites the unverified user
   const ownerEmail = uniqueEmail()

@@ -1,5 +1,5 @@
-// Protects: the canvas performance budget (editor core plan, Task 10; roadmap "named risk"):
-// a chapter of 500 nodes in a project of 5,000 lines opens within 3 s, and a drag saves once.
+// Protects: the canvas performance budget (decision 0003): a chapter of 500 nodes in a project of 5,000 lines opens
+// within 3 s, and a drag saves once.
 import { expect, test, type Page } from '@playwright/test'
 import { uniqueEmail } from './helpers/admin'
 import { cards, waitForSave } from './helpers/editor'
@@ -27,7 +27,7 @@ async function cardInView(page: Page): Promise<Box> {
   throw new Error('no card wholly inside the canvas')
 }
 
-// Protects: plan Global Constraints (canvas budget) and engineering 9 (positions saved on drag end only).
+// Protects: the canvas budget (decision 0003) and engineering 9 (positions saved on drag end only).
 test('a 500-node chapter opens within budget', async ({ page }, testInfo) => {
   testInfo.setTimeout(180_000)
   await page.goto('/')

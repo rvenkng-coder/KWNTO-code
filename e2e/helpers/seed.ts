@@ -1,9 +1,8 @@
 import { adminPB } from './admin'
 
-// Seeds a large project straight into the test backend for the canvas performance test
-// (editor core plan, Task 10, checkpoint 10D). Records go in through the admin API in
-// parallel chunks of 50; the hooks still make the project's settings and `Chapter 1`, and
-// make the first node the start node.
+// Seeds a large project straight into the test backend for the canvas performance test. Records go in through the admin
+// API in parallel chunks of 50; the hooks still make the project's settings and `Chapter 1`, and make the first node
+// the start node.
 
 const CHUNK = 50
 const COLUMNS = 25

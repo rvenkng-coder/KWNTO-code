@@ -1,4 +1,6 @@
+import type { SyntheticEvent } from 'react'
 import type { ShareOpen } from '../../backend'
+import { failedToLoad } from './mediaError'
 import { useSource } from './useShareSource'
 
 type Media = ShareOpen extends infer O
@@ -16,6 +18,9 @@ export function ShareMedia({ token, media, needsSignIn }: { token: string; media
   const { src, gone, onError } = useSource(token, media.id, needsSignIn)
   if (gone) return <p className="text-sm text-muted">{MEDIA_GONE}</p>
   if (src === null) return null
+  const failPlayer = (e: SyntheticEvent<HTMLMediaElement>) => {
+    if (failedToLoad(e.currentTarget)) onError()
+  }
   return (
     <figure className="flex flex-col gap-1">
       {media.kind === 'image' && (
@@ -28,10 +33,10 @@ export function ShareMedia({ token, media, needsSignIn }: { token: string; media
         />
       )}
       {media.kind === 'audio' && (
-        <audio data-testid="share-media" controls src={src} onError={onError} className="w-full" />
+        <audio data-testid="share-media" controls src={src} onError={failPlayer} className="w-full" />
       )}
       {media.kind === 'video' && (
-        <video data-testid="share-media" controls src={src} onError={onError} className="w-full" />
+        <video data-testid="share-media" controls src={src} onError={failPlayer} className="w-full" />
       )}
       <figcaption className="text-xs text-muted">{media.title}</figcaption>
     </figure>

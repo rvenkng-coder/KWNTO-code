@@ -44,4 +44,4 @@ A choice you wrote but never linked still appears as a button, so you can see it
 - **The story is read when you open the player.** If you or a teammate change the project while it is open, the open player does not change under you. Close it and open it again to see the changes. A live share link works the same way: it refreshes the map every 30 seconds, but an open player keeps the story it started with.
 - **Nothing is saved or counted.** Playing changes nothing in the project, and your choices are not recorded.
 - **No start node.** An empty project, or one whose start node is in the trash, says `This project has no start node, so there is nothing to play yet.` Add a node, or make a node the start in its panel.
-- **Media that cannot load** shows `Media removed` in its place.
+- **Media that cannot load** shows `Media removed` in its place. If a file loads but your computer cannot play it (for example, there is no audio device), the player stays.

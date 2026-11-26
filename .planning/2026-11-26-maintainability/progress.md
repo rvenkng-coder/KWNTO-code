@@ -6,6 +6,7 @@
 |---|---|---|---|---|---|---|
 | 2026-11-26 | Plan written | - | Choices confirmed by the developer; test files 500 lines | - | - | Task 1 |
 | 2026-11-26 | 1 Lint the backend hooks | strong | Done (`551ba6f`); check:task PASS; rules 272 of 272. Added a guardrail unit test | none | 0 | Task 2 |
+| 2026-11-26 | 2 Typecheck tests and scripts | strong | Done; check:task PASS; container 49, rules 272, two e2e specs 26 of 26 (first e2e start failed on a DNS lookup of github.com, passed on retry) | none | 0 | Task 3 |
 
 ## Rulings
 

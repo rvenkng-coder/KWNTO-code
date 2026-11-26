@@ -86,7 +86,7 @@ test('Enter adds a line and Backspace removes an empty one', async ({ page }) =>
   await expect(lineText(page, 0)).toHaveValue('Hello.')
 })
 
-// Protects: Review Focus 3: text typed and left at once (another node, another chapter) is saved before the 800 ms wait ends.
+// Protects: Review Focus 3: text typed and left at once (another node, another chapter) is saved by moving on, not by the 800 ms timer (stopped here).
 test('text typed just before moving on is saved', async ({ page }) => {
   const a = await oneNode(page)
   const b = await addNodeAt(page, 320, 60)
@@ -96,19 +96,23 @@ test('text typed just before moving on is saved', async ({ page }) => {
   await readyCanvas(page, 2)
   await card(page, a).click()
   await addLine(page)
-  // Sent well before the 800 ms timer would send it: only moving on can have sent it.
+  // The page's clock stops here, so the 800 ms save timer can never fire: a save that is sent can only have been sent by
+  // moving on. (This used to be a 500 ms limit on the request, which measured how busy the machine was, not the app.)
+  await page.clock.install()
+  await page.clock.pauseAt(Date.now() + 1000)
   const lineSaved = waitForSave(page, 'script_lines', 'PATCH')
-  const lineSent = page.waitForRequest((r) => r.method() === 'PATCH' && r.url().includes('/script_lines/records/'), { timeout: 500 })
+  const lineSent = page.waitForRequest((r) => r.method() === 'PATCH' && r.url().includes('/script_lines/records/'))
   await lineText(page, 0).fill('Wait for me.')
   await card(page, b).click()
   await lineSent
   await expect(panel(page).getByLabel('Title', { exact: true })).toBeVisible()
   const titleSaved = waitForSave(page, 'nodes', 'PATCH')
-  const titleSent = page.waitForRequest((r) => r.method() === 'PATCH' && r.url().includes(`/nodes/records/${b}`), { timeout: 500 })
+  const titleSent = page.waitForRequest((r) => r.method() === 'PATCH' && r.url().includes(`/nodes/records/${b}`))
   await panel(page).getByLabel('Title', { exact: true }).fill('Second')
   await page.getByRole('tab', { name: 'Chapter 2' }).click()
   await titleSent
   await Promise.all([lineSaved, titleSaved])
+  await page.clock.resume()
   await page.reload()
   await page.getByRole('tab', { name: 'Chapter 1' }).click()
   await readyCanvas(page, 2)

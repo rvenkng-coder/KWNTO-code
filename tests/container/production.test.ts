@@ -2,8 +2,8 @@ import { spawnSync } from 'node:child_process'
 import { afterAll, beforeAll, expect, test } from 'vitest'
 import { EDGE_ADMIN_URL, edgeAdminToken, edgeDown, edgeUp, raw, verifiedUser } from './helpers/edge.ts'
 
-// Production settings behind the proxy (plan 6 D6, D7, D8; security.md 3). One edge stack
-// started with KWNTO_PRODUCTION=1, so the migration writes the rate limiter and the trusted
+// Production settings behind the proxy (security.md 3): the rate limits and which client address counts. One edge
+// stack started with KWNTO_PRODUCTION=1, so the migration writes the rate limiter and the trusted
 // proxy. Wrong passwords are sent through the proxy at 127.0.0.1:8094. The auth limit is
 // 2 requests per 3 s per address, so tests wait for the window between steps.
 
@@ -46,7 +46,7 @@ test('parallel wrong passwords are rate limited behind the proxy', async () => {
   expect((await failureIps(user.email, token)).length).toBeLessThanOrEqual(3)
 })
 
-// Protects D6: a client's own X-Forwarded-For must not move the lockout, or anyone could dodge it.
+// Protects the client address: a client's own X-Forwarded-For must not move the lockout, or anyone could dodge it.
 test('a client cannot choose its own IP with X-Forwarded-For', async () => {
   await sleep(AUTH_WINDOW_MS)
   const user = await verifiedUser()
@@ -96,7 +96,7 @@ function fromTrustedHop(body: string, forwardedFor: string): number {
   return Number(match[1])
 }
 
-// Protects D6: behind Tailscale the address it forwards is the one the lockout counts.
+// Protects the lockout: behind Tailscale the address it forwards is the one the lockout counts.
 test('the address Tailscale forwards is the one the lockout counts', async () => {
   await sleep(AUTH_WINDOW_MS)
   const user = await verifiedUser()
@@ -111,7 +111,8 @@ test('the address Tailscale forwards is the one the lockout counts', async () =>
   expect(new Set(await failureIps(user.email, token))).toEqual(new Set(['203.0.113.1']))
 }, 120_000)
 
-// Protects D6: Caddy reads X-Forwarded-For right to left, so the entry Tailscale appended counts, not one the visitor put first.
+// Protects the lockout: Caddy reads X-Forwarded-For right to left, so the entry Tailscale appended counts, not one the
+// visitor put first.
 test('with a chain of forwarded addresses the lockout counts the one nearest the trusted hop', async () => {
   await sleep(AUTH_WINDOW_MS)
   const user = await verifiedUser()

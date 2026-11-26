@@ -18,7 +18,7 @@ describe('media limits and quota rules', () => {
     }
   })
 
-  // Protects: a file whose bytes do not match is refused on the server (C5)
+  // Protects: a file whose bytes do not match is refused on the server
   test('a file whose bytes do not match is refused on the server', async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -86,7 +86,7 @@ describe('media limits and quota rules', () => {
     expect(rows[0].id).toBe(d5.id)
   })
 
-  // Protects: files under a trashed node still count toward the quota (C7)
+  // Protects: files under a trashed node still count toward the quota
   test('files under a trashed node still count toward the quota', async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -117,7 +117,7 @@ describe('media limits and quota rules', () => {
     expect(d2.data?.file?.code).toBe('media_over_quota')
   })
 
-  // Protects: quota and size limits follow the admin's settings (C8)
+  // Protects: quota and size limits follow the admin's settings
   test("quota and size limits follow the admin's settings", async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -167,7 +167,7 @@ describe('media limits and quota rules', () => {
     expect(d4.message).toBe('This image file is larger than the 1 MB limit.')
   })
 
-  // Protects: two uploads at once cannot both slip under the quota (C9)
+  // Protects: two uploads at once cannot both slip under the quota
   test('two uploads at once cannot both slip under the quota', async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -200,8 +200,8 @@ describe('media limits and quota rules', () => {
     }
   })
 
-  // Protects: whoever the two parallel uploaders are, many rounds never leave both files in (C9, repeated).
-  // Before the check went by insertion order, about 1 round in 6 kept both.
+  // Protects: whoever the two parallel uploaders are, many rounds never leave both files in.
+  // A quota check that did not go by insertion order kept both in about 1 round in 6, hence the many rounds.
   test('repeated parallel uploads from two people never both stay', async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)

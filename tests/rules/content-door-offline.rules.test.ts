@@ -1,4 +1,4 @@
-// Protects the door's offline-sync additions (offline sync plan Task 2) against a live PocketBase:
+// Protects what the door offers to offline sync, against a live PocketBase:
 // `get` reads one record or null; an update with `shouldRetry` stops on a real conflict and still
 // merges a change to another field; creating an id that exists is refused on the id field.
 import { expect, test } from 'vitest'

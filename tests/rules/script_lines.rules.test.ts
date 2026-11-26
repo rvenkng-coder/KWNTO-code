@@ -14,11 +14,11 @@ import { expectCreateRefused } from './helpers/teams.ts'
 
 // Protects design section 5 (any member writes a node's script lines; saving per
 // attribute through the version guard, decision 0002) and docs/security.md section 2
-// (deny by default; no line may point into another project, plan Review Focus 2). Lines
-// are deleted outright, so undo (Task 12) re-creates them with their old id; that must
-// never let anyone take over an id that is still in use.
+// (deny by default; no line may point into another project). Lines are deleted outright, so undo
+// re-creates them with their old id; that must never let anyone take over an id that is still in
+// use.
 
-// Review Focus 2: a line belongs to a node of its own project, and stays there.
+// Protects project isolation: a line belongs to a node of its own project, and stays there.
 test('a script line cannot point into another project', async () => {
   const { owner, member, teamId, projectId, chapterId } = await memberProject()
   const other = await createProject(owner, teamId, 'Other')
@@ -67,7 +67,7 @@ test('members write and delete script lines', async () => {
   await expectRefused((await asAdmin()).collection('script_lines').getOne(created.id))
 })
 
-// Task 12: undoing a delete re-creates the line under the id it had.
+// Undoing a delete re-creates the line under the id it had.
 test('a deleted line can be re-created with its id', async () => {
   const { member, projectId, chapterId } = await memberProject()
   const nodeId = await createNode(member, projectId, chapterId)

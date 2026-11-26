@@ -8,14 +8,14 @@ const NOT_WEB = 'That is not a web address.'
 const ONLY_WEB = 'Only http:// and https:// addresses are allowed.'
 
 describe('checkLinkUrl', () => {
-  // Protects: good addresses are accepted and only trimmed (C1)
+  // Protects: good addresses are accepted and only trimmed
   test('web addresses are accepted and trimmed', () => {
     expect(checkLinkUrl('  https://example.com/a?b=1#c ')).toEqual({ ok: true, url: 'https://example.com/a?b=1#c' })
     expect(checkLinkUrl('HTTP://EXAMPLE.COM')).toEqual({ ok: true, url: 'HTTP://EXAMPLE.COM' })
     expect(checkLinkUrl('http://localhost:8090/x')).toEqual({ ok: true, url: 'http://localhost:8090/x' })
   })
 
-  // Protects: nothing that could run script or hide the real host is accepted (C2)
+  // Protects: nothing that could run script or hide the real host is accepted
   test('unsafe and malformed addresses are refused', () => {
     const scheme = [
       'javascript:alert(1)',
@@ -47,7 +47,7 @@ describe('checkLinkUrl', () => {
     }
   })
 
-  // Protects: the length limit is exact (C3)
+  // Protects: the length limit is exact
   test('the length limit is 2000', () => {
     const base = 'https://a.example/'
     const at = base + 'x'.repeat(2000 - base.length)

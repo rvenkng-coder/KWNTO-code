@@ -4,10 +4,10 @@ import { asAdmin, asAnonymous, asUser, createTeam, createUser, type TestUser } f
 import { addMember, expectCreateRefused, expectNoEmail, expectNoEmailOf } from './helpers/teams.ts'
 
 // Protects design section 5 (invite by email: "an owner never sees an invitee's email
-// list"; the invitee sees the invite and must accept) and decision D7 (only the invitee
-// sees an invite; there is no pending list for the owner). Also docs/security.md
-// section 2 (deny by default): invites change only through the server's routes
-// (backend/pb_hooks/teams-invites.pb.js), never through the collection API.
+// list"; the invitee sees the invite and must accept): only the invitee sees an invite, and there
+// is no pending list for the owner. Also docs/security.md section 2 (deny by default): invites
+// change only through the server's routes (backend/pb_hooks/teams-invites.pb.js), never through the
+// collection API.
 //
 // The invites here are seeded as the admin, who bypasses every rule; the routes that
 // make them for real are tested in teams.invites.rules.test.ts.
@@ -57,7 +57,7 @@ async function teamWithInvite(): Promise<{
 }
 
 // Design 5: the invite appears in the invitee's account with the team's name and who
-// sent it (copies, D6, because the invitee may not read the team or the owner's
+// sent it (copies on the invite, because the invitee may not read the team or the owner's
 // account), and only their own invites appear.
 test('team_invites: the invited user lists and views their own invite with the team and inviter names', async () => {
   const { owner, invitee, teamId, invite } = await teamWithInvite()
@@ -76,7 +76,7 @@ test('team_invites: the invited user lists and views their own invite with the t
   })
 })
 
-// D7: nobody but the invitee sees an invite: not the owner who sent it (no pending
+// Nobody but the invitee sees an invite: not the owner who sent it (no pending
 // list), not another member, not an outsider, not a signed-out visitor.
 test('team_invites: the owner, another member, an outsider and a signed-out visitor see no invite', async () => {
   const { owner, member, invite } = await teamWithInvite()
@@ -145,10 +145,9 @@ test("team_invites: the invitee's list holds no email, and expanding cannot reac
   expectNoEmailOf(expanded, owner, member)
 })
 
-// Design 5 (one invite to answer, decision D7): one pending invite per person per team,
-// held by the database itself, so even a write that skips the invite route (the admin
-// dashboard) cannot make a second one. Answered invites stay as history, so a declined
-// person can get a new pending invite.
+// Design 5 (one invite to answer): one pending invite per person per team, held by the database
+// itself, so even a write that skips the invite route (the admin dashboard) cannot make a second
+// one. Answered invites stay as history, so a declined person can get a new pending invite.
 test('team_invites: the table holds at most one pending invite per person and team', async () => {
   const { owner, invitee, teamId, invite } = await teamWithInvite()
   const admin = await asAdmin()

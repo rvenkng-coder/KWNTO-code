@@ -20,7 +20,7 @@ const { FILE_LIMITS, buildProjectFile, validateProjectFile, downloadName, import
 const NOW = '2026-11-20 10:00:00.000Z'
 const TRASHED = '2026-11-19 10:00:00.000Z'
 
-// Protects design 10 and plan D5: the file holds only what is live (trashed records, the
+// Protects design 10: the file holds only what is live (trashed records, the
 // nodes of a trashed chapter and removed media stay out), in a stable order, and a choice
 // whose target is gone keeps its text with `to: null`.
 test('the file holds only what is live, in order', () => {
@@ -79,7 +79,7 @@ test('the file holds only what is live, in order', () => {
   expect(validateProjectFile(file, FILE_LIMITS).ok).toBe(true)
 })
 
-// Protects plan 2026-11-26-player-mode (Task 3): choices are listed in the order they were made (`created`, then id),
+// Protects the choice order: choices are listed in the order they were made (`created`, then id),
 // as the editor shows them, so a share link's player offers them in the author's order; with no creation time they
 // fall back to id order.
 test('choices are listed in the order they were created', () => {

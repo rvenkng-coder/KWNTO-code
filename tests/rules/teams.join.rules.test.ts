@@ -45,7 +45,7 @@ async function settingsOf(teamId: string): Promise<Record<string, unknown> & { i
   return rows[0] as Record<string, unknown> & { id: string }
 }
 
-// The owner turns the code on through their own session (decision D1: off by default).
+// The owner turns the code on through their own session (it is off by default).
 async function teamWithOpenCode(owner: TestUser, name?: string): Promise<{ id: string; joinCode: string }> {
   const team = await createTeam(owner, name)
   const row = await settingsOf(team.id)
@@ -75,8 +75,8 @@ afterEach(async () => {
 })
 
 // Design 5 (join by code): a verified user with the code becomes a plain member, with
-// the name copy teammates read (D6), and learns the team's id and name and nothing else
-// (no other member, no code, no email: Review Focus 5).
+// the name copy teammates read, and learns the team's id and name and nothing else
+// (no other member, no code, no email).
 test('join: a verified user with an enabled code becomes a member and learns only the team id and name', async () => {
   const [owner, joiner] = [await createUser(), await createUser()]
   await (await asAdmin()).collection('users').update(joiner.id, { name: 'Jo Joiner' })
@@ -226,7 +226,7 @@ test("regenerate: a member gets 403; an outsider, another team's owner and an un
   expect(await settingsOf(team.id)).toEqual(settingsBefore)
 })
 
-// Security.md section 3 (rate limit, D3): with team_attempts_per_hour 3, a user's fourth
+// Security.md section 3 (rate limit): with team_attempts_per_hour 3, a user's fourth
 // attempt in the hour is refused with 429 even with the right code, and other users are
 // not affected. A refused attempt is not counted (it is logged with `limited`), so the
 // limit ends an hour after the attempts that caused it: raising the setting to 4 lets
@@ -255,7 +255,7 @@ test('rate limit: the fourth attempt in an hour is 429, right code or wrong, and
   expect((await join(guesser, team.joinCode)).status).toBe(200)
 })
 
-// D3: join-code and invite attempts share one limit per user, so an owner cannot get
+// Join-code and invite attempts share one limit per user, so an owner cannot get
 // twice the guesses by mixing them.
 test('rate limit: invite attempts count toward the same limit', async () => {
   const [owner, user] = [await createUser(), await createUser()]

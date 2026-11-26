@@ -3,8 +3,8 @@ import { asAdmin, asAnonymous, asUser, createUser } from './helpers/pb.ts'
 import { createLink, revokeLink } from './helpers/share.ts'
 import { memberProject } from './helpers/content.ts'
 
-// Rules of `link_grants` (plan 2026-11-20-sharing Task 3, D2): the join route makes a grant
-// for a signed-in person; the holder reads only their own, and only while the link stands.
+// Rules of `link_grants` (design 5): the join route makes a grant for a signed-in person; the
+// holder reads only their own, and only while the link stands.
 
 type Failure = { status?: number }
 
@@ -17,7 +17,7 @@ async function statusOf(promise: Promise<unknown>): Promise<number> {
   }
 }
 
-// Protects D2: grants are private to their holder, written only by the server, and stop
+// Protects the edit grants: grants are private to their holder, written only by the server, and stop
 // being visible once the link is revoked.
 test('grants are made only by the server and seen only by their holder', async () => {
   const { owner, member, projectId } = await memberProject()

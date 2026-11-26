@@ -14,9 +14,9 @@ const { FILE_LIMITS, buildProjectFile, validateProjectFile, importPlan } =
     importPlan: (file: Json, newId: () => string) => Json
   }
 
-// Protects plan D4, D5 and design 10 (Review Focus 3): an import gives every record a
-// fresh id, so ids already in the database can never collide, and every reference (chapter,
-// node, from, to, start node) is mapped to the new ids; an empty choice stays empty.
+// Protects design 10: an import gives every record a fresh id, so ids already in the database can
+// never collide, and every reference (chapter, node, from, to, start node) is mapped to the new
+// ids; an empty choice stays empty.
 test('an import gives every record a new id and keeps the links', () => {
   const source = buildProjectFile(
     {

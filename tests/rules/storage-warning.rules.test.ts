@@ -3,12 +3,11 @@ import { createNode, memberProject } from './helpers/content.ts'
 import { PNG_1PX, setStorageSetting, uploadMedia } from './helpers/media.ts'
 import { asAdmin } from './helpers/pb.ts'
 
-// Protects design 7c and plan D12: the hourly kwnto_storage_check job adds up every
-// stored file and, over the admin's total limit, writes one `storage` log entry (and
-// mails the admins when mail is set up) at most once a day; limit 0 turns it off.
-// The job is run on demand through the admin API. PocketBase answers a triggered job at
-// once and runs it in the background, so the tests poll or wait before they count.
-// Rule files run one at a time (vitest.config.ts), so clearing media and `storage`
+// Protects design 7c: the hourly kwnto_storage_check job adds up every stored file and, over the
+// admin's total limit, writes one `storage` log entry (and mails the admins when mail is set up) at
+// most once a day; limit 0 turns it off. The job is run on demand through the admin API. PocketBase
+// answers a triggered job at once and runs it in the background, so the tests poll or wait before
+// they count. Rule files run one at a time (vitest.config.ts), so clearing media and `storage`
 // entries here cannot disturb another file.
 
 const JOB = 'kwnto_storage_check'
@@ -36,7 +35,7 @@ afterEach(async () => {
   await clearAll()
 })
 
-// Protects D12: over the limit the admin gets one `storage` entry, with the numbers, and a
+// Protects the warning: over the limit the admin gets one `storage` entry, with the numbers, and a
 // second run inside 24 hours adds nothing.
 test('over the total limit the admin is warned once', async () => {
   restore = await setStorageSetting('total_warning_bytes', 100)
@@ -61,7 +60,7 @@ test('over the total limit the admin is warned once', async () => {
   expect(entry.detail.limitBytes).toBe(100)
 })
 
-// Protects D12: a limit of 0 turns the warning off, and a total under the limit (the 20 GB
+// Protects against false warnings: a limit of 0 turns the warning off, and a total under the limit (the 20 GB
 // default) never warns, however many files are stored.
 test('no warning under the limit or when it is off', async () => {
   const { owner, projectId, chapterId } = await memberProject()
@@ -87,7 +86,7 @@ test('no warning under the limit or when it is off', async () => {
   restore = null
 })
 
-// Protects the failure mode in plan D12: mail is set up but cannot be sent (here, nothing
+// Protects the mail failure case: mail is set up but cannot be sent (here, nothing
 // listens on the port). The warning is already in the log and must stay one entry; the
 // job logs the mail failure to the server console instead of throwing.
 test('a mail that cannot be sent does not undo the warning', async () => {

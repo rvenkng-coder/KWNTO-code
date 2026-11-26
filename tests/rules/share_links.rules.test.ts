@@ -5,9 +5,8 @@ import { memberProject } from './helpers/content.ts'
 import { unverifiedUser } from './helpers/invites.ts'
 import { addMember } from './helpers/teams.ts'
 
-// Rules of `share_links` (design 5; plan 2026-11-20-sharing Task 3, decisions D7 and D10).
-// A link is made by a verified team member; the server makes its token and snapshot; a
-// member may only revoke a link, never un-revoke, change or delete it.
+// Rules of `share_links` (design 5). A link is made by a verified team member; the server makes its
+// token and snapshot; a member may only revoke a link, never un-revoke, change or delete it.
 
 type Failure = { status?: number }
 
@@ -32,7 +31,8 @@ function body(user: TestUser, projectId: string, extra: Record<string, unknown> 
 }
 
 // Protects security.md 2: only a verified member makes a link, the server alone makes its
-// token (a client cannot choose one it knows) and a snapshot is view-only (D7).
+// token (a client cannot choose one it knows) and a snapshot is view-only,
+// because commenting on or editing a frozen copy makes no sense.
 test('only a verified member makes a link and the server makes its token', async () => {
   const { owner, member, projectId } = await memberProject()
   const outsider = await createUser()
@@ -69,7 +69,7 @@ test('only a verified member makes a link and the server makes its token', async
   expect(await countLinks(projectId)).toBe(before)
 })
 
-// Protects D10: members see and revoke links; a revoked link cannot come back, nothing
+// Protects revoking: members see and revoke links; a revoked link cannot come back, nothing
 // else of a link can change, and nobody deletes one through the API.
 test('members see and revoke links and nobody edits or deletes them', async () => {
   const { owner, member, projectId } = await memberProject()

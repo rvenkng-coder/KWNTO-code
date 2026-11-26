@@ -13,7 +13,7 @@ describe('video uploads are off by decision (plan 2026-11-21-node-links, D1)', (
     }
   })
 
-  // Protects: the server refuses mp4 and mov with the allowed list in the message (C5)
+  // Protects: the server refuses mp4 and mov with the allowed list in the message
   test('the server refuses mp4 and mov', async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -36,7 +36,7 @@ describe('video uploads are off by decision (plan 2026-11-21-node-links, D1)', (
     expect(await admin.collection('media').getFullList()).toHaveLength(0)
   })
 
-  // Protects: the switch is the admin setting, not hard-coded, so the admin can turn video back on (C7)
+  // Protects: the switch is the admin setting, not hard-coded, so the admin can turn video back on
   test('the admin can switch video back on', async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)

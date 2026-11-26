@@ -3,11 +3,10 @@ import { createNode, guardedUpdate, memberProject, readAsAdmin } from './helpers
 import { tokenOf } from './helpers/invites.ts'
 import { asAdmin, asUser, PB_URL, type TestUser } from './helpers/pb.ts'
 
-// Protects security.md 5 "Bad imports" and the review of plan 7 task 2: an exported file
-// always imports again (choices to trashed nodes), hostile bodies (deeply nested JSON, a
-// streamed body of unknown length) are refused without hurting the server, and a file at
-// every limit imports in a reasonable time without blocking other requests. Routes:
-// backend/pb_hooks/project-file.pb.js.
+// Protects security.md 5 "Bad imports": an exported file always imports again (choices to trashed
+// nodes), hostile bodies (deeply nested JSON, a streamed body of unknown length) are refused
+// without hurting the server, and a file at every limit imports in a reasonable time without
+// blocking other requests. Routes: backend/pb_hooks/project-file.pb.js.
 
 type Connection = { id: string; from: string; to: string | null; label: string }
 type File = { chapters: unknown[]; nodes: { id: string; title: string }[]; connections: Connection[] }
@@ -80,7 +79,7 @@ test('choices to trashed nodes survive an export and an import', async () => {
 
 // Protects security.md 5: JSON nested millions of levels deep is refused (400 or 413) and
 // the server keeps answering afterwards. Two bodies of about 5 MB each go up, which the default
-// 5 s limit is too tight for on a slow CI runner (it timed out on the Plan 8 pull request).
+// 5 s limit is too tight for on a slow CI runner (it has timed out there).
 test('deeply nested JSON is refused and the server survives', { timeout: 60_000 }, async () => {
   const ctx = await memberProject()
   const token = await tokenOf(ctx.member)

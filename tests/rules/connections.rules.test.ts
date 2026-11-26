@@ -7,9 +7,9 @@ import { expectCreateRefused } from './helpers/teams.ts'
 // Protects design section 5 (any member links nodes, saved per attribute through the
 // version guard, decision 0002) and 6.1 (a choice leads from one node to another, at most
 // once per pair; a node may loop back to itself), and docs/security.md section 2 (deny by
-// default; a connection never reaches into another project, plan Review Focus 2).
+// default; a connection never reaches into another project).
 
-// Review Focus 2: both ends belong to the connection's project, on create and after.
+// Protects project isolation: both ends belong to the connection's project, on create and after.
 test('a connection cannot reach into another project', async () => {
   const { owner, member, teamId, projectId, chapterId } = await memberProject()
   const [a, b] = [await createNode(member, projectId, chapterId), await createNode(member, projectId, chapterId)]
@@ -79,7 +79,7 @@ test('outsiders and signed-out callers cannot reach connections', async () => {
   expect(await readAsAdmin('connections', link.id)).toMatchObject({ from_node: a, to_node: b })
 })
 
-// Protects editor cards design goal 1 (a choice may be empty, then linked, re-linked and
+// Protects empty choices (a choice may be empty, then linked, re-linked and
 // unlinked, keeping its id and text) and security.md section 2 (every change goes through
 // the version guard).
 test('a choice may be empty and be linked, re-linked and unlinked later', async () => {
@@ -107,8 +107,8 @@ test('a choice may be empty and be linked, re-linked and unlinked later', async 
   expect(await readAsAdmin('connections', choice.id)).toMatchObject({ to_node: '', label: 'Wait', version: 3 })
 })
 
-// Protects security.md section 2 and the plan's Review Focus 1: opening to_node must not
-// let a choice reach into another project or change its from_node or project.
+// Protects security.md section 2: allowing to_node to be updated must not let a choice reach into
+// another project or change its from_node or project.
 test('a choice cannot be linked into another project', async () => {
   const { owner, member, teamId, projectId, chapterId } = await memberProject()
   const [a, b] = [await createNode(member, projectId, chapterId), await createNode(member, projectId, chapterId)]
@@ -136,7 +136,7 @@ test('a choice cannot be linked into another project', async () => {
   })
 })
 
-// Protects design goal 1 ("one choice per target; any number of empty choices").
+// Protects the pair rule: one choice per target, and any number of empty choices.
 test('a node may have many empty choices but one choice per target', async () => {
   const { member, projectId, chapterId } = await memberProject()
   const [a, b] = [await createNode(member, projectId, chapterId), await createNode(member, projectId, chapterId)]
@@ -151,8 +151,8 @@ test('a node may have many empty choices but one choice per target', async () =>
   expect(relink.status).not.toBe(200)
 })
 
-// Protects editor cards design F2: `created` is the server's own time, so a client cannot backdate a
-// choice to take another's place. (A choice that undo makes again therefore joins the end of the list
+// Protects the choice order: choices are listed by `created`, which is the server's own time, so a client cannot
+// backdate a choice to take another's place. (A choice that undo makes again therefore joins the end of the list
 // after a reload.)
 test('a client cannot set the created time of a choice', async () => {
   const { member, projectId, chapterId } = await memberProject()

@@ -37,7 +37,7 @@ describe('links door rules and integration', () => {
     }
   })
 
-  // Protects: a member adds, lists and removes a link through the door (C4)
+  // Protects: a member adds, lists and removes a link through the door
   test('a member adds, lists and removes a link through the door', async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -57,7 +57,7 @@ describe('links door rules and integration', () => {
     expect(await door.links.list(projectId)).toEqual([])
   })
 
-  // Protects: the server's refusal reaches the caller with its message (C5)
+  // Protects: the server's refusal reaches the caller with its message
   test('a refused address reaches the caller with its message', async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -68,7 +68,7 @@ describe('links door rules and integration', () => {
     expect((error as BackendError).fields.url).toBe('Only http:// and https:// addresses are allowed.')
   })
 
-  // Protects: teammates see links live, outsiders do not, and the client check agrees with the server (C6)
+  // Protects: teammates see links live, outsiders do not, and the client check agrees with the server
   test('teammates see links live, outsiders do not, and the client check agrees with the server', async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)

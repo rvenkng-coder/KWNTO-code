@@ -5,13 +5,12 @@ import { asAdmin, asUser, createUser, PB_URL, rawSend } from './helpers/pb.ts'
 import { send, tokenOf } from './helpers/invites.ts'
 import type { TestUser } from './helpers/pb.ts'
 
-// Protects design 6.8 and plan D11 (Review Focus 2 and 4 of the sharing plan): the trash
-// time is the server's, the nightly purge_trash job removes only expired trash together
-// with what hangs on it, members restore chapters and nodes, and only the owner restores
-// a project. The job is run through PocketBase's own "run cron job" call (as in
-// security_events.purge.rules.test.ts); it answers at once and works in the background,
-// so these tests wait for the effect. Rule files run one at a time (vitest.config.ts),
-// so a changed retention setting cannot disturb another file; afterEach restores it.
+// Protects design 6.8: the trash time is the server's, the nightly purge_trash job removes only
+// expired trash together with what hangs on it, members restore chapters and nodes, and only the
+// owner restores a project. The job is run through PocketBase's own "run cron job" call (as in
+// security_events.purge.rules.test.ts); it answers at once and works in the background, so these
+// tests wait for the effect. Rule files run one at a time (vitest.config.ts), so a changed
+// retention setting cannot disturb another file; afterEach restores it.
 
 const JOB = 'purge_trash'
 const OLD = '1970-01-01 00:00:00.000Z'
@@ -86,13 +85,13 @@ async function runJob(): Promise<void> {
   await (await asAdmin()).crons.run(JOB)
 }
 
-// Protects D11: the purge runs every night at 03:30 UTC, after the security log purge at 03:00.
+// Protects the schedule: the purge runs every night at 03:30 UTC, after the security log purge at 03:00.
 test('the purge_trash job is registered at 03:30 every day', async () => {
   const jobs = await (await asAdmin()).crons.getFullList()
   expect(jobs.find((job) => job.id === JOB)?.expression).toBe('30 3 * * *')
 })
 
-// Protects Review Focus 2: a browser with a wrong clock, or a hand-made request, must
+// Protects teammates' work: a browser with a wrong clock, or a hand-made request, must
 // not be able to date a teammate's work 31 days back and lose it at tonight's purge.
 test("a trash time sent by the browser is replaced by the server's", async () => {
   const { member, projectId, chapterId } = await memberProject()
@@ -180,7 +179,7 @@ async function mediaFileServes(media: { id: string; file: string }): Promise<boo
   return (await fetch(`${PB_URL}/api/files/media/${media.id}/${media.file}?token=${token}`)).status === 200
 }
 
-// Protects design 6.8 and D11: what is expired goes, with everything that hangs on it
+// Protects design 6.8: what is expired goes, with everything that hangs on it
 // (lines, cues, media rows and their files); a choice to a purged node is kept but empty;
 // a purged start node empties the project's start; nothing else is touched.
 test('the purge deletes expired trash with its contents and files', async () => {
@@ -208,7 +207,7 @@ test('the purge deletes expired trash with its contents and files', async () => 
   expect(await exists('chapters', set.chapterB)).toBe(true)
 })
 
-// Protects D11: nothing inside the retention window is purged, so a job that runs too early or
+// Protects recoverable trash: nothing inside the retention window is purged, so a job that runs too early or
 // reads the setting wrongly cannot take work that can still be restored.
 test('the purge keeps trash younger than the retention', async () => {
   const set = await trashedSet()
@@ -228,7 +227,7 @@ test('the purge keeps trash younger than the retention', async () => {
   expect((await readAsAdmin('projects', set.projectId)).start_node).toBe(set.nodeN)
 })
 
-// Protects D11 and design 5/6.8: chapters and nodes come back by any member's restore,
+// Protects design 5/6.8: chapters and nodes come back by any member's restore,
 // a project only by the owner, and an outsider restores nothing. Also the settings route
 // the trash labels read.
 test('members restore chapters and nodes and only the owner restores a project', async () => {

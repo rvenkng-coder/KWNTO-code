@@ -4,13 +4,13 @@ import { createProject, guardedUpdate, readAsAdmin } from './helpers/content.ts'
 import { asAnonymous, asUser, createTeam, createUser, type TestUser } from './helpers/pb.ts'
 import { addMember, expectCreateRefused } from './helpers/teams.ts'
 
-// The server stamps its own trash time (Plan 7 D11); the browser's value is ignored.
+// The server stamps its own trash time, so a wrong browser clock cannot expire work early; the sent value is ignored.
 const nearNow = (t: unknown) => Math.abs(Date.parse(String(t).replace(' ', 'T')) - Date.now()) < 10_000
 
 // Protects design section 5 (teams own projects and everything in them; any member edits
 // chapters; only the owner deletes a project) and docs/security.md section 2 (deny by
 // default). Chapters are the first collection checked against the version guard
-// (decision 0002, plan D3): the guarded update replaces PocketBase's own save, so these
+// (decision 0002): the guarded update replaces PocketBase's own save, so these
 // tests prove it is not a back door and that `version` is only ever set by the server.
 
 const CONFLICT = 'This record was changed by someone else. Reload it and try again.'
@@ -29,7 +29,7 @@ async function memberProject(): Promise<{
   return { owner, member, teamId: team.id, chapterId: project.chapterId, projectId: project.id }
 }
 
-// Review Focus 1: the hook that replaces the save must not let a non-member write.
+// Protects access: the hook that replaces the save must not let a non-member write.
 test('the guarded update still refuses outsiders', async () => {
   const { chapterId } = await memberProject()
   const outsider = await createUser()
@@ -45,7 +45,7 @@ test('the guarded update still refuses outsiders', async () => {
   expect(await readAsAdmin('chapters', chapterId)).toMatchObject({ title: 'Chapter 1', version: 0 })
 })
 
-// D3: a write must carry the version it was based on; a stale or invented one is a 409;
+// A write must carry the version it was based on; a stale or invented one is a 409;
 // a create cannot choose its starting version.
 test('an update needs the current version and create cannot set one', async () => {
   const { member, chapterId, projectId } = await memberProject()
@@ -68,8 +68,8 @@ test('an update needs the current version and create cannot set one', async () =
   )
 })
 
-// A moved chapter would carry its content into another project (plan: records carry
-// `project`, set on create and never changed).
+// A moved chapter would carry its content into another project, so a record's
+// `project` is set on create and never changed.
 test('a chapter cannot be moved to another project', async () => {
   const { member, teamId, chapterId, projectId } = await memberProject()
   const other = await createProject(member, teamId, 'Other')

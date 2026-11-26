@@ -51,7 +51,7 @@ test('sign-up with a good password succeeds and the account is not verified', as
   expect(stored.verified).toBe(false)
 })
 
-// Protects Review Focus 1: a visitor who sends `verified: true` must not skip the email
+// Protects the email check: a visitor who sends `verified: true` must not skip the email
 // check. Refusing the request and storing `false` are both safe; the stored value is
 // what matters, read as the admin.
 test('a sign-up that sends verified: true does not get a verified account', async () => {
@@ -98,7 +98,7 @@ test('sign-up with a short or common password is refused with the rule message',
   expect(common.message).toBe('That password is too common.')
 })
 
-// Protects Review Focus 2: the password rules hold when a signed-in user changes their
+// Protects every password path: the password rules hold when a signed-in user changes their
 // password, not only at sign-up.
 test('a password change must follow the password rules', async () => {
   const user = await createUser()
@@ -168,8 +168,8 @@ test('sign-up stores the email lower-case and trimmed; a case variant is refused
 })
 
 // The index itself, not only the hook: PocketBase 0.40.6 looks accounts up ignoring
-// case only when the email unique index says COLLATE NOCASE (final review, I2). Without
-// it a password reset typed with a capital sends no mail.
+// case only when the email unique index says COLLATE NOCASE. Without it a password reset typed with
+// a capital sends no mail.
 test('the users email unique index is COLLATE NOCASE', async () => {
   const admin = await asAdmin()
   const users = await admin.collections.getOne('users')

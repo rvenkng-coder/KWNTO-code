@@ -13,8 +13,8 @@ import { onlyRowOf, rowsOf } from './helpers/user-rows.ts'
 //
 // What these tests cannot show: every request comes from the same IP (the test
 // container sees the Docker gateway), so the rule that a lockout applies to one account
-// FROM ONE IP (decision D2, Review Focus 3) is pinned by the unit test of decideLockout
-// and by the hook's query, not here.
+// FROM ONE IP (so nobody can lock another person out from a different address) is pinned
+// by the unit test of decideLockout and by the hook's query, not here.
 
 type Failure = { status: number; message: string; body: string }
 
@@ -77,7 +77,7 @@ test('three wrong passwords lock the account, even against the right password', 
   expect(locked.message).toContain('5 minutes')
 })
 
-// Protects Review Focus 3: the lockout must not reveal which emails have an account, so
+// Protects account privacy: the lockout must not reveal which emails have an account, so
 // an unknown email gets the same failures and the same lockout as a real one.
 test('an email with no account gets the same failures and lockout as a real one', async () => {
   const real = await createUser()
@@ -118,7 +118,7 @@ test('attempts during a lockout add lockout events, not failures', async () => {
   expect(await eventCount('lockout', user.email)).toBe(2)
 })
 
-// Protects decision D2: a successful sign-in resets the count for that account and IP,
+// Protects honest users: a successful sign-in resets the count for that account and IP,
 // so someone who mistypes now and then is never locked out by old mistakes.
 test('a successful sign-in resets the failure count', async () => {
   const user = await createUser()
@@ -196,7 +196,7 @@ test('a sign-in writes one sign-in event; each wrong attempt one failure event',
   expect(await eventCount('sign-in', user.email)).toBe(1)
 })
 
-// Protects the repair promised by Task 2: an account whose user_status row is missing
+// Protects the repair at sign-in: an account whose user_status row is missing
 // gets it back at sign-in, so the block check always has a row to read.
 test('a sign-in recreates a missing user_status row', async () => {
   const user = await createUser()

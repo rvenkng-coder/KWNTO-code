@@ -65,8 +65,8 @@ afterEach(async () => {
   await updateOnly('system_storage', { max_image_mb: 50 })
 })
 
-// Protects design 7c incident controls and security.md section 9 (Review Focus 4):
-// signing one account out ends that account's existing sessions at once, and only its.
+// Protects design 7c incident controls and security.md section 9: signing one account out ends that
+// account's existing sessions at once, and only its.
 test("sign-out of one user ends that user's sessions and no one else's", async () => {
   const a = await signIn(await createUser())
   const b = await signIn(await createUser())
@@ -97,7 +97,7 @@ test("sign-out-all ends every user session but not the admin's", async () => {
   expect(adminRefresh.status).toBe(200)
 })
 
-// Protects design 7c incident controls and security.md section 9 (decision D5): only the
+// Protects design 7c incident controls and security.md section 9: only the
 // admin may end sessions; a signed-out caller, another user and the user themself are
 // refused, and nobody's session ends.
 test('only the admin can call the sign-out routes', async () => {
@@ -137,8 +137,8 @@ test('only the admin can call the sign-out routes', async () => {
   expect(await sessionWorks(b)).toBe(true)
 })
 
-// Protects design 7c incident controls and security.md section 9 (Review Focus 4):
-// blocking an account ends the sessions it already has, not only the next sign-in.
+// Protects design 7c incident controls and security.md section 9: blocking an account ends the
+// sessions it already has, not only the next sign-in.
 test('blocking a user ends their sessions; unblocking lets them sign in again', async () => {
   const a = await signIn(await createUser())
 

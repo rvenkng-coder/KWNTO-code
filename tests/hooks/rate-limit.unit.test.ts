@@ -2,10 +2,10 @@ import { createRequire } from 'node:module'
 import { expect, test } from 'vitest'
 
 // The guess limit on join codes and invites (design 5, docs/security.md section 3;
-// decision D3: `team_attempts_per_hour`, default 20). A join code is about 40 bits, so
+// the setting `team_attempts_per_hour`, default 20). A join code is about 40 bits, so
 // it is guessable in principle; this decision is what keeps guessing slow. The hooks
 // choose which attempts belong to the caller and pass their times (teams-join.pb.js,
-// and the invites of Task 8).
+// and teams-invites.pb.js).
 
 const require = createRequire(import.meta.url)
 const { isOverLimit } = require('../../backend/pb_hooks/lib/rate-limit.js') as {

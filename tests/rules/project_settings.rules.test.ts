@@ -5,11 +5,11 @@ import { asAnonymous, asUser, createTeam, createUser } from './helpers/pb.ts'
 import { addMember, expectCreateRefused } from './helpers/teams.ts'
 
 // Protects design section 5 (teams own projects; members edit them; only the owner
-// deletes one) for a project's settings row, plan decision D6 (exactly one row per
-// project, made with it, analytics off by default) and docs/security.md section 2
-// (deny by default: outsiders and signed-out callers get nothing).
+// deletes one) for a project's settings row (exactly one row per project, made with it, analytics
+// off by default) and docs/security.md section 2 (deny by default: outsiders and signed-out callers
+// get nothing).
 
-// D6: members change the settings; the row itself is made and removed only with the project.
+// Members change the settings; the row itself is made and removed only with the project.
 test('members edit project settings and nobody creates or deletes them', async () => {
   const [owner, member, outsider] = [await createUser(), await createUser(), await createUser()]
   const team = await createTeam(owner)

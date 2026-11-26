@@ -51,7 +51,7 @@ describe('applyBreak', () => {
     expect(applyBreak('a >= 18; b', '>=', '>')).toBe('a > 18; b')
   })
 
-  // Protects Review Focus 2: a Find that is missing or ambiguous never edits the file.
+  // Protects: a Find that is missing or ambiguous never edits the file.
   test('applyBreak returns null for zero and for two occurrences', () => {
     expect(applyBreak('a >= 18', '<=', '<')).toBeNull()
     expect(applyBreak('a >= 18 && b >= 3', '>=', '>')).toBeNull()
@@ -121,7 +121,7 @@ describe('runBreaks', () => {
     expect(deps.files.get('frontend/src/a.ts')).toBe(SOURCE)
   })
 
-  // Protects Review Focus 2: a crash in the test run never leaves the broken file behind.
+  // Protects: a crash in the test run never leaves the broken file behind.
   test('runTests throwing still restores the file and rethrows', async () => {
     let calls = 0
     const deps = fake({ 'frontend/src/a.ts': SOURCE }, () => {
@@ -134,7 +134,7 @@ describe('runBreaks', () => {
     expect(deps.writes).toEqual(['frontend/src/a.ts', 'frontend/src/a.ts'])
   })
 
-  // Protects Review Focus 2: an ambiguous or missing Find, an unreadable file or no tests is invalid, never applied.
+  // Protects: an ambiguous or missing Find, an unreadable file or no tests is invalid, never applied.
   test('an invalid break (find twice) writes nothing', async () => {
     const deps = fake({ 'frontend/src/a.ts': 'a >= 1 && b >= 2\n' }, blindTests)
     const breaks = [
@@ -169,7 +169,7 @@ describe('runBreaks', () => {
     ])
   })
 
-  // Protects Review Focus 2: the restore writes back exactly what was read, line endings and all.
+  // Protects: the restore writes back exactly what was read, line endings and all.
   test('the restored content is byte-identical (including CRLF and no trailing newline)', async () => {
     const original = 'line one\r\nif (age >= 18) {\r\n  return true\r\n}'
     const deps = fake({ 'frontend/src/a.ts': original }, (files) => files.get('frontend/src/a.ts') === original)

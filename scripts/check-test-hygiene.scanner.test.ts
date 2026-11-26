@@ -25,7 +25,7 @@ const CONFUSING: [string, string, string, string][] = [
 
 describe('a scanner that is confused must not hide a removed test', () => {
   for (const [ext, name, prefix, suffix] of CONFUSING) {
-    // Protects Review Focus 1: whatever the scanner misreads, a removed test and expect( are still reported (raw counts).
+    // Protects: whatever the scanner misreads, a removed test and expect( are still reported (raw counts).
     test(`lost-test and lost-assertion survive ${name} (${ext})`, () => {
       const base = lines(prefix, one, two, suffix)
       const head = lines(prefix, one, suffix)
@@ -35,7 +35,7 @@ describe('a scanner that is confused must not hide a removed test', () => {
     })
   }
 
-  // Protects Review Focus 1: a new test without a header is still reported when the scanner is confused.
+  // Protects: a new test without a header is still reported when the scanner is confused.
   test('a header-less new test is caught after a confusing regex', () => {
     const source = lines('const isGlob = (s: string) => /[/*]/.test(s)', "test('new', () => {})", '/* end */')
     expect(rules(checkSource('a.test.ts', source, null))).toContain('header')

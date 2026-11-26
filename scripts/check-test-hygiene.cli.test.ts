@@ -53,7 +53,7 @@ describe('command line', () => {
     expect(out).toMatch(/^check:hygiene: /)
   })
 
-  // Protects Review Focus 5: from a subdirectory (path with a space) an untracked test elsewhere in the repo is still seen.
+  // Protects: from a subdirectory (path with a space) an untracked test elsewhere in the repo is still seen.
   test('run from a subdirectory it still reports an untracked test without a header', () => {
     const { cwd, base } = repo()
     writeIn(cwd, 'sub dir/keep.txt', 'x\n')

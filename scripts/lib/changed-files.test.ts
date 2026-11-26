@@ -6,7 +6,7 @@ import { afterEach, describe, expect, test } from 'vitest'
 import { addedLines, changedFiles, fileAtBase, parseNameStatus } from './changed-files.ts'
 
 describe('parseNameStatus', () => {
-  // Protects Review Focus 5: a changed-files list that misses a status kind lets a violation go unchecked.
+  // Protects: a changed-files list that misses a status kind lets a violation go unchecked.
   test('parseNameStatus reads A M D and R100 lines', () => {
     const out = 'A\tsrc/a.ts\nM\tsrc/b.ts\nD\tsrc/c.ts\nR100\tsrc/old.ts\tsrc/new.ts\n'
     expect(parseNameStatus(out)).toEqual([
@@ -17,13 +17,13 @@ describe('parseNameStatus', () => {
     ])
   })
 
-  // Protects Review Focus 5: a renamed test file must be compared with its old content, so oldPath is needed.
+  // Protects: a renamed test file must be compared with its old content, so oldPath is needed.
   test('a rename keeps oldPath', () => {
     const [change] = parseNameStatus('R087\ta.ts\tb.ts\n')
     expect(change).toEqual({ path: 'b.ts', status: 'renamed', oldPath: 'a.ts' })
   })
 
-  // Protects Review Focus 5: the repo path contains spaces; splitting on whitespace would lose the file.
+  // Protects: the repo path contains spaces; splitting on whitespace would lose the file.
   test('paths with spaces are kept', () => {
     expect(parseNameStatus('M\tsrc/my file.ts\n')).toEqual([{ path: 'src/my file.ts', status: 'modified' }])
     expect(parseNameStatus('R100\told dir/a b.ts\tnew dir/a b.ts\n')[0]).toEqual({
@@ -77,7 +77,7 @@ function makeRepo(files: Record<string, string>): { cwd: string; base: string } 
 }
 
 describe('with a real repository', () => {
-  // Protects Review Focus 5: committed, staged, unstaged and untracked changes must all be seen.
+  // Protects: committed, staged, unstaged and untracked changes must all be seen.
   test('changedFiles sees a committed change, a staged change, an unstaged change and an untracked file', () => {
     const { cwd, base } = makeRepo({ 'a.txt': '1\n', 'b.txt': '1\n', 'c d.txt': '1\n' })
     write(cwd, 'a.txt', '2\n')
@@ -94,21 +94,21 @@ describe('with a real repository', () => {
     expect(changes).toHaveLength(4)
   })
 
-  // Protects Review Focus 1 and 5: a deleted test file is a lost-test, so deletion must be reported.
+  // Protects: a deleted test file is a lost-test, so deletion must be reported.
   test('a deleted file is reported as deleted', () => {
     const { cwd, base } = makeRepo({ 'gone.test.ts': 'x\n', 'stay.ts': 'y\n' })
     unlinkSync(join(cwd, 'gone.test.ts'))
     expect(changedFiles(base, cwd)).toEqual([{ path: 'gone.test.ts', status: 'deleted' }])
   })
 
-  // Protects Review Focus 1: only added lines may need a header, so the line numbers must be exact.
+  // Protects: only added lines may need a header, so the line numbers must be exact.
   test('addedLines gives the line numbers of added lines only', () => {
     const { cwd, base } = makeRepo({ 'f.txt': 'a\nb\nc\nd\n' })
     write(cwd, 'f.txt', 'a\nNEW1\nb\nc\nNEW2\nNEW3\nd\n')
     expect([...addedLines(base, 'f.txt', cwd)].sort((x, y) => x - y)).toEqual([2, 5, 6])
   })
 
-  // Protects Review Focus 1: every line of a new (even untracked) file counts as added.
+  // Protects: every line of a new (even untracked) file counts as added.
   test('addedLines treats every line of a new or untracked file as added', () => {
     const { cwd, base } = makeRepo({ 'x.txt': 'x\n' })
     write(cwd, 'n.txt', 'a\nb\n')

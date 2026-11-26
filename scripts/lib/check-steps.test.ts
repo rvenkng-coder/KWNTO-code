@@ -7,8 +7,8 @@ import type { TestPlan } from './test-plan.ts'
 import { makeRepo } from './temp-repo.ts'
 import { defaultSteps, escapeRateFor, reviewStep } from './check-steps.ts'
 
-// The in-process steps of check:task. The spawned ones (lint, unit, breaks, probes) are proven by the
-// end-to-end runs recorded in the Task 8 report, not here, to keep the unit layer fast.
+// The in-process steps of check:task. The steps that spawn a command (lint, unit, breaks, probes) are not
+// run for real here, to keep the unit layer fast.
 const PLAN: TestPlan = { cases: [], probeFolder: null, breaks: [], flow: 'none', evidence: 'e' }
 const dirs: string[] = []
 afterEach(() => {
@@ -41,7 +41,7 @@ const TRACKED =
   '| Task | Built by | Review | Escaped |\n|---|---|---|---|\n| Task 1 | local | yes | 1 |\n| Task 2 | local | no | 0 |\n'
 
 describe('escapeRateFor', () => {
-  // Protects ruling 4: a plan with no progress file, or one that does not track escapes, reads as rate 0 and says so.
+  // Protects: a plan with no progress file, or one that does not track escapes, reads as rate 0 and says so.
   test('a missing file or a file without the tracking table is rate 0, stated', () => {
     expect(escapeRateFor(null, 'p.md')).toEqual({ rate: 0, note: 'no p.md; escape rate 0' })
     const untracked = escapeRateFor('| Date | Task |\n|---|---|\n| d | t |\n', 'p.md')

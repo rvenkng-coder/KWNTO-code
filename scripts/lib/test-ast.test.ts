@@ -9,7 +9,7 @@ const found = (path: string, source: string): { line: number; title: string | nu
   parseTestFile(path, source).declarations.map(({ line, title }) => ({ line, title }))
 
 describe('what counts as a declaration', () => {
-  // Protects Review Focus 1: declarations are found in any expression position, in templates and in JSX.
+  // Protects: declarations are found in any expression position, in templates and in JSX.
   test('conditional, export default, comma, parenthesised, template and JSX positions are found', () => {
     const source = lines(
       "cond ? test('a', () => {}) : null;",
@@ -22,7 +22,7 @@ describe('what counts as a declaration', () => {
     expect(found('a.test.tsx', source).map((d) => d.title)).toEqual(['a', 'b', 'c', 'd', 'e', 'f'])
   })
 
-  // Protects Review Focus 1: strings, comments, regex literals and JSX text are not code.
+  // Protects: strings, comments, regex literals and JSX text are not code.
   test('strings, comments, regex literals and JSX text hold no declarations', () => {
     const source = lines(
       'const s = "test(\'a\', () => {})"',
@@ -35,7 +35,7 @@ describe('what counts as a declaration', () => {
     expect(found('a.test.tsx', source)).toEqual([])
   })
 
-  // Protects Review Focus 1: modifier chains count once; describe is not a test.
+  // Protects: modifier chains count once; describe is not a test.
   test('each, runIf, skip and tagged-template chains count once and describe does not count', () => {
     const source = lines(
       "test.each([1, 2])('a %s', () => {})",
@@ -47,7 +47,7 @@ describe('what counts as a declaration', () => {
     expect(found('a.test.ts', source).map((d) => d.title)).toEqual(['a %s', 'b', 'c', 'd'])
   })
 
-  // Protects Review Focus 1: a comment marker inside a template literal or a regex class cannot hide later tests.
+  // Protects: a comment marker inside a template literal or a regex class cannot hide later tests.
   test('template literals with /* and regex classes with / do not hide later tests', () => {
     const source = lines(
       `const t = ${q}src/*.ts${q}`,

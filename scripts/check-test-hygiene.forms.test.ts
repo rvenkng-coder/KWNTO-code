@@ -9,7 +9,7 @@ const one = "test('one', () => { expect(1).toBe(1) })"
 const two = "test('two', () => { expect(2).toBe(2) })"
 
 describe('lost-test with titles the scanner cannot read on the line', () => {
-  // Protects Review Focus 1: a title on the line after the call is still compared, so a swap cannot hide a removal.
+  // Protects: a title on the line after the call is still compared, so a swap cannot hide a removal.
   test('removing a test and adding another is caught when titles sit on the next line', () => {
     const base = lines(
       'test(',
@@ -28,7 +28,7 @@ describe('lost-test with titles the scanner cannot read on the line', () => {
     expect(problems[0].detail).toMatch(/two/)
   })
 
-  // Protects Review Focus 1: when titles are variables only the count can show a removal, so the count fallback must work alone.
+  // Protects: when titles are variables only the count can show a removal, so the count fallback must work alone.
   test('a count drop alone fails lost-test when no title is readable', () => {
     const base = lines('test(nameA, () => { expect(1).toBe(1) })', 'test(nameB, () => { expect(2).toBe(2) })')
     const head = lines('test(nameA, () => { expect(1).toBe(1); expect(2).toBe(2) })')
@@ -39,14 +39,14 @@ describe('lost-test with titles the scanner cannot read on the line', () => {
 })
 
 describe('comment markers inside strings and regex literals', () => {
-  // Protects Review Focus 1: '/*' inside a string must not blank the tests that follow it.
+  // Protects: '/*' inside a string must not blank the tests that follow it.
   test('a glob string with /* does not hide a deleted test or expect(', () => {
     const base = lines("const g = 'src/*.ts'", one, two, "const h = ['**/node_modules']")
     const head = lines("const g = 'src/*.ts'", one, "const h = ['**/node_modules']")
     expect(rules(compareWithBase('a.test.ts', base, head)).sort()).toEqual(['lost-assertion', 'lost-test', 'lost-test'])
   })
 
-  // Protects Review Focus 1: '/*' inside a regex literal must not blank the tests that follow it.
+  // Protects: '/*' inside a regex literal must not blank the tests that follow it.
   test('a regex literal with /* does not hide a deleted test or expect(', () => {
     const rx = String.raw`const r = /a\/*/`
     const base = lines(rx, one, two, '/* end */')
@@ -56,7 +56,7 @@ describe('comment markers inside strings and regex literals', () => {
 })
 
 describe('declaration forms', () => {
-  // Protects Review Focus 1: a test declared after other code on the line still needs a header.
+  // Protects: a test declared after other code on the line still needs a header.
   test('assigned, exported, awaited, returned and comment-prefixed declarations fail header', () => {
     for (const line of [
       w('const t = te', "st('a', () => {})"),
@@ -69,7 +69,7 @@ describe('declaration forms', () => {
     }
   })
 
-  // Protects Review Focus 1: removing a test declared in those forms is a lost-test.
+  // Protects: removing a test declared in those forms is a lost-test.
   test('a removed assigned or exported declaration is a lost-test', () => {
     const base = lines(w('const t = te', "st('a', () => {})"), w('export const y = i', "t.each([1])('b', () => {})"))
     expect(rules(compareWithBase('a.test.ts', base, ''))).toContain('lost-test')
@@ -96,7 +96,7 @@ describe('declaration forms', () => {
 })
 
 describe('more ways to skip or focus', () => {
-  // Protects Review Focus 1: option-object, runIf, fixture-skip and fails forms all disable or invert a test.
+  // Protects: option-object, runIf, fixture-skip and fails forms all disable or invert a test.
   test('option objects, runIf, a skip call and fails fail skipped', () => {
     for (const line of [
       w("test('a', { sk", 'ip: true }, () => {})'),
@@ -111,7 +111,7 @@ describe('more ways to skip or focus', () => {
     }
   })
 
-  // Protects Review Focus 1: an option-object focus runs only some tests.
+  // Protects: an option-object focus runs only some tests.
   test('an only option object fails focused', () => {
     expect(
       rules(checkSource('a.test.ts', lines('// Protects: r', w("test('a', { on", 'ly: true }, () => {})')), new Set())),
@@ -120,7 +120,8 @@ describe('more ways to skip or focus', () => {
 })
 
 describe('option values of any kind', () => {
-  // Protects Review Focus 1: the value does not matter, a skip, only, todo or fails option is a switch (variable, number, negation, quoted key).
+  // Protects: the value does not matter, a skip, only, todo or fails option is a switch (variable, number,
+  // negation, quoted key).
   test('skip, todo and fails options fail skipped whatever the value', () => {
     for (const line of [
       w("test('a', { sk", 'ip: isCI }, () => {})'),
@@ -134,7 +135,7 @@ describe('option values of any kind', () => {
     }
   })
 
-  // Protects Review Focus 1: a focus option with any value runs only some tests.
+  // Protects: a focus option with any value runs only some tests.
   test('only options fail focused whatever the value', () => {
     for (const line of [
       w("test('a', { on", 'ly: !0 }, () => {})'),

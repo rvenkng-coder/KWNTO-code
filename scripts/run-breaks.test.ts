@@ -83,7 +83,7 @@ describe('run-breaks command', () => {
     expect(code).toBe(1)
   })
 
-  // Protects Review Focus 2: a caught and a surviving break both leave the working tree as it was.
+  // Protects: a caught and a surviving break both leave the working tree as it was.
   test('after the run the fixture files are unchanged (git diff empty)', { timeout: SLOW }, () => {
     const breaks = `${BOUNDARY}\n| B2 | frontend/src/a.ts | \`18\` | \`21\` | frontend/src/a.test.ts |`
     const cwd = fixture({ 'frontend/src/a.test.ts': testsFor([17, 19]), 'task.md': task(breaks) })
@@ -93,7 +93,7 @@ describe('run-breaks command', () => {
     expect(git(cwd, 'status', '--porcelain')).toBe('')
   })
 
-  // Protects Review Focus 2: bytes the editor wrote (CRLF, non-ASCII, no final newline) come back exactly.
+  // Protects: bytes the editor wrote (CRLF, non-ASCII, no final newline) come back exactly.
   test('the restored file is byte-identical, CRLF and non-ASCII included', { timeout: SLOW }, () => {
     const source = '// âge limite\r\nexport function isAdult(age: number): boolean {\r\n  return age >= 18\r\n}'
     const cwd = fixture({
@@ -113,7 +113,7 @@ describe('run-breaks command', () => {
       signal === 'SIGINT'
         ? 'killing the command with SIGINT mid-run restores the file'
         : 'killing the command with SIGTERM mid-run restores the file'
-    // Protects Review Focus 2: Ctrl-C (or a kill) while a break is applied still restores the file.
+    // Protects: Ctrl-C (or a kill) while a break is applied still restores the file.
     test(title, { timeout: SLOW }, async () => {
       const cwd = fixture({ 'frontend/src/a.test.ts': testsFor([17, 18, 19], true), 'task.md': task(BOUNDARY) })
       const child = spawn(process.execPath, [SCRIPT, 'task.md'], { cwd, stdio: ['ignore', 'pipe', 'pipe'] })
@@ -170,7 +170,7 @@ describe('run-breaks fails closed', () => {
     expect(git(cwd, 'status', '--porcelain')).toBe('')
   })
 
-  // Protects Review Focus 2: an ambiguous Find is reported invalid and fails the run.
+  // Protects: an ambiguous Find is reported invalid and fails the run.
   test('a Find that matches twice is invalid and exits 1', { timeout: SLOW }, () => {
     const breaks = `${TABLE}| B1 | frontend/src/a.ts | \`a\` | \`b\` | frontend/src/a.test.ts |`
     const cwd = fixture({ 'frontend/src/a.test.ts': testsFor([17, 18, 19]), 'task.md': task(breaks) })

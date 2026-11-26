@@ -133,7 +133,8 @@ function parseCases(body: string[], problems: string[]): CaseRow[] {
   return cases
 }
 
-// A lone `none` means no breaks; allowed only when no case is on the unit layer (Task 5's contract).
+// A lone `none` means no breaks; allowed only when no case is on the unit layer, because code with unit
+// cases must be shown to be guarded by its tests.
 function isNone(body: string[]): boolean {
   const lines = body.filter((line) => line.trim() !== '')
   return lines.length === 1 && lines[0].trim().toLowerCase() === 'none'

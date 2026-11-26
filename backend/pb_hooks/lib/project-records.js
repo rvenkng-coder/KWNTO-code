@@ -15,11 +15,12 @@ function plain(record, fields) {
 // empty means live.
 const READ = {
   chapters: { title: 'text', position: 'number', deleted_at: 'text' },
-  nodes: { chapter: 'text', title: 'text', color: 'text', x: 'number', y: 'number', deleted_at: 'text' },
+  nodes: { chapter: 'text', title: 'text', color: 'text', x: 'number', y: 'number', width: 'number', height: 'number', cover_media: 'text', deleted_at: 'text' },
   script_lines: { node: 'text', character: 'text', text: 'text', sort_order: 'number' },
   cues: { node: 'text', type: 'text', text: 'text', sort_order: 'number' },
   connections: { from_node: 'text', to_node: 'text', label: 'text', created: 'text' },
   media: { node: 'text', title: 'text', kind: 'text', removed_at: 'text' },
+  node_links: { node: 'text', title: 'text', url: 'text', created: 'text' },
 }
 
 function loadProjectRecords(app, projectId) {

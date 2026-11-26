@@ -14,13 +14,13 @@ Each row says what the link allows and when it was made.
 
 | Link | Needs an account? | What they get |
 |---|---|---|
-| **Can view** | No | A read-only picture of the project: chapter tabs, the canvas (pan and zoom, nothing can be changed) and, when they click a node, its script lines, choices, cues and media. |
+| **Can view** | No | A read-only picture of the project: chapter tabs, the canvas (pan and zoom, nothing can be changed) with cards at their saved size and with their cover images and, when they click a node, its script lines, choices, cues, media and links. |
 | **Can comment** | Yes, verified | The same read-only view. They are asked to sign in first and come back to the link afterwards. |
 | **Can edit** | Yes, verified | The normal editor for that one project. They are not on your team: they cannot see the team, its other projects or its members, and cannot move the project to the trash or delete media for good. The project appears under **Shared with me** on their Teams page. |
 
 A person who opens a **view** or **comment** link can also choose **Play** to play the story from its start node, without an account for a view link; see [Playing the story](player.md). Media, choices and lines they see there are the same as in the read-only view.
 
-A **live** view follows the project: it refreshes by itself about every 30 seconds while the tab is open, and at once when the person comes back to the tab. A **snapshot** shows the project as it was when the link was made, until you republish it.
+A **live** view follows the project: it refreshes by itself about every 30 seconds while the tab is open, and at once when the person comes back to the tab. A **snapshot** shows the project as it was when the link was made, until you republish it. A snapshot made before 2026-11-26 shows card sizes, covers and node links only after you republish it.
 
 ## Commenting through a link
 

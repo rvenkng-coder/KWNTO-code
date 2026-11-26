@@ -5,6 +5,7 @@ import type { ProjectFile } from '../../backend'
 import { toFlowEdges, toFlowNodes, type CardNode } from '../editor/model/flow'
 import { nodeMarkers } from '../editor/model/markers'
 import { fromContent } from '../editor/model/state'
+import { SharePlay } from '../player/SharePlay'
 import { ReadOnlyCard } from './ReadOnlyCard'
 import { ReadOnlyPanel } from './ReadOnlyPanel'
 import { contentFromFile } from './shareModel'
@@ -35,7 +36,10 @@ export function ReadOnlyViewer({ projectId, file, token, needsSignIn, renderComm
 
   return (
     <div data-testid="viewer" className="flex min-h-[70vh] flex-col gap-3">
-      <h2 className="text-lg font-semibold">{file.project.name}</h2>
+      <div className="flex items-center gap-3">
+        <h2 className="text-lg font-semibold">{file.project.name}</h2>
+        <SharePlay file={file} projectId={projectId} token={token} needsSignIn={needsSignIn} />
+      </div>
       <div role="tablist" className="flex flex-wrap gap-1">
         {chapters.map((c) => (
           <button key={c.id} type="button" role="tab" aria-selected={c.id === chapterId} className={c.id === chapterId ? 'btn-primary' : 'btn'}

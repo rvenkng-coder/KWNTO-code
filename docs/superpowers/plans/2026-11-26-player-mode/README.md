@@ -40,7 +40,7 @@
 
 | # | Decision |
 |---|---|
-| D1 | **No server change and no new dependency.** The player reads what the editor store and the share viewer already hold. Player Mode writes nothing: no edit, no undo step, no request other than the media file loads. Path analytics (recording choices) is Plan 10 and adds its hook then; this plan leaves no unused seam for it. |
+| D1 | **No new dependency, and one small server change (decided with the developer, 2026-11-26, Task 3).** The share link's project file listed choices in id order, so a view link offered them in a different order than the editor; the file builder now sorts `connections` by `created`, then id. Otherwise nothing changes on the server. The player reads what the editor store and the share viewer already hold. Player Mode writes nothing: no edit, no undo step, no request other than the media file loads. Path analytics (recording choices) is Plan 10 and adds its hook then; this plan leaves no unused seam for it. |
 | D2 | **One model for both sources.** `buildStory(state, media)` takes a `ContentState` and a plain list of media entries. The editor passes `fromContent`-style state from `editorStore` and its live media; the viewer passes `fromContent(contentFromFile(file, projectId))` and `file.media`. Removed media never reaches the editor's list (`mediaOf` hides it) and a project file leaves it out (project-file.md). |
 | D3 | **The story is frozen when the player opens.** The `Player` keeps the `Story` it was opened with. A teammate's edit arriving over the live connection, or a live share view re-reading every 30 s, never changes a screen under a reader or breaks a saved path. To see new edits, close and open the player. Documented in the user guide. |
 | D4 | **Start:** the project's start node, if it is live (`effectiveStart`). No start node (an empty project, or the start node is in the trash) shows the nothing-to-play message; the player never guesses another node. |
@@ -78,7 +78,8 @@ Likely to bite a person, most likely first. Each line has a test in the owning t
 | `frontend/src/features/player/session.ts` | `Session`, `startSession`, `choose`, `back`, `screenOf`, `historyOf` (pure) |
 | `frontend/src/features/player/Player.tsx`, `PlayerScreen.tsx`, `PlayerMedia.tsx`, `PlayerHistory.tsx`, `usePlayer.ts` | The overlay, the node's screen, its media, the history list and the state hook |
 | `frontend/src/features/player/EditorPlay.tsx`, `useEditorMediaSrc.ts` | The editor's `Play` button, the story from the store, the editor's media hook |
-| `frontend/src/features/player/SharePlay.tsx`, `useShareMediaSrc.ts` | The viewer's `Play` button and the media hooks of view and comment links |
+| `backend/pb_hooks/lib/project-file-build.js`, `project-records.js` | Connections listed in creation order (Task 3) |
+| `frontend/src/features/player/SharePlay.tsx`, `useShareMediaSrc.ts`, `frontend/src/features/share/useShareSource.ts` | The viewer's `Play` button and the media hooks of view and comment links |
 | `frontend/src/index.css` | The `.player-step` keyframes and the reduced-motion rule |
 | `frontend/src/features/editor/EditorHeader.tsx`, `frontend/src/features/share/ReadOnlyViewer.tsx` | Where the two `Play` buttons are placed |
 | `e2e/player.spec.ts`, `e2e/player-share.spec.ts`, `e2e/helpers/player.ts` | The end-to-end tests and the story they seed |

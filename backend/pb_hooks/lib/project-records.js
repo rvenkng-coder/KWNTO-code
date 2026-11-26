@@ -18,7 +18,7 @@ const READ = {
   nodes: { chapter: 'text', title: 'text', color: 'text', x: 'number', y: 'number', deleted_at: 'text' },
   script_lines: { node: 'text', character: 'text', text: 'text', sort_order: 'number' },
   cues: { node: 'text', type: 'text', text: 'text', sort_order: 'number' },
-  connections: { from_node: 'text', to_node: 'text', label: 'text' },
+  connections: { from_node: 'text', to_node: 'text', label: 'text', created: 'text' },
   media: { node: 'text', title: 'text', kind: 'text', removed_at: 'text' },
 }
 

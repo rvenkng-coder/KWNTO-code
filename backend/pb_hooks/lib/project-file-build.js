@@ -66,7 +66,8 @@ function buildProjectFile(records, nowIso) {
     nodes: nodes.map(nodeEntry).sort(compareBy('id', null)),
     lines: records.script_lines.filter(onLiveNode).map(lineEntry).sort(compareBy('sortOrder', null)),
     cues: records.cues.filter(onLiveNode).map(cueEntry).sort(compareBy('sortOrder', null)),
-    connections: records.connections.filter((k) => nodeIds.has(k.from_node)).map((k) => connectionEntry(k, nodeIds)).sort(compareBy('id', null)),
+    // Choices keep the order they were made in (`created`, then id), as the editor shows them; Player Mode reads it.
+    connections: records.connections.filter((k) => nodeIds.has(k.from_node)).sort(compareBy('created', null)).map((k) => connectionEntry(k, nodeIds)),
     media: records.media.filter((m) => !m.removed_at && onLiveNode(m)).map(mediaEntry).sort(compareBy('id', null)),
   }
 }

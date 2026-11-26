@@ -33,7 +33,7 @@ A project can be exported to and imported from one JSON file (design 10, [plan 7
 | `connections[].from` | node id | `to` is a node id, or `null` for an empty choice; `label` up to 200. |
 | `media[]` | metadata only | The files are not in the file and import ignores the list; a file may leave it out. |
 
-Ids are the original ones. They are only keys: **import gives every record a new id** and maps every reference, so an id in a file can never collide with one in the database. The lists are sorted by position, sort order, then id.
+Ids are the original ones. They are only keys: **import gives every record a new id** and maps every reference, so an id in a file can never collide with one in the database. The lists are sorted by position, sort order, then id; `connections` are the exception: they are listed in the order they were created (then id), which is the order of a node's choices in the editor, so a project read from a file (a share link's viewer, Player Mode) offers choices in the author's order. Import creates them in file order, so a re-import keeps it.
 
 **Left out when exporting:** records with `deleted_at` set, the nodes of a trashed chapter, media with `removed_at` set. A choice to a trashed node is kept with `to: null`.
 

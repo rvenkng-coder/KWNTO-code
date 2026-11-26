@@ -4,7 +4,7 @@ import type { Chapter, Connection, Cue, ProjectContent, ScriptLine, StoryNode } 
 export const chapter = (id: string, over: Partial<Chapter> = {}): Chapter =>
   ({ id, projectId: 'p1', title: id, position: 1, deleted: false, deletedAt: null, version: 0, ...over })
 export const node = (id: string, over: Partial<StoryNode> = {}): StoryNode =>
-  ({ id, projectId: 'p1', chapterId: 'c1', title: id, color: 'slate', x: 0, y: 0, width: 0, height: 0, deleted: false, deletedAt: null, version: 0, ...over })
+  ({ id, projectId: 'p1', chapterId: 'c1', title: id, color: 'slate', x: 0, y: 0, width: 0, height: 0, coverMediaId: '', deleted: false, deletedAt: null, version: 0, ...over })
 export const line = (id: string, over: Partial<ScriptLine> = {}): ScriptLine =>
   ({ id, projectId: 'p1', nodeId: 'n1', character: '', text: id, sortOrder: 1, version: 0, ...over })
 export const cue = (id: string, over: Partial<Cue> = {}): Cue =>

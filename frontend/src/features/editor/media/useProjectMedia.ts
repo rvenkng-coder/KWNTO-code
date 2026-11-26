@@ -16,7 +16,7 @@ interface MediaStoreState {
   fileToken: string | null
   open(projectId: string): Promise<() => void>
   close(): void
-  upload(nodeId: string, file: File): Promise<void>
+  upload(nodeId: string, file: File): Promise<Media | null>
   remove(m: Media): Promise<void>
   restore(m: Media): Promise<void>
   deletePermanently(m: Media): Promise<void>
@@ -128,9 +128,9 @@ async function uploadProjectMedia(
   file: File,
   get: () => MediaStoreState,
   rawSet: SetFn,
-): Promise<void> {
+): Promise<Media | null> {
   const { projectId } = get()
-  if (!projectId) return
+  if (!projectId) return null
   const set = forProject(projectId, rawSet)
 
   // The lead's storage changes whenever any teammate uploads or deletes, so read it fresh before
@@ -146,7 +146,7 @@ async function uploadProjectMedia(
     const problem = earlyProblem({ name: file.name, size: file.size }, storage)
     if (problem) {
       set(() => ({ error: problem }))
-      return
+      return null
     }
   }
 
@@ -159,8 +159,10 @@ async function uploadProjectMedia(
       backend.media.fileToken(),
     ])
     set(() => ({ fileToken: token }))
+    return created
   } catch (err) {
     set(() => ({ error: extractErrorMessage(err) }))
+    return null
   } finally {
     // Drop one entry only, so a second upload with the same name keeps its indicator.
     set((s) => {
@@ -218,7 +220,7 @@ export function useProjectMedia(projectId: string | null): {
   uploading: string[]
   error: string | null
   fileToken: string | null
-  upload(nodeId: string, file: File): Promise<void>
+  upload(nodeId: string, file: File): Promise<Media | null>
   remove(m: Media): Promise<void>
 } {
   const media = useMediaStore((s) => s.media)

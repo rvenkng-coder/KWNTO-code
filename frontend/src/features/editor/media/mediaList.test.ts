@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import type { Media, MediaEvent, StorageInfo } from '../../../backend/media-types.ts'
-import { applyMediaEvent, mediaOf, meterText, removedOf } from './mediaList.ts'
+import { applyMediaEvent, coverOf, mediaOf, meterText, removedOf } from './mediaList.ts'
 
 function makeMedia(id: string, nodeId: string, created: string): Media {
   return {
@@ -82,5 +82,19 @@ describe('removed media', () => {
     list = applyMediaEvent(list, { action: 'update', record: gone })
     expect(mediaOf(list, 'node-a')).toHaveLength(2)
     expect(removedOf(list, 'node-a')).toHaveLength(0)
+  })
+})
+
+describe('coverOf', () => {
+  // Protects: the cover is exactly the file the node names, and only while it is an image still in use; mediaOf leaves it out.
+  test('the cover is the named image in use, and the media list leaves it out', () => {
+    const cover = makeMedia('m1', 'node-a', '2026-11-19 10:00:00.000Z')
+    const other = makeMedia('m2', 'node-a', '2026-11-19 10:01:00.000Z')
+    const audio: Media = { ...makeMedia('m0', 'node-a', '2026-11-19 09:00:00.000Z'), kind: 'audio' }
+    expect(coverOf([audio, other, cover], 'm1')?.id).toBe('m1')
+    expect(coverOf([cover], '')).toBeUndefined()
+    expect(coverOf([audio], 'm0')).toBeUndefined()
+    expect(coverOf([{ ...cover, removedAt: '2026-11-20' }], 'm1')).toBeUndefined()
+    expect(mediaOf([cover, other], 'node-a', 'm1').map((m) => m.id)).toEqual(['m2'])
   })
 })

@@ -14,6 +14,8 @@ export interface CardCue { tag: 'Audio' | 'Light' | 'Other'; text: string }
 export interface NodeCardData extends Record<string, unknown> {
   title: string; color: NodeColor; preview: string[]; more: number; marker: NodeMarker
   choices: CardChoice[]; cues: CardCue[]; moreCues: number
+  /** The node's cover image (a media id), '' for none. */
+  coverMediaId: string
 }
 export type CardNode = Node<NodeCardData, 'card'>
 
@@ -107,7 +109,7 @@ export function toFlowNodes(s: ContentState, chapterId: string, markers: Map<str
       more: Math.max(0, own.length - PREVIEW_LINES), marker: markers.get(n.id) ?? NO_MARKER,
       choices: cardChoices(s, choices.get(n.id) ?? [], chapterId),
       cues: ownCues.slice(0, CUE_LINES).map((q) => ({ tag: CUE_TAG[q.type], text: q.text })),
-      moreCues: Math.max(0, ownCues.length - CUE_LINES),
+      moreCues: Math.max(0, ownCues.length - CUE_LINES), coverMediaId: n.coverMediaId,
     }
     // A size of 0 is the default: the default width, and a height that follows the content.
     return { id: n.id, type: 'card', position: { x: n.x, y: n.y }, width: n.width > 0 ? n.width : DEFAULT_CARD_WIDTH, height: n.height > 0 ? n.height : undefined, data }

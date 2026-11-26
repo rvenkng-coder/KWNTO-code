@@ -11,7 +11,7 @@ export const NODE_STEP = 40
 export function newNodeRecord(projectId: string, chapterId: string, at: Point): StoryNode {
   return {
     id: newId(), projectId, chapterId, title: 'New node', color: DEFAULT_NODE_COLOR,
-    x: Math.round(at.x), y: Math.round(at.y), width: 0, height: 0, deleted: false, deletedAt: null, version: 0,
+    x: Math.round(at.x), y: Math.round(at.y), width: 0, height: 0, coverMediaId: '', deleted: false, deletedAt: null, version: 0,
   }
 }
 

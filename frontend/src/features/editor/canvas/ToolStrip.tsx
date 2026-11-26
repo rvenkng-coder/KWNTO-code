@@ -7,7 +7,7 @@ import { useCanvasCommands } from './canvasCommands'
 import { cutSelection, trashSelection } from './selectionActions'
 import { ToolButton } from './ToolButton'
 import { useSelection } from './useSelection'
-import { FONT_SIZES, type ViewPrefs } from './useViewPrefs'
+import { FONT_SIZES, MEDIA_SIZES, type ViewPrefs } from './useViewPrefs'
 
 /** The tools in the toolbar above the canvas (editor cards design, goal 3): every tool names its shortcut in its tooltip. */
 interface Props { chapterId: string | null; projectName: string; view?: ViewPrefs }
@@ -38,6 +38,13 @@ export function ToolStrip({ chapterId, projectName, view }: Props) {
           onChange={(e) => view.setFontSize(Number(e.target.value))}>
           {FONT_SIZES.includes(view.fontSize) ? null : <option value={view.fontSize}>{view.fontSize}</option>}
           {FONT_SIZES.map((n) => <option key={n} value={n}>{n}</option>)}
+        </select>
+      )}
+      {view && (
+        <select aria-label="Media size" title="Media size on cards" className="field h-8 w-auto py-0" value={view.mediaSize}
+          onChange={(e) => view.setMediaSize(Number(e.target.value))}>
+          {MEDIA_SIZES.includes(view.mediaSize) ? null : <option value={view.mediaSize}>{view.mediaSize}</option>}
+          {MEDIA_SIZES.map((n) => <option key={n} value={n}>{n}</option>)}
         </select>
       )}
       {view && <ToolButton icon="map" name={view.minimap ? 'Hide minimap' : 'Show minimap'} pressed={view.minimap} onClick={view.toggleMinimap} />}

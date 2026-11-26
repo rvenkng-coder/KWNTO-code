@@ -53,7 +53,7 @@ export function MediaSection({ node }: { node: StoryNode }) {
     }
   }
 
-  const nodeMedia = mediaOf(media, node.id)
+  const nodeMedia = mediaOf(media, node.id, node.coverMediaId)
   const removedMedia = storage?.isLead ? removedOf(media, node.id) : []
 
   return (

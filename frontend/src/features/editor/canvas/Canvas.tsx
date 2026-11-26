@@ -165,7 +165,7 @@ function CanvasView({ projectId, chapterId }: { projectId: string; chapterId: st
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2">
       <CanvasToolbar chapterId={chapterId} showNoStart={anyNode && !flow.hasStart} prefs={prefs} />
-      <div ref={canvasRef} data-testid="canvas" data-node-count={count} data-ready={inited && flow.synced ? 'true' : 'false'} className="kwnto-canvas relative min-h-0 flex-1" style={{ '--card-font-size': `${prefs.fontSize}px` } as CSSProperties} onDoubleClick={actions.createAt}>
+      <div ref={canvasRef} data-testid="canvas" data-node-count={count} data-ready={inited && flow.synced ? 'true' : 'false'} className="kwnto-canvas relative min-h-0 flex-1" style={{ '--card-font-size': `${prefs.fontSize}px`, '--card-media-size': `${prefs.mediaSize}px` } as CSSProperties} onDoubleClick={actions.createAt}>
         {link.linking && <div role="status" className="panel absolute left-1/2 top-2 z-10 -translate-x-1/2">{LINK_BANNER}</div>}
         <ReactFlow<CardNode>
           nodes={flow.nodes} edges={flow.edges} nodeTypes={nodeTypes}

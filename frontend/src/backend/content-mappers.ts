@@ -33,7 +33,7 @@ const READERS: { [K in ContentKind]: (r: Raw) => ContentRecords[K] } = {
   }),
   nodes: (r) => ({
     id: text(r.id), projectId: text(r.project), chapterId: text(r.chapter), title: text(r.title),
-    color: color(r.color), x: num(r.x), y: num(r.y), width: num(r.width), height: num(r.height), deleted: trashed(r.deleted_at), deletedAt: deletedAt(r.deleted_at), version: num(r.version),
+    color: color(r.color), x: num(r.x), y: num(r.y), width: num(r.width), height: num(r.height), coverMediaId: text(r.cover_media), deleted: trashed(r.deleted_at), deletedAt: deletedAt(r.deleted_at), version: num(r.version),
   }),
   script_lines: (r) => ({
     id: text(r.id), projectId: text(r.project), nodeId: text(r.node), character: text(r.character),
@@ -57,7 +57,7 @@ export function fromRecord<K extends ContentKind>(kind: K, rec: Raw): ContentRec
 const STORED_NAME: Record<string, string> = {
   teamId: 'team', projectId: 'project', chapterId: 'chapter', nodeId: 'node',
   fromNodeId: 'from_node', toNodeId: 'to_node', startNodeId: 'start_node',
-  analyticsEnabled: 'analytics_enabled', sortOrder: 'sort_order',
+  analyticsEnabled: 'analytics_enabled', sortOrder: 'sort_order', coverMediaId: 'cover_media',
 }
 
 // The keys an update may send, per kind (`deleted` is handled on its own as `deleted_at`).
@@ -65,7 +65,7 @@ const EDITABLE: { [K in ContentKind]: ReadonlyArray<keyof EditableFields[K]> } =
   projects: ['name', 'startNodeId'],
   project_settings: ['analyticsEnabled'],
   chapters: ['title', 'position'],
-  nodes: ['title', 'color', 'x', 'y', 'width', 'height'],
+  nodes: ['title', 'color', 'x', 'y', 'width', 'height', 'coverMediaId'],
   script_lines: ['character', 'text', 'sortOrder'],
   cues: ['type', 'text', 'sortOrder'],
   connections: ['label', 'toNodeId'],

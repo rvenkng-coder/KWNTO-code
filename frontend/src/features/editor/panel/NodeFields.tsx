@@ -7,6 +7,7 @@ import { useSavedText } from '../store/useSavedText'
 import { Choices } from './Choices'
 import { Cues } from './Cues'
 import { LinksSection } from '../links/LinksSection.tsx'
+import { CoverSection } from '../media/CoverSection.tsx'
 import { MediaSection } from '../media/MediaSection.tsx'
 import { ScriptLines } from './ScriptLines'
 import { EditingBadge } from '../../presence/EditingBadge'
@@ -51,6 +52,7 @@ export function NodeFields({ node }: { node: StoryNode }) {
         : <button type="button" className="btn self-start" onClick={makeStart}>Make start node</button>}
       <ScriptLines projectId={node.projectId} nodeId={node.id} />
       <Cues projectId={node.projectId} nodeId={node.id} />
+      <CoverSection node={node} />
       <MediaSection node={node} />
       <LinksSection node={node} />
       <Choices node={node} />

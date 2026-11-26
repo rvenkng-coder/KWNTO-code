@@ -1,6 +1,6 @@
 # Lint and guardrail checks
 
-`npm run lint` runs ESLint on the whole repo, then the PERF comment check. Both must pass before a change is done. Both are required by [engineering.md](../engineering.md); this page says what each one catches and how to fix it.
+`npm run lint` runs ESLint on the whole repo, then the PERF comment check, the docs link check, the plan check and the history-reference check. All must pass before a change is done. Both are required by [engineering.md](../engineering.md); this page says what each one catches and how to fix it.
 
 ## What ESLint enforces
 
@@ -39,7 +39,7 @@ Two `PERF:` notes in one run of `//` lines are checked separately. The check wor
 
 ## Comments that point at history
 
-A comment states its reason where it is. A reference to a plan, task, case, finding or decision number sends the reader to old project history. `scripts/check-comment-refs.ts` reads the comments (not strings or text on screen) of the code under `frontend/src`, `backend/pb_hooks`, `e2e`, `tests` and `scripts`; probe files and migrations are left out. A design section or a decision record may be cited after the reason. It is not part of `npm run lint` yet: the old references are still being rewritten.
+A comment states its reason where it is. A reference to a plan, task, case, finding or decision number sends the reader to old project history. `scripts/check-comment-refs.ts` reads the comments (not strings or text on screen) of the code under `frontend/src`, `backend/pb_hooks`, `e2e`, `tests` and `scripts`; probe files and migrations are left out. A design section or a decision record may be cited after the reason. `npm run lint` runs it, so CI refuses such a comment.
 
 - `npm run check:comments` prints `file:line: reference` for each one and exits with 1. Add paths to check less: `npm run check:comments -- backend/pb_hooks`.
 - `npm run check:comments -- --same-code <base>` lists each code file that differs from `<base>` in more than its comments, and each added, deleted or renamed one. Use it to prove that a comment rewrite changed no code. It cannot see a removed directive such as `eslint-disable` or `// Protects:`; lint and `check:hygiene` do.
@@ -48,7 +48,7 @@ A comment states its reason where it is. A reference to a plan, task, case, find
 
 | Command | What it does |
 |---|---|
-| `npm run lint` | ESLint, then the PERF check |
+| `npm run lint` | ESLint, the PERF check, docs links, plan files and history references |
 | `npx eslint .` | ESLint only |
 | `node scripts/check-perf-comments.ts` | PERF check only |
 | `npm run test:unit` | Includes the tests for the rules above |

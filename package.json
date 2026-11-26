@@ -26,7 +26,7 @@
     "prepare-local-run": "node scripts/prepare-local-run.ts",
     "report:quality": "node scripts/check-changed-quality.ts --report",
     "report:escape-rate": "node scripts/escape-rate.ts",
-    "lint": "eslint . && node scripts/check-perf-comments.ts && npm run check:docs && npm run check:plan",
+    "lint": "eslint . && node scripts/check-perf-comments.ts && npm run check:docs && npm run check:plan && npm run check:comments",
     "test:rules": "node scripts/with-pocketbase.ts vitest run --project rules",
     "test:e2e": "node scripts/with-pocketbase.ts playwright test",
     "test": "npm run lint && npm run typecheck && npm run test:unit && npm run test:container && npm run test:rules && npm run test:e2e",

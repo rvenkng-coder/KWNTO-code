@@ -202,7 +202,7 @@ A `.githooks/pre-commit` hook runs [gitleaks](https://github.com/gitleaks/gitlea
 
 ## CI Workflow (`.github/workflows/ci.yml`)
 
-The CI workflow runs on pushes to `main` and on every pull request (so a branch with an open PR runs once, not twice). It uses Node from `.nvmrc` and pins each GitHub Action to its current major version.
+The CI workflow runs on pushes to `main` and on every pull request (so a branch with an open PR runs once, not twice). A new push to a PR cancels that PR's older run; runs on `main` are never cancelled. It uses Node from `.nvmrc` and pins each GitHub Action to its current major version.
 
 | Job | What it runs | Notes |
 |---|---|---|

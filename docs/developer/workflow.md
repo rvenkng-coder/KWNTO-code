@@ -230,7 +230,7 @@ Habits that keep e2e tests reliable:
 
 ## 5. What each CI job needs
 
-The workflow is `.github/workflows/ci.yml`. It runs on every pull request and on pushes to `main`. All jobs but `secrets` use Node from `.nvmrc` and `npm ci`. It never deploys; deploying is `deploy/update.sh` by hand.
+The workflow is `.github/workflows/ci.yml`. It runs on every pull request and on pushes to `main`; a new push to a pull request cancels its older run. All jobs but `secrets` use Node from `.nvmrc` and `npm ci`. It never deploys; deploying is `deploy/update.sh` by hand.
 
 | Job | It runs | It needs | Reproduce locally | Usual reasons it fails |
 |---|---|---|---|---|

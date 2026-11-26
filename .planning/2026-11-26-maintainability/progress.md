@@ -5,6 +5,7 @@
 | Date | Task | Built by | What happened | Review | Escaped | Next |
 |---|---|---|---|---|---|---|
 | 2026-11-26 | Plan written | - | Choices confirmed by the developer; test files 500 lines | - | - | Task 1 |
+| 2026-11-26 | 1 Lint the backend hooks | strong | Done (`551ba6f`); check:task PASS; rules 272 of 272. Added a guardrail unit test | none | 0 | Task 2 |
 
 ## Rulings
 

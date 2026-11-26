@@ -35,7 +35,7 @@ test('an unverified user can resend the verification email', async ({ page }) =>
 
   // Its JSON body must contain the user's email
   const body = await requests[0].postData()
-  const json = JSON.parse(body)
+  const json = JSON.parse(body ?? 'null')
   expect(json.email).toBe(email)
 })
 

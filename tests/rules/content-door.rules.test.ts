@@ -36,7 +36,7 @@ async function firstChapterId(door: Backend, projectId: string): Promise<string>
 }
 
 function node(projectId: string, chapterId: string, title: string) {
-  return { id: clientId(), projectId, chapterId, title, color: 'slate' as const, x: 0, y: 0, deleted: false, version: 0 }
+  return { id: clientId(), projectId, chapterId, title, color: 'slate' as const, x: 0, y: 0, width: 0, height: 0, coverMediaId: '', deleted: false, deletedAt: null, version: 0 }
 }
 
 // Protects: a team's projects are listed to its members only, trashed ones hidden, newest change first.
@@ -60,7 +60,7 @@ test('projects are listed for members only', async () => {
 test('load returns the whole project', async () => {
   const { b, project } = await setup()
   const chapter = await b.content.create('chapters', {
-    id: clientId(), projectId: project.id, title: 'Two', position: 2, deleted: false, version: 0,
+    id: clientId(), projectId: project.id, title: 'Two', position: 2, deleted: false, deletedAt: null, version: 0,
   })
   const first = await b.content.create('nodes', node(project.id, chapter.id, 'First'))
   const second = await b.content.create('nodes', node(project.id, chapter.id, 'Second'))
@@ -71,7 +71,7 @@ test('load returns the whole project', async () => {
     id: clientId(), projectId: project.id, nodeId: first.id, type: 'audio', text: 'Bell', sortOrder: 1, version: 0,
   })
   const link = await b.content.create('connections', {
-    id: clientId(), projectId: project.id, fromNodeId: first.id, toNodeId: second.id, label: 'Go', version: 0,
+    id: clientId(), projectId: project.id, fromNodeId: first.id, toNodeId: second.id, label: 'Go', created: '', version: 0,
   })
 
   const content = await b.content.load(project.id)
@@ -147,7 +147,7 @@ function recorder() {
 test("a teammate's changes arrive as events", async () => {
   const { a, b, project } = await setup()
   const chapter = await b.content.create('chapters', {
-    id: clientId(), projectId: project.id, title: 'Two', position: 2, deleted: false, version: 0,
+    id: clientId(), projectId: project.id, title: 'Two', position: 2, deleted: false, deletedAt: null, version: 0,
   })
   const created = await b.content.create('nodes', node(project.id, chapter.id, 'Old'))
   const line = await b.content.create('script_lines', {
@@ -205,7 +205,7 @@ test("a teammate's new records arrive as create events", async () => {
     id: clientId(), projectId: project.id, nodeId: first.id, character: '', text: 'Hi', sortOrder: 1, version: 0,
   })
   const link = await b.content.create('connections', {
-    id: clientId(), projectId: project.id, fromNodeId: first.id, toNodeId: second.id, label: '', version: 0,
+    id: clientId(), projectId: project.id, fromNodeId: first.id, toNodeId: second.id, label: '', created: '', version: 0,
   })
 
   // A later edit on the same stream: once it has arrived, every earlier event has too.

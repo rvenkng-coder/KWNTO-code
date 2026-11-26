@@ -12,7 +12,7 @@ test('XSS as text', async ({ page }) => {
   const xssName = '<script>window.__xss=1</script>'
   await createTeam(page, xssName)
   await expect(page.getByText(xssName)).toBeVisible()
-  await expect(page.evaluate(() => window.__xss)).resolves.toBeUndefined()
+  await expect(page.evaluate(() => (window as unknown as { __xss?: number }).__xss)).resolves.toBeUndefined()
 })
 
 // Protects: join by code — owner turns the code on, member joins, names shown not emails.

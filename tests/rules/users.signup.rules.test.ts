@@ -63,7 +63,7 @@ test('a sign-up that sends verified: true does not get a verified account', asyn
     expect(made.totalItems).toBe(0)
     return
   }
-  expect((await admin.collection('users').getOne(outcome.id)).verified).toBe(false)
+  expect((await admin.collection('users').getOne((outcome as { id: string }).id)).verified).toBe(false)
 })
 
 // Protects docs/security.md section 3 and the router's Global Constraints: emails are

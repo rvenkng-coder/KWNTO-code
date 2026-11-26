@@ -1,6 +1,6 @@
 import { expect, type Page, type Response } from '@playwright/test'
 import { uniqueEmail } from './admin'
-import { createTeam, openTeam, signUpVerifyAndSignIn } from './ui'
+import { SETUP_TIMEOUT_MS, createTeam, openTeam, signUpVerifyAndSignIn } from './ui'
 
 /** Waits for the server to answer a save of a collection (POST, PATCH or DELETE), so a reload cannot cut it off. */
 export function waitForSave(page: Page, collection: string, method: 'POST' | 'PATCH' | 'DELETE'): Promise<Response> {
@@ -20,8 +20,8 @@ export async function createProject(page: Page, name: string): Promise<void> {
 /** On the team screen: opens a project and waits for its first tab. */
 export async function openProject(page: Page, name: string): Promise<void> {
   await page.getByTestId('project-list').getByRole('button', { name, exact: true }).click()
-  await expect(page.getByTestId('editor-canvas')).toBeVisible()
-  await expect(page.getByRole('tab', { name: 'Chapter 1' })).toBeVisible()
+  await expect(page.getByTestId('editor-canvas')).toBeVisible({ timeout: SETUP_TIMEOUT_MS })
+  await expect(page.getByRole('tab', { name: 'Chapter 1' })).toBeVisible({ timeout: SETUP_TIMEOUT_MS })
 }
 
 /** The titles of the chapter tabs, left to right. */

@@ -30,7 +30,7 @@
     "prepare": "git config core.hooksPath .githooks"
   },
   "dependencies": {
-    "@xyflow/react": "^12.12.1",
+    "@xyflow/react": "^13.0.2",
     "docx": "^9.16.0",
     "html-to-image": "^1.11.13",
     "jspdf": "^4.2.1",

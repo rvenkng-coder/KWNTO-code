@@ -33,10 +33,17 @@ export function portOf(engine: SyncEngine, register: EditorSyncPort['register'])
 export function directSync(door: EditorDoor): EditorSyncPort {
   const registry = createHookRegistry()
   const engine = createSyncEngine({
-    userId: 'direct', door, storage: createMemoryOutbox(), hooks: registry.hooks,
+    userId: 'direct',
+    door,
+    storage: createMemoryOutbox(),
+    hooks: registry.hooks,
     lock: (_name, run) => run(),
     channel: { post: () => undefined, listen: () => () => undefined },
-    clock: { now: () => Date.now(), setTimeout: (fn, ms) => setTimeout(fn, ms), clearTimeout: (h) => clearTimeout(h as ReturnType<typeof setTimeout>) },
+    clock: {
+      now: () => Date.now(),
+      setTimeout: (fn, ms) => setTimeout(fn, ms),
+      clearTimeout: (h) => clearTimeout(h as ReturnType<typeof setTimeout>),
+    },
   })
   engine.start()
   return portOf(engine, registry.register)

@@ -1,6 +1,14 @@
 import { expect, test } from 'vitest'
 import { expectNoRows, expectRefused } from './helpers/admin-only.ts'
-import { createLine, createNode, createProject, guardedUpdate, memberProject, readAsAdmin, saveOwnFields } from './helpers/content.ts'
+import {
+  createLine,
+  createNode,
+  createProject,
+  guardedUpdate,
+  memberProject,
+  readAsAdmin,
+  saveOwnFields,
+} from './helpers/content.ts'
 import { asAdmin, asAnonymous, asUser, createTeam, createUser } from './helpers/pb.ts'
 import { addMember, expectCreateRefused } from './helpers/teams.ts'
 
@@ -22,12 +30,17 @@ test('a member creates a node with the id the client chose', async () => {
   const id = await createNode(member, projectId, chapterId, { id: 'abcdefghijk0123', color: 'blue' })
 
   expect(id).toBe('abcdefghijk0123')
-  expect(await readAsAdmin('nodes', id)).toMatchObject({ project: projectId, chapter: chapterId, color: 'blue', version: 0 })
+  expect(await readAsAdmin('nodes', id)).toMatchObject({
+    project: projectId,
+    chapter: chapterId,
+    color: 'blue',
+    version: 0,
+  })
 })
 
 // Review Focus 2: a node in project A must not sit in a chapter of project B, whether or
 // not the caller can see B.
-test('a node cannot be placed in another project\'s chapter', async () => {
+test("a node cannot be placed in another project's chapter", async () => {
   const { owner, member, teamId, projectId } = await memberProject()
   const otherTeam = await createTeam(owner, 'Other team')
   const both = await createUser()
@@ -37,11 +50,15 @@ test('a node cannot be placed in another project\'s chapter', async () => {
 
   for (const user of [both, member]) {
     await expectCreateRefused(
-      (await asUser(user)).collection('nodes').create({ project: projectId, chapter: foreign.chapterId, color: 'slate' }),
+      (await asUser(user))
+        .collection('nodes')
+        .create({ project: projectId, chapter: foreign.chapterId, color: 'slate' }),
     )
   }
   const admin = await asAdmin()
-  expect(await admin.collection('nodes').getFullList({ filter: admin.filter('chapter = {:c}', { c: foreign.chapterId }) })).toEqual([])
+  expect(
+    await admin.collection('nodes').getFullList({ filter: admin.filter('chapter = {:c}', { c: foreign.chapterId }) }),
+  ).toEqual([])
 })
 
 // Records carry `project`, set on create and never changed; nodes do not move between
@@ -50,7 +67,11 @@ test('a node keeps its project and chapter', async () => {
   const { member, teamId, projectId, chapterId } = await memberProject()
   const nodeId = await createNode(member, projectId, chapterId)
   const other = await createProject(member, teamId, 'Other')
-  const secondChapter = await (await asUser(member)).collection('chapters').create({ project: projectId, title: 'Two', position: 2 })
+  const secondChapter = await (
+    await asUser(member)
+  )
+    .collection('chapters')
+    .create({ project: projectId, title: 'Two', position: 2 })
 
   for (const body of [{ project: other.id }, { chapter: secondChapter.id }]) {
     const reply = await guardedUpdate(member, 'nodes', nodeId, { version: 0, ...body })
@@ -60,7 +81,7 @@ test('a node keeps its project and chapter', async () => {
 })
 
 // Review Focus 1: one person renames a node while another drags it; both edits land.
-test('parallel edits of a node\'s title and position both survive', async () => {
+test("parallel edits of a node's title and position both survive", async () => {
   const { owner, member, projectId, chapterId } = await memberProject()
   const nodeId = await createNode(owner, projectId, chapterId)
   const [first, second] = [await asUser(owner), await asUser(member)]

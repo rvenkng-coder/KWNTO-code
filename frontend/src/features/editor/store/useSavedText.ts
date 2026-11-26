@@ -9,7 +9,10 @@ import { pendingEdits } from './pendingEdits'
 // being edited, so it never replaces what the person is typing.
 
 export function useSavedText<K extends ContentKind>(
-  kind: K, id: string, field: keyof EditableFields[K] & string, value: string,
+  kind: K,
+  id: string,
+  field: keyof EditableFields[K] & string,
+  value: string,
 ): [text: string, setText: (t: string) => void, flush: () => void] {
   const key = `${kind}:${id}:${field}`
   const [text, setLocal] = useState(value)
@@ -20,15 +23,18 @@ export function useSavedText<K extends ContentKind>(
     if (!editing.current) setLocal(value)
   }, [value])
 
-  const setText = useCallback((t: string) => {
-    editing.current = true
-    setLocal(t)
-    pendingEdits.set(key, () => {
-      editing.current = false
-      const changes = { [field]: t } as Partial<EditableFields[K]>
-      void edits.update(kind, id, changes, `Edit ${field}`)
-    })
-  }, [key, kind, id, field])
+  const setText = useCallback(
+    (t: string) => {
+      editing.current = true
+      setLocal(t)
+      pendingEdits.set(key, () => {
+        editing.current = false
+        const changes = { [field]: t } as Partial<EditableFields[K]>
+        void edits.update(kind, id, changes, `Edit ${field}`)
+      })
+    },
+    [key, kind, id, field],
+  )
 
   const flush = useCallback(() => pendingEdits.flush(key), [key])
 

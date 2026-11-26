@@ -39,7 +39,12 @@ test('logEvent saves one security_events record with the given fields', () => {
 
   expect(saved).toHaveLength(1)
   expect(saved[0]?.collection).toEqual({ name: 'security_events' })
-  expect(saved[0]?.values).toEqual({ type: 'failure', user: 'user123', ip: '203.0.113.7', detail: { reason: 'wrong password' } })
+  expect(saved[0]?.values).toEqual({
+    type: 'failure',
+    user: 'user123',
+    ip: '203.0.113.7',
+    detail: { reason: 'wrong password' },
+  })
 })
 
 // Protects the logEvent contract "never throws": a logging failure must not block a

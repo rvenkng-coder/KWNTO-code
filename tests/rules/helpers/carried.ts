@@ -11,10 +11,18 @@ export async function createCarriedProject(): Promise<MemberProject> {
   const first = await createNode(ctx.member, ctx.projectId, ctx.chapterId, { title: 'Opening', ...look })
   const second = await createNode(ctx.member, ctx.projectId, chapter, { title: 'Later', color: 'blue', x: 5, y: 6 })
   await createLine(ctx.member, ctx.projectId, first, { character: 'Mara', text: 'Hello there.', sort_order: 1.5 })
-  await pb.collection('cues').create({ project: ctx.projectId, node: first, type: 'audio', text: 'rain', sort_order: 2 })
-  await pb.collection('connections').create({ project: ctx.projectId, from_node: first, to_node: second, label: 'Go on' })
+  await pb
+    .collection('cues')
+    .create({ project: ctx.projectId, node: first, type: 'audio', text: 'rain', sort_order: 2 })
+  await pb
+    .collection('connections')
+    .create({ project: ctx.projectId, from_node: first, to_node: second, label: 'Go on' })
   await pb.collection('node_links').create({
-    project: ctx.projectId, node: first, creator: ctx.member.id, title: 'Trailer', url: 'https://example.com/v',
+    project: ctx.projectId,
+    node: first,
+    creator: ctx.member.id,
+    title: 'Trailer',
+    url: 'https://example.com/v',
   })
   return ctx
 }

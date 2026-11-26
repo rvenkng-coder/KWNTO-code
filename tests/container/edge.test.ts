@@ -125,28 +125,45 @@ async function createJson(token: string, path: string, body: unknown): Promise<{
 test('stored files keep their own CSP behind the proxy', async () => {
   const user = await verifiedUser()
   const team = await createJson(user.token, '/api/collections/teams/records', { name: 'Edge team', owner: user.id })
-  const project = await createJson(user.token, '/api/collections/projects/records', { team: team.id, name: 'Edge project' })
-  const adminToken = await edgeAdminToken()
-  const chapters = await fetch(`${EDGE_ADMIN_URL}/api/collections/chapters/records?filter=${encodeURIComponent(`project="${project.id}"`)}`, {
-    headers: { Authorization: adminToken },
+  const project = await createJson(user.token, '/api/collections/projects/records', {
+    team: team.id,
+    name: 'Edge project',
   })
+  const adminToken = await edgeAdminToken()
+  const chapters = await fetch(
+    `${EDGE_ADMIN_URL}/api/collections/chapters/records?filter=${encodeURIComponent(`project="${project.id}"`)}`,
+    {
+      headers: { Authorization: adminToken },
+    },
+  )
   const chapter = ((await chapters.json()) as { items: { id: string }[] }).items[0]
   const node = await createJson(user.token, '/api/collections/nodes/records', {
-    project: project.id, chapter: chapter?.id, title: '', color: 'slate', x: 0, y: 0,
+    project: project.id,
+    chapter: chapter?.id,
+    title: '',
+    color: 'slate',
+    x: 0,
+    y: 0,
   })
   const form = new FormData()
   form.append('project', project.id)
   form.append('node', node.id)
   form.append('uploader', user.id)
   form.append('file', new Blob([PNG_1PX]), 'pixel.png')
-  const upload = await raw('/api/collections/media/records', { method: 'POST', headers: { Authorization: user.token }, body: form })
+  const upload = await raw('/api/collections/media/records', {
+    method: 'POST',
+    headers: { Authorization: user.token },
+    body: form,
+  })
   expect(upload.status, await upload.clone().text()).toBe(200)
   const record = (await upload.json()) as { id: string; file: string }
   const tokenRes = await raw('/api/files/token', { method: 'POST', headers: { Authorization: user.token } })
   const fileToken = ((await tokenRes.json()) as { token: string }).token
   const file = await raw(`/api/files/media/${record.id}/${record.file}?token=${fileToken}`)
   expect(file.status).toBe(200)
-  expect(file.headers.get('content-security-policy')).toBe("default-src 'none'; img-src 'self'; media-src 'self'; sandbox")
+  expect(file.headers.get('content-security-policy')).toBe(
+    "default-src 'none'; img-src 'self'; media-src 'self'; sandbox",
+  )
   expect(file.headers.get('x-content-type-options')).toBe('nosniff')
 })
 

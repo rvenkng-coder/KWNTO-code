@@ -46,9 +46,15 @@ describe('skipped and focused rules', () => {
   // Protects Review Focus 1: every way of disabling a test is caught, on any line of a changed file. (Title assembled so this file does not trip its own rule.)
   test(w('it.sk', 'ip, x', 'it, x', 'test, test.fix', 'me, describe.sk', 'ip, test.to', 'do each fail skipped'), () => {
     for (const line of [
-      w('it.sk', "ip('a', () => {})"), w('x', "it('a', () => {})"), w('x', "test('a', () => {})"), w('test.fix', "me('a', () => {})"),
-      w('describe.sk', "ip('a', () => {})"), w('test.to', "do('a')"), w('xd', "escribe('a', () => {})"),
-      w('it.sk', "ipIf(true)('a', () => {})"), w("it['sk", "ip']('a', () => {})"),
+      w('it.sk', "ip('a', () => {})"),
+      w('x', "it('a', () => {})"),
+      w('x', "test('a', () => {})"),
+      w('test.fix', "me('a', () => {})"),
+      w('describe.sk', "ip('a', () => {})"),
+      w('test.to', "do('a')"),
+      w('xd', "escribe('a', () => {})"),
+      w('it.sk', "ipIf(true)('a', () => {})"),
+      w("it['sk", "ip']('a', () => {})"),
     ]) {
       const problems = checkSource('a.test.ts', lines('// Protects: r', line), new Set())
       expect(rules(problems), line).toEqual(['skipped'])
@@ -57,7 +63,12 @@ describe('skipped and focused rules', () => {
 
   // Protects Review Focus 1: a focused test silently disables all the others, so it must fail. (Title assembled so this file does not trip its own rule.)
   test(w('.on', 'ly and fd', 'escribe fail focused'), () => {
-    for (const line of [w('it.on', "ly('a', () => {})"), w('describe.on', "ly('a', () => {})"), w('fd', "escribe('a', () => {})"), w('test.on', "ly('a', () => {})")]) {
+    for (const line of [
+      w('it.on', "ly('a', () => {})"),
+      w('describe.on', "ly('a', () => {})"),
+      w('fd', "escribe('a', () => {})"),
+      w('test.on', "ly('a', () => {})"),
+    ]) {
       expect(rules(checkSource('a.test.ts', lines('// Protects: r', line), new Set())), line).toEqual(['focused'])
     }
   })
@@ -82,7 +93,9 @@ describe('compareWithBase', () => {
 
   // Protects the lost-test rule: a count drop is reported even when titles are not readable.
   test('removing a test fails lost-test by count', () => {
-    expect(rules(compareWithBase('a.test.ts', base, lines("test('one', () => { expect(1).toBe(1) })")))).toContain('lost-test')
+    expect(rules(compareWithBase('a.test.ts', base, lines("test('one', () => { expect(1).toBe(1) })")))).toContain(
+      'lost-test',
+    )
   })
 
   // Protects the lost-test rule: a rename looks like a removal, so it is reported and says so.
@@ -124,13 +137,16 @@ describe('isTestFile', () => {
     for (const path of ['a.test.ts', 'a.test.tsx', 'a.spec.ts', 'e2e/deep/x/a.spec.ts', 'src/features/a/b.test.tsx']) {
       expect(isTestFile(path), path).toBe(true)
     }
-    for (const path of ['a.ts', 'testing.ts', 'src/test/helper.ts', 'a.test.md']) expect(isTestFile(path), path).toBe(false)
+    for (const path of ['a.ts', 'testing.ts', 'src/test/helper.ts', 'a.test.md'])
+      expect(isTestFile(path), path).toBe(false)
   })
 })
 
 describe('checkHygiene on a real repository', () => {
   const dirs: string[] = []
-  afterEach(() => { for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true }) })
+  afterEach(() => {
+    for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true })
+  })
   function git(cwd: string, ...args: string[]): string {
     const result = spawnSync('git', args, { cwd, encoding: 'utf8' })
     if (result.status !== 0) throw new Error(result.stderr)

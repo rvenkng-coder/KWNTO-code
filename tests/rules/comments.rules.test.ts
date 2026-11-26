@@ -18,14 +18,23 @@ async function failure(promise: Promise<unknown>): Promise<number> {
   }
 }
 
-async function post(user: TestUser | null, ctx: MemberProject, nodeId: string, body: string, extra: Record<string, unknown> = {}) {
+async function post(
+  user: TestUser | null,
+  ctx: MemberProject,
+  nodeId: string,
+  body: string,
+  extra: Record<string, unknown> = {},
+) {
   const pb = user === null ? asAnonymous() : await asUser(user)
-  return pb.collection('comments').create({ project: ctx.projectId, node: nodeId, author: user?.id ?? '', body, ...extra })
+  return pb
+    .collection('comments')
+    .create({ project: ctx.projectId, node: nodeId, author: user?.id ?? '', body, ...extra })
 }
 
 async function countOf(projectId: string): Promise<number> {
   const admin = await asAdmin()
-  return (await admin.collection('comments').getFullList({ filter: admin.filter('project = {:p}', { p: projectId }) })).length
+  return (await admin.collection('comments').getFullList({ filter: admin.filter('project = {:p}', { p: projectId }) }))
+    .length
 }
 
 async function holder(ctx: MemberProject, permission: 'comment' | 'edit'): Promise<{ user: TestUser; linkId: string }> {
@@ -36,7 +45,8 @@ async function holder(ctx: MemberProject, permission: 'comment' | 'edit'): Promi
 }
 
 async function seen(user: TestUser | null, projectId: string): Promise<number> {
-  if (user === null) return (await asAnonymous().collection('comments').getFullList()).filter((c) => c.project === projectId).length
+  if (user === null)
+    return (await asAnonymous().collection('comments').getFullList()).filter((c) => c.project === projectId).length
   return (await (await asUser(user)).collection('comments').getFullList()).filter((c) => c.project === projectId).length
 }
 
@@ -50,7 +60,8 @@ test('comments are read by the team and by comment and edit link holders', async
   const viewer = await createUser()
   await joinShare((await createLink(ctx.member, ctx.projectId, 'view', 'live')).token, viewer)
 
-  for (const user of [ctx.member, ctx.owner, commenter.user, editor.user]) expect(await seen(user, ctx.projectId)).toBe(1)
+  for (const user of [ctx.member, ctx.owner, commenter.user, editor.user])
+    expect(await seen(user, ctx.projectId)).toBe(1)
   for (const user of [await createUser(), viewer, null]) expect(await seen(user, ctx.projectId)).toBe(0)
   await revokeLink(ctx.member, commenter.linkId)
   expect(await seen(commenter.user, ctx.projectId)).toBe(0)
@@ -77,7 +88,9 @@ test('only allowed people comment, as themselves, on a live node', async () => {
 
   const trashed = await createNode(ctx.member, ctx.projectId, ctx.chapterId)
   const version = Number((await readAsAdmin('nodes', trashed)).version)
-  expect((await guardedUpdate(ctx.member, 'nodes', trashed, { deleted_at: '2026-11-20 10:00:00.000Z', version })).status).toBe(200)
+  expect(
+    (await guardedUpdate(ctx.member, 'nodes', trashed, { deleted_at: '2026-11-20 10:00:00.000Z', version })).status,
+  ).toBe(200)
   const refused: (() => Promise<unknown>)[] = [
     () => post(unverified, ctx, nodeId, 'x'),
     async () => post(await createUser(), ctx, nodeId, 'x'),
@@ -125,7 +138,9 @@ test('comments arrive live and leave with their node', async () => {
   const nodeId = await createNode(ctx.member, ctx.projectId, ctx.chapterId)
   const pb = await asUser(ctx.owner)
   const events: string[] = []
-  await pb.collection('comments').subscribe('*', (e) => events.push(`${e.action}:${e.record.body}`), { filter: pb.filter('project = {:p}', { p: ctx.projectId }) })
+  await pb.collection('comments').subscribe('*', (e) => events.push(`${e.action}:${e.record.body}`), {
+    filter: pb.filter('project = {:p}', { p: ctx.projectId }),
+  })
   await post(ctx.member, ctx, nodeId, 'live one')
   await expect.poll(() => events, { timeout: 4000 }).toContain('create:live one')
   await pb.collection('comments').unsubscribe('*')
@@ -137,7 +152,9 @@ test('comments arrive live and leave with their node', async () => {
   try {
     await admin.collection('system_behavior').update(behavior.id, { trash_retention_days: 0 })
     const version = Number((await readAsAdmin('nodes', nodeId)).version)
-    expect((await guardedUpdate(ctx.member, 'nodes', nodeId, { deleted_at: '2026-11-20 10:00:00.000Z', version })).status).toBe(200)
+    expect(
+      (await guardedUpdate(ctx.member, 'nodes', nodeId, { deleted_at: '2026-11-20 10:00:00.000Z', version })).status,
+    ).toBe(200)
     await admin.crons.run('purge_trash')
     await expect.poll(() => countOf(ctx.projectId), { timeout: 6000 }).toBe(0)
   } finally {

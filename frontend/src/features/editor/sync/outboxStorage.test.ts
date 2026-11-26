@@ -3,8 +3,16 @@ import { node } from '../model/fixtures'
 import type { NewEntry } from './outbox'
 import { createMemoryOutbox } from './outboxStorage'
 
-const entry = (userId: string, id: string): NewEntry =>
-  ({ userId, projectId: 'p1', op: 'create', kind: 'nodes', id, record: node(id), offline: false, made: 1 })
+const entry = (userId: string, id: string): NewEntry => ({
+  userId,
+  projectId: 'p1',
+  op: 'create',
+  kind: 'nodes',
+  id,
+  record: node(id),
+  offline: false,
+  made: 1,
+})
 
 // Protects: engineering 9 "never discard a queued edit": order by seq, seqs never reused, a failed entry moves instead of vanishing.
 test('the memory outbox keeps order and moves failed entries', async () => {

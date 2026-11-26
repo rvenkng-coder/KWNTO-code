@@ -8,7 +8,10 @@ import { afterEach, describe, expect, test } from 'vitest'
 import { formatPing, parseArgs, pingModelServer, readRunning, runPing } from './ping-local-model.ts'
 
 const SCRIPT = join(import.meta.dirname, 'ping-local-model.ts')
-const answer = (status: number, body: string): typeof fetch => async () => new Response(body, { status })
+const answer =
+  (status: number, body: string): typeof fetch =>
+  async () =>
+    new Response(body, { status })
 
 // Async spawn: the throwaway server lives in this process, so a blocking spawn would starve it.
 function runWithErr(...args: string[]): Promise<{ code: number | null; out: string; err: string }> {
@@ -16,8 +19,12 @@ function runWithErr(...args: string[]): Promise<{ code: number | null; out: stri
     const child = spawn(process.execPath, [SCRIPT, ...args], { stdio: ['ignore', 'pipe', 'pipe'] })
     let out = ''
     let err = ''
-    child.stdout.on('data', (chunk: Buffer) => { out += chunk.toString() })
-    child.stderr.on('data', (chunk: Buffer) => { err += chunk.toString() })
+    child.stdout.on('data', (chunk: Buffer) => {
+      out += chunk.toString()
+    })
+    child.stderr.on('data', (chunk: Buffer) => {
+      err += chunk.toString()
+    })
     child.on('close', (code) => resolve({ code, out, err }))
   })
 }
@@ -31,7 +38,10 @@ describe('pingModelServer', () => {
 
   // Protects: The bare-array form of the /running answer is read the same as the object form.
   test('a bare array with a ready model is ok and loaded', async () => {
-    expect(await pingModelServer('http://x', answer(200, '[{"model":"coder","state":"ready"}]'))).toMatchObject({ ok: true, loaded: true })
+    expect(await pingModelServer('http://x', answer(200, '[{"model":"coder","state":"ready"}]'))).toMatchObject({
+      ok: true,
+      loaded: true,
+    })
   })
 
   // Protects: An empty running list means answering but idle (the silent-stall case), never loaded.
@@ -57,7 +67,10 @@ describe('pingModelServer', () => {
 
   // Protects: A redirect is a non-2xx answer and is not followed, so the ping never leaves the address given.
   test('a redirect is not ok and is not followed', async () => {
-    const result = await pingModelServer('http://x', async () => new Response(null, { status: 302, headers: { location: 'http://evil' } }))
+    const result = await pingModelServer(
+      'http://x',
+      async () => new Response(null, { status: 302, headers: { location: 'http://evil' } }),
+    )
     expect(result).toMatchObject({ ok: false })
     expect(result.detail).toContain('302')
   })
@@ -89,7 +102,16 @@ describe('pingModelServer', () => {
 
   // Protects: Any JSON of an unexpected shape is answering, idle and not understood, never loaded.
   test('an answer of an unexpected shape is ok, idle and not understood', async () => {
-    for (const body of ['"ready"', '42', 'null', '{}', '{"running":"ready"}', '{"running":[{"model":"coder"}]}', '[null]', '[{"state":7}]']) {
+    for (const body of [
+      '"ready"',
+      '42',
+      'null',
+      '{}',
+      '{"running":"ready"}',
+      '{"running":[{"model":"coder"}]}',
+      '[null]',
+      '[{"state":7}]',
+    ]) {
       const result = await pingModelServer('http://x', answer(200, body))
       expect(result, body).toMatchObject({ ok: true, loaded: false })
       expect(result.detail, body).toMatch(/not understood/)
@@ -132,7 +154,16 @@ describe('arguments and the line', () => {
 
   // Protects: A baseUrl that is not an http(s) URL, starts with a dash or has extra arguments is a usage error, not a ping.
   test('a baseUrl that is not an http(s) URL, starts with a dash or comes with extras is a usage error', () => {
-    for (const args of [['ftp://h'], ['localhost:9092'], ['not a url'], [''], ['--help'], ['-x'], ['file:///etc/passwd'], ['http://a', 'http://b']]) {
+    for (const args of [
+      ['ftp://h'],
+      ['localhost:9092'],
+      ['not a url'],
+      [''],
+      ['--help'],
+      ['-x'],
+      ['file:///etc/passwd'],
+      ['http://a', 'http://b'],
+    ]) {
       expect(parseArgs(args), args.join(' ')).toHaveProperty('error')
     }
   })
@@ -140,7 +171,9 @@ describe('arguments and the line', () => {
   // Protects: The printed line is one of the three fixed forms and never contains the response body.
   test('the lines are the three forms and never the body', async () => {
     expect(formatPing({ ok: true, loaded: true, detail: 'x' })).toBe('model server: answering, model loaded')
-    expect(formatPing({ ok: true, loaded: false, detail: 'x' })).toBe('model server: answering, model idle (loads on the first request)')
+    expect(formatPing({ ok: true, loaded: false, detail: 'x' })).toBe(
+      'model server: answering, model idle (loads on the first request)',
+    )
     expect(formatPing({ ok: false, loaded: false, detail: 'refused' })).toBe('model server: NOT answering: refused')
     const run = await runPing(['http://x'], answer(200, 'SECRET not json'))
     expect(run.code).toBe(0)
@@ -152,7 +185,13 @@ describe('arguments and the line', () => {
 describe('a URL with credentials is never printed', () => {
   // Protects the secrets rule: a baseUrl with a username or password is refused with a fixed message that does not echo it.
   test('credentials in the baseUrl are a usage error that does not repeat them', () => {
-    for (const url of ['http://user:pw@127.0.0.1:1', 'http://user@h', 'https://:pw@h', 'ftp://user:pw@h', '-user:pw@h']) {
+    for (const url of [
+      'http://user:pw@127.0.0.1:1',
+      'http://user@h',
+      'https://:pw@h',
+      'ftp://user:pw@h',
+      '-user:pw@h',
+    ]) {
       const parsed = parseArgs([url])
       expect(parsed, url).toHaveProperty('error')
       const message = 'error' in parsed ? parsed.error : ''
@@ -163,7 +202,9 @@ describe('a URL with credentials is never printed', () => {
   // Protects the secrets rule: an error thrown by fetch that carries a URL with credentials is not printed with it.
   test('a failure detail strips any URL from the error message', async () => {
     const leaky: typeof fetch = async () => {
-      throw new TypeError('Request cannot be constructed from a URL that includes credentials: http://user:pw@127.0.0.1:1/running')
+      throw new TypeError(
+        'Request cannot be constructed from a URL that includes credentials: http://user:pw@127.0.0.1:1/running',
+      )
     }
     const result = await pingModelServer('http://x', leaky)
     expect(result.ok).toBe(false)
@@ -180,7 +221,10 @@ describe('a URL with credentials is never printed', () => {
 
 describe('the command', () => {
   let server: Server | null = null
-  afterEach(() => { server?.close(); server = null })
+  afterEach(() => {
+    server?.close()
+    server = null
+  })
 
   function serve(status: number, body: string): Promise<{ base: string; methods: string[] }> {
     const methods: string[] = []
@@ -189,7 +233,9 @@ describe('the command', () => {
       res.writeHead(status).end(body)
     })
     return new Promise((resolve) => {
-      server!.listen(0, '127.0.0.1', () => resolve({ base: `http://127.0.0.1:${(server!.address() as AddressInfo).port}`, methods }))
+      server!.listen(0, '127.0.0.1', () =>
+        resolve({ base: `http://127.0.0.1:${(server!.address() as AddressInfo).port}`, methods }),
+      )
     })
   }
   const run = runWithErr

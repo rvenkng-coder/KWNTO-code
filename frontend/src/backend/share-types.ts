@@ -3,8 +3,20 @@
 
 export type SharePermission = 'view' | 'comment' | 'edit'
 export type ShareKind = 'live' | 'snapshot'
-export interface ShareLink { id: string; projectId: string; token: string; permission: SharePermission; kind: ShareKind; revoked: boolean; created: string }
-export interface Grant { projectId: string; projectName: string; permission: SharePermission }
+export interface ShareLink {
+  id: string
+  projectId: string
+  token: string
+  permission: SharePermission
+  kind: ShareKind
+  revoked: boolean
+  created: string
+}
+export interface Grant {
+  projectId: string
+  projectName: string
+  permission: SharePermission
+}
 
 export interface ProjectFile {
   format: 'kwnto-project'
@@ -13,7 +25,17 @@ export interface ProjectFile {
   project: { name: string; startNode: string | null }
   chapters: { id: string; title: string; position: number }[]
   /** `width`, `height` and `cover` (a media id) are there only when the node has its own. */
-  nodes: { id: string; chapter: string; title: string; color: string; x: number; y: number; width?: number; height?: number; cover?: string }[]
+  nodes: {
+    id: string
+    chapter: string
+    title: string
+    color: string
+    x: number
+    y: number
+    width?: number
+    height?: number
+    cover?: string
+  }[]
   lines: { id: string; node: string; character: string; text: string; sortOrder: number }[]
   cues: { id: string; node: string; type: string; text: string; sortOrder: number }[]
   connections: { id: string; from: string; to: string | null; label: string }[]

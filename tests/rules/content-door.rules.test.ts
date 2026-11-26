@@ -36,7 +36,21 @@ async function firstChapterId(door: Backend, projectId: string): Promise<string>
 }
 
 function node(projectId: string, chapterId: string, title: string) {
-  return { id: clientId(), projectId, chapterId, title, color: 'slate' as const, x: 0, y: 0, width: 0, height: 0, coverMediaId: '', deleted: false, deletedAt: null, version: 0 }
+  return {
+    id: clientId(),
+    projectId,
+    chapterId,
+    title,
+    color: 'slate' as const,
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    coverMediaId: '',
+    deleted: false,
+    deletedAt: null,
+    version: 0,
+  }
 }
 
 // Protects: a team's projects are listed to its members only, trashed ones hidden, newest change first.
@@ -46,7 +60,18 @@ test('projects are listed for members only', async () => {
   await a.content.update('projects', trashed.id, { deleted: true }, trashed.version)
 
   const listed = await b.projects.list(teamId)
-  expect(listed).toEqual([{ id: project.id, teamId, name: 'Story', startNodeId: null, deleted: false, deletedAt: null, version: project.version, updated: expect.any(String) }])
+  expect(listed).toEqual([
+    {
+      id: project.id,
+      teamId,
+      name: 'Story',
+      startNodeId: null,
+      deleted: false,
+      deletedAt: null,
+      version: project.version,
+      updated: expect.any(String),
+    },
+  ])
 
   const second = await b.projects.create(teamId, 'Second')
   expect((await b.projects.list(teamId)).map((p) => p.name)).toEqual(['Second', 'Story'])
@@ -60,18 +85,42 @@ test('projects are listed for members only', async () => {
 test('load returns the whole project', async () => {
   const { b, project } = await setup()
   const chapter = await b.content.create('chapters', {
-    id: clientId(), projectId: project.id, title: 'Two', position: 2, deleted: false, deletedAt: null, version: 0,
+    id: clientId(),
+    projectId: project.id,
+    title: 'Two',
+    position: 2,
+    deleted: false,
+    deletedAt: null,
+    version: 0,
   })
   const first = await b.content.create('nodes', node(project.id, chapter.id, 'First'))
   const second = await b.content.create('nodes', node(project.id, chapter.id, 'Second'))
   const line = await b.content.create('script_lines', {
-    id: clientId(), projectId: project.id, nodeId: first.id, character: 'Ann', text: 'Hi', sortOrder: 1, version: 0,
+    id: clientId(),
+    projectId: project.id,
+    nodeId: first.id,
+    character: 'Ann',
+    text: 'Hi',
+    sortOrder: 1,
+    version: 0,
   })
   const cue = await b.content.create('cues', {
-    id: clientId(), projectId: project.id, nodeId: first.id, type: 'audio', text: 'Bell', sortOrder: 1, version: 0,
+    id: clientId(),
+    projectId: project.id,
+    nodeId: first.id,
+    type: 'audio',
+    text: 'Bell',
+    sortOrder: 1,
+    version: 0,
   })
   const link = await b.content.create('connections', {
-    id: clientId(), projectId: project.id, fromNodeId: first.id, toNodeId: second.id, label: 'Go', created: '', version: 0,
+    id: clientId(),
+    projectId: project.id,
+    fromNodeId: first.id,
+    toNodeId: second.id,
+    label: 'Go',
+    created: '',
+    version: 0,
   })
 
   const content = await b.content.load(project.id)
@@ -114,14 +163,18 @@ test('the door refuses outsiders', async () => {
   const load = await out.content.load(project.id).catch((e: unknown) => e)
   expect(refusals).toContain((load as { kind?: string }).kind)
 
-  const update = await out.content.update('nodes', created.id, { title: 'Theirs' }, created.version).catch((e: unknown) => e)
+  const update = await out.content
+    .update('nodes', created.id, { title: 'Theirs' }, created.version)
+    .catch((e: unknown) => e)
   expect(refusals).toContain((update as { kind?: string }).kind)
 
   const create = await out.content.create('nodes', node(project.id, chapterId, 'Intruder')).catch((e: unknown) => e)
   expect(refusals).toContain((create as { kind?: string }).kind)
 
   const admin = await asAdmin()
-  const stored = await admin.collection('nodes').getFullList({ filter: admin.filter('project = {:p}', { p: project.id }) })
+  const stored = await admin
+    .collection('nodes')
+    .getFullList({ filter: admin.filter('project = {:p}', { p: project.id }) })
   expect(stored.map((n) => n.title)).toEqual(['Mine'])
 })
 
@@ -147,11 +200,23 @@ function recorder() {
 test("a teammate's changes arrive as events", async () => {
   const { a, b, project } = await setup()
   const chapter = await b.content.create('chapters', {
-    id: clientId(), projectId: project.id, title: 'Two', position: 2, deleted: false, deletedAt: null, version: 0,
+    id: clientId(),
+    projectId: project.id,
+    title: 'Two',
+    position: 2,
+    deleted: false,
+    deletedAt: null,
+    version: 0,
   })
   const created = await b.content.create('nodes', node(project.id, chapter.id, 'Old'))
   const line = await b.content.create('script_lines', {
-    id: clientId(), projectId: project.id, nodeId: created.id, character: 'Ann', text: 'Bye', sortOrder: 1, version: 0,
+    id: clientId(),
+    projectId: project.id,
+    nodeId: created.id,
+    character: 'Ann',
+    text: 'Bye',
+    sortOrder: 1,
+    version: 0,
   })
   const seen = recorder()
   const close = await a.content.subscribe(project.id, seen.onEvent)
@@ -163,7 +228,11 @@ test("a teammate's changes arrive as events", async () => {
   const renamed = await seen.next((e) => e.kind === 'nodes' && e.record.id === created.id)
   expect(renamed).toEqual({ kind: 'nodes', action: 'update', record: { ...created, title: 'New', version: 1 } })
   const trashed = await seen.next((e) => e.kind === 'chapters' && e.record.id === chapter.id)
-  expect(trashed).toMatchObject({ kind: 'chapters', action: 'update', record: { id: chapter.id, deleted: true, version: 1 } })
+  expect(trashed).toMatchObject({
+    kind: 'chapters',
+    action: 'update',
+    record: { id: chapter.id, deleted: true, version: 1 },
+  })
   const removed = await seen.next((e) => e.kind === 'script_lines')
   expect(removed).toEqual({ kind: 'script_lines', action: 'delete', record: line })
   await close()
@@ -202,10 +271,22 @@ test("a teammate's new records arrive as create events", async () => {
   const first = await b.content.create('nodes', node(project.id, chapterId, 'First'))
   const second = await b.content.create('nodes', node(project.id, chapterId, 'Second'))
   const line = await b.content.create('script_lines', {
-    id: clientId(), projectId: project.id, nodeId: first.id, character: '', text: 'Hi', sortOrder: 1, version: 0,
+    id: clientId(),
+    projectId: project.id,
+    nodeId: first.id,
+    character: '',
+    text: 'Hi',
+    sortOrder: 1,
+    version: 0,
   })
   const link = await b.content.create('connections', {
-    id: clientId(), projectId: project.id, fromNodeId: first.id, toNodeId: second.id, label: '', created: '', version: 0,
+    id: clientId(),
+    projectId: project.id,
+    fromNodeId: first.id,
+    toNodeId: second.id,
+    label: '',
+    created: '',
+    version: 0,
   })
 
   // A later edit on the same stream: once it has arrived, every earlier event has too.

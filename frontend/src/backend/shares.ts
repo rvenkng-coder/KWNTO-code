@@ -5,8 +5,13 @@ import type { Grant, ShareKind, ShareLink, SharePermission, ShareOpen } from './
 
 function toLink(row: RecordModel): ShareLink {
   return {
-    id: row.id, projectId: String(row.project), token: String(row.token), permission: row.permission as SharePermission,
-    kind: row.kind as ShareKind, revoked: row.revoked === true, created: String(row.created),
+    id: row.id,
+    projectId: String(row.project),
+    token: String(row.token),
+    permission: row.permission as SharePermission,
+    kind: row.kind as ShareKind,
+    revoked: row.revoked === true,
+    created: String(row.created),
   }
 }
 
@@ -32,7 +37,11 @@ async function editGrants(pb: PocketBase): Promise<Grant[]> {
   const seen = new Set<string>()
   return rows
     .filter((row) => !seen.has(String(row.project)) && seen.add(String(row.project)))
-    .map((row) => ({ projectId: String(row.project), projectName: String(row.project_name), permission: row.permission as SharePermission }))
+    .map((row) => ({
+      projectId: String(row.project),
+      projectName: String(row.project_name),
+      permission: row.permission as SharePermission,
+    }))
 }
 
 /** Share links (design 5): members make and revoke them; anyone opens one through the server's routes. */
@@ -49,7 +58,9 @@ export function createShares(pb: PocketBase) {
   return {
     async list(projectId: string): Promise<ShareLink[]> {
       return wrapped(async () => {
-        const rows = await pb.collection('share_links').getFullList({ filter: pb.filter('project = {:p}', { p: projectId }) })
+        const rows = await pb
+          .collection('share_links')
+          .getFullList({ filter: pb.filter('project = {:p}', { p: projectId }) })
         return rows.map(toLink).sort(byUsefulness)
       })
     },
@@ -86,7 +97,8 @@ export function createShares(pb: PocketBase) {
     mediaUrl: (token: string, mediaId: string, thumb = false): string => mediaUrl(pb.baseURL, token, mediaId, thumb),
 
     /** The media of a comment link, fetched with the caller's token. */
-    mediaBlob: (token: string, mediaId: string): Promise<Blob> => wrapped(() => fetchMedia(pb, mediaUrl(pb.baseURL, token, mediaId, false))),
+    mediaBlob: (token: string, mediaId: string): Promise<Blob> =>
+      wrapped(() => fetchMedia(pb, mediaUrl(pb.baseURL, token, mediaId, false))),
 
     /** Edit grants only: comment links are reopened through the link itself. */
     myGrants: (): Promise<Grant[]> => wrapped(() => editGrants(pb)),

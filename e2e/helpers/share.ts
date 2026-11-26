@@ -25,7 +25,9 @@ export async function makeLink(page: Page, permission: Permission, kind: Kind): 
   if (!(await shareDialog(page).isVisible())) await openShareDialog(page)
   const label = { view: 'Can view', comment: 'Can comment', edit: 'Can edit' }[permission]
   await shareDialog(page).getByLabel('Who can open it').selectOption({ label })
-  await shareDialog(page).getByLabel('Kind').selectOption({ label: kind === 'live' ? 'Live' : 'Snapshot' })
+  await shareDialog(page)
+    .getByLabel('Kind')
+    .selectOption({ label: kind === 'live' ? 'Live' : 'Snapshot' })
   const before = await shareDialog(page).getByTestId('link-row').count()
   await shareDialog(page).getByRole('button', { name: 'Create link' }).click()
   await expect(shareDialog(page).getByTestId('link-row')).toHaveCount(before + 1)
@@ -41,8 +43,12 @@ export async function seedStory(projectId: string): Promise<{ gate: string; door
     pb.collection('nodes').create({ project: projectId, chapter: chapter.id, title, color: 'blue', x, y: 40 }, opts)
   const gate = await node('Gate', 40)
   const door = await node('Door', 420)
-  await pb.collection('script_lines').create({ project: projectId, node: gate.id, character: 'Mara', text: 'Who goes there?', sort_order: 1 }, opts)
-  await pb.collection('connections').create({ project: projectId, from_node: gate.id, to_node: door.id, label: 'Open it' }, opts)
+  await pb
+    .collection('script_lines')
+    .create({ project: projectId, node: gate.id, character: 'Mara', text: 'Who goes there?', sort_order: 1 }, opts)
+  await pb
+    .collection('connections')
+    .create({ project: projectId, from_node: gate.id, to_node: door.id, label: 'Open it' }, opts)
   const form = new FormData()
   form.append('project', projectId)
   form.append('node', gate.id)

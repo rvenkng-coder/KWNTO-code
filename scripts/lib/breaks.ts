@@ -10,7 +10,11 @@ export interface BreakDeps {
   write(path: string, content: string): void
   runTests(testPaths: string[]): Promise<boolean> // true = the tests passed
 }
-export interface BreakResult { id: string; status: 'caught' | 'survived' | 'invalid'; detail: string }
+export interface BreakResult {
+  id: string
+  status: 'caught' | 'survived' | 'invalid'
+  detail: string
+}
 
 // Literal occurrences of `find`, overlapping ones included (in "aaa", "aa" occurs twice).
 function countOccurrences(source: string, find: string): number {
@@ -30,7 +34,11 @@ const invalid = (id: string, detail: string): BreakResult => ({ id, status: 'inv
 
 // Reads the file and applies the break. Returns the original and broken text, or why the break cannot run.
 function prepare(row: BreakRow, deps: BreakDeps): { original: string; broken: string } | BreakResult {
-  if (!isBreakablePath(row.file)) return invalid(row.id, `${row.file} is not breakable (only frontend/src/, scripts/ or backend/pb_hooks/lib/, never a test file)`)
+  if (!isBreakablePath(row.file))
+    return invalid(
+      row.id,
+      `${row.file} is not breakable (only frontend/src/, scripts/ or backend/pb_hooks/lib/, never a test file)`,
+    )
   if (row.tests.length === 0) return invalid(row.id, 'no tests are named for this break')
   if (row.find === row.replace) return invalid(row.id, 'Replace is the same as Find')
   let original: string
@@ -40,7 +48,11 @@ function prepare(row: BreakRow, deps: BreakDeps): { original: string; broken: st
     return invalid(row.id, `cannot read ${row.file}`)
   }
   const broken = applyBreak(original, row.find, row.replace)
-  if (broken === null) return invalid(row.id, `Find must occur exactly once in ${row.file}; it occurs ${countOccurrences(original, row.find)} times`)
+  if (broken === null)
+    return invalid(
+      row.id,
+      `Find must occur exactly once in ${row.file}; it occurs ${countOccurrences(original, row.find)} times`,
+    )
   return { original, broken }
 }
 
@@ -55,11 +67,19 @@ async function runOne(row: BreakRow, deps: BreakDeps): Promise<BreakResult> {
     // The exact text that was read, whatever happened above: a left-over break is a broken file for the developer.
     deps.write(row.file, prepared.original)
   }
-  if (passed) return { id: row.id, status: 'survived', detail: `the tests did not notice ${row.file}: ${row.find} -> ${row.replace}` }
+  if (passed)
+    return {
+      id: row.id,
+      status: 'survived',
+      detail: `the tests did not notice ${row.file}: ${row.find} -> ${row.replace}`,
+    }
   return { id: row.id, status: 'caught', detail: '' }
 }
 
-export async function runBreaks(breaks: BreakRow[], deps: BreakDeps): Promise<{ baselinePassed: boolean; results: BreakResult[] }> {
+export async function runBreaks(
+  breaks: BreakRow[],
+  deps: BreakDeps,
+): Promise<{ baselinePassed: boolean; results: BreakResult[] }> {
   // An empty test list would make Vitest run every test, so no breaks means nothing to run.
   if (breaks.length === 0) return { baselinePassed: true, results: [] }
   const union = [...new Set(breaks.flatMap((row) => row.tests))]

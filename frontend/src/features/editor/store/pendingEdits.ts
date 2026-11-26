@@ -11,7 +11,10 @@ export interface PendingEdits {
   size(): number
 }
 
-export function createPendingEdits(schedule: (fn: () => void, ms: number) => unknown, cancel: (handle: unknown) => void): PendingEdits {
+export function createPendingEdits(
+  schedule: (fn: () => void, ms: number) => unknown,
+  cancel: (handle: unknown) => void,
+): PendingEdits {
   const pending = new Map<string, { save: () => void; handle: unknown }>()
 
   function flush(key: string): void {
@@ -42,4 +45,7 @@ export function shouldWarnOnLeave(pending: number, saving: number): boolean {
 }
 
 /** The app's one instance, on the browser's timers. */
-export const pendingEdits = createPendingEdits((fn, ms) => setTimeout(fn, ms), (handle) => clearTimeout(handle as ReturnType<typeof setTimeout>))
+export const pendingEdits = createPendingEdits(
+  (fn, ms) => setTimeout(fn, ms),
+  (handle) => clearTimeout(handle as ReturnType<typeof setTimeout>),
+)

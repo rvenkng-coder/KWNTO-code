@@ -6,7 +6,16 @@ import type { SyncEngine } from './syncEngine'
 
 // Retry behaviour of the engine (offline sync plan, whole-branch review I3, I5, I6).
 type Add = Parameters<SyncEngine['add']>[0]
-const upd = (id: string): Add => ({ projectId: 'p1', op: 'update', kind: 'nodes', id, changes: { title: 'B' }, baseVersion: 3, baseValues: { title: 'A' }, snapshot: null })
+const upd = (id: string): Add => ({
+  projectId: 'p1',
+  op: 'update',
+  kind: 'nodes',
+  id,
+  changes: { title: 'B' },
+  baseVersion: 3,
+  baseValues: { title: 'A' },
+  snapshot: null,
+})
 const unreachable = () => new BackendError('unreachable', 0, {}, 'The server cannot be reached.')
 async function started() {
   const t = tab()
@@ -17,9 +26,14 @@ async function started() {
 
 // Protects: design 6.7: the rate limiter (429) and a server error (5xx) are "try again later", not a refusal: the edit waits and is retried, it is not taken back.
 test('a 429 and a 500 with a message keep the edit waiting for a retry', async () => {
-  for (const error of [new BackendError('locked', 429, {}, 'Too many requests.'), new BackendError('unknown', 500, {}, 'Database is busy.')]) {
+  for (const error of [
+    new BackendError('locked', 429, {}, 'Too many requests.'),
+    new BackendError('unknown', 500, {}, 'Database is busy.'),
+  ]) {
     const t = await started()
-    t.door.on('update', () => { throw error })
+    t.door.on('update', () => {
+      throw error
+    })
     await t.engine.add(upd('n1'))
     await settle()
     expect(t.engine.snapshot()).toMatchObject({ online: false, waiting: 1, failed: [] })
@@ -35,8 +49,12 @@ test('a 429 and a 500 with a message keep the edit waiting for a retry', async (
 // Protects: a lost create whose follow-up check cannot reach the server does not stall the queue: the entry goes back to waiting and is retried after the backoff.
 test('a failing check after a lost create backs off instead of stalling', async () => {
   const t = await started()
-  t.door.on('create', () => { throw new BackendError('invalid', 400, { id: 'taken' }, 'Failed') })
-  t.door.on('get', () => { throw new BackendError('unreachable', 0, {}, 'The server cannot be reached.') })
+  t.door.on('create', () => {
+    throw new BackendError('invalid', 400, { id: 'taken' }, 'Failed')
+  })
+  t.door.on('get', () => {
+    throw new BackendError('unreachable', 0, {}, 'The server cannot be reached.')
+  })
   await t.engine.add({ projectId: 'p1', op: 'create', kind: 'script_lines', id: 'L', record: line('L') })
   await settle()
   expect(t.engine.snapshot()).toMatchObject({ online: false, waiting: 1, sendingSeq: null, failed: [] })
@@ -50,7 +68,9 @@ test('a failing check after a lost create backs off instead of stalling', async 
 // Protects: design 6.7: "Offline" does not stay stuck when the server returns after the waiting edit was cancelled: with nothing left to send the engine considers the server reachable again.
 test('offline clears when the queue empties while the server was down', async () => {
   const t = await started()
-  t.door.on('create', () => { throw new BackendError('unreachable', 0, {}, 'The server cannot be reached.') })
+  t.door.on('create', () => {
+    throw new BackendError('unreachable', 0, {}, 'The server cannot be reached.')
+  })
   await t.engine.add({ projectId: 'p1', op: 'create', kind: 'script_lines', id: 'L', record: line('L') })
   await settle()
   expect(t.engine.snapshot().online).toBe(false)
@@ -65,7 +85,12 @@ test('offline clears when the queue empties while the server was down', async ()
 test('an ended session is not used to send waiting edits', async () => {
   let valid = false
   let checks = 0
-  const t = tab(undefined, { refreshSession: () => { checks++; return Promise.resolve(valid) } })
+  const t = tab(undefined, {
+    refreshSession: () => {
+      checks++
+      return Promise.resolve(valid)
+    },
+  })
   t.engine.start()
   await settle()
   await t.engine.add(upd('n1'))
@@ -84,7 +109,9 @@ test('an ended session is not used to send waiting edits', async () => {
 // backoff then starts again from its first step.
 test('retryNow sends a waiting edit at once', async () => {
   const t = await started()
-  t.door.on('update', () => { throw unreachable() })
+  t.door.on('update', () => {
+    throw unreachable()
+  })
   await t.engine.add(upd('n1'))
   await settle()
   t.clock.advance(1000)

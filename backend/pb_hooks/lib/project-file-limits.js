@@ -31,9 +31,9 @@ const FILE_LIMITS = {
   side: 2000,
   id: 100,
 }
-const COLORS = ['slate', 'red', 'orange', 'amber', 'green', 'teal', 'blue', 'purple']
-const CUE_TYPES = ['audio', 'lighting', 'other']
-const MEDIA_KINDS = ['audio', 'video', 'image']
+const COLORS = ["slate", "red", "orange", "amber", "green", "teal", "blue", "purple"]
+const CUE_TYPES = ["audio", "lighting", "other"]
+const MEDIA_KINDS = ["audio", "video", "image"]
 const MAX_PROBLEMS = 20
 
 module.exports = { FILE_LIMITS, COLORS, CUE_TYPES, MEDIA_KINDS, MAX_PROBLEMS }

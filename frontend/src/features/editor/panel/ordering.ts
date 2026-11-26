@@ -4,7 +4,10 @@ import type { Ordered, Placement } from '../model/sortOrder'
 // becomes the sort orders to write: one record, or after a renumber only the records whose
 // order changed (a record not in the list yet, the one being inserted, is always written).
 
-export interface Sorted { id: string; sortOrder: number }
+export interface Sorted {
+  id: string
+  sortOrder: number
+}
 
 export const asOrdered = (list: Sorted[]): Ordered[] => list.map((r) => ({ id: r.id, order: r.sortOrder }))
 

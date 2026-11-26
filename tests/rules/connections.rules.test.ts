@@ -25,7 +25,12 @@ test('a connection cannot reach into another project', async () => {
     const reply = await guardedUpdate(member, 'connections', link.id, { version: 0, ...body })
     expect([403, 404]).toContain(reply.status)
   }
-  expect(await readAsAdmin('connections', link.id)).toMatchObject({ project: projectId, from_node: a, to_node: b, version: 0 })
+  expect(await readAsAdmin('connections', link.id)).toMatchObject({
+    project: projectId,
+    from_node: a,
+    to_node: b,
+    version: 0,
+  })
   const admin = await asAdmin()
   const stray = admin.filter('from_node = {:n} || to_node = {:n}', { n: foreign })
   expect(await admin.collection('connections').getFullList({ filter: stray })).toEqual([])
@@ -39,7 +44,9 @@ test('two nodes have at most one connection and a node may link to itself', asyn
   const pb = await asUser(member)
 
   const link = await pb.collection('connections').create({ project: projectId, from_node: a, to_node: b, label: 'Go' })
-  await expectCreateRefused(pb.collection('connections').create({ project: projectId, from_node: a, to_node: b, label: 'Again' }))
+  await expectCreateRefused(
+    pb.collection('connections').create({ project: projectId, from_node: a, to_node: b, label: 'Again' }),
+  )
   const back = await pb.collection('connections').create({ project: projectId, from_node: b, to_node: a })
   expect(back).toMatchObject({ from_node: b, to_node: a })
 
@@ -55,7 +62,11 @@ test('two nodes have at most one connection and a node may link to itself', asyn
 test('outsiders and signed-out callers cannot reach connections', async () => {
   const { owner, projectId, chapterId } = await memberProject()
   const [a, b] = [await createNode(owner, projectId, chapterId), await createNode(owner, projectId, chapterId)]
-  const link = await (await asUser(owner)).collection('connections').create({ project: projectId, from_node: a, to_node: b })
+  const link = await (
+    await asUser(owner)
+  )
+    .collection('connections')
+    .create({ project: projectId, from_node: a, to_node: b })
   const outsider = await createUser()
 
   for (const pb of [await asUser(outsider), asAnonymous()]) {
@@ -73,13 +84,23 @@ test('outsiders and signed-out callers cannot reach connections', async () => {
 // the version guard).
 test('a choice may be empty and be linked, re-linked and unlinked later', async () => {
   const { member, projectId, chapterId } = await memberProject()
-  const [a, b, c] = [await createNode(member, projectId, chapterId), await createNode(member, projectId, chapterId), await createNode(member, projectId, chapterId)]
+  const [a, b, c] = [
+    await createNode(member, projectId, chapterId),
+    await createNode(member, projectId, chapterId),
+    await createNode(member, projectId, chapterId),
+  ]
   const pb = await asUser(member)
 
-  const choice = await pb.collection('connections').create({ project: projectId, from_node: a, to_node: '', label: 'Wait' })
+  const choice = await pb
+    .collection('connections')
+    .create({ project: projectId, from_node: a, to_node: '', label: 'Wait' })
   expect(choice.to_node).toBe('')
 
-  for (const [version, to] of [[0, b], [1, c], [2, '']] as const) {
+  for (const [version, to] of [
+    [0, b],
+    [1, c],
+    [2, ''],
+  ] as const) {
     const reply = await guardedUpdate(member, 'connections', choice.id, { version, to_node: to })
     expect(reply.status).toBe(200)
   }
@@ -103,9 +124,16 @@ test('a choice cannot be linked into another project', async () => {
     expect([403, 404]).toContain(reply.status)
   }
   const outsider = await createUser()
-  expect([403, 404]).toContain((await guardedUpdate(outsider, 'connections', choice.id, { version: 0, to_node: b })).status)
+  expect([403, 404]).toContain(
+    (await guardedUpdate(outsider, 'connections', choice.id, { version: 0, to_node: b })).status,
+  )
   await expectRefused(asAnonymous().collection('connections').update(choice.id, { version: 0, to_node: b }))
-  expect(await readAsAdmin('connections', choice.id)).toMatchObject({ project: projectId, from_node: a, to_node: '', version: 0 })
+  expect(await readAsAdmin('connections', choice.id)).toMatchObject({
+    project: projectId,
+    from_node: a,
+    to_node: '',
+    version: 0,
+  })
 })
 
 // Protects design goal 1 ("one choice per target; any number of empty choices").
@@ -129,7 +157,10 @@ test('a node may have many empty choices but one choice per target', async () =>
 test('a client cannot set the created time of a choice', async () => {
   const { member, projectId, chapterId } = await memberProject()
   const a = await createNode(member, projectId, chapterId)
-  const choice = await (await asUser(member)).collection('connections')
+  const choice = await (
+    await asUser(member)
+  )
+    .collection('connections')
     .create({ project: projectId, from_node: a, to_node: '', created: '2020-01-01 00:00:00.000Z' })
   expect(choice.created).not.toBe('2020-01-01 00:00:00.000Z')
 })

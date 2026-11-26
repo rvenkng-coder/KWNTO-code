@@ -7,7 +7,8 @@ import { escapeRate, parseProgress, type ProgressRow } from './escape-rate.ts'
 
 const SCRIPT = join(import.meta.dirname, 'escape-rate.ts')
 const HEADER = '| Date | Task | Built by | What happened | Review | Escaped | Next |\n|---|---|---|---|---|---|---|\n'
-const row = (task: string, by: string, review: string, escaped: string) => `| 2026-11-13 | ${task} | ${by} | did it | ${review} | ${escaped} | next |\n`
+const row = (task: string, by: string, review: string, escaped: string) =>
+  `| 2026-11-13 | ${task} | ${by} | did it | ${review} | ${escaped} | next |\n`
 
 const dirs: string[] = []
 function progressFile(content: string): string {
@@ -17,13 +18,20 @@ function progressFile(content: string): string {
   writeFileSync(path, content)
   return path
 }
-afterEach(() => { for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true }) })
+afterEach(() => {
+  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true })
+})
 
 function run(...args: string[]) {
   const result = spawnSync('node', [SCRIPT, ...args], { encoding: 'utf8' })
   return { code: result.status, out: result.stdout + result.stderr }
 }
-const make = (builtBy: 'local' | 'strong' | '', escaped: number): ProgressRow => ({ task: 't', builtBy, review: 'none', escaped })
+const make = (builtBy: 'local' | 'strong' | '', escaped: number): ProgressRow => ({
+  task: 't',
+  builtBy,
+  review: 'none',
+  escaped,
+})
 
 describe('parseProgress', () => {
   // Protects the column lookup: columns are found by header name, so other columns around them do not matter.
@@ -82,7 +90,8 @@ describe('parseProgress', () => {
 
   // Protects the explicit non-task marker: Built by "-" rows are not counted and need no other cells.
   test('a non-task row marked with Built by - is not counted', () => {
-    const md = HEADER + row('Plan written', '-', '-', '-') + row('Plan edited', '-', '', '') + row('T1', 'local', 'none', '1')
+    const md =
+      HEADER + row('Plan written', '-', '-', '-') + row('Plan edited', '-', '', '') + row('T1', 'local', 'none', '1')
     const result = parseProgress(md)
     expect(result.problems).toEqual([])
     expect(result.rows.map((r) => r.task)).toEqual(['T1'])
@@ -133,7 +142,14 @@ describe('parseProgress', () => {
 describe('escapeRate', () => {
   // Protects the definition: only local tasks count, and a task counts once however many problems escaped.
   test('escapeRate counts only local tasks', () => {
-    const result = escapeRate([make('local', 3), make('local', 0), make('strong', 5), make('', 2), make('local', 0), make('local', 0)])
+    const result = escapeRate([
+      make('local', 3),
+      make('local', 0),
+      make('strong', 5),
+      make('', 2),
+      make('local', 0),
+      make('local', 0),
+    ])
     expect(result).toEqual({ rate: 0.25, localTasks: 4, escapedTasks: 1 })
   })
 
@@ -155,7 +171,13 @@ describe('the command', () => {
 
   // Protects the report: the share is printed in the documented form and the exit code is 0.
   test('the command prints the share and exits 0 otherwise', () => {
-    const md = HEADER + row('T1', 'local', 'found 1', '1') + row('T2', 'local', 'clean', '0') + row('T3', 'local', 'none', '0') + row('T4', 'local', 'none', '0') + row('T5', 'strong', 'none', '0')
+    const md =
+      HEADER +
+      row('T1', 'local', 'found 1', '1') +
+      row('T2', 'local', 'clean', '0') +
+      row('T3', 'local', 'none', '0') +
+      row('T4', 'local', 'none', '0') +
+      row('T5', 'strong', 'none', '0')
     const result = run(progressFile(md))
     expect(result.code).toBe(0)
     expect(result.out.trim()).toBe('escape rate: 1 of 4 local tasks (25%)')

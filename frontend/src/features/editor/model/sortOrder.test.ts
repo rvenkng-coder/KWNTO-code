@@ -35,7 +35,9 @@ test('repeated inserts in one gap keep the order', () => {
       items = [...items, { id, order: placement.order }]
     }
     expected.splice(1, 0, id)
-    const sorted = [...items].sort((x, y) => byOrder({ id: x.id, sortOrder: x.order }, { id: y.id, sortOrder: y.order }))
+    const sorted = [...items].sort((x, y) =>
+      byOrder({ id: x.id, sortOrder: x.order }, { id: y.id, sortOrder: y.order }),
+    )
     expect(sorted.map((x) => x.id)).toEqual(expected)
   }
   expect(renumbered).toBe(true)
@@ -45,7 +47,10 @@ test('repeated inserts in one gap keep the order', () => {
 test('renumber and byOrder', () => {
   expect(renumber(0)).toEqual([])
   expect(renumber(3)).toEqual([1, 2, 3])
-  const tied = [{ id: 'b', sortOrder: 1 }, { id: 'a', sortOrder: 1 }]
+  const tied = [
+    { id: 'b', sortOrder: 1 },
+    { id: 'a', sortOrder: 1 },
+  ]
   expect(tied.sort(byOrder).map((t) => t.id)).toEqual(['a', 'b'])
 })
 

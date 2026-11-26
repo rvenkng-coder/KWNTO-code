@@ -35,10 +35,14 @@ test('security_events: a user cannot create an entry through the public API', as
   const someone = await createUser()
   const user = await asUser(someone)
   const marker = `forged-${crypto.randomUUID()}`
-  await expectRefused(user.collection('security_events').create({ type: 'sign-in', user: someone.id, ip: marker, detail: {} }))
+  await expectRefused(
+    user.collection('security_events').create({ type: 'sign-in', user: someone.id, ip: marker, detail: {} }),
+  )
 
   const admin = await asAdmin()
-  const forged = await admin.collection('security_events').getList(1, 1, { filter: admin.filter('ip = {:ip}', { ip: marker }) })
+  const forged = await admin
+    .collection('security_events')
+    .getList(1, 1, { filter: admin.filter('ip = {:ip}', { ip: marker }) })
   expect(forged.totalItems).toBe(0)
 })
 
@@ -47,7 +51,9 @@ test('security_events: a user cannot create an entry through the public API', as
 test('security_events: deleting a user keeps their entries', async () => {
   const someone = await createUser()
   const admin = await asAdmin()
-  const event = await admin.collection('security_events').create({ type: 'sign-in', user: someone.id, ip: '203.0.113.8', detail: {} })
+  const event = await admin
+    .collection('security_events')
+    .create({ type: 'sign-in', user: someone.id, ip: '203.0.113.8', detail: {} })
   await admin.collection('users').delete(someone.id)
   const kept = await admin.collection('security_events').getOne(event.id)
   expect(kept.ip).toBe('203.0.113.8')

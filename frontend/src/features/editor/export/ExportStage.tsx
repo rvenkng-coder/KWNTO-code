@@ -1,4 +1,11 @@
-import { applyNodeChanges, getNodesBounds, ReactFlow, ReactFlowProvider, useNodesInitialized, useReactFlow } from '@xyflow/react'
+import {
+  applyNodeChanges,
+  getNodesBounds,
+  ReactFlow,
+  ReactFlowProvider,
+  useNodesInitialized,
+  useReactFlow,
+} from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -14,7 +21,12 @@ import { exportPixelRatio, isSmallText, MAP_PADDING, type MapImage } from './exp
 const nodeTypes = { card: NodeCard }
 
 export type StageKind = 'png' | 'jpeg'
-interface StageProps { chapterId: string; kind: StageKind; onImage(img: MapImage): void; onError(): void }
+interface StageProps {
+  chapterId: string
+  kind: StageKind
+  onImage(img: MapImage): void
+  onError(): void
+}
 
 // html-to-image copies no style onto SVG children, so an edge drawn with CSS classes loses its line
 // and its label box turns black. The edges therefore carry their paint inline, the light tokens of
@@ -29,7 +41,12 @@ const EDGE_PAINT = {
 
 const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
 
-async function capture(root: HTMLElement, title: string, kind: StageKind, bounds: { x: number; y: number; width: number; height: number }): Promise<MapImage> {
+async function capture(
+  root: HTMLElement,
+  title: string,
+  kind: StageKind,
+  bounds: { x: number; y: number; width: number; height: number },
+): Promise<MapImage> {
   await document.fonts.ready
   await nextFrame()
   await nextFrame()
@@ -44,14 +61,30 @@ async function capture(root: HTMLElement, title: string, kind: StageKind, bounds
   // to edit (D1). Trade-off: the first export waits for one extra download.
   const { toJpeg, toPng } = await import('html-to-image')
   const options = {
-    backgroundColor: '#ffffff', width, height, pixelRatio: ratio,
+    backgroundColor: '#ffffff',
+    width,
+    height,
+    pixelRatio: ratio,
     style: { width: `${width}px`, height: `${height}px`, transform: `translate(${-x}px, ${-y}px) scale(1)` },
   }
-  const dataUrl = kind === 'jpeg' ? await toJpeg(viewport, { ...options, quality: 0.92 }) : await toPng(viewport, options)
-  return { chapterTitle: title, dataUrl, width: Math.round(width * ratio), height: Math.round(height * ratio), small: isSmallText(ratio) }
+  const dataUrl =
+    kind === 'jpeg' ? await toJpeg(viewport, { ...options, quality: 0.92 }) : await toPng(viewport, options)
+  return {
+    chapterTitle: title,
+    dataUrl,
+    width: Math.round(width * ratio),
+    height: Math.round(height * ratio),
+    small: isSmallText(ratio),
+  }
 }
 
-function Capture({ root, title, kind, onImage, onError }: Omit<StageProps, 'chapterId'> & { root: React.RefObject<HTMLDivElement | null>; title: string }) {
+function Capture({
+  root,
+  title,
+  kind,
+  onImage,
+  onError,
+}: Omit<StageProps, 'chapterId'> & { root: React.RefObject<HTMLDivElement | null>; title: string }) {
   const flow = useReactFlow()
   const ready = useNodesInitialized()
   const started = useRef(false)
@@ -82,13 +115,30 @@ export function ExportStage(props: StageProps) {
   })
   const [nodes, setNodes] = useState(initial)
   return createPortal(
-    <div ref={root} data-testid="export-stage" aria-hidden="true" data-theme="light"
-      className="kwnto-canvas" style={{ position: 'fixed', left: -20000, top: 0, width: 1600, height: 1000 }}>
+    <div
+      ref={root}
+      data-testid="export-stage"
+      aria-hidden="true"
+      data-theme="light"
+      className="kwnto-canvas"
+      style={{ position: 'fixed', left: -20000, top: 0, width: 1600, height: 1000 }}
+    >
       <ThemeOverride.Provider value="light">
         <ReactFlowProvider>
-          <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} onNodesChange={(c) => setNodes((n) => applyNodeChanges(c, n))}
-            nodesDraggable={false} nodesConnectable={false} elementsSelectable={false}
-            panOnDrag={false} zoomOnScroll={false} zoomOnPinch={false} zoomOnDoubleClick={false} preventScrolling={false}>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            onNodesChange={(c) => setNodes((n) => applyNodeChanges(c, n))}
+            nodesDraggable={false}
+            nodesConnectable={false}
+            elementsSelectable={false}
+            panOnDrag={false}
+            zoomOnScroll={false}
+            zoomOnPinch={false}
+            zoomOnDoubleClick={false}
+            preventScrolling={false}
+          >
             <Capture root={root} title={title} kind={props.kind} onImage={props.onImage} onError={props.onError} />
           </ReactFlow>
         </ReactFlowProvider>

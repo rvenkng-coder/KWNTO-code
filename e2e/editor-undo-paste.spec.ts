@@ -4,7 +4,17 @@
 // overwrites a teammate's later change (Review Focus 4).
 import { expect, test, type Page } from '@playwright/test'
 import { uniqueEmail } from './helpers/admin'
-import { addNodeAt, card, cards, connectNodes, nodePosition, openProject, ownerWithProject, readyCanvas, waitForSave } from './helpers/editor'
+import {
+  addNodeAt,
+  card,
+  cards,
+  connectNodes,
+  nodePosition,
+  openProject,
+  ownerWithProject,
+  readyCanvas,
+  waitForSave,
+} from './helpers/editor'
 import { enableJoinCode, joinWithCode, openTeam, signUpVerifyAndSignIn } from './helpers/ui'
 
 const mod = process.platform === 'darwin' ? 'Meta' : 'Control'
@@ -20,7 +30,12 @@ async function rename(page: Page, id: string, title: string): Promise<void> {
 }
 
 /** Presses a shortcut with the focus on the page, not in a text field, and waits for the save it makes. */
-async function press(page: Page, keys: string, collection: string, method: 'POST' | 'PATCH' | 'DELETE' = 'PATCH'): Promise<void> {
+async function press(
+  page: Page,
+  keys: string,
+  collection: string,
+  method: 'POST' | 'PATCH' | 'DELETE' = 'PATCH',
+): Promise<void> {
   const saved = waitForSave(page, collection, method)
   await page.keyboard.press(keys)
   await saved
@@ -67,8 +82,10 @@ async function boxSelect(page: Page, ids: string[]): Promise<void> {
   const boxes = await Promise.all(ids.map(async (id) => card(page, id).boundingBox()))
   const left = Math.min(...boxes.map((b) => (b as { x: number }).x)) - 20
   const top = Math.min(...boxes.map((b) => (b as { y: number }).y)) - 20
-  const right = Math.max(...boxes.map((b) => (b as { x: number; width: number }).x + (b as { width: number }).width)) + 20
-  const bottom = Math.max(...boxes.map((b) => (b as { y: number; height: number }).y + (b as { height: number }).height)) + 20
+  const right =
+    Math.max(...boxes.map((b) => (b as { x: number; width: number }).x + (b as { width: number }).width)) + 20
+  const bottom =
+    Math.max(...boxes.map((b) => (b as { y: number; height: number }).y + (b as { height: number }).height)) + 20
   await page.keyboard.down('Shift')
   await page.mouse.move(left, top)
   await page.mouse.down()

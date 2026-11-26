@@ -41,7 +41,12 @@ test('a refresh that was in flight when the user signed out does not sign them b
   let answer: (value: unknown) => void = () => undefined
   const pb = {
     authStore: { token: 'token', record, clear, onChange: vi.fn() },
-    collection: () => ({ authRefresh: () => new Promise((resolve) => { answer = resolve }) }),
+    collection: () => ({
+      authRefresh: () =>
+        new Promise((resolve) => {
+          answer = resolve
+        }),
+    }),
   } as unknown as PocketBase
   const auth = createAuth(pb)
   const pending = auth.refresh()
@@ -55,11 +60,25 @@ test('a refresh that was in flight when the user signed out does not sign them b
 function makeFakePb(record = { id: 'u1', email: 'a@b.test', name: 'A', verified: false }) {
   const clear = vi.fn()
   let storedCb: (token: string, rec: unknown) => void = () => undefined
-  const authStore = { token: 'tok', record, clear, onChange: vi.fn((_cb) => { storedCb = _cb }) }
+  const authStore = {
+    token: 'tok',
+    record,
+    clear,
+    onChange: vi.fn((_cb) => {
+      storedCb = _cb
+    }),
+  }
   const pb = {
-    authStore, collection: () => ({}),
+    authStore,
+    collection: () => ({}),
   } as unknown as PocketBase
-  return { pb, fire: (token: string, rec: unknown) => { (authStore.record as Record<string, unknown>) = rec as Record<string, unknown>; storedCb(token, rec) } }
+  return {
+    pb,
+    fire: (token: string, rec: unknown) => {
+      ;(authStore.record as Record<string, unknown>) = rec as Record<string, unknown>
+      storedCb(token, rec)
+    },
+  }
 }
 
 // Protects: two listeners must both be called when the store fires a change;
@@ -126,7 +145,14 @@ test('a sign-in reaches each listener once', async () => {
   const clear = vi.fn()
   const record = { id: 'u1', email: 'a@b.test', name: 'A', verified: true }
   let storedCb: (token: string, rec: unknown) => void = () => undefined
-  const authStore = { token: 'tok', record, clear, onChange: vi.fn((_cb) => { storedCb = _cb }) }
+  const authStore = {
+    token: 'tok',
+    record,
+    clear,
+    onChange: vi.fn((_cb) => {
+      storedCb = _cb
+    }),
+  }
   const pb = {
     authStore,
     collection: () => ({
@@ -149,7 +175,9 @@ test('a sign-in reaches each listener once', async () => {
 test('a failing listener does not silence the others', async () => {
   const { pb, fire } = makeFakePb()
   const auth = createAuth(pb)
-  const l1 = vi.fn(() => { throw new Error('boom') })
+  const l1 = vi.fn(() => {
+    throw new Error('boom')
+  })
   const l2 = vi.fn()
   auth.onChange(l1)
   auth.onChange(l2)
@@ -207,6 +235,10 @@ test('the door confirms verification and resets through the SDK', async () => {
   const failure = new ClientResponseError({ status: 400, response: { message: 'Password must ...' } })
   confirmPasswordReset.mockRejectedValue(failure)
   confirmVerification.mockRejectedValue(failure)
-  await expect(auth.confirmPasswordReset('t', 'p', 'q')).rejects.toMatchObject({ name: 'BackendError', kind: 'invalid', message: 'Password must ...' })
+  await expect(auth.confirmPasswordReset('t', 'p', 'q')).rejects.toMatchObject({
+    name: 'BackendError',
+    kind: 'invalid',
+    message: 'Password must ...',
+  })
   await expect(auth.confirmVerification('t')).rejects.toMatchObject({ kind: 'invalid', message: 'Password must ...' })
 })

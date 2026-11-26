@@ -12,16 +12,29 @@ const BREAKS = [
   '| B1 | scripts/x.ts | `a < b` | `a <= b` | scripts/x.test.ts |',
 ]
 
-interface Parts { cases?: string[]; probes?: string[]; breaks?: string[]; flow?: string[]; evidence?: string[] }
+interface Parts {
+  cases?: string[]
+  probes?: string[]
+  breaks?: string[]
+  flow?: string[]
+  evidence?: string[]
+}
 
 function block(parts: Parts = {}): string {
   return [
-    '# Task', '', '## Test plan',
-    '### Cases', ...(parts.cases ?? CASES),
-    '### Probes', ...(parts.probes ?? ['**Probe folder:** `tests/probes/p/t/`']),
-    '### Breaks', ...(parts.breaks ?? BREAKS),
-    '### Flow', ...(parts.flow ?? ['none']),
-    '### Evidence', ...(parts.evidence ?? ['paste the check output']),
+    '# Task',
+    '',
+    '## Test plan',
+    '### Cases',
+    ...(parts.cases ?? CASES),
+    '### Probes',
+    ...(parts.probes ?? ['**Probe folder:** `tests/probes/p/t/`']),
+    '### Breaks',
+    ...(parts.breaks ?? BREAKS),
+    '### Flow',
+    ...(parts.flow ?? ['none']),
+    '### Evidence',
+    ...(parts.evidence ?? ['paste the check output']),
   ].join('\n')
 }
 
@@ -31,7 +44,16 @@ describe('parseTestPlan', () => {
     const { plan, problems } = parseTestPlan(block())
     expect(problems).toEqual([])
     expect(plan).toEqual({
-      cases: [{ id: 'C1', behaviour: 'empty input', layer: 'unit', input: 'f("")', expected: '[]', test: 'scripts/x.test.ts :: empty input' }],
+      cases: [
+        {
+          id: 'C1',
+          behaviour: 'empty input',
+          layer: 'unit',
+          input: 'f("")',
+          expected: '[]',
+          test: 'scripts/x.test.ts :: empty input',
+        },
+      ],
       probeFolder: 'tests/probes/p/t/',
       breaks: [{ id: 'B1', file: 'scripts/x.ts', find: 'a < b', replace: 'a <= b', tests: ['scripts/x.test.ts'] }],
       flow: 'none',
@@ -88,8 +110,18 @@ describe('parseTestPlan', () => {
 
   // Protects design 6.3 and Task 5: the one shared rule for what a break may touch.
   test('isBreakablePath accepts frontend/src/a.ts, scripts/x.ts, backend/pb_hooks/lib/y.js and rejects tests/x.ts, frontend/src/a.test.ts, ../x.ts, /etc/passwd, backend/pb_hooks/users-signup.pb.js (a hook is covered by rule tests, design 6.3)', () => {
-    for (const ok of ['frontend/src/a.ts', 'scripts/x.ts', 'backend/pb_hooks/lib/y.js']) expect(isBreakablePath(ok), ok).toBe(true)
-    const bad = ['tests/x.ts', 'frontend/src/a.test.ts', '../x.ts', '/etc/passwd', 'backend/pb_hooks/users-signup.pb.js', 'frontend/src/../tests/x.ts', 'src\\..\\x.ts', '']
+    for (const ok of ['frontend/src/a.ts', 'scripts/x.ts', 'backend/pb_hooks/lib/y.js'])
+      expect(isBreakablePath(ok), ok).toBe(true)
+    const bad = [
+      'tests/x.ts',
+      'frontend/src/a.test.ts',
+      '../x.ts',
+      '/etc/passwd',
+      'backend/pb_hooks/users-signup.pb.js',
+      'frontend/src/../tests/x.ts',
+      'src\\..\\x.ts',
+      '',
+    ]
     for (const path of bad) expect(isBreakablePath(path), path).toBe(false)
   })
 
@@ -103,7 +135,9 @@ describe('parseTestPlan', () => {
 
   // Protects docs/testing-strategy.md section 8: probes live under tests/probes/ and nowhere else.
   test('the probe folder must start with tests/probes/', () => {
-    expect(parseTestPlan(block({ probes: ['**Probe folder:** `tests/x/`'] })).problems.join('\n')).toMatch(/Probes.*tests\/probes\//)
+    expect(parseTestPlan(block({ probes: ['**Probe folder:** `tests/x/`'] })).problems.join('\n')).toMatch(
+      /Probes.*tests\/probes\//,
+    )
     expect(parseTestPlan(block({ probes: ['no folder line'] })).problems.join('\n')).toMatch(/Probes/)
   })
 
@@ -119,7 +153,10 @@ describe('parseTestPlan', () => {
     const misspelled = block().replace('### Cases', '### Case')
     expect(parseTestPlan(misspelled).problems.join('\n')).toMatch(/### Case\b.*unknown|unknown.*### Case\b/)
     expect(parseTestPlan(misspelled).problems.join('\n')).toMatch(/missing.*Cases/)
-    const swapped = block().replace('### Flow', '### Tmp').replace('### Evidence', '### Flow').replace('### Tmp', '### Evidence')
+    const swapped = block()
+      .replace('### Flow', '### Tmp')
+      .replace('### Evidence', '### Flow')
+      .replace('### Tmp', '### Evidence')
     expect(parseTestPlan(swapped).problems.join('\n')).toMatch(/order/)
   })
 
@@ -133,14 +170,20 @@ describe('parseTestPlan', () => {
 
   // Protects the task template: a whole-line HTML comment explains a part and is not content (a comment-only Flow is still empty).
   test('whole-line HTML comments are ignored', () => {
-    const withComments = block().replace('### Cases', '<!-- what Cases are -->\n### Cases').replace('### Flow', '### Flow\n<!-- note -->')
+    const withComments = block()
+      .replace('### Cases', '<!-- what Cases are -->\n### Cases')
+      .replace('### Flow', '### Flow\n<!-- note -->')
     expect(parseTestPlan(withComments)).toEqual(parseTestPlan(block()))
     expect(parseTestPlan(block({ flow: ['<!-- only a comment -->'] })).problems.join('\n')).toMatch(/Flow.*empty/)
   })
 
   // Protects Task 5's contract: a task with no unit case may list no breaks (`none`), in any case or spacing.
   test('Breaks none with only rules, e2e and manual cases passes', () => {
-    const cases = [...CASES.slice(0, 2), '| C1 | b | rules | i | e | tests/rules/a.rules.test.ts :: t |', '| C2 | b | manual | i | e |  |']
+    const cases = [
+      ...CASES.slice(0, 2),
+      '| C1 | b | rules | i | e | tests/rules/a.rules.test.ts :: t |',
+      '| C2 | b | manual | i | e |  |',
+    ]
     for (const none of ['none', '  None  ', 'NONE']) {
       const { plan, problems } = parseTestPlan(block({ cases, breaks: [none] }))
       expect(problems).toEqual([])
@@ -150,7 +193,11 @@ describe('parseTestPlan', () => {
 
   // Protects the breaks gate: a unit case with `none` breaks would let decision code go unbroken.
   test('Breaks none with a unit case is a problem naming the unit row', () => {
-    const cases = [...CASES, '| C2 | b | unit | i | e | scripts/x.test.ts :: t |', '| C3 | b | e2e | i | e | e2e/a.spec.ts :: t |']
+    const cases = [
+      ...CASES,
+      '| C2 | b | unit | i | e | scripts/x.test.ts :: t |',
+      '| C3 | b | e2e | i | e | e2e/a.spec.ts :: t |',
+    ]
     const problems = parseTestPlan(block({ cases, breaks: ['none'] })).problems.join('\n')
     expect(problems).toMatch(/Breaks.*none.*C1, C2/)
     expect(problems).not.toMatch(/C3/)
@@ -181,7 +228,10 @@ describe('parseTestPlan', () => {
 describe('parseTaskMeta', () => {
   // Protects the tier and Interfaces gates of check:plan.
   test('parseTaskMeta finds tier and Interfaces; a bad tier name gives null', () => {
-    expect(parseTaskMeta('**Model tier:** local  \n**Interfaces:** none\n')).toEqual({ tier: 'local', hasInterfaces: true })
+    expect(parseTaskMeta('**Model tier:** local  \n**Interfaces:** none\n')).toEqual({
+      tier: 'local',
+      hasInterfaces: true,
+    })
     expect(parseTaskMeta('**Model tier:** mid\n')).toEqual({ tier: 'mid', hasInterfaces: false })
     expect(parseTaskMeta('**Model tier:** weak\n**Interfaces:** x').tier).toBeNull()
     expect(parseTaskMeta('# nothing\n')).toEqual({ tier: null, hasInterfaces: false })

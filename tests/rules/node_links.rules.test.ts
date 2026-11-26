@@ -38,7 +38,13 @@ describe('node_links rules and collection', () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
 
-    const res = await addLink(owner, { project: projectId, node: nodeId, creator: owner.id, title: ' Trailer ', url: ' https://example.com/v ' })
+    const res = await addLink(owner, {
+      project: projectId,
+      node: nodeId,
+      creator: owner.id,
+      title: ' Trailer ',
+      url: ' https://example.com/v ',
+    })
     expect(res.status).toBe(200)
     const data = await res.json()
     expect(data.title).toBe('Trailer')
@@ -96,7 +102,9 @@ describe('node_links rules and collection', () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
     const outsider = await createUser()
-    const created = await (await addLink(owner, { project: projectId, node: nodeId, creator: owner.id, url: 'https://example.com/v' })).json()
+    const created = await (
+      await addLink(owner, { project: projectId, node: nodeId, creator: owner.id, url: 'https://example.com/v' })
+    ).json()
 
     expect((await listLinks(member)).items.map((i) => i.id)).toEqual([created.id])
     expect((await rawSend(await tokenOf(member), `${PATH}/${created.id}`)).status).toBe(200)
@@ -114,7 +122,9 @@ describe('node_links rules and collection', () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
     const outsider = await createUser()
-    const created = await (await addLink(owner, { project: projectId, node: nodeId, creator: owner.id, url: 'https://example.com/v' })).json()
+    const created = await (
+      await addLink(owner, { project: projectId, node: nodeId, creator: owner.id, url: 'https://example.com/v' })
+    ).json()
     const one = `${PATH}/${created.id}`
 
     for (const who of [member, owner, outsider]) {
@@ -133,7 +143,12 @@ describe('node_links rules and collection', () => {
     for (const target of ['nodes', 'projects', 'teams'] as const) {
       const { owner, projectId, chapterId, teamId } = await memberProject()
       const nodeId = await createNode(owner, projectId, chapterId)
-      const res = await addLink(owner, { project: projectId, node: nodeId, creator: owner.id, url: 'https://example.com/v' })
+      const res = await addLink(owner, {
+        project: projectId,
+        node: nodeId,
+        creator: owner.id,
+        url: 'https://example.com/v',
+      })
       expect(res.status).toBe(200)
       expect(await linkRows()).toBe(1)
 
@@ -147,7 +162,9 @@ describe('node_links rules and collection', () => {
   test('an admin edit cannot make a link a non-web address', async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
-    const created = await (await addLink(owner, { project: projectId, node: nodeId, creator: owner.id, url: 'https://example.com/v' })).json()
+    const created = await (
+      await addLink(owner, { project: projectId, node: nodeId, creator: owner.id, url: 'https://example.com/v' })
+    ).json()
     const admin = await asAdmin()
 
     await expect(admin.collection('node_links').update(created.id, { url: 'javascript:alert(1)' })).rejects.toThrow()

@@ -1,6 +1,14 @@
 import { useStore, type StoreApi } from 'zustand'
 import { createStore } from 'zustand/vanilla'
-import { backend, type Backend, type ContentKind, type ContentRecords, type CreatableKind, type EditableFields, type RemovableKind } from '../../../backend'
+import {
+  backend,
+  type Backend,
+  type ContentKind,
+  type ContentRecords,
+  type CreatableKind,
+  type EditableFields,
+  type RemovableKind,
+} from '../../../backend'
 import { EMPTY_STATE, type ContentState } from '../model/state'
 import { createEdits } from './editorEdits'
 import { createSession } from './editorSession'
@@ -24,7 +32,12 @@ export interface EditorStore {
   close(): Promise<void>
   /** `onLate` runs if the write resolved true while offline (stored, not answered) and the server refused it later. */
   create<K extends CreatableKind>(kind: K, record: ContentRecords[K], onLate?: () => void): Promise<boolean>
-  update<K extends ContentKind>(kind: K, id: string, changes: Partial<EditableFields[K]>, onLate?: () => void): Promise<boolean>
+  update<K extends ContentKind>(
+    kind: K,
+    id: string,
+    changes: Partial<EditableFields[K]>,
+    onLate?: () => void,
+  ): Promise<boolean>
   remove(kind: RemovableKind, id: string, onLate?: () => void): Promise<boolean>
   dismissError(): void
 }
@@ -45,14 +58,17 @@ export function createEditorStore(door: EditorDoor, sync: EditorSyncPort = direc
 }
 
 // The door is looked up per call, so importing this module opens no connection.
-export const editorStore = createEditorStore({
-  load: (projectId) => backend.content.load(projectId),
-  get: (kind, id) => backend.content.get(kind, id),
-  create: (kind, record) => backend.content.create(kind, record),
-  update: (kind, id, changes, base, options) => backend.content.update(kind, id, changes, base, options),
-  remove: (kind, id) => backend.content.remove(kind, id),
-  subscribe: (projectId, onEvent, onReconnect) => backend.content.subscribe(projectId, onEvent, onReconnect),
-}, appSync())
+export const editorStore = createEditorStore(
+  {
+    load: (projectId) => backend.content.load(projectId),
+    get: (kind, id) => backend.content.get(kind, id),
+    create: (kind, record) => backend.content.create(kind, record),
+    update: (kind, id, changes, base, options) => backend.content.update(kind, id, changes, base, options),
+    remove: (kind, id) => backend.content.remove(kind, id),
+    subscribe: (projectId, onEvent, onReconnect) => backend.content.subscribe(projectId, onEvent, onReconnect),
+  },
+  appSync(),
+)
 
 export function useEditor<T>(selector: (s: EditorStore) => T): T {
   return useStore(editorStore, selector)

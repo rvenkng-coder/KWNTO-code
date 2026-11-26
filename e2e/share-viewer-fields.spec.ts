@@ -6,7 +6,7 @@ import { makeLink, projectIdOf, seedStory } from './helpers/share'
 // Protects design 5 (view links) and the roadmap's rule that share views show what a person put on
 // a node: a signed-out viewer sees the card at its saved size with its cover image, and the node's
 // links in the panel, opening in a new tab.
-test('a view link shows a node\'s size, cover and links', async ({ page, browser }) => {
+test("a view link shows a node's size, cover and links", async ({ page, browser }) => {
   await ownerWithProject(page, 'Story')
   const projectId = projectIdOf(page)
   const { gate, door } = await seedStory(projectId)
@@ -14,10 +14,14 @@ test('a view link shows a node\'s size, cover and links', async ({ page, browser
   const opts = { requestKey: null }
   const image = await pb.collection('media').getFirstListItem(pb.filter('node = {:n}', { n: gate }), opts)
   const current = await pb.collection('nodes').getOne(gate, opts)
-  await pb.collection('nodes').update(gate, { width: 320, height: 300, cover_media: image.id, version: current.version }, opts)
+  await pb
+    .collection('nodes')
+    .update(gate, { width: 320, height: 300, cover_media: image.id, version: current.version }, opts)
   const owner = await pb.collection('projects').getOne(projectId, { ...opts, expand: 'team.team_members_via_team' })
   const creator = owner.expand?.team?.expand?.team_members_via_team?.[0]?.user as string
-  await pb.collection('node_links').create({ project: projectId, node: gate, creator, title: 'Trailer', url: 'https://example.com/v' }, opts)
+  await pb
+    .collection('node_links')
+    .create({ project: projectId, node: gate, creator, title: 'Trailer', url: 'https://example.com/v' }, opts)
   const address = await makeLink(page, 'view', 'live')
 
   const guest = await (await browser.newContext()).newPage()

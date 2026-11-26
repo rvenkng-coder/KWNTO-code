@@ -14,7 +14,10 @@ const { guardedTable, changedFields, parseSentVersion } = require('../../backend
   parseSentVersion: (value: unknown) => number | null
 }
 
-function readers(now: Record<string, unknown>, before: Record<string, unknown>): [(n: string) => unknown, (n: string) => unknown] {
+function readers(
+  now: Record<string, unknown>,
+  before: Record<string, unknown>,
+): [(n: string) => unknown, (n: string) => unknown] {
   return [(n) => now[n], (n) => before[n]]
 }
 

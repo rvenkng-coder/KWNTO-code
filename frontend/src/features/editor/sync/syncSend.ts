@@ -30,7 +30,8 @@ const isIdTaken = (error: BackendError): boolean => error.kind === 'invalid' && 
 
 // Worth another try later, not a refusal: the server cannot be reached, the rate limiter said slow down (429),
 // or the server failed (5xx, for example a busy database).
-const isTransient = (error: BackendError): boolean => error.kind === 'unreachable' || error.kind === 'locked' || error.status >= 500
+const isTransient = (error: BackendError): boolean =>
+  error.kind === 'unreachable' || error.kind === 'locked' || error.status >= 500
 
 function failure(error: BackendError): Outcome {
   return isTransient(error) ? { type: 'unreachable' } : { type: 'refused', error }
@@ -45,12 +46,17 @@ async function confirmCreatedIn(door: SyncDoor, entry: Extract<OutboxEntry, { op
   } catch (err) {
     return failure(toBackendError(err))
   }
-  if (found !== null && 'projectId' in found && found.projectId === entry.projectId) return { type: 'saved', record: found }
-  return { type: 'refused', error: new BackendError('invalid', 400, { id: 'in use' }, 'That id is already used by another record.') }
+  if (found !== null && 'projectId' in found && found.projectId === entry.projectId)
+    return { type: 'saved', record: found }
+  return {
+    type: 'refused',
+    error: new BackendError('invalid', 400, { id: 'in use' }, 'That id is already used by another record.'),
+  }
 }
 
 export function createSender(door: SyncDoor): (entry: OutboxEntry) => Promise<Outcome> {
-  const confirmCreated = (entry: Extract<OutboxEntry, { op: 'create' }>): Promise<Outcome> => confirmCreatedIn(door, entry)
+  const confirmCreated = (entry: Extract<OutboxEntry, { op: 'create' }>): Promise<Outcome> =>
+    confirmCreatedIn(door, entry)
 
   async function sendCreate(entry: Extract<OutboxEntry, { op: 'create' }>): Promise<Outcome> {
     try {
@@ -64,13 +70,16 @@ export function createSender(door: SyncDoor): (entry: OutboxEntry) => Promise<Ou
 
   async function sendUpdate(entry: Extract<OutboxEntry, { op: 'update' }>): Promise<Outcome> {
     // Only an edit made offline can raise the dialog; online edits retry silently (D3).
-    const shouldRetry = entry.offline ? (cur: ContentRecords[ContentKind]) => classifyConflict(entry, cur).type === 'none' : undefined
+    const shouldRetry = entry.offline
+      ? (cur: ContentRecords[ContentKind]) => classifyConflict(entry, cur).type === 'none'
+      : undefined
     try {
       const changes = entry.changes as Partial<EditableFields[ContentKind]>
       // An online edit is sent as Plan 3 sent it: no options.
-      const saved = shouldRetry === undefined
-        ? await door.update(entry.kind, entry.id, changes, entry.baseVersion)
-        : await door.update(entry.kind, entry.id, changes, entry.baseVersion, { shouldRetry })
+      const saved =
+        shouldRetry === undefined
+          ? await door.update(entry.kind, entry.id, changes, entry.baseVersion)
+          : await door.update(entry.kind, entry.id, changes, entry.baseVersion, { shouldRetry })
       return { type: 'saved', record: saved }
     } catch (err) {
       if (err instanceof EditConflict) return conflictOf(entry, err.server as ContentRecords[ContentKind])

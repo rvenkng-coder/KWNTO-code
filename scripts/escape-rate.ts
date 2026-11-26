@@ -3,20 +3,36 @@
 import { readFileSync } from 'node:fs'
 import { isMain } from './lib/is-main.ts'
 
-export interface ProgressRow { task: string; builtBy: 'local' | 'strong' | ''; review: string; escaped: number }
+export interface ProgressRow {
+  task: string
+  builtBy: 'local' | 'strong' | ''
+  review: string
+  escaped: number
+}
 
 const NEEDED = ['built by', 'review', 'escaped']
 // Exported so check:task can tell "this file does not track escapes" from a malformed table.
-export const MISSING_TABLE = 'no table with the columns "Built by", "Review" and "Escaped"; a progress file that does not track them cannot be measured'
+export const MISSING_TABLE =
+  'no table with the columns "Built by", "Review" and "Escaped"; a progress file that does not track them cannot be measured'
 
 function cells(line: string): string[] {
-  return line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((cell) => cell.trim())
+  return line
+    .trim()
+    .replace(/^\|/, '')
+    .replace(/\|$/, '')
+    .split('|')
+    .map((cell) => cell.trim())
 }
 
 const isTableLine = (line: string): boolean => line.trim().startsWith('|')
 const isSeparator = (line: string): boolean => /^\|?[\s:|-]+\|?$/.test(line.trim()) && line.includes('-')
 
-interface Columns { task: number; builtBy: number; review: number; escaped: number }
+interface Columns {
+  task: number
+  builtBy: number
+  review: number
+  escaped: number
+}
 
 function findHeader(lines: string[]): { index: number; columns: Columns } | null {
   for (let index = 0; index < lines.length; index++) {
@@ -24,7 +40,15 @@ function findHeader(lines: string[]): { index: number; columns: Columns } | null
     const names = cells(lines[index]).map((name) => name.toLowerCase())
     if (!NEEDED.every((name) => names.includes(name))) continue
     const task = names.indexOf('task')
-    return { index, columns: { task: task === -1 ? 0 : task, builtBy: names.indexOf('built by'), review: names.indexOf('review'), escaped: names.indexOf('escaped') } }
+    return {
+      index,
+      columns: {
+        task: task === -1 ? 0 : task,
+        builtBy: names.indexOf('built by'),
+        review: names.indexOf('review'),
+        escaped: names.indexOf('escaped'),
+      },
+    }
   }
   return null
 }
@@ -34,7 +58,8 @@ function cellAt(row: string[], index: number): string {
 }
 
 function rowProblem(label: string, built: string, escaped: string): string | null {
-  if (built !== 'local' && built !== 'strong') return `${label}: "Built by" must be local or strong (or - for a non-task row), got "${built}"`
+  if (built !== 'local' && built !== 'strong')
+    return `${label}: "Built by" must be local or strong (or - for a non-task row), got "${built}"`
   if (!/^\d+$/.test(escaped)) return `${label}: "Escaped" must be a whole number (0 if none), got "${escaped}"`
   return null
 }
@@ -51,7 +76,10 @@ function parseRow(row: string[], columns: Columns): ProgressRow | string | null 
   return { task, builtBy: built as ProgressRow['builtBy'], review, escaped: Number(escaped) }
 }
 
-function readRows(lines: string[], header: { index: number; columns: Columns }): { rows: ProgressRow[]; problems: string[] } {
+function readRows(
+  lines: string[],
+  header: { index: number; columns: Columns },
+): { rows: ProgressRow[]; problems: string[] } {
   const rows: ProgressRow[] = []
   const problems: string[] = []
   let end = header.index + 1
@@ -63,7 +91,8 @@ function readRows(lines: string[], header: { index: number; columns: Columns }):
     end++
   }
   const later = lines.findIndex((line, index) => index >= end && isTableLine(line))
-  if (later !== -1) problems.push(`table interrupted at line ${end + 1}; later rows (line ${later + 1}) would be ignored`)
+  if (later !== -1)
+    problems.push(`table interrupted at line ${end + 1}; later rows (line ${later + 1}) would be ignored`)
   return { rows, problems }
 }
 

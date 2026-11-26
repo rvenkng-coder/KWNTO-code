@@ -23,7 +23,10 @@ export function byOrder<T extends { sortOrder: number; id: string }>(a: T, b: T)
 }
 
 // Chapter tabs use `position`, lines and cues `sortOrder`; callers map to `order`.
-export interface Ordered { id: string; order: number }
+export interface Ordered {
+  id: string
+  order: number
+}
 export type Placement = { kind: 'one'; id: string; order: number } | { kind: 'renumber'; orders: Ordered[] }
 
 // `result` is the list as it will be shown; the item at `index` is the one being placed.
@@ -38,7 +41,8 @@ function placeInResult(result: Ordered[], index: number): Placement {
 export function placeAt(list: Ordered[], id: string, index: number): Placement | null {
   const from = list.findIndex((item) => item.id === id)
   const moving = list[from]
-  if (moving === undefined || !Number.isInteger(index) || index < 0 || index > list.length - 1 || index === from) return null
+  if (moving === undefined || !Number.isInteger(index) || index < 0 || index > list.length - 1 || index === from)
+    return null
   const result = list.filter((item) => item.id !== id)
   result.splice(index, 0, moving)
   return placeInResult(result, index)

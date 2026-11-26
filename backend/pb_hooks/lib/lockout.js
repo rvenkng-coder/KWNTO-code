@@ -19,9 +19,7 @@ function decideLockout(failureTimesMs, nowMs, maxFailed, lockoutMinutes) {
 
   const windowMs = lockoutMinutes * 60 * 1000
   const windowStartMs = nowMs - windowMs
-  const recentNewestFirst = failureTimesMs
-    .filter((time) => time > windowStartMs)
-    .sort((a, b) => b - a)
+  const recentNewestFirst = failureTimesMs.filter((time) => time > windowStartMs).sort((a, b) => b - a)
   if (recentNewestFirst.length < maxFailed) {
     return notLocked
   }

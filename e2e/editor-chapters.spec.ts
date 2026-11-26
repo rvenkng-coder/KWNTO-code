@@ -111,7 +111,6 @@ test('an outsider sees no project content', async ({ page, browser }) => {
   await outsider.close()
 })
 
-
 // Protects: dragging the right edge of a tab changes its width, and it never goes below the minimum (decision D10).
 test('a tab can be resized by dragging its edge', async ({ page }) => {
   await ownerWithProject(page, 'Story')

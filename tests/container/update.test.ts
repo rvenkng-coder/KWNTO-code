@@ -5,7 +5,14 @@ import { afterAll, beforeAll, expect, test } from 'vitest'
 import { EDGE_URL, verifiedUser } from './helpers/edge.ts'
 import { ADMIN_EMAIL, ADMIN_PASSWORD, makeBackupDir } from './helpers/backup.ts'
 import {
-  type Checkout, git, makeCheckout, manualZips, pushNewCommit, runUpdate, updateStackDown, updateStackUp,
+  type Checkout,
+  git,
+  makeCheckout,
+  manualZips,
+  pushNewCommit,
+  runUpdate,
+  updateStackDown,
+  updateStackUp,
 } from './helpers/update.ts'
 
 // deploy/update.sh (docs/admin/deployment.md, Updating): refuse what it cannot do safely, back up
@@ -16,8 +23,14 @@ const CREDENTIALS = `${ADMIN_EMAIL}\n${ADMIN_PASSWORD}\n`
 let c: Checkout | undefined
 let dir: string | undefined
 
-const checkout = (): Checkout => { if (c === undefined) throw new Error('no checkout'); return c }
-const backups = (): string => { if (dir === undefined) throw new Error('no backup folder'); return dir }
+const checkout = (): Checkout => {
+  if (c === undefined) throw new Error('no checkout')
+  return c
+}
+const backups = (): string => {
+  if (dir === undefined) throw new Error('no backup folder')
+  return dir
+}
 
 beforeAll(() => {
   updateStackDown(undefined, undefined) // left-overs of a killed earlier run
@@ -83,7 +96,9 @@ test('an update backs up, moves to the new commit and keeps the data', async () 
   expect(res.stdout).toContain('Updated to')
   expect(git(checkout().vm, ['rev-parse', 'HEAD'])).toBe(target)
   expect(manualZips(backups())).toHaveLength(1)
-  const read = await fetch(`${EDGE_URL}/api/collections/users/records/${user.id}`, { headers: { Authorization: user.token } })
+  const read = await fetch(`${EDGE_URL}/api/collections/users/records/${user.id}`, {
+    headers: { Authorization: user.token },
+  })
   expect(read.status).toBe(200)
 }, 400_000)
 
@@ -91,7 +106,9 @@ test('an update backs up, moves to the new commit and keeps the data', async () 
 test('a missed health check fails and prints the backup and the restore command', () => {
   const before = manualZips(backups())
   const res = runUpdate(checkout(), backups(), {
-    args: ['--no-pull'], input: CREDENTIALS, env: { KWNTO_HEALTH_SECONDS: '0' },
+    args: ['--no-pull'],
+    input: CREDENTIALS,
+    env: { KWNTO_HEALTH_SECONDS: '0' },
   })
   expect(res.status).toBe(1)
   const made = manualZips(backups()).filter((name) => !before.includes(name))

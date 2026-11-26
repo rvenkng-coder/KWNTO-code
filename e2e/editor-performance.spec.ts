@@ -16,8 +16,12 @@ async function cardInView(page: Page): Promise<Box> {
   if (canvas === null) throw new Error('no canvas on screen')
   for (const card of await cards(page).all()) {
     const b = await card.boundingBox()
-    const inside = b !== null && b.x > canvas.x + 20 && b.y > canvas.y + 20 &&
-      b.x + b.width + 150 < canvas.x + canvas.width && b.y + b.height + 80 < canvas.y + canvas.height
+    const inside =
+      b !== null &&
+      b.x > canvas.x + 20 &&
+      b.y > canvas.y + 20 &&
+      b.x + b.width + 150 < canvas.x + canvas.width &&
+      b.y + b.height + 80 < canvas.y + canvas.height
     if (inside) return b
   }
   throw new Error('no card wholly inside the canvas')

@@ -6,8 +6,9 @@ import { buildStory, type Story } from './story'
 import { useEditorMediaSrc } from './useEditorMediaSrc'
 
 function storyNow(): Story {
-  const media = useMediaStore.getState().media
-    .filter((m) => m.removedAt === '')
+  const media = useMediaStore
+    .getState()
+    .media.filter((m) => m.removedAt === '')
     .map((m) => ({ id: m.id, nodeId: m.nodeId, title: m.title, kind: m.kind }))
   return buildStory(editorStore.getState().content, media)
 }
@@ -24,7 +25,9 @@ export function EditorPlay() {
   }, [story])
   return (
     <>
-      <button ref={button} type="button" className="btn" onClick={() => setStory(storyNow())}>Play</button>
+      <button ref={button} type="button" className="btn" onClick={() => setStory(storyNow())}>
+        Play
+      </button>
       {story !== null && <Player story={story} useMediaSrc={useEditorMediaSrc} onClose={() => setStory(null)} />}
     </>
   )

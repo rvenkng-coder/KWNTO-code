@@ -4,9 +4,8 @@ import { test, expect } from '@playwright/test'
 import { uniqueEmail, userExists } from './helpers/admin'
 import { signUpVerifyAndSignIn, createTeam, openTeam, enableJoinCode, joinWithCode, settled } from './helpers/ui'
 
-test('sign-up with weak password shows error, no confirmation', async ({
-  page,
-}) => {
+// Protects: a refused sign-up never says that an email was sent, and makes no account.
+test('sign-up with weak password shows error, no confirmation', async ({ page }) => {
   const email = uniqueEmail()
   await page.goto('/')
   await page.getByRole('button', { name: 'Sign up' }).click()

@@ -1,6 +1,14 @@
 import { expect, test, type Browser, type Page } from '@playwright/test'
 import { uniqueEmail } from './helpers/admin.ts'
-import { addNodeAt, card, createProject, openProject, ownerWithProject, readyCanvas, waitForSave } from './helpers/editor.ts'
+import {
+  addNodeAt,
+  card,
+  createProject,
+  openProject,
+  ownerWithProject,
+  readyCanvas,
+  waitForSave,
+} from './helpers/editor.ts'
 import { createTeam, enableJoinCode, joinWithCode, openTeam, signUpVerifyAndSignIn } from './helpers/ui.ts'
 
 const panel = (page: Page) => page.getByTestId('editor-panel')

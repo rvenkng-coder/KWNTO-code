@@ -13,10 +13,23 @@ describe('checkLinkUrl', () => {
 
   // Protects: nothing unsafe passes, with the same words as the server (C2)
   test('unsafe addresses are refused', () => {
-    for (const text of ['javascript:alert(1)', ' JavaScript:alert(1)', 'data:text/html,x', 'ftp://a.b', 'file:///etc/passwd', '//evil.example']) {
+    for (const text of [
+      'javascript:alert(1)',
+      ' JavaScript:alert(1)',
+      'data:text/html,x',
+      'ftp://a.b',
+      'file:///etc/passwd',
+      '//evil.example',
+    ]) {
       expect(checkLinkUrl(text), text).toEqual({ ok: false, message: ONLY_WEB })
     }
-    for (const text of ['https://', 'https://a b', 'https://user:pw@host.example', 'https://google.com@evil.example', 'example.com']) {
+    for (const text of [
+      'https://',
+      'https://a b',
+      'https://user:pw@host.example',
+      'https://google.com@evil.example',
+      'example.com',
+    ]) {
       expect(checkLinkUrl(text), text).toEqual({ ok: false, message: NOT_WEB })
     }
     for (const text of ['', '   ']) {
@@ -24,7 +37,10 @@ describe('checkLinkUrl', () => {
     }
     const base = 'https://a.example/'
     expect(checkLinkUrl(base + 'x'.repeat(2000 - base.length)).ok).toBe(true)
-    expect(checkLinkUrl(base + 'x'.repeat(2001 - base.length))).toEqual({ ok: false, message: 'The address is longer than 2000 characters.' })
+    expect(checkLinkUrl(base + 'x'.repeat(2001 - base.length))).toEqual({
+      ok: false,
+      message: 'The address is longer than 2000 characters.',
+    })
   })
 })
 

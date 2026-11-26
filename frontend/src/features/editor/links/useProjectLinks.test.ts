@@ -12,12 +12,22 @@ vi.mock('../../../backend/index.ts', () => ({ backend: { links: door } }))
 import { useLinksStore } from './useProjectLinks.ts'
 
 function link(id: string): NodeLink {
-  return { id, projectId: 'A', nodeId: 'n1', creatorId: 'u', title: id, url: `https://${id}.example`, created: '2026-11-21 10:00:00Z' }
+  return {
+    id,
+    projectId: 'A',
+    nodeId: 'n1',
+    creatorId: 'u',
+    title: id,
+    url: `https://${id}.example`,
+    created: '2026-11-21 10:00:00Z',
+  }
 }
 
 function deferred<T>() {
   let resolve!: (v: T) => void
-  const promise = new Promise<T>((r) => { resolve = r })
+  const promise = new Promise<T>((r) => {
+    resolve = r
+  })
   return { promise, resolve }
 }
 

@@ -4,14 +4,18 @@ import { expect, test } from 'vitest'
 // The hook helpers are CommonJS so PocketBase can require() them; load them the same way.
 const require = createRequire(import.meta.url)
 type Json = Record<string, unknown>
-const { FILE_LIMITS, buildProjectFile, validateProjectFile, downloadName, importedName, utf8Length } = require('../../backend/pb_hooks/lib/project-file.js') as {
-  downloadName: (name: string) => string
-  importedName: (name: string) => string
-  utf8Length: (text: string) => number
-  FILE_LIMITS: Record<string, number>
-  buildProjectFile: (records: Json, nowIso: string) => Json
-  validateProjectFile: (value: unknown, limits: Record<string, number>) => { ok: true; file: Json } | { ok: false; problems: string[] }
-}
+const { FILE_LIMITS, buildProjectFile, validateProjectFile, downloadName, importedName, utf8Length } =
+  require('../../backend/pb_hooks/lib/project-file.js') as {
+    downloadName: (name: string) => string
+    importedName: (name: string) => string
+    utf8Length: (text: string) => number
+    FILE_LIMITS: Record<string, number>
+    buildProjectFile: (records: Json, nowIso: string) => Json
+    validateProjectFile: (
+      value: unknown,
+      limits: Record<string, number>,
+    ) => { ok: true; file: Json } | { ok: false; problems: string[] }
+  }
 
 const NOW = '2026-11-20 10:00:00.000Z'
 const TRASHED = '2026-11-19 10:00:00.000Z'
@@ -92,7 +96,11 @@ test('choices are listed in the order they were created', () => {
       { id: 'm', from_node: 'n1', to_node: '', label: 'second', created: '2026-11-26 10:00:02.000Z' },
     ],
   }
-  expect((buildProjectFile(records, NOW).connections as Json[]).map((k) => k.label)).toEqual(['first', 'second', 'third'])
+  expect((buildProjectFile(records, NOW).connections as Json[]).map((k) => k.label)).toEqual([
+    'first',
+    'second',
+    'third',
+  ])
 })
 
 // A small valid file as plain JSON, so each case below breaks exactly one thing.
@@ -132,34 +140,125 @@ test('an untrusted file is refused with the first problem named', () => {
 
   expect(problemsOf(null)[0]).toBe('it is not JSON')
   expect(problemsOf([])[0]).toBe('it is not JSON')
-  expect(problemsOf(edited((f) => { f.format = 'other' }))[0]).toBe('format must be "kwnto-project"')
-  expect(problemsOf(edited((f) => { f.version = 2 }))[0]).toBe('version must be 1')
-  expect(problemsOf(edited((f) => { (f.nodes as Json[])[0].chapter = 'c9' }))[0]).toBe('nodes[0].chapter is not a chapter in the file')
-  expect(problemsOf(edited((f) => { (f.connections as Json[])[0].to = 'n9' }))[0]).toBe('connections[0].to is not a node in the file')
-  expect(problemsOf(edited((f) => { (f.connections as Json[])[0].from = 'n9' }))[0]).toBe('connections[0].from is not a node in the file')
-  expect(problemsOf(edited((f) => { (f.lines as Json[])[0].node = 'n9' }))[0]).toBe('lines[0].node is not a node in the file')
-  expect(problemsOf(edited((f) => { (f.project as Json).startNode = 'n9' }))[0]).toBe('project.startNode is not a node in the file')
-  expect(problemsOf(edited((f) => { delete (f.project as Json).name }))[0]).toBe('project.name is missing')
-  expect(problemsOf(edited((f) => { (f.nodes as Json[])[0].x = '3' }))[0]).toBe('nodes[0].x must be a number')
-  expect(problemsOf(edited((f) => { (f.nodes as Json[])[0].title = 7 }))[0]).toBe('nodes[0].title must be a string')
-  expect(problemsOf(edited((f) => { delete f.nodes }))[0]).toBe('nodes is missing')
+  expect(
+    problemsOf(
+      edited((f) => {
+        f.format = 'other'
+      }),
+    )[0],
+  ).toBe('format must be "kwnto-project"')
+  expect(
+    problemsOf(
+      edited((f) => {
+        f.version = 2
+      }),
+    )[0],
+  ).toBe('version must be 1')
+  expect(
+    problemsOf(
+      edited((f) => {
+        ;(f.nodes as Json[])[0].chapter = 'c9'
+      }),
+    )[0],
+  ).toBe('nodes[0].chapter is not a chapter in the file')
+  expect(
+    problemsOf(
+      edited((f) => {
+        ;(f.connections as Json[])[0].to = 'n9'
+      }),
+    )[0],
+  ).toBe('connections[0].to is not a node in the file')
+  expect(
+    problemsOf(
+      edited((f) => {
+        ;(f.connections as Json[])[0].from = 'n9'
+      }),
+    )[0],
+  ).toBe('connections[0].from is not a node in the file')
+  expect(
+    problemsOf(
+      edited((f) => {
+        ;(f.lines as Json[])[0].node = 'n9'
+      }),
+    )[0],
+  ).toBe('lines[0].node is not a node in the file')
+  expect(
+    problemsOf(
+      edited((f) => {
+        ;(f.project as Json).startNode = 'n9'
+      }),
+    )[0],
+  ).toBe('project.startNode is not a node in the file')
+  expect(
+    problemsOf(
+      edited((f) => {
+        delete (f.project as Json).name
+      }),
+    )[0],
+  ).toBe('project.name is missing')
+  expect(
+    problemsOf(
+      edited((f) => {
+        ;(f.nodes as Json[])[0].x = '3'
+      }),
+    )[0],
+  ).toBe('nodes[0].x must be a number')
+  expect(
+    problemsOf(
+      edited((f) => {
+        ;(f.nodes as Json[])[0].title = 7
+      }),
+    )[0],
+  ).toBe('nodes[0].title must be a string')
+  expect(
+    problemsOf(
+      edited((f) => {
+        delete f.nodes
+      }),
+    )[0],
+  ).toBe('nodes is missing')
 
   const longText = 'x'.repeat(FILE_LIMITS.text + 1)
-  expect(problemsOf(edited((f) => { (f.lines as Json[])[0].text = longText }))[0]).toBe(
-    `lines[0].text is longer than ${FILE_LIMITS.text} characters`,
-  )
-  expect(problemsOf(edited((f) => { (f.nodes as Json[])[0].color = 'pink' }))[0]).toBe(
-    'nodes[0].color must be one of slate, red, orange, amber, green, teal, blue, purple',
-  )
-  expect(problemsOf(edited((f) => { (f.cues as Json[]).push({ id: 'q1', node: 'n1', type: 'smell', text: '', sortOrder: 1 }) }))[0]).toBe(
-    'cues[0].type must be one of audio, lighting, other',
-  )
+  expect(
+    problemsOf(
+      edited((f) => {
+        ;(f.lines as Json[])[0].text = longText
+      }),
+    )[0],
+  ).toBe(`lines[0].text is longer than ${FILE_LIMITS.text} characters`)
+  expect(
+    problemsOf(
+      edited((f) => {
+        ;(f.nodes as Json[])[0].color = 'pink'
+      }),
+    )[0],
+  ).toBe('nodes[0].color must be one of slate, red, orange, amber, green, teal, blue, purple')
+  expect(
+    problemsOf(
+      edited((f) => {
+        ;(f.cues as Json[]).push({ id: 'q1', node: 'n1', type: 'smell', text: '', sortOrder: 1 })
+      }),
+    )[0],
+  ).toBe('cues[0].type must be one of audio, lighting, other')
 
   const twin = { id: 'n1', chapter: 'c1', title: 'B', color: 'red', x: 1, y: 1 }
-  expect(problemsOf(edited((f) => { (f.nodes as Json[]).push(twin) }))[0]).toBe('duplicate id "n1" in nodes')
+  expect(
+    problemsOf(
+      edited((f) => {
+        ;(f.nodes as Json[]).push(twin)
+      }),
+    )[0],
+  ).toBe('duplicate id "n1" in nodes')
 
   const crowded = edited((f) => {
-    f.nodes = Array.from({ length: FILE_LIMITS.nodes + 1 }, (_, i) => ({ id: `n${i}`, chapter: 'c1', title: '', color: 'slate', x: 0, y: 0 }))
+    f.nodes = Array.from({ length: FILE_LIMITS.nodes + 1 }, (_, i) => ({
+      id: `n${i}`,
+      chapter: 'c1',
+      title: '',
+      color: 'slate',
+      x: 0,
+      y: 0,
+    }))
     f.lines = []
     f.connections = []
     ;(f.project as Json).startNode = null
@@ -173,7 +272,13 @@ test('an untrusted file is refused with the first problem named', () => {
       '"lines":[],"cues":[],"connections":[],"media":[]}',
   )
   expect(problemsOf(hostile)[0]).toBe('unknown key "__proto__" in nodes[0]')
-  expect(problemsOf(edited((f) => { f.extra = 1 }))[0]).toBe('unknown key "extra" in the file')
+  expect(
+    problemsOf(
+      edited((f) => {
+        f.extra = 1
+      }),
+    )[0],
+  ).toBe('unknown key "extra" in the file')
   expect(({} as Json).polluted).toBeUndefined()
   expect(Object.keys(Object.prototype)).toEqual([])
 
@@ -189,7 +294,13 @@ test('an untrusted file is refused with the first problem named', () => {
 // values (a string, a number, a deeply wrong shape) come back as problems, and a good
 // file's result shares nothing with the input.
 test('the validator never throws and returns a copy', () => {
-  for (const value of [undefined, 3, 'text', true, { format: 'kwnto-project', version: 1, project: 5, chapters: 'x' }]) {
+  for (const value of [
+    undefined,
+    3,
+    'text',
+    true,
+    { format: 'kwnto-project', version: 1, project: 5, chapters: 'x' },
+  ]) {
     expect(() => validateProjectFile(value, FILE_LIMITS)).not.toThrow()
     expect(validateProjectFile(value, FILE_LIMITS).ok).toBe(false)
   }
@@ -226,7 +337,11 @@ test('names and sizes the routes rely on', () => {
 // a hostile file cannot fill the alert with its own text.
 test('an unknown key is echoed cut to 50 characters', () => {
   const key = 'k'.repeat(200)
-  const problems = problemsOf(edited((f) => { (f.nodes as Json[])[0][key] = 1 }))
+  const problems = problemsOf(
+    edited((f) => {
+      ;(f.nodes as Json[])[0][key] = 1
+    }),
+  )
   expect(problems[0]).toBe(`unknown key "${'k'.repeat(50)}" in nodes[0]`)
 })
 
@@ -234,8 +349,31 @@ test('an unknown key is echoed cut to 50 characters', () => {
 // 2,000 entries, with the same message as the other lists.
 test('too many media entries are refused', () => {
   expect(FILE_LIMITS.media).toBe(2000)
-  const media = Array.from({ length: FILE_LIMITS.media + 1 }, (_, i) => ({ id: `m${i}`, node: 'n1', title: '', kind: 'audio' }))
-  expect(problemsOf(edited((f) => { f.media = media }))[0]).toBe(`too many media (${FILE_LIMITS.media + 1}, at most ${FILE_LIMITS.media})`)
-  const ok = Array.from({ length: FILE_LIMITS.media }, (_, i) => ({ id: `m${i}`, node: 'n1', title: '', kind: 'audio' }))
-  expect(validateProjectFile(edited((f) => { f.media = ok }), FILE_LIMITS).ok).toBe(true)
+  const media = Array.from({ length: FILE_LIMITS.media + 1 }, (_, i) => ({
+    id: `m${i}`,
+    node: 'n1',
+    title: '',
+    kind: 'audio',
+  }))
+  expect(
+    problemsOf(
+      edited((f) => {
+        f.media = media
+      }),
+    )[0],
+  ).toBe(`too many media (${FILE_LIMITS.media + 1}, at most ${FILE_LIMITS.media})`)
+  const ok = Array.from({ length: FILE_LIMITS.media }, (_, i) => ({
+    id: `m${i}`,
+    node: 'n1',
+    title: '',
+    kind: 'audio',
+  }))
+  expect(
+    validateProjectFile(
+      edited((f) => {
+        f.media = ok
+      }),
+      FILE_LIMITS,
+    ).ok,
+  ).toBe(true)
 })

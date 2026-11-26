@@ -12,7 +12,12 @@ const q = '`'
 const CONFUSING: [string, string, string, string][] = [
   ['.test.ts', 'a regex after => with /[/*]/', 'const isGlob = (s: string) => /[/*]/.test(s)', '/* end */'],
   ['.test.ts', 'a regex after return with /^\\/*/', 'function f(s: string) { return /^\\/*/.test(s) }', '/* end */'],
-  ['.test.ts', 'a regex after => with a backtick class', `const q = (s: string) => /[${q}'"]/.test(s)`, `const z = ${q}end${q}`],
+  [
+    '.test.ts',
+    'a regex after => with a backtick class',
+    `const q = (s: string) => /[${q}'"]/.test(s)`,
+    `const z = ${q}end${q}`,
+  ],
   ['.test.ts', 'a regex after ) with a backtick', `if (x) /${q}/.test(s)`, `const z = ${q}end${q}`],
   ['.test.tsx', 'JSX text with /*', 'const el = <code>src/*.ts</code>', '/* end */'],
   ['.test.tsx', 'JSX text with a backtick', `const el = <p>press ${q}</p>`, `const z = ${q}end${q}`],
@@ -24,7 +29,9 @@ describe('a scanner that is confused must not hide a removed test', () => {
     test(`lost-test and lost-assertion survive ${name} (${ext})`, () => {
       const base = lines(prefix, one, two, suffix)
       const head = lines(prefix, one, suffix)
-      expect(rules(compareWithBase(`a${ext}`, base, head))).toEqual(expect.arrayContaining(['lost-test', 'lost-assertion']))
+      expect(rules(compareWithBase(`a${ext}`, base, head))).toEqual(
+        expect.arrayContaining(['lost-test', 'lost-assertion']),
+      )
     })
   }
 
@@ -39,7 +46,9 @@ describe('unterminated constructs', () => {
   // Protects fail-closed behaviour: if the scan ends inside a comment or template literal the file is not read reliably.
   test('an unterminated block comment or template literal reports scan', () => {
     expect(rules(checkSource('a.test.ts', lines('// Protects: r', one, '/* never closed'), null))).toContain('scan')
-    expect(rules(checkSource('a.test.ts', lines('// Protects: r', one, `const t = ${q}never closed`), null))).toContain('scan')
+    expect(rules(checkSource('a.test.ts', lines('// Protects: r', one, `const t = ${q}never closed`), null))).toContain(
+      'scan',
+    )
   })
 
   // Protects against false alarms: a lone apostrophe in JSX text must neither crash the scan nor count as unterminated.
@@ -58,4 +67,3 @@ describe('unterminated constructs', () => {
 test('an expect split over lines is still counted', () => {
   expect(countRawExpects('await expect\n  .poll(read)\n  .toBe(1)\nexpect\n  .soft(a)\n  .toBe(2)')).toBe(2)
 })
-

@@ -42,7 +42,9 @@ function tempDir(): string {
   dirs.push(dir)
   return dir
 }
-afterEach(() => { for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true }) })
+afterEach(() => {
+  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true })
+})
 
 describe('checkTaskFile', () => {
   // Protects the Done-when rule: a task with tier, Interfaces and a valid Test plan is accepted.
@@ -78,7 +80,10 @@ describe('checkTaskFile', () => {
 
   // Protects the local-tier rule: a checkpoint given to the local model needs the block even if the task is mid.
   test('a local checkpoint in a mid task also needs the block', () => {
-    const mid = VALID_TASK.replace(LOCAL_BLOCK, '').replace('**Model tier:** local', '**Model tier:** mid\n**Checkpoint 1A tier:** local')
+    const mid = VALID_TASK.replace(LOCAL_BLOCK, '').replace(
+      '**Model tier:** local',
+      '**Model tier:** mid\n**Checkpoint 1A tier:** local',
+    )
     expect(checkTaskFile('t.md', mid).join('\n')).toMatch(/Sized for the local model/)
     expect(checkTaskFile('t.md', mid.replace('tier:** local', 'tier:** strong'))).toEqual([])
   })
@@ -87,15 +92,23 @@ describe('checkTaskFile', () => {
   test('a block with missing or empty parts names each one', () => {
     const empty = VALID_TASK.replace(LOCAL_BLOCK, '## Sized for the local model\n\n')
     const problems = checkTaskFile('t.md', empty).join('\n')
-    for (const part of ['May touch', 'Must not change', 'Stop and report', 'Model server', 'Checkpoint given']) expect(problems).toContain(part)
+    for (const part of ['May touch', 'Must not change', 'Stop and report', 'Model server', 'Checkpoint given'])
+      expect(problems).toContain(part)
     const noValue = VALID_TASK.replace('**May touch:** `scripts/x.ts`, `scripts/x.test.ts`', '**May touch:**')
     expect(checkTaskFile('t.md', noValue).join('\n')).toMatch(/May touch/)
   })
 
   // Protects the local-tier rule: the block counts only when it is a real heading, once, and a comment is not content.
   test('a repeated block, or one only in a comment line, is a problem', () => {
-    expect(checkTaskFile('t.md', VALID_TASK.replace(LOCAL_BLOCK, LOCAL_BLOCK + LOCAL_BLOCK)).join('\n')).toMatch(/more than once/)
-    const commented = VALID_TASK.replace(LOCAL_BLOCK, LOCAL_BLOCK.split('\n').map((line) => (line ? `<!-- ${line} -->` : line)).join('\n'))
+    expect(checkTaskFile('t.md', VALID_TASK.replace(LOCAL_BLOCK, LOCAL_BLOCK + LOCAL_BLOCK)).join('\n')).toMatch(
+      /more than once/,
+    )
+    const commented = VALID_TASK.replace(
+      LOCAL_BLOCK,
+      LOCAL_BLOCK.split('\n')
+        .map((line) => (line ? `<!-- ${line} -->` : line))
+        .join('\n'),
+    )
     expect(checkTaskFile('t.md', commented).join('\n')).toMatch(/Sized for the local model/)
   })
 
@@ -185,7 +198,10 @@ describe('the command', () => {
   // Protects the exit-code contract: an unreadable plans folder is a clear message and exit 1, not a stack trace.
   test('the default scan with an unreadable plans folder exits 1 with a message', () => {
     const empty = tempDir()
-    const result = spawnSync(process.execPath, [join(process.cwd(), 'scripts/check-plan.ts')], { encoding: 'utf8', cwd: empty })
+    const result = spawnSync(process.execPath, [join(process.cwd(), 'scripts/check-plan.ts')], {
+      encoding: 'utf8',
+      cwd: empty,
+    })
     expect(result.status).toBe(1)
     expect(result.stdout).toMatch(/cannot read.*docs\/superpowers\/plans/)
     expect(result.stderr).not.toMatch(/at /)
@@ -196,7 +212,10 @@ describe('the task template', () => {
   // Protects the template: copied to a folder, it is a task file that passes check:plan, local block included.
   test('the template itself passes check:plan when copied to a temp folder', () => {
     const dir = tempDir()
-    copyFileSync(join(import.meta.dirname, '..', 'docs', 'superpowers', 'plans', 'TASK-TEMPLATE.md'), join(dir, 'task-1-template.md'))
+    copyFileSync(
+      join(import.meta.dirname, '..', 'docs', 'superpowers', 'plans', 'TASK-TEMPLATE.md'),
+      join(dir, 'task-1-template.md'),
+    )
     expect(checkPlanFolder(dir)).toEqual([])
   })
 })

@@ -2,7 +2,17 @@ import type { StoreApi } from 'zustand'
 import type { ContentKind, ContentRecords, CreatableKind, EditableFields, RemovableKind } from '../../../backend'
 import { buildPaste, copySelection, type Clip } from '../model/clipboard'
 import {
-  canApply, EMPTY_HISTORY, recordStep, REDO_BLOCKED, takeRedo, takeUndo, UNDO_BLOCKED, withoutChange, type Change, type History, type Step,
+  canApply,
+  EMPTY_HISTORY,
+  recordStep,
+  REDO_BLOCKED,
+  takeRedo,
+  takeUndo,
+  UNDO_BLOCKED,
+  withoutChange,
+  type Change,
+  type History,
+  type Step,
 } from '../model/history'
 import { newId } from '../model/ids'
 import { getRecord } from '../model/state'
@@ -17,7 +27,12 @@ import { pendingEdits } from './pendingEdits'
 
 type Edits = {
   create<K extends CreatableKind>(kind: K, record: ContentRecords[K], label: string): Promise<boolean>
-  update<K extends ContentKind>(kind: K, id: string, changes: Partial<EditableFields[K]>, label: string): Promise<boolean>
+  update<K extends ContentKind>(
+    kind: K,
+    id: string,
+    changes: Partial<EditableFields[K]>,
+    label: string,
+  ): Promise<boolean>
   remove(kind: RemovableKind, id: string, label: string): Promise<boolean>
   group(label: string, run: () => Promise<void>): Promise<void>
   undo(): Promise<void>
@@ -86,8 +101,11 @@ function createInFlight(flush: () => void) {
 
 // Applies a step if every change still fits the state; otherwise skips it with `blocked`.
 async function play(
-  store: StoreApi<EditorStore>, setHistory: (h: History) => void,
-  taken: { history: History; step: Step } | null, blocked: string, skipped: History | null,
+  store: StoreApi<EditorStore>,
+  setHistory: (h: History) => void,
+  taken: { history: History; step: Step } | null,
+  blocked: string,
+  skipped: History | null,
 ): Promise<void> {
   if (taken === null) return
   const content = store.getState().content
@@ -130,13 +148,25 @@ function createRecorder(store: StoreApi<EditorStore>, flush: () => void, undoPau
     async undo() {
       await whenNotPaused(() => {
         const taken = takeUndo(history)
-        return play(store, setHistory, taken, UNDO_BLOCKED, taken === null ? null : { past: taken.history.past, future: history.future })
+        return play(
+          store,
+          setHistory,
+          taken,
+          UNDO_BLOCKED,
+          taken === null ? null : { past: taken.history.past, future: history.future },
+        )
       })
     },
     async redo() {
       await whenNotPaused(() => {
         const taken = takeRedo(history)
-        return play(store, setHistory, taken, REDO_BLOCKED, taken === null ? null : { past: history.past, future: taken.history.future })
+        return play(
+          store,
+          setHistory,
+          taken,
+          REDO_BLOCKED,
+          taken === null ? null : { past: history.past, future: taken.history.future },
+        )
       })
     },
     discard(change) {
@@ -144,7 +174,9 @@ function createRecorder(store: StoreApi<EditorStore>, flush: () => void, undoPau
       if (at >= 0) collecting?.splice(at, 1)
       history = withoutChange(history, change)
     },
-    reset: () => { history = EMPTY_HISTORY },
+    reset: () => {
+      history = EMPTY_HISTORY
+    },
   }
 }
 
@@ -174,8 +206,20 @@ function createWrites(store: StoreApi<EditorStore>, rec: Recorder): Pick<Edits, 
       const into = rec.openGroup()
       const w = voidable(rec)
       if (!(await store.getState().create(kind, record, w.onLate))) return false
-      if (isTrashable(kind)) w.record(into, label, { type: 'update', kind, id: record.id, before: { deleted: true }, after: { deleted: false } })
-      else w.record(into, label, { type: 'create', kind: kind as RemovableKind, record: record as ContentRecords[RemovableKind] })
+      if (isTrashable(kind))
+        w.record(into, label, {
+          type: 'update',
+          kind,
+          id: record.id,
+          before: { deleted: true },
+          after: { deleted: false },
+        })
+      else
+        w.record(into, label, {
+          type: 'create',
+          kind: kind as RemovableKind,
+          record: record as ContentRecords[RemovableKind],
+        })
       return true
     },
     async update(kind, id, changes, label) {
@@ -198,7 +242,11 @@ function createWrites(store: StoreApi<EditorStore>, rec: Recorder): Pick<Edits, 
 }
 
 // Copy and paste (D11); a paste is one step.
-function createClipboard(store: StoreApi<EditorStore>, writes: Pick<Edits, 'create' | 'update'>, group: Edits['group']): Pick<Edits, 'copy' | 'cut' | 'paste'> {
+function createClipboard(
+  store: StoreApi<EditorStore>,
+  writes: Pick<Edits, 'create' | 'update'>,
+  group: Edits['group'],
+): Pick<Edits, 'copy' | 'cut' | 'paste'> {
   let clip: Clip | null = null
   let pasteCount = 0
   const copy = (nodeIds: string[]) => {
@@ -234,7 +282,11 @@ function createClipboard(store: StoreApi<EditorStore>, writes: Pick<Edits, 'crea
   }
 }
 
-export function createEdits(store: StoreApi<EditorStore>, flush: () => void, undoPaused: () => string | null = () => null): Edits {
+export function createEdits(
+  store: StoreApi<EditorStore>,
+  flush: () => void,
+  undoPaused: () => string | null = () => null,
+): Edits {
   const rec = createRecorder(store, flush, undoPaused)
   const raw = createWrites(store, rec)
   const writes: typeof raw = {

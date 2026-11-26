@@ -1,6 +1,23 @@
 import { expect, test, type Page } from '@playwright/test'
-import { addNodeAt, cards, connectNodes, nodePosition, ownerWithProject, readyCanvas, waitForSave } from './helpers/editor.ts'
-import { cornerPixel, downloadBytes, exportButton, exportDialog, exportMap, openExport, paintCounts, pngSize } from './helpers/export.ts'
+import {
+  addNodeAt,
+  cards,
+  connectNodes,
+  nodePosition,
+  ownerWithProject,
+  readyCanvas,
+  waitForSave,
+} from './helpers/editor.ts'
+import {
+  cornerPixel,
+  downloadBytes,
+  exportButton,
+  exportDialog,
+  exportMap,
+  openExport,
+  paintCounts,
+  pngSize,
+} from './helpers/export.ts'
 
 async function storyWithTwoNodes(page: Page): Promise<[string, string]> {
   await ownerWithProject(page, 'Story')
@@ -188,6 +205,8 @@ test('an export that never finishes fails with a message', async ({ page }) => {
   await exportDialog(page).getByRole('button', { name: 'Export', exact: true }).click()
   await expect(exportDialog(page).getByRole('status')).toHaveText('Exporting…')
   await page.clock.fastForward(31_000)
-  await expect(exportDialog(page).getByRole('alert')).toHaveText('The export failed. Try again, or export one chapter at a time.')
+  await expect(exportDialog(page).getByRole('alert')).toHaveText(
+    'The export failed. Try again, or export one chapter at a time.',
+  )
   await expect(exportDialog(page).getByRole('button', { name: 'Export', exact: true })).toBeEnabled()
 })

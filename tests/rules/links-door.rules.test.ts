@@ -44,7 +44,13 @@ describe('links door rules and integration', () => {
     const door = await doorFor(owner)
 
     const link = await door.links.add(projectId, nodeId, 'Trailer', 'https://example.com/v')
-    expect(link).toMatchObject({ projectId, nodeId, creatorId: owner.id, title: 'Trailer', url: 'https://example.com/v' })
+    expect(link).toMatchObject({
+      projectId,
+      nodeId,
+      creatorId: owner.id,
+      title: 'Trailer',
+      url: 'https://example.com/v',
+    })
     expect((await door.links.list(projectId)).map((l) => l.id)).toEqual([link.id])
 
     await door.links.remove(link.id)
@@ -84,12 +90,24 @@ describe('links door rules and integration', () => {
     expect(seenOut.events).toEqual([])
 
     const addresses = [
-      'https://example.com/a', 'HTTP://EXAMPLE.COM', 'http://localhost:8090/x', 'https://a.example?x=1#y',
-      'javascript:alert(1)', 'data:text/html,x', 'ftp://a.b', '//evil.example', 'https://a b',
-      'https://google.com@evil.example', 'example.com', 'https://',
+      'https://example.com/a',
+      'HTTP://EXAMPLE.COM',
+      'http://localhost:8090/x',
+      'https://a.example?x=1#y',
+      'javascript:alert(1)',
+      'data:text/html,x',
+      'ftp://a.b',
+      '//evil.example',
+      'https://a b',
+      'https://google.com@evil.example',
+      'example.com',
+      'https://',
     ]
     for (const address of addresses) {
-      const accepted = await doorA.links.add(projectId, nodeId, '', address).then(() => true, () => false)
+      const accepted = await doorA.links.add(projectId, nodeId, '', address).then(
+        () => true,
+        () => false,
+      )
       expect(accepted, address).toBe(checkLinkUrl(address).ok)
     }
   })

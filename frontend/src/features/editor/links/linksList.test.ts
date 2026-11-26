@@ -9,7 +9,12 @@ function link(id: string, nodeId: string, created: string): NodeLink {
 describe('linksOf', () => {
   // Protects: a node shows only its own links, oldest first (C1)
   test("a node's links come oldest first", () => {
-    const links = [link('c', 'n1', '2026-11-21 10:00:03Z'), link('x', 'n2', '2026-11-21 10:00:01Z'), link('a', 'n1', '2026-11-21 10:00:01Z'), link('b', 'n1', '2026-11-21 10:00:02Z')]
+    const links = [
+      link('c', 'n1', '2026-11-21 10:00:03Z'),
+      link('x', 'n2', '2026-11-21 10:00:01Z'),
+      link('a', 'n1', '2026-11-21 10:00:01Z'),
+      link('b', 'n1', '2026-11-21 10:00:02Z'),
+    ]
     expect(linksOf(links, 'n1').map((l) => l.id)).toEqual(['a', 'b', 'c'])
     expect(linksOf(links, 'none')).toEqual([])
   })

@@ -1,7 +1,7 @@
 // Builds the project file from a project's records (plan 7 D5). CommonJS, loaded through
 // lib/project-file.js.
 
-const { checkLinkUrl } = require('./link-check.js')
+const { checkLinkUrl } = require("./link-check.js")
 
 function isLive(record) {
   return !record.deleted_at
@@ -16,7 +16,7 @@ function compareBy(first, second) {
 }
 
 function text(value) {
-  return value === null || value === undefined ? '' : String(value)
+  return value === null || value === undefined ? "" : String(value)
 }
 
 function num(value) {
@@ -33,7 +33,7 @@ function nodeEntry(n, media) {
   const entry = { id: n.id, chapter: n.chapter, title: text(n.title), color: text(n.color), x: num(n.x), y: num(n.y) }
   if (num(n.width) > 0) entry.width = num(n.width)
   if (num(n.height) > 0) entry.height = num(n.height)
-  const cover = media.find((m) => m.id === n.cover_media && m.node === n.id && m.kind === 'image' && !m.removed_at)
+  const cover = media.find((m) => m.id === n.cover_media && m.node === n.id && m.kind === "image" && !m.removed_at)
   if (cover !== undefined) entry.cover = cover.id
   return entry
 }
@@ -60,7 +60,7 @@ function mediaEntry(m) {
 function linkEntries(links, onLiveNode) {
   return links
     .filter((l) => onLiveNode(l) && checkLinkUrl(l.url).ok)
-    .sort(compareBy('created', null))
+    .sort(compareBy("created", null))
     .map((l) => ({ id: l.id, node: l.node, title: text(l.title), url: checkLinkUrl(l.url).url }))
 }
 
@@ -76,17 +76,23 @@ function buildProjectFile(records, nowIso) {
   const start = records.project.start_node
 
   const file = {
-    format: 'kwnto-project',
+    format: "kwnto-project",
     version: 1,
     exportedAt: nowIso,
     project: { name: text(records.project.name), startNode: nodeIds.has(start) ? start : null },
-    chapters: chapters.map(chapterEntry).sort(compareBy('position', null)),
-    nodes: nodes.map((n) => nodeEntry(n, records.media)).sort(compareBy('id', null)),
-    lines: records.script_lines.filter(onLiveNode).map(lineEntry).sort(compareBy('sortOrder', null)),
-    cues: records.cues.filter(onLiveNode).map(cueEntry).sort(compareBy('sortOrder', null)),
+    chapters: chapters.map(chapterEntry).sort(compareBy("position", null)),
+    nodes: nodes.map((n) => nodeEntry(n, records.media)).sort(compareBy("id", null)),
+    lines: records.script_lines.filter(onLiveNode).map(lineEntry).sort(compareBy("sortOrder", null)),
+    cues: records.cues.filter(onLiveNode).map(cueEntry).sort(compareBy("sortOrder", null)),
     // Choices keep the order they were made in (`created`, then id), as the editor shows them; Player Mode reads it.
-    connections: records.connections.filter((k) => nodeIds.has(k.from_node)).sort(compareBy('created', null)).map((k) => connectionEntry(k, nodeIds)),
-    media: records.media.filter((m) => !m.removed_at && onLiveNode(m)).map(mediaEntry).sort(compareBy('id', null)),
+    connections: records.connections
+      .filter((k) => nodeIds.has(k.from_node))
+      .sort(compareBy("created", null))
+      .map((k) => connectionEntry(k, nodeIds)),
+    media: records.media
+      .filter((m) => !m.removed_at && onLiveNode(m))
+      .map(mediaEntry)
+      .sort(compareBy("id", null)),
   }
   const links = linkEntries(records.node_links || [], onLiveNode)
   if (links.length > 0) file.links = links

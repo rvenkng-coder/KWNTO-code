@@ -3,12 +3,16 @@ import { expect, test } from 'vitest'
 
 const require = createRequire(import.meta.url)
 type Json = Record<string, unknown>
-const { FILE_LIMITS, buildProjectFile, validateProjectFile, importPlan } = require('../../backend/pb_hooks/lib/project-file.js') as {
-  FILE_LIMITS: Record<string, number>
-  buildProjectFile: (records: Json, nowIso: string) => Json
-  validateProjectFile: (value: unknown, limits: Record<string, number>) => { ok: true; file: Json } | { ok: false; problems: string[] }
-  importPlan: (file: Json, newId: () => string) => Json
-}
+const { FILE_LIMITS, buildProjectFile, validateProjectFile, importPlan } =
+  require('../../backend/pb_hooks/lib/project-file.js') as {
+    FILE_LIMITS: Record<string, number>
+    buildProjectFile: (records: Json, nowIso: string) => Json
+    validateProjectFile: (
+      value: unknown,
+      limits: Record<string, number>,
+    ) => { ok: true; file: Json } | { ok: false; problems: string[] }
+    importPlan: (file: Json, newId: () => string) => Json
+  }
 
 // Protects plan D4, D5 and design 10 (Review Focus 3): an import gives every record a
 // fresh id, so ids already in the database can never collide, and every reference (chapter,

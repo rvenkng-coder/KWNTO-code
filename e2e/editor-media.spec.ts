@@ -1,6 +1,14 @@
 import { expect, test, type Browser, type Page } from '@playwright/test'
 import { uniqueEmail } from './helpers/admin.ts'
-import { addNodeAt, card, createProject, openProject, ownerWithProject, readyCanvas, waitForSave } from './helpers/editor.ts'
+import {
+  addNodeAt,
+  card,
+  createProject,
+  openProject,
+  ownerWithProject,
+  readyCanvas,
+  waitForSave,
+} from './helpers/editor.ts'
 import { PNG_1PX, sampleBytes, setQuotaOverride } from './helpers/media.ts'
 import { goOffline } from './helpers/offline.ts'
 import { createTeam, enableJoinCode, joinWithCode, openTeam, signUpVerifyAndSignIn } from './helpers/ui.ts'
@@ -76,7 +84,9 @@ test('audio files get players and video is refused', async ({ page }) => {
   await savedMp3
 
   await input.setInputFiles({ name: 'clip.mp4', mimeType: 'video/mp4', buffer: sampleBytes('mp4', 200) })
-  await expect(alertBox(page)).toHaveText('This file type is not allowed. Allowed: WAV, MP3, OGG, M4A, OPUS, JPEG, PNG.')
+  await expect(alertBox(page)).toHaveText(
+    'This file type is not allowed. Allowed: WAV, MP3, OGG, M4A, OPUS, JPEG, PNG.',
+  )
 
   await expect(mediaItems(page)).toHaveCount(1)
   const audio = panel(page).locator('audio[controls]')
@@ -110,7 +120,9 @@ test('a file the browser can already refuse is never sent', async ({ page }) => 
   })
 
   await input.setInputFiles({ name: 'test.gif', mimeType: 'image/gif', buffer: Buffer.from('GIF89a') })
-  await expect(alertBox(page)).toHaveText('This file type is not allowed. Allowed: WAV, MP3, OGG, M4A, OPUS, JPEG, PNG.')
+  await expect(alertBox(page)).toHaveText(
+    'This file type is not allowed. Allowed: WAV, MP3, OGG, M4A, OPUS, JPEG, PNG.',
+  )
   expect(requestSent).toBe(false)
 })
 
@@ -203,7 +215,10 @@ test('removing a file hides it and only deleting for good frees its space', asyn
 // Protects: Review Focus live updates and the lead's storage rule: a member's upload shows live,
 // the member's removal hides it live, only the lead sees it as removed, and the member never
 // gets a delete or restore control.
-test("a teammate's upload and removal appear without a reload, and only the lead can delete", async ({ page, browser }) => {
+test("a teammate's upload and removal appear without a reload, and only the lead can delete", async ({
+  page,
+  browser,
+}) => {
   const { a, b } = await ownerAndMember(page, browser)
   const nodeId = await addNodeAt(a, 40, 60)
   await expect(card(b, nodeId)).toBeVisible()
@@ -221,7 +236,7 @@ test("a teammate's upload and removal appear without a reload, and only the lead
   // Owner a sees it live, on the lead's meter too
   await expect(mediaItems(a)).toHaveCount(1)
   await expect(mediaItems(a).first()).toContainText('b.png')
-  await expect(storageMeter(b)).toHaveText(await storageMeter(a).textContent() ?? '')
+  await expect(storageMeter(b)).toHaveText((await storageMeter(a).textContent()) ?? '')
 
   // Member b removes it
   const removed = waitForSave(b, 'media', 'PATCH')
@@ -270,5 +285,7 @@ test('uploads wait for the connection', async ({ page, context }) => {
 
   await context.setOffline(false)
   await expect(input).toBeEnabled()
-  await expect(panel(page).getByText('Uploads need a connection. Try again when you are back online.')).not.toBeVisible()
+  await expect(
+    panel(page).getByText('Uploads need a connection. Try again when you are back online.'),
+  ).not.toBeVisible()
 })

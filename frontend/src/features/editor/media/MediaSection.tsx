@@ -63,7 +63,9 @@ export function MediaSection({ node }: { node: StoryNode }) {
         <StorageMeter info={storage} />
       </div>
 
-      <label className={`btn self-start flex items-center gap-1 text-sm ${!isOnline ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+      <label
+        className={`btn self-start flex items-center gap-1 text-sm ${!isOnline ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+      >
         <span>Add media</span>
         <input
           type="file"
@@ -76,9 +78,7 @@ export function MediaSection({ node }: { node: StoryNode }) {
       </label>
 
       {!isOnline && (
-        <p className="text-xs text-muted">
-          Uploads need a connection. Try again when you are back online.
-        </p>
+        <p className="text-xs text-muted">Uploads need a connection. Try again when you are back online.</p>
       )}
 
       {error && isOnline && (

@@ -23,7 +23,17 @@ test('the web service builds the app into its volume and exits 0', () => {
   expect(run.status, `${run.stdout}\n${run.stderr}`).toBe(0)
   const check = spawnSync(
     'docker',
-    [...COMPOSE, 'run', '--rm', '--no-deps', '--entrypoint', 'sh', 'web', '-c', 'test -s /out/index.html && ls /out/assets | head -n 1'],
+    [
+      ...COMPOSE,
+      'run',
+      '--rm',
+      '--no-deps',
+      '--entrypoint',
+      'sh',
+      'web',
+      '-c',
+      'test -s /out/index.html && ls /out/assets | head -n 1',
+    ],
     { encoding: 'utf8' },
   )
   expect(check.status, check.stderr).toBe(0)

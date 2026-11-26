@@ -49,23 +49,28 @@ test('the story holds live nodes, ordered lines and labelled choices', () => {
 // Protects Review Focus 3 and design 6.4: a script line with no name and no text leaves no gap, cues and
 // lighting notes never reach a player, and media follows its own node in the given order.
 test('blank lines and cues stay out and media follows its node', () => {
-  const state = fromContent(content({
-    nodes: [node('n1'), node('n2')],
-    lines: [
-      line('a', { character: '', text: '', sortOrder: 1 }),
-      line('b', { character: '  ', text: ' ', sortOrder: 2 }),
-      line('c', { character: '', text: 'He waits.', sortOrder: 3 }),
-      line('d', { character: ' Mara ', text: '', sortOrder: 4 }),
-    ],
-    cues: [cue('q1', { type: 'lighting' }), cue('q2', { type: 'audio' })],
-  }))
+  const state = fromContent(
+    content({
+      nodes: [node('n1'), node('n2')],
+      lines: [
+        line('a', { character: '', text: '', sortOrder: 1 }),
+        line('b', { character: '  ', text: ' ', sortOrder: 2 }),
+        line('c', { character: '', text: 'He waits.', sortOrder: 3 }),
+        line('d', { character: ' Mara ', text: '', sortOrder: 4 }),
+      ],
+      cues: [cue('q1', { type: 'lighting' }), cue('q2', { type: 'audio' })],
+    }),
+  )
   const story = buildStory(state, [
     { id: 'a', nodeId: 'n1', title: 'A', kind: 'image' },
     { id: 'b', nodeId: 'n2', title: 'B', kind: 'audio' },
     { id: 'c', nodeId: 'n1', title: 'C', kind: 'video' },
   ])
   const n1 = story.nodes.n1
-  expect(n1?.lines).toEqual([{ character: '', text: 'He waits.' }, { character: 'Mara', text: '' }])
+  expect(n1?.lines).toEqual([
+    { character: '', text: 'He waits.' },
+    { character: 'Mara', text: '' },
+  ])
   expect(n1 !== undefined && 'cues' in n1).toBe(false)
   expect(n1?.media.map((m) => m.id)).toEqual(['a', 'c'])
   expect(story.nodes.n2?.media.map((m) => m.id)).toEqual(['b'])

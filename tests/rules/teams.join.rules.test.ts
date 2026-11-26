@@ -124,7 +124,9 @@ test('join: simultaneous joins by the same user give exactly one member row', as
   const team = await teamWithOpenCode(owner)
   const token = await tokenOf(joiner)
 
-  const replies = await Promise.all(Array.from({ length: 5 }, () => send(token, JOIN, { method: 'POST', body: { code: team.joinCode } })))
+  const replies = await Promise.all(
+    Array.from({ length: 5 }, () => send(token, JOIN, { method: 'POST', body: { code: team.joinCode } })),
+  )
 
   expect(replies.map((reply) => reply.status)).toEqual([200, 200, 200, 200, 200])
   expect(await membershipsOf(joiner)).toHaveLength(1)
@@ -199,8 +201,13 @@ test('regenerate: the owner gets a new code; the old one stops working and the n
 // (403); someone outside the team, including the owner of ANOTHER team and a caller
 // with an id that does not exist, gets the same 404, so the route does not reveal which
 // team ids exist. Nothing is written to the team's settings.
-test('regenerate: a member gets 403; an outsider, another team\'s owner and an unknown id get the same 404', async () => {
-  const [owner, member, outsider, otherOwner] = [await createUser(), await createUser(), await createUser(), await createUser()]
+test("regenerate: a member gets 403; an outsider, another team's owner and an unknown id get the same 404", async () => {
+  const [owner, member, outsider, otherOwner] = [
+    await createUser(),
+    await createUser(),
+    await createUser(),
+    await createUser(),
+  ]
   const team = await teamWithOpenCode(owner)
   await createTeam(otherOwner) // otherOwner owns team B
   await addMember(team.id, member)
@@ -254,7 +261,11 @@ test('rate limit: invite attempts count toward the same limit', async () => {
   const [owner, user] = [await createUser(), await createUser()]
   const team = await teamWithOpenCode(owner)
   await setAttemptsPerHour(3)
-  await (await asAdmin()).collection('security_events').create({ type: 'invite', user: user.id, ip: '', detail: { ok: true } })
+  await (
+    await asAdmin()
+  )
+    .collection('security_events')
+    .create({ type: 'invite', user: user.id, ip: '', detail: { ok: true } })
 
   expect((await join(user, 'WRONG234')).status).toBe(404)
   expect((await join(user, 'WRONG235')).status).toBe(404)
@@ -278,7 +289,9 @@ test('log: each attempt writes one join event with its outcome and never the cod
     { ok: true, team: team.id },
     { ok: false, limited: true },
   ])
-  const allDetails = JSON.stringify((await (await asAdmin()).collection('security_events').getFullList()).map((event) => event.detail))
+  const allDetails = JSON.stringify(
+    (await (await asAdmin()).collection('security_events').getFullList()).map((event) => event.detail),
+  )
   for (const code of [team.joinCode, team.joinCode.toLowerCase(), 'WRONG234']) {
     expect(allDetails).not.toContain(code)
   }

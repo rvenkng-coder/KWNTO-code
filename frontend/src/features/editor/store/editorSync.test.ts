@@ -40,10 +40,28 @@ function fakeDoor(pages: ProjectContent[]) {
       return new Promise<() => Promise<void>>((resolve) => heldSubs.push(() => resolve(ready)))
     },
     create: ((_kind: string, record: unknown) => Promise.resolve(record)) as EditorDoor['create'],
-    update: ((...args: unknown[]) => new Promise<StoryNode>((resolve, reject) => updates.push({ args, resolve, reject }))) as EditorDoor['update'],
+    update: ((...args: unknown[]) =>
+      new Promise<StoryNode>((resolve, reject) => updates.push({ args, resolve, reject }))) as EditorDoor['update'],
     remove: () => Promise.resolve(),
   }
-  return { door, updates, loads, reconnects, events, heldLoads, heldSubs, holdNextSub: () => { holdSub = true }, holdNextLoad: () => { holdNext = true }, setServer: (n: StoryNode) => { server = n } }
+  return {
+    door,
+    updates,
+    loads,
+    reconnects,
+    events,
+    heldLoads,
+    heldSubs,
+    holdNextSub: () => {
+      holdSub = true
+    },
+    holdNextLoad: () => {
+      holdNext = true
+    },
+    setServer: (n: StoryNode) => {
+      server = n
+    },
+  }
 }
 
 // A store on a real sync engine over a memory outbox the test can pre-fill.
@@ -53,9 +71,17 @@ async function setup(pages: ProjectContent[], prefill: Array<Record<string, unkn
   for (const e of prefill) await storage.add({ userId: 'u1', projectId: 'p1', offline: false, made: 1, ...e } as never)
   const registry = createHookRegistry()
   const engine = createSyncEngine({
-    userId: 'u1', door: fake.door, storage, hooks: registry.hooks, lock: (_n, run) => run(),
+    userId: 'u1',
+    door: fake.door,
+    storage,
+    hooks: registry.hooks,
+    lock: (_n, run) => run(),
     channel: { post: () => {}, listen: () => () => {} },
-    clock: { now: () => 1, setTimeout: (fn, ms) => setTimeout(fn, ms), clearTimeout: (h) => clearTimeout(h as ReturnType<typeof setTimeout>) },
+    clock: {
+      now: () => 1,
+      setTimeout: (fn, ms) => setTimeout(fn, ms),
+      clearTimeout: (h) => clearTimeout(h as ReturnType<typeof setTimeout>),
+    },
   })
   if (startEngine) {
     engine.start()
@@ -78,7 +104,9 @@ test('an edit is stored with the version and value it started from', async () =>
   const saving = s.store.getState().update('nodes', 'n1', { title: 'B' })
   expect(s.store.getState().content.nodes.n1?.title).toBe('B')
   await settle()
-  expect(await s.storage.list('u1')).toMatchObject([{ op: 'update', id: 'n1', changes: { title: 'B' }, baseVersion: 4, baseValues: { title: 'A' } }])
+  expect(await s.storage.list('u1')).toMatchObject([
+    { op: 'update', id: 'n1', changes: { title: 'B' }, baseVersion: 4, baseValues: { title: 'A' } },
+  ])
   s.fake.updates[0]!.resolve(n1({ title: 'B', version: 5 }))
   expect(await saving).toBe(true)
   expect(s.store.getState().content.nodes.n1?.version).toBe(5)
@@ -86,9 +114,20 @@ test('an edit is stored with the version and value it started from', async () =>
 
 // Protects: decision 0002 finding E: edits waiting from an earlier session show over a freshly loaded project, then save.
 test('waiting edits are shown over a freshly loaded project', async () => {
-  const s = await setup([content({ nodes: [n1({ color: 'red' })] })], [
-    { op: 'update', kind: 'nodes', id: 'n1', changes: { color: 'blue' }, baseVersion: 4, baseValues: { color: 'red' }, snapshot: null },
-  ])
+  const s = await setup(
+    [content({ nodes: [n1({ color: 'red' })] })],
+    [
+      {
+        op: 'update',
+        kind: 'nodes',
+        id: 'n1',
+        changes: { color: 'blue' },
+        baseVersion: 4,
+        baseValues: { color: 'red' },
+        snapshot: null,
+      },
+    ],
+  )
   await open(s)
   expect(s.store.getState().content.nodes.n1?.color).toBe('blue')
   s.fake.updates[0]!.resolve(n1({ color: 'blue', version: 5 }))
@@ -123,10 +162,21 @@ test('a reconnect reloads the project and keeps waiting edits', async () => {
 })
 
 // Protects: D8: an entry refused after a reload has no local copy to undo from, so the server's copy is shown and the entry is listed as failed.
-test('a refused edit from before a reload shows the server\'s copy', async () => {
-  const s = await setup([content({ nodes: [n1({ title: 'Server', version: 6 })] })], [
-    { op: 'update', kind: 'nodes', id: 'n1', changes: { title: 'Mine' }, baseVersion: 4, baseValues: { title: 'A' }, snapshot: null },
-  ])
+test("a refused edit from before a reload shows the server's copy", async () => {
+  const s = await setup(
+    [content({ nodes: [n1({ title: 'Server', version: 6 })] })],
+    [
+      {
+        op: 'update',
+        kind: 'nodes',
+        id: 'n1',
+        changes: { title: 'Mine' },
+        baseVersion: 4,
+        baseValues: { title: 'A' },
+        snapshot: null,
+      },
+    ],
+  )
   s.fake.setServer(n1({ title: 'Server', version: 6 }))
   await open(s)
   expect(s.store.getState().content.nodes.n1?.title).toBe('Mine')
@@ -138,9 +188,21 @@ test('a refused edit from before a reload shows the server\'s copy', async () =>
 
 // Protects: finding E: waiting edits the engine only learned about after the project loaded (the outbox was still being read) are laid over it then.
 test('waiting edits that become known after the load are laid over the project', async () => {
-  const s = await setup([content({ nodes: [n1({ color: 'red' })] })], [
-    { op: 'update', kind: 'nodes', id: 'n1', changes: { color: 'blue' }, baseVersion: 4, baseValues: { color: 'red' }, snapshot: null },
-  ], false)
+  const s = await setup(
+    [content({ nodes: [n1({ color: 'red' })] })],
+    [
+      {
+        op: 'update',
+        kind: 'nodes',
+        id: 'n1',
+        changes: { color: 'blue' },
+        baseVersion: 4,
+        baseValues: { color: 'red' },
+        snapshot: null,
+      },
+    ],
+    false,
+  )
   await open(s)
   expect(s.store.getState().content.nodes.n1?.color).toBe('red')
   s.engine.start()
@@ -207,9 +269,20 @@ test('after coming back online the subscription is open before the project is lo
 
 // Protects: finding E: a waiting edit that the server accepts while the project is still opening is not lost from the screen when the (older) load arrives.
 test('a save that lands while the project is opening shows once the load arrives', async () => {
-  const s = await setup([content({ nodes: [n1()] })], [
-    { op: 'update', kind: 'nodes', id: 'n1', changes: { title: 'Mine' }, baseVersion: 4, baseValues: { title: 'A' }, snapshot: null },
-  ])
+  const s = await setup(
+    [content({ nodes: [n1()] })],
+    [
+      {
+        op: 'update',
+        kind: 'nodes',
+        id: 'n1',
+        changes: { title: 'Mine' },
+        baseVersion: 4,
+        baseValues: { title: 'A' },
+        snapshot: null,
+      },
+    ],
+  )
   s.fake.holdNextLoad()
   const opening = s.store.getState().open('p1')
   await settle()
@@ -228,14 +301,19 @@ test('a remove that cancels a waiting create leaves nothing pending', async () =
   const created = s.store.getState().create('script_lines', line('L', { nodeId: 'n1' }))
   await settle()
   const removed = s.store.getState().remove('script_lines', 'L')
-  const both = await Promise.race([Promise.all([created, removed]), new Promise<string>((r) => setTimeout(() => r('pending'), 300))])
+  const both = await Promise.race([
+    Promise.all([created, removed]),
+    new Promise<string>((r) => setTimeout(() => r('pending'), 300)),
+  ])
   expect(both).toEqual([true, true])
   expect(s.store.getState().saving).toBe(0)
 })
 
 // Protects: design 6.7 "nothing is lost if you close the tab": a paste made offline stores every pasted record in the outbox at once, not only the first node.
 test('an offline paste stores every pasted record in the outbox', async () => {
-  const s = await setup([content({ nodes: [node('a'), node('b')], lines: [line('la', { nodeId: 'a' }), line('lb', { nodeId: 'b' })] })])
+  const s = await setup([
+    content({ nodes: [node('a'), node('b')], lines: [line('la', { nodeId: 'a' }), line('lb', { nodeId: 'b' })] }),
+  ])
   await open(s)
   const edits = createEdits(s.store, () => {})
   s.engine.setOnline(false)

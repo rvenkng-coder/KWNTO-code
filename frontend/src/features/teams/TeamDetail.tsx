@@ -105,7 +105,12 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
     try {
       const count = (await backend.projects.list(teamId)).length
       const noun = count === 1 ? 'project' : 'projects'
-      if (await askConfirm(count === 0 ? 'Delete this team?' : `Delete this team and its ${count} ${noun}?`, 'Delete team')) {
+      if (
+        await askConfirm(
+          count === 0 ? 'Delete this team?' : `Delete this team and its ${count} ${noun}?`,
+          'Delete team',
+        )
+      ) {
         await useTeams.getState().remove(teamId)
         navigate({ name: 'teams' })
       }
@@ -118,7 +123,9 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
   return (
     <div className="flex flex-col gap-4">
       <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-muted">
-        <button type="button" className="link-button" onClick={onBack}>Teams</button>
+        <button type="button" className="link-button" onClick={onBack}>
+          Teams
+        </button>
         <span aria-hidden="true">/</span>
         <span>{team?.name ?? 'Team'}</span>
       </nav>
@@ -129,15 +136,27 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
           {members.length} {members.length === 1 ? 'member' : 'members'}
         </p>
       </header>
-      {error && <p data-testid="form-error" role="alert">{error}</p>}
+      {error && (
+        <p data-testid="form-error" role="alert">
+          {error}
+        </p>
+      )}
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="flex min-w-0 flex-col gap-4">
           {team !== null && (
-            <ProjectList key={`projects-${projectsVersion}`} teamId={teamId} isOwner={isOwner} onTrashed={refreshProjects} onCount={setProjectCount}>
+            <ProjectList
+              key={`projects-${projectsVersion}`}
+              teamId={teamId}
+              isOwner={isOwner}
+              onTrashed={refreshProjects}
+              onCount={setProjectCount}
+            >
               <ImportProject teamId={teamId} />
             </ProjectList>
           )}
-          {team !== null && isOwner && <TeamTrash key={`trash-${projectsVersion}`} teamId={teamId} onRestored={refreshProjects} />}
+          {team !== null && isOwner && (
+            <TeamTrash key={`trash-${projectsVersion}`} teamId={teamId} onRestored={refreshProjects} />
+          )}
         </div>
         <aside className="flex flex-col gap-4">
           <MemberList members={members} isOwner={isOwner} loaded={loaded} onRemove={handleRemoveMember} />
@@ -150,7 +169,11 @@ export function TeamDetail({ teamId, onBack }: TeamDetailProps) {
               onError={setError}
             />
           )}
-          {isOwner && <button type="button" className="btn-quiet self-start text-danger" onClick={handleDeleteTeam}>Delete team</button>}
+          {isOwner && (
+            <button type="button" className="btn-quiet self-start text-danger" onClick={handleDeleteTeam}>
+              Delete team
+            </button>
+          )}
         </aside>
       </div>
     </div>

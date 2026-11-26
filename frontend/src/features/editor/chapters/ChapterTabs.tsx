@@ -9,7 +9,11 @@ import { TabMenu } from './TabMenu'
 import { activeAfterClose, TAB_DEFAULT, visibleTabs } from './tabsView'
 import { useTabsView } from './useTabsView'
 
-interface ChapterTabsProps { projectId: string; chapters: Chapter[]; activeId: string | null }
+interface ChapterTabsProps {
+  projectId: string
+  chapters: Chapter[]
+  activeId: string | null
+}
 
 // Drag the right edge of a tab to set its width (D10); the width is kept in memory only.
 function ResizeHandle({ id, width }: { id: string; width: number }) {

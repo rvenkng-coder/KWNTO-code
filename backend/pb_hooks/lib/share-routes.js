@@ -47,7 +47,9 @@ function openLink(e, token) {
   const link = findLink(e.app, token)
   const project = link === null ? null : findOrNull(e.app, "projects", link.getString("project"))
   const known = link !== null && project !== null
-  const plain = known ? { revoked: link.getBool("revoked"), permission: link.getString("permission"), kind: link.getString("kind") } : null
+  const plain = known
+    ? { revoked: link.getBool("revoked"), permission: link.getString("permission"), kind: link.getString("kind") }
+    : null
   const decision = shareAccess(plain, known && project.getString("deleted_at") !== "", callerOf(e))
   if (decision.status !== 200) throw refuse(decision.status)
   return { link: link, project: project, mode: decision.mode }

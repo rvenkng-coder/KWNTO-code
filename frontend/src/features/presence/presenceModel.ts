@@ -6,13 +6,22 @@ import type { PresenceRow } from '../../backend'
  * The rows of other people that are still fresh. `seenAt` is when THIS browser last received
  * each row (its own clock), so a machine with a wrong clock cannot make a row stale or eternal.
  */
-export function activeEditors(rows: PresenceRow[], seenAt: Record<string, number>, nowMs: number, timeoutMs: number, selfId: string): PresenceRow[] {
+export function activeEditors(
+  rows: PresenceRow[],
+  seenAt: Record<string, number>,
+  nowMs: number,
+  timeoutMs: number,
+  selfId: string,
+): PresenceRow[] {
   return rows.filter((r) => r.userId !== selfId && seenAt[r.id] !== undefined && nowMs - seenAt[r.id]! < timeoutMs)
 }
 
 /** The sorted names of the people editing a node, or one field of it. */
 export function editorsOf(active: PresenceRow[], nodeId: string, field?: string): string[] {
-  return active.filter((r) => r.nodeId === nodeId && (field === undefined || r.field === field)).map((r) => r.userName).sort()
+  return active
+    .filter((r) => r.nodeId === nodeId && (field === undefined || r.field === field))
+    .map((r) => r.userName)
+    .sort()
 }
 
 export function editingLabel(names: string[]): string {

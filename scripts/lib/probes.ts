@@ -18,7 +18,8 @@ export function parseProbeTitle(title: string): { row: string; kind: string } | 
   return match ? { row: match[1], kind: match[2] } : null
 }
 
-const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value)
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
 
 const malformed = (): Error => new Error('the vitest report is malformed')
 

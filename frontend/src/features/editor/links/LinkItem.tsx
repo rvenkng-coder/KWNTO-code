@@ -29,7 +29,9 @@ export function LinkItem({ link, onDelete }: LinkItemProps) {
             {label}
           </a>
         ) : (
-          <span className="truncate text-sm font-medium" title="Not a web address">{label}</span>
+          <span className="truncate text-sm font-medium" title="Not a web address">
+            {label}
+          </span>
         )}
         {label !== host && <span className="truncate text-xs text-muted">{host}</span>}
       </div>

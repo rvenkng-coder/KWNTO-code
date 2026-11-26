@@ -1,6 +1,14 @@
 import type {
-  Chapter, Connection, ContentKind, ContentRecords, Cue, Project, ProjectContent, ProjectSettings,
-  ScriptLine, StoryNode,
+  Chapter,
+  Connection,
+  ContentKind,
+  ContentRecords,
+  Cue,
+  Project,
+  ProjectContent,
+  ProjectSettings,
+  ScriptLine,
+  StoryNode,
 } from '../../../backend'
 import { byOrder } from './sortOrder'
 
@@ -18,7 +26,13 @@ export interface ContentState {
 }
 
 export const EMPTY_STATE: ContentState = {
-  project: null, settings: null, chapters: {}, nodes: {}, lines: {}, cues: {}, connections: {},
+  project: null,
+  settings: null,
+  chapters: {},
+  nodes: {},
+  lines: {},
+  cues: {},
+  connections: {},
 }
 
 function byId<T extends { id: string }>(records: T[]): Record<string, T> {
@@ -27,8 +41,13 @@ function byId<T extends { id: string }>(records: T[]): Record<string, T> {
 
 export function fromContent(c: ProjectContent): ContentState {
   return {
-    project: c.project, settings: c.settings, chapters: byId(c.chapters), nodes: byId(c.nodes),
-    lines: byId(c.lines), cues: byId(c.cues), connections: byId(c.connections),
+    project: c.project,
+    settings: c.settings,
+    chapters: byId(c.chapters),
+    nodes: byId(c.nodes),
+    lines: byId(c.lines),
+    cues: byId(c.cues),
+    connections: byId(c.connections),
   }
 }
 
@@ -46,7 +65,9 @@ export function isLiveNode(s: ContentState, nodeId: string): boolean {
 }
 
 export function liveNodes(s: ContentState, chapterId?: string): StoryNode[] {
-  return Object.values(s.nodes).filter((n) => isLiveNode(s, n.id) && (chapterId === undefined || n.chapterId === chapterId))
+  return Object.values(s.nodes).filter(
+    (n) => isLiveNode(s, n.id) && (chapterId === undefined || n.chapterId === chapterId),
+  )
 }
 
 /** A connection whose target is set (an empty choice has none). */
@@ -60,19 +81,30 @@ export function liveConnections(s: ContentState): LinkedConnection[] {
 }
 
 export function linesOf(s: ContentState, nodeId: string): ScriptLine[] {
-  return Object.values(s.lines).filter((l) => l.nodeId === nodeId).sort(byOrder)
+  return Object.values(s.lines)
+    .filter((l) => l.nodeId === nodeId)
+    .sort(byOrder)
 }
 
 export function cuesOf(s: ContentState, nodeId: string): Cue[] {
-  return Object.values(s.cues).filter((c) => c.nodeId === nodeId).sort(byOrder)
+  return Object.values(s.cues)
+    .filter((c) => c.nodeId === nodeId)
+    .sort(byOrder)
 }
 
 // The collections that hold many records of one kind (the project and its settings are single).
-const TABLE = { chapters: 'chapters', nodes: 'nodes', script_lines: 'lines', cues: 'cues', connections: 'connections' } as const
+const TABLE = {
+  chapters: 'chapters',
+  nodes: 'nodes',
+  script_lines: 'lines',
+  cues: 'cues',
+  connections: 'connections',
+} as const
 
 export function getRecord<K extends ContentKind>(s: ContentState, kind: K, id: string): ContentRecords[K] | undefined {
   if (kind === 'projects') return (s.project?.id === id ? s.project : undefined) as ContentRecords[K] | undefined
-  if (kind === 'project_settings') return (s.settings?.id === id ? s.settings : undefined) as ContentRecords[K] | undefined
+  if (kind === 'project_settings')
+    return (s.settings?.id === id ? s.settings : undefined) as ContentRecords[K] | undefined
   return s[TABLE[kind as keyof typeof TABLE]][id] as ContentRecords[K] | undefined
 }
 
@@ -104,7 +136,11 @@ function newer<T extends { version: number }>(local: T | undefined, loaded: T | 
  * save landed). Records only the screen has are gone: someone deleted them meanwhile.
  */
 export function mergeNewer(local: ContentState, loaded: ContentState): ContentState {
-  const merged: ContentState = { ...loaded, project: newer(local.project ?? undefined, loaded.project), settings: newer(local.settings ?? undefined, loaded.settings) }
+  const merged: ContentState = {
+    ...loaded,
+    project: newer(local.project ?? undefined, loaded.project),
+    settings: newer(local.settings ?? undefined, loaded.settings),
+  }
   for (const table of TABLES) {
     const next: Record<string, { version: number }> = {}
     for (const [id, record] of Object.entries(loaded[table])) next[id] = newer(local[table][id], record) ?? record

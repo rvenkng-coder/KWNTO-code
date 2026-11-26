@@ -39,14 +39,27 @@ export function LinksSection({ node }: { node: StoryNode }) {
       <h4 className="text-sm font-semibold">Links and other material</h4>
 
       <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-1">
-        <input className="field" aria-label="Link title" maxLength={TITLE_MAX} placeholder="Title (optional)" value={title} onChange={(e) => setTitle(e.target.value)} />
-        <input className="field" aria-label="Link address" placeholder="https://" value={address} onChange={(e) => setAddress(e.target.value)} />
-        <button type="submit" className="btn self-start text-sm" disabled={!isOnline}>Add link</button>
+        <input
+          className="field"
+          aria-label="Link title"
+          maxLength={TITLE_MAX}
+          placeholder="Title (optional)"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <input
+          className="field"
+          aria-label="Link address"
+          placeholder="https://"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+        />
+        <button type="submit" className="btn self-start text-sm" disabled={!isOnline}>
+          Add link
+        </button>
       </form>
 
-      {!isOnline && (
-        <p className="text-xs text-muted">Links need a connection. Try again when you are back online.</p>
-      )}
+      {!isOnline && <p className="text-xs text-muted">Links need a connection. Try again when you are back online.</p>}
 
       {error && (
         <div role="alert" className="text-xs text-danger">

@@ -17,16 +17,33 @@ describe('checkLinkUrl', () => {
 
   // Protects: nothing that could run script or hide the real host is accepted (C2)
   test('unsafe and malformed addresses are refused', () => {
-    const scheme = ['javascript:alert(1)', ' JavaScript:alert(1)', 'data:text/html,x', 'ftp://a.b', 'file:///etc/passwd', '//evil.example']
+    const scheme = [
+      'javascript:alert(1)',
+      ' JavaScript:alert(1)',
+      'data:text/html,x',
+      'ftp://a.b',
+      'file:///etc/passwd',
+      '//evil.example',
+    ]
     for (const text of scheme) {
       expect(checkLinkUrl(text), text).toMatchObject({ ok: false, code: 'link_url_scheme', message: ONLY_WEB })
     }
-    const invalid = ['https://', 'https://a b', 'https://user:pw@host.example', 'https://google.com@evil.example', 'example.com']
+    const invalid = [
+      'https://',
+      'https://a b',
+      'https://user:pw@host.example',
+      'https://google.com@evil.example',
+      'example.com',
+    ]
     for (const text of invalid) {
       expect(checkLinkUrl(text), text).toMatchObject({ ok: false, code: 'link_url_invalid', message: NOT_WEB })
     }
     for (const text of ['', '   ']) {
-      expect(checkLinkUrl(text), text).toMatchObject({ ok: false, code: 'link_url_empty', message: 'Enter a web address.' })
+      expect(checkLinkUrl(text), text).toMatchObject({
+        ok: false,
+        code: 'link_url_empty',
+        message: 'Enter a web address.',
+      })
     }
   })
 
@@ -35,6 +52,10 @@ describe('checkLinkUrl', () => {
     const base = 'https://a.example/'
     const at = base + 'x'.repeat(2000 - base.length)
     expect(checkLinkUrl(at).ok).toBe(true)
-    expect(checkLinkUrl(at + 'x')).toMatchObject({ ok: false, code: 'link_url_too_long', message: 'The address is longer than 2000 characters.' })
+    expect(checkLinkUrl(at + 'x')).toMatchObject({
+      ok: false,
+      code: 'link_url_too_long',
+      message: 'The address is longer than 2000 characters.',
+    })
   })
 })

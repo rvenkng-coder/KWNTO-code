@@ -9,18 +9,33 @@ import { toBackendError } from './errors'
 // nothing. Events missed while disconnected are not replayed (finding E, Plan 4).
 
 const KINDS: readonly ContentKind[] = [
-  'projects', 'project_settings', 'chapters', 'nodes', 'script_lines', 'cues', 'connections',
+  'projects',
+  'project_settings',
+  'chapters',
+  'nodes',
+  'script_lines',
+  'cues',
+  'connections',
 ]
 const ACTIONS: ReadonlyArray<RemoteEvent['action']> = ['create', 'update', 'delete']
 
 type Unsubscribe = () => Promise<void>
 
-function toEvent<K extends ContentKind>(kind: K, action: RemoteEvent['action'], record: ContentRecords[K]): RemoteEvent {
+function toEvent<K extends ContentKind>(
+  kind: K,
+  action: RemoteEvent['action'],
+  record: ContentRecords[K],
+): RemoteEvent {
   // The mapped union cannot be built from a generic K without a cast; kind and record match by construction.
   return { kind, action, record } as RemoteEvent
 }
 
-function subscribeKind(pb: PocketBase, kind: ContentKind, projectId: string, onEvent: (e: RemoteEvent) => void): Promise<Unsubscribe> {
+function subscribeKind(
+  pb: PocketBase,
+  kind: ContentKind,
+  projectId: string,
+  onEvent: (e: RemoteEvent) => void,
+): Promise<Unsubscribe> {
   const deliver = (e: { action: string; record: Record<string, unknown> }) => {
     const action = ACTIONS.find((a) => a === e.action)
     if (action) onEvent(toEvent(kind, action, fromRecord(kind, e.record)))
@@ -88,15 +103,17 @@ function subscribeConnect(pb: PocketBase, onReconnect?: () => void): Promise<Uns
     if (active.length > 0) announce(pb, false)
   }
   pb.realtime.onDisconnect = mine
-  return pb.realtime.subscribe('PB_CONNECT', () => {
-    connects++
-    announce(pb, true)
-    if (connects > 1) onReconnect?.()
-  }).then((close) => async () => {
-    // Another subscription may have opened meanwhile (React opens one twice in development): leave its callback.
-    if (pb.realtime.onDisconnect === mine) pb.realtime.onDisconnect = undefined
-    await close()
-  })
+  return pb.realtime
+    .subscribe('PB_CONNECT', () => {
+      connects++
+      announce(pb, true)
+      if (connects > 1) onReconnect?.()
+    })
+    .then((close) => async () => {
+      // Another subscription may have opened meanwhile (React opens one twice in development): leave its callback.
+      if (pb.realtime.onDisconnect === mine) pb.realtime.onDisconnect = undefined
+      await close()
+    })
 }
 
 /** Opens the seven subscriptions one after another; resolves to a function that closes them all. */

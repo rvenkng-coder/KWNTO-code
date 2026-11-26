@@ -10,10 +10,16 @@ test('each account gets its own sync engine', () => {
     push = listener
     return () => {}
   }
-  const makeEngine = (userId: string): SyncEngine => ({
-    start: () => { log.push(`start ${userId}`) },
-    stop: () => { log.push(`stop ${userId}`); return Promise.resolve() },
-  }) as unknown as SyncEngine
+  const makeEngine = (userId: string): SyncEngine =>
+    ({
+      start: () => {
+        log.push(`start ${userId}`)
+      },
+      stop: () => {
+        log.push(`stop ${userId}`)
+        return Promise.resolve()
+      },
+    }) as unknown as SyncEngine
   const lifecycle = createSyncLifecycle(onUser, makeEngine)
   const seen: Array<SyncEngine | null> = []
   lifecycle.subscribe((e) => seen.push(e))

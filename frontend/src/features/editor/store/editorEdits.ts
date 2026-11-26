@@ -18,7 +18,13 @@ type Waiter = { finish(ok: boolean): void; undo(s: ContentState): ContentState; 
 const REMOVABLE: ReadonlySet<ContentKind> = new Set<RemovableKind>(['script_lines', 'cues', 'connections'])
 
 // Only the fields the failed edit touched go back, so an edit of another field made meanwhile stays.
-function restoreFields<K extends ContentKind>(s: ContentState, kind: K, id: string, before: ContentRecords[K], keys: string[]): ContentState {
+function restoreFields<K extends ContentKind>(
+  s: ContentState,
+  kind: K,
+  id: string,
+  before: ContentRecords[K],
+  keys: string[],
+): ContentState {
   const current = getRecord(s, kind, id)
   if (current === undefined) return s
   const restored = { ...current } as Record<string, unknown>
@@ -35,7 +41,9 @@ function createWaiters() {
   const early = new Map<number, boolean>()
   let adding = 0
   return {
-    begin: () => { adding++ },
+    begin: () => {
+      adding++
+    },
     end() {
       if (--adding === 0) early.clear()
     },
@@ -126,26 +134,34 @@ function createSubmit(c: Ctx, sync: EditorSyncPort) {
       }
       const answered = (ok: boolean, w: Waiter) => (ok ? w.finish(true) : (c.edit(w.undo), w.finish(false)))
       c.waiters.begin()
-      sync.add(entry).then(
-        (seq) => {
-          if (seq === 0) return waiter.finish(true)
-          c.waiters.attach(seq, waiter, answered)
-          if (offline) {
-            waiter.early = true
-            resolve(true)
-          }
-        },
-        (err: unknown) => {
-          c.edit(undo)
-          c.set({ error: errorMessage(err, SAVE_FAILED) })
-          waiter.finish(false)
-        },
-      ).finally(() => c.waiters.end())
+      sync
+        .add(entry)
+        .then(
+          (seq) => {
+            if (seq === 0) return waiter.finish(true)
+            c.waiters.attach(seq, waiter, answered)
+            if (offline) {
+              waiter.early = true
+              resolve(true)
+            }
+          },
+          (err: unknown) => {
+            c.edit(undo)
+            c.set({ error: errorMessage(err, SAVE_FAILED) })
+            waiter.finish(false)
+          },
+        )
+        .finally(() => c.waiters.end())
     })
   }
 }
 
-export function createEdits(door: EditorDoor, sync: EditorSyncPort, set: Set, get: () => EditorStore): Pick<EditorStore, 'create' | 'update' | 'remove'> {
+export function createEdits(
+  door: EditorDoor,
+  sync: EditorSyncPort,
+  set: Set,
+  get: () => EditorStore,
+): Pick<EditorStore, 'create' | 'update' | 'remove'> {
   const edit = (change: (s: ContentState) => ContentState) => set((st) => ({ content: change(st.content) }))
   const c: Ctx = { door, set, get, edit, waiters: createWaiters() }
   sync.register(createHooks(c))
@@ -154,7 +170,11 @@ export function createEdits(door: EditorDoor, sync: EditorSyncPort, set: Set, ge
   return {
     create(kind, record, onLate) {
       edit((s) => putRecord(s, kind, record))
-      return submit({ projectId: record.projectId, op: 'create', kind, id: record.id, record }, (s) => dropRecord(s, kind, record.id), onLate)
+      return submit(
+        { projectId: record.projectId, op: 'create', kind, id: record.id, record },
+        (s) => dropRecord(s, kind, record.id),
+        onLate,
+      )
     },
 
     update(kind, id, changes, onLate) {
@@ -169,7 +189,16 @@ export function createEdits(door: EditorDoor, sync: EditorSyncPort, set: Set, ge
       edit((s) => putRecord(s, kind, after))
       const snapshot = REMOVABLE.has(kind) ? (after as ContentRecords[RemovableKind]) : null
       return submit(
-        { projectId, op: 'update', kind, id, changes, baseVersion: before.version, baseValues: pick(before, keys), snapshot },
+        {
+          projectId,
+          op: 'update',
+          kind,
+          id,
+          changes,
+          baseVersion: before.version,
+          baseValues: pick(before, keys),
+          snapshot,
+        },
         (s) => restoreFields(s, kind, id, before, keys),
         onLate,
       )

@@ -1,15 +1,35 @@
 // Protects the sandbox the local model works in: built from HEAD only, no remote, a baseline commit, a linked
 // node_modules that git ignores, a dirty checkout noticed, and a baseline that fails closed.
 import { spawnSync } from 'node:child_process'
-import { chmodSync, existsSync, mkdirSync as mkdirSyncSafe, lstatSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync as mkdirSyncSafe,
+  lstatSync,
+  mkdtempSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, test } from 'vitest'
-import { checkoutState, confirmBaseline, createSandbox, inHead, pathTaken, realLocation, type RunCheck, SandboxError } from './sandbox.ts'
+import {
+  checkoutState,
+  confirmBaseline,
+  createSandbox,
+  inHead,
+  pathTaken,
+  realLocation,
+  type RunCheck,
+  SandboxError,
+} from './sandbox.ts'
 import { git, makeRepo, writeIn } from './temp-repo.ts'
 
 const dirs: string[] = []
-afterEach(() => { for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true }) })
+afterEach(() => {
+  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true })
+})
 
 function fixture(): string {
   const { cwd } = makeRepo({ 'a.txt': 'one\n', 'sub dir/b.txt': 'two\n', '.gitignore': 'node_modules/\n' })
@@ -83,7 +103,11 @@ describe('createSandbox', () => {
     const sandbox = outDir()
     createSandbox(cwd, sandbox)
     expect(() => createSandbox(cwd, sandbox)).toThrow(SandboxError)
-    try { createSandbox(cwd, sandbox) } catch (error) { expect((error as SandboxError).created).toBe(false) }
+    try {
+      createSandbox(cwd, sandbox)
+    } catch (error) {
+      expect((error as SandboxError).created).toBe(false)
+    }
   })
 
   // Protects: a failure after the directory was made says created=true (so it can be cleaned up), and the cleanup of it leaves node_modules alone.
@@ -94,7 +118,11 @@ describe('createSandbox', () => {
     writeIn(parent, 'node_modules/pkg/index.js', 'x')
     const sandbox = outDir()
     let caught: SandboxError | undefined
-    try { createSandbox(parent, sandbox) } catch (error) { caught = error as SandboxError }
+    try {
+      createSandbox(parent, sandbox)
+    } catch (error) {
+      caught = error as SandboxError
+    }
     expect(caught).toBeInstanceOf(SandboxError)
     expect(caught?.created).toBe(true)
     symlinkSync(join(parent, 'node_modules'), join(sandbox, 'node_modules'))
@@ -168,7 +196,10 @@ describe('confirmBaseline', () => {
     const cwd = fixture()
     const sandbox = outDir()
     createSandbox(cwd, sandbox)
-    const messy: RunCheck = (_name, dir) => { writeIn(dir, 'junk.tsbuildinfo', 'x'); return { ok: true, output: '' } }
+    const messy: RunCheck = (_name, dir) => {
+      writeIn(dir, 'junk.tsbuildinfo', 'x')
+      return { ok: true, output: '' }
+    }
     expect(confirmBaseline(sandbox, messy).join('\n')).toContain('junk.tsbuildinfo')
   })
 })

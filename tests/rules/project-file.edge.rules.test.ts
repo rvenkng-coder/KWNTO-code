@@ -22,7 +22,9 @@ function post(token: string, teamId: string, body: BodyInit, extra: RequestInit 
 }
 
 async function exportFile(user: TestUser, projectId: string): Promise<File> {
-  const reply = await fetch(`${PB_URL}/api/kwnto/projects/${projectId}/export`, { headers: { Authorization: await tokenOf(user) } })
+  const reply = await fetch(`${PB_URL}/api/kwnto/projects/${projectId}/export`, {
+    headers: { Authorization: await tokenOf(user) },
+  })
   expect(reply.status).toBe(200)
   return (await reply.json()) as File
 }
@@ -48,7 +50,12 @@ test('choices to trashed nodes survive an export and an import', async () => {
     ids.push(await createNode(ctx.member, ctx.projectId, ctx.chapterId, { title }))
   }
   const [nodeA, nodeB, nodeC, nodeD] = ids
-  for (const [to, label] of [[nodeB, 'to B'], [nodeC, 'to C'], [nodeD, 'to D'], ['', 'open']]) {
+  for (const [to, label] of [
+    [nodeB, 'to B'],
+    [nodeC, 'to C'],
+    [nodeD, 'to D'],
+    ['', 'open'],
+  ]) {
     await pb.collection('connections').create({ project: ctx.projectId, from_node: nodeA, to_node: to, label })
   }
   await trash(ctx.member, nodeB)
@@ -56,7 +63,12 @@ test('choices to trashed nodes survive an export and an import', async () => {
 
   const file = await exportFile(ctx.member, ctx.projectId)
   const fromA = file.connections.filter((k) => k.from === file.nodes.find((n) => n.title === 'A')?.id)
-  expect(fromA.filter((k) => k.to === null).map((k) => k.label).sort()).toEqual(['open', 'to B', 'to C'])
+  expect(
+    fromA
+      .filter((k) => k.to === null)
+      .map((k) => k.label)
+      .sort(),
+  ).toEqual(['open', 'to B', 'to C'])
   expect(fromA).toHaveLength(4)
 
   const reply = await post(await tokenOf(ctx.member), ctx.teamId, JSON.stringify(file))
@@ -104,7 +116,14 @@ test('a streamed body over the limit is refused', async () => {
 test('a file at every limit imports in time without blocking others', { timeout: 300_000 }, async () => {
   const ctx = await memberProject()
   const writer = await createNode(ctx.member, ctx.projectId, ctx.chapterId, { title: 'probe' })
-  const nodes = Array.from({ length: 2000 }, (_, i) => ({ id: `n${i}`, chapter: `c${i % 200}`, title: `Node ${i}`, color: 'slate', x: i, y: i }))
+  const nodes = Array.from({ length: 2000 }, (_, i) => ({
+    id: `n${i}`,
+    chapter: `c${i % 200}`,
+    title: `Node ${i}`,
+    color: 'slate',
+    x: i,
+    y: i,
+  }))
   const file = {
     format: 'kwnto-project',
     version: 1,
@@ -112,9 +131,26 @@ test('a file at every limit imports in time without blocking others', { timeout:
     project: { name: 'Big', startNode: 'n0' },
     chapters: Array.from({ length: 200 }, (_, i) => ({ id: `c${i}`, title: `Chapter ${i}`, position: i })),
     nodes,
-    lines: Array.from({ length: 20000 }, (_, i) => ({ id: `l${i}`, node: `n${i % 2000}`, character: 'Mara', text: `Line ${i} of a scene.`, sortOrder: i })),
-    cues: Array.from({ length: 10000 }, (_, i) => ({ id: `q${i}`, node: `n${i % 2000}`, type: 'audio', text: `Cue ${i}`, sortOrder: i })),
-    connections: Array.from({ length: 10000 }, (_, i) => ({ id: `k${i}`, from: `n${i % 2000}`, to: `n${(i + 1 + Math.floor(i / 2000)) % 2000}`, label: `Choice ${i}` })),
+    lines: Array.from({ length: 20000 }, (_, i) => ({
+      id: `l${i}`,
+      node: `n${i % 2000}`,
+      character: 'Mara',
+      text: `Line ${i} of a scene.`,
+      sortOrder: i,
+    })),
+    cues: Array.from({ length: 10000 }, (_, i) => ({
+      id: `q${i}`,
+      node: `n${i % 2000}`,
+      type: 'audio',
+      text: `Cue ${i}`,
+      sortOrder: i,
+    })),
+    connections: Array.from({ length: 10000 }, (_, i) => ({
+      id: `k${i}`,
+      from: `n${i % 2000}`,
+      to: `n${(i + 1 + Math.floor(i / 2000)) % 2000}`,
+      label: `Choice ${i}`,
+    })),
     media: [],
   }
   const started = Date.now()
@@ -122,7 +158,9 @@ test('a file at every limit imports in time without blocking others', { timeout:
   const probes: number[] = []
   const writes: number[] = []
   let done = false
-  void running.then(() => { done = true })
+  void running.then(() => {
+    done = true
+  })
   while (!done) {
     const t = Date.now()
     await healthy()
@@ -135,10 +173,14 @@ test('a file at every limit imports in time without blocking others', { timeout:
   }
   const reply = await running
   const seconds = (Date.now() - started) / 1000
-  console.log(`MAX IMPORT: status ${reply.status}, ${seconds.toFixed(1)} s, slowest health call ${Math.max(0, ...probes)} ms, slowest write ${Math.max(0, ...writes)} ms (${probes.length} rounds)`)
+  console.log(
+    `MAX IMPORT: status ${reply.status}, ${seconds.toFixed(1)} s, slowest health call ${Math.max(0, ...probes)} ms, slowest write ${Math.max(0, ...writes)} ms (${probes.length} rounds)`,
+  )
   expect(reply.status).toBe(200)
   const admin = await asAdmin()
   const { projectId } = (await reply.json()) as { projectId: string }
-  const count = (await admin.collection('nodes').getList(1, 1, { filter: admin.filter('project = {:p}', { p: projectId }) })).totalItems
+  const count = (
+    await admin.collection('nodes').getList(1, 1, { filter: admin.filter('project = {:p}', { p: projectId }) })
+  ).totalItems
   expect(count).toBe(2000)
 })

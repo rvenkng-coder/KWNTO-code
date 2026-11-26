@@ -7,7 +7,9 @@ import { makeRepo, writeIn } from './lib/temp-repo.ts'
 
 const SCRIPT = fileURLToPath(new URL('./check-test-hygiene.ts', import.meta.url))
 const dirs: string[] = []
-afterEach(() => { for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true }) })
+afterEach(() => {
+  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true })
+})
 
 function run(cwd: string, ...args: string[]): { code: number | null; out: string } {
   const result = spawnSync(process.execPath, [SCRIPT, ...args], { cwd, encoding: 'utf8' })

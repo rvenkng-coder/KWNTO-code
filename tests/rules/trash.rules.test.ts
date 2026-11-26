@@ -39,7 +39,10 @@ async function versionOf(collection: string, id: string): Promise<number> {
 // Trashes or restores a record as the user, sending the deleted_at the browser would
 // send (or any value a hand-made request sends).
 async function setDeletedAt(user: TestUser, collection: string, id: string, deletedAt: string): Promise<number> {
-  const reply = await guardedUpdate(user, collection, id, { deleted_at: deletedAt, version: await versionOf(collection, id) })
+  const reply = await guardedUpdate(user, collection, id, {
+    deleted_at: deletedAt,
+    version: await versionOf(collection, id),
+  })
   return reply.status
 }
 
@@ -61,13 +64,21 @@ async function storedDeletedAt(collection: string, id: string): Promise<string> 
 async function expiredSentinel(projectId: string, chapterId: string): Promise<string> {
   const longAgo = new Date(Date.now() - 31 * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ')
   const node = await (await asAdmin()).collection('nodes').create({
-    project: projectId, chapter: chapterId, title: 'sentinel', color: 'slate', x: 0, y: 0, deleted_at: longAgo,
+    project: projectId,
+    chapter: chapterId,
+    title: 'sentinel',
+    color: 'slate',
+    x: 0,
+    y: 0,
+    deleted_at: longAgo,
   })
   return node.id
 }
 
 async function jobHasRun(sentinelId: string): Promise<void> {
-  await expect.poll(() => exists('nodes', sentinelId), { message: 'the purge did not finish', timeout: 4000 }).toBe(false)
+  await expect
+    .poll(() => exists('nodes', sentinelId), { message: 'the purge did not finish', timeout: 4000 })
+    .toBe(false)
 }
 
 // Starts the job. PocketBase answers at once, so the tests wait for the effect themselves.
@@ -83,12 +94,12 @@ test('the purge_trash job is registered at 03:30 every day', async () => {
 
 // Protects Review Focus 2: a browser with a wrong clock, or a hand-made request, must
 // not be able to date a teammate's work 31 days back and lose it at tonight's purge.
-test('a trash time sent by the browser is replaced by the server\'s', async () => {
+test("a trash time sent by the browser is replaced by the server's", async () => {
   const { member, projectId, chapterId } = await memberProject()
   const nodeId = await createNode(member, projectId, chapterId)
 
   expect(await setDeletedAt(member, 'nodes', nodeId, OLD)).toBe(200)
-  const stamped = new Date(String((await storedDeletedAt('nodes', nodeId))).replace(' ', 'T')).getTime()
+  const stamped = new Date(String(await storedDeletedAt('nodes', nodeId)).replace(' ', 'T')).getTime()
   expect(Math.abs(Date.now() - stamped)).toBeLessThan(10_000)
 
   const sentinel = await expiredSentinel(projectId, chapterId)
@@ -126,18 +137,42 @@ async function trashedSet(): Promise<Hanging> {
   const nodeN = await createNode(owner, projectId, chapterB)
   const nodeM = await createNode(owner, projectId, chapterId)
   const lineA = await createLine(owner, projectId, nodeA)
-  const cueA = (await pb.collection('cues').create({ project: projectId, node: nodeA, type: 'audio', sort_order: 1 })).id
+  const cueA = (await pb.collection('cues').create({ project: projectId, node: nodeA, type: 'audio', sort_order: 1 }))
+    .id
   const upload = await uploadMedia(owner, { project: projectId, node: nodeA }, { name: 'pic.png', bytes: PNG_1PX })
   expect(upload.status).toBe(200)
   const mediaA = (await upload.json()) as { id: string; file: string }
-  const connection = (await pb.collection('connections').create({ project: projectId, from_node: nodeM, to_node: nodeN })).id
-  expect((await guardedUpdate(owner, 'projects', projectId, { start_node: nodeN, version: await versionOf('projects', projectId) })).status).toBe(200)
+  const connection = (
+    await pb.collection('connections').create({ project: projectId, from_node: nodeM, to_node: nodeN })
+  ).id
+  expect(
+    (
+      await guardedUpdate(owner, 'projects', projectId, {
+        start_node: nodeN,
+        version: await versionOf('projects', projectId),
+      })
+    ).status,
+  ).toBe(200)
 
   const project2 = await createProject(owner, teamId, 'Second')
   expect(await setDeletedAt(owner, 'chapters', chapterA, OLD)).toBe(200)
   expect(await setDeletedAt(owner, 'nodes', nodeN, OLD)).toBe(200)
   expect(await setDeletedAt(owner, 'projects', project2.id, OLD)).toBe(200)
-  return { owner, projectId, chapterA, nodeA, lineA, cueA, mediaA, nodeN, chapterB, nodeM, connection, project2: project2.id, chapter2: project2.chapterId }
+  return {
+    owner,
+    projectId,
+    chapterA,
+    nodeA,
+    lineA,
+    cueA,
+    mediaA,
+    nodeN,
+    chapterB,
+    nodeM,
+    connection,
+    project2: project2.id,
+    chapter2: project2.chapterId,
+  }
 }
 
 async function mediaFileServes(media: { id: string; file: string }): Promise<boolean> {
@@ -154,7 +189,9 @@ test('the purge deletes expired trash with its contents and files', async () => 
 
   await setRetentionDays(0)
   await runJob()
-  await expect.poll(() => exists('nodes', set.nodeN), { message: 'the purge did not finish', timeout: 4000 }).toBe(false)
+  await expect
+    .poll(() => exists('nodes', set.nodeN), { message: 'the purge did not finish', timeout: 4000 })
+    .toBe(false)
 
   expect(await exists('chapters', set.chapterA)).toBe(false)
   expect(await exists('nodes', set.nodeA)).toBe(false)
@@ -198,7 +235,9 @@ test('members restore chapters and nodes and only the owner restores a project',
   const { owner, member, projectId, chapterId } = await memberProject()
   const outsider = await createUser()
   const nodeId = await createNode(member, projectId, chapterId)
-  const chapterB = (await (await asUser(member)).collection('chapters').create({ project: projectId, title: 'B', position: 2 })).id
+  const chapterB = (
+    await (await asUser(member)).collection('chapters').create({ project: projectId, title: 'B', position: 2 })
+  ).id
 
   expect(await setDeletedAt(member, 'nodes', nodeId, new Date().toISOString())).toBe(200)
   expect(await setDeletedAt(member, 'chapters', chapterB, new Date().toISOString())).toBe(200)

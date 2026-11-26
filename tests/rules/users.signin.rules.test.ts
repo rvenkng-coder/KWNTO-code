@@ -23,7 +23,10 @@ const LOCKOUT_MESSAGE = 'Too many failed sign-in attempts. Try again after 5 min
 
 // The PocketBase error of a refused request, or a test failure if it was allowed.
 async function failureOf(request: Promise<unknown>): Promise<Failure> {
-  const error: unknown = await request.then(() => null, (e: unknown) => e)
+  const error: unknown = await request.then(
+    () => null,
+    (e: unknown) => e,
+  )
   expect(error, 'the request was allowed').not.toBeNull()
   const { status, response } = error as { status: number; response: { message: string } }
   return { status, message: response.message, body: JSON.stringify(response) }

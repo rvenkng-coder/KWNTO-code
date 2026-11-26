@@ -114,7 +114,8 @@ test('a deleted choice comes back in its place with undo', async ({ page }) => {
   await page.keyboard.press(`${mod}+z`)
   await restored
   await expect(rows(page, a)).toHaveText(['One', 'Two', 'Three'])
-  for (const [i, text] of ['One', 'Two', 'Three'].entries()) await expect(choices(page).nth(i).getByLabel('Choice text')).toHaveValue(text)
+  for (const [i, text] of ['One', 'Two', 'Three'].entries())
+    await expect(choices(page).nth(i).getByLabel('Choice text')).toHaveValue(text)
 })
 
 // Protects: design goal 1 and plan Review Focus 4: link mode refuses a target the node already has a choice to.

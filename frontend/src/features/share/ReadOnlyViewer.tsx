@@ -44,20 +44,39 @@ export function ReadOnlyViewer({ projectId, file, token, needsSignIn, renderComm
       </div>
       <div role="tablist" className="flex flex-wrap gap-1">
         {chapters.map((c) => (
-          <button key={c.id} type="button" role="tab" aria-selected={c.id === chapterId} className={c.id === chapterId ? 'btn-primary' : 'btn'}
+          <button
+            key={c.id}
+            type="button"
+            role="tab"
+            aria-selected={c.id === chapterId}
+            className={c.id === chapterId ? 'btn-primary' : 'btn'}
             onClick={() => {
               setPicked(c.id)
               setSelected(null)
-            }}>{c.title}</button>
+            }}
+          >
+            {c.title}
+          </button>
         ))}
       </div>
       <div className="grid min-h-0 flex-1 grid-cols-[1fr_18rem] gap-3">
         <div className="kwnto-canvas panel relative min-h-[60vh] p-0" data-testid="canvas">
           <CoverSource.Provider value={covers}>
             <ReactFlowProvider>
-              <ReactFlow<CardNode> nodes={shown} edges={edges} nodeTypes={nodeTypes} fitView fitViewOptions={{ maxZoom: 1 }}
-                nodesDraggable={false} nodesConnectable={false} edgesFocusable={false} deleteKeyCode={null} zoomOnDoubleClick={false}
-                onNodeClick={(_e, node) => setSelected(node.id)} onPaneClick={() => setSelected(null)}>
+              <ReactFlow<CardNode>
+                nodes={shown}
+                edges={edges}
+                nodeTypes={nodeTypes}
+                fitView
+                fitViewOptions={{ maxZoom: 1 }}
+                nodesDraggable={false}
+                nodesConnectable={false}
+                edgesFocusable={false}
+                deleteKeyCode={null}
+                zoomOnDoubleClick={false}
+                onNodeClick={(_e, node) => setSelected(node.id)}
+                onPaneClick={() => setSelected(null)}
+              >
                 <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} />
                 <Controls showInteractive={false} />
               </ReactFlow>

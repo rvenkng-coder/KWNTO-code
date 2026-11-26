@@ -20,13 +20,27 @@ export function NodePicker({ node }: { node: StoryNode }) {
     linkTo(node, hit)
     setOpen(false)
   }, node.chapterId)
-  if (!open) return <button type="button" className="btn self-start" onClick={() => setOpen(true)}>Link to another chapter</button>
+  if (!open)
+    return (
+      <button type="button" className="btn self-start" onClick={() => setOpen(true)}>
+        Link to another chapter
+      </button>
+    )
   return (
     <div className="flex flex-col gap-1">
-      <input className="field" aria-label="Find a node" placeholder="Find a node in another chapter" autoFocus
-        value={s.query} onChange={(e) => s.change(e.target.value)} onKeyDown={s.onKeyDown} />
+      <input
+        className="field"
+        aria-label="Find a node"
+        placeholder="Find a node in another chapter"
+        autoFocus
+        value={s.query}
+        onChange={(e) => s.change(e.target.value)}
+        onKeyDown={s.onKeyDown}
+      />
       {s.open && <SearchResults testId="picker-results" hits={s.hits} active={s.active} onChoose={s.choose} />}
-      <button type="button" className="btn self-start" onClick={() => setOpen(false)}>Cancel</button>
+      <button type="button" className="btn self-start" onClick={() => setOpen(false)}>
+        Cancel
+      </button>
     </div>
   )
 }

@@ -18,8 +18,15 @@ describe('video uploads are off by decision (plan 2026-11-21-node-links, D1)', (
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
 
-    for (const [name, type] of [['clip.mp4', 'mp4'], ['clip.mov', 'mov']] as const) {
-      const res = await uploadMedia(owner, { project: projectId, node: nodeId }, { name, bytes: sampleBytes(type, 200) })
+    for (const [name, type] of [
+      ['clip.mp4', 'mp4'],
+      ['clip.mov', 'mov'],
+    ] as const) {
+      const res = await uploadMedia(
+        owner,
+        { project: projectId, node: nodeId },
+        { name, bytes: sampleBytes(type, 200) },
+      )
       expect(res.status).toBe(400)
       const body = await res.json()
       expect(body.data.file.message).toBe(MESSAGE)
@@ -36,14 +43,22 @@ describe('video uploads are off by decision (plan 2026-11-21-node-links, D1)', (
 
     const restore = await setStorageSetting('allowed_types', ['wav', 'mp3', 'mov', 'mp4', 'jpeg', 'png'])
     try {
-      const res = await uploadMedia(owner, { project: projectId, node: nodeId }, { name: 'clip.mp4', bytes: sampleBytes('mp4', 200) })
+      const res = await uploadMedia(
+        owner,
+        { project: projectId, node: nodeId },
+        { name: 'clip.mp4', bytes: sampleBytes('mp4', 200) },
+      )
       expect(res.status).toBe(200)
       expect((await res.json()).kind).toBe('video')
     } finally {
       await restore()
     }
 
-    const again = await uploadMedia(owner, { project: projectId, node: nodeId }, { name: 'clip2.mp4', bytes: sampleBytes('mp4', 200) })
+    const again = await uploadMedia(
+      owner,
+      { project: projectId, node: nodeId },
+      { name: 'clip2.mp4', bytes: sampleBytes('mp4', 200) },
+    )
     expect(again.status).toBe(400)
   })
 })

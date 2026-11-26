@@ -36,12 +36,14 @@ cronAdd("kwnto_storage_check", "0 * * * *", () => {
   // One failed recipient or a broken mail setup must not stop the others or the job.
   for (const admin of $app.findAllRecords("_superusers")) {
     try {
-      $app.newMailClient().send(new MailerMessage({
-        from: { address: meta.senderAddress, name: meta.senderName },
-        to: [{ address: admin.email() }],
-        subject: subject,
-        text: text,
-      }))
+      $app.newMailClient().send(
+        new MailerMessage({
+          from: { address: meta.senderAddress, name: meta.senderName },
+          to: [{ address: admin.email() }],
+          subject: subject,
+          text: text,
+        }),
+      )
     } catch (error) {
       // The server console is the only place a hook can report this; the log entry is already written.
       // eslint-disable-next-line no-console

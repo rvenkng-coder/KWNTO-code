@@ -10,8 +10,17 @@ const GONE = 'The record was deleted and no copy of your change is left to resto
 async function waiting() {
   const storage = createMemoryOutbox()
   const seq = await storage.add({
-    userId: 'u1', projectId: 'p1', op: 'update', kind: 'nodes', id: 'n1', changes: { title: 'Mine' }, baseVersion: 3,
-    baseValues: { title: 'Old' }, snapshot: null, offline: false, made: 0,
+    userId: 'u1',
+    projectId: 'p1',
+    op: 'update',
+    kind: 'nodes',
+    id: 'n1',
+    changes: { title: 'Mine' },
+    baseVersion: 3,
+    baseValues: { title: 'Old' },
+    snapshot: null,
+    offline: false,
+    made: 0,
   })
   const [entry] = await storage.list('u1')
   if (entry === undefined || entry.seq !== seq) throw new Error('the entry was not stored')
@@ -33,7 +42,11 @@ test('keeping mine re-queues the entry on the server version', async () => {
   const { storage, entry } = await waiting()
   const conflict: PendingConflict = { entry, server, fields: ['title'], deleted: false }
   expect(await applyChoice(storage, conflict, 'mine')).toBeNull()
-  expect((await storage.list('u1'))[0]).toMatchObject({ seq: entry.seq, baseVersion: 5, baseValues: { title: 'Theirs' } })
+  expect((await storage.list('u1'))[0]).toMatchObject({
+    seq: entry.seq,
+    baseVersion: 5,
+    baseValues: { title: 'Theirs' },
+  })
 })
 
 // Protects design 6.7: an edit that can no longer be applied is never dropped silently.

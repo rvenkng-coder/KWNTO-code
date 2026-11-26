@@ -38,7 +38,10 @@ function decide(input: ReviewInput): { required: boolean; reason: string } {
   // Fail closed: a rate outside [0, 1] (NaN included) is treated as too high to trust.
   const rateOk = input.escapeRate >= 0 && input.escapeRate <= 1
   if (!rateOk || input.escapeRate > ESCAPE_LIMIT) {
-    return { required: true, reason: `escape rate ${input.escapeRate} is above ${ESCAPE_LIMIT}; every local task is reviewed` }
+    return {
+      required: true,
+      reason: `escape rate ${input.escapeRate} is above ${ESCAPE_LIMIT}; every local task is reviewed`,
+    }
   }
   const sampled = Number.isInteger(input.taskNumber) && input.taskNumber > 0 && input.taskNumber % 3 === 0
   if (sampled) return { required: true, reason: `task ${input.taskNumber} is in the sample (1 in 3)` }

@@ -11,18 +11,29 @@ async function ruleIds(code: string, filePath: string): Promise<string[]> {
 // Protects "one door to the backend": only frontend/src/backend/ may import the PocketBase SDK, so the
 // backend stays swappable (design section 7).
 test('pocketbase may not be imported outside frontend/src/backend', async () => {
-  expect(await ruleIds(`import PocketBase from 'pocketbase'`, 'frontend/src/features/canvas/a.ts')).toContain('no-restricted-imports')
-  expect(await ruleIds(`import PocketBase from 'pocketbase'\nexport default PocketBase`, 'frontend/src/backend/client.ts')).not.toContain('no-restricted-imports')
+  expect(await ruleIds(`import PocketBase from 'pocketbase'`, 'frontend/src/features/canvas/a.ts')).toContain(
+    'no-restricted-imports',
+  )
+  expect(
+    await ruleIds(`import PocketBase from 'pocketbase'\nexport default PocketBase`, 'frontend/src/backend/client.ts'),
+  ).not.toContain('no-restricted-imports')
 })
 
 // Protects security.md section 5: user text is rendered as plain text, never as HTML.
 test('dangerouslySetInnerHTML is banned', async () => {
-  expect(await ruleIds(`export const A = () => <p dangerouslySetInnerHTML={{ __html: 'x' }} />`, 'frontend/src/features/canvas/A.tsx')).toContain('no-restricted-syntax')
+  expect(
+    await ruleIds(
+      `export const A = () => <p dangerouslySetInnerHTML={{ __html: 'x' }} />`,
+      'frontend/src/features/canvas/A.tsx',
+    ),
+  ).toContain('no-restricted-syntax')
 })
 
 // Protects strict TypeScript: no untyped escape hatch without a written reason.
 test('any is banned', async () => {
-  expect(await ruleIds(`export const a: any = 1`, 'frontend/src/features/canvas/a.ts')).toContain('@typescript-eslint/no-explicit-any')
+  expect(await ruleIds(`export const a: any = 1`, 'frontend/src/features/canvas/a.ts')).toContain(
+    '@typescript-eslint/no-explicit-any',
+  )
 })
 
 // Protects "small files": 300 lines is the limit, 301 is over it.
@@ -36,7 +47,7 @@ test('files over 300 lines are rejected, 300 is allowed', async () => {
 test('an undefined name in a hook is rejected, the PocketBase globals are known', async () => {
   const hook = (body: string) => `onRecordCreate((e) => { ${body} }, 'media')\n`
   expect(await ruleIds(hook('ee.next()'), 'backend/pb_hooks/a.pb.js')).toContain('no-undef')
-  expect(await ruleIds(hook("require(`${__hooks}/lib/a.js`); e.next()"), 'backend/pb_hooks/a.pb.js')).toEqual([])
+  expect(await ruleIds(hook('require(`${__hooks}/lib/a.js`); e.next()'), 'backend/pb_hooks/a.pb.js')).toEqual([])
 })
 
 // Protects the same rule for test files, which hold many cases of one module: 500 lines.

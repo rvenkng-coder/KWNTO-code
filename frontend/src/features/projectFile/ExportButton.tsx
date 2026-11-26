@@ -35,8 +35,14 @@ export function ExportButton({ projectId }: { projectId: string }) {
 
   return (
     <div className="flex flex-col gap-1">
-      <button type="button" className="btn self-start" disabled={busy} onClick={() => void download()}>Export project file</button>
-      {error !== null && <p role="alert" className="text-sm">{error}</p>}
+      <button type="button" className="btn self-start" disabled={busy} onClick={() => void download()}>
+        Export project file
+      </button>
+      {error !== null && (
+        <p role="alert" className="text-sm">
+          {error}
+        </p>
+      )}
     </div>
   )
 }

@@ -7,7 +7,15 @@ function CoverImage({ mediaId, title }: { mediaId: string; title: string }) {
   const { src, gone, onError } = useSource(token, mediaId, needsSignIn)
   // A cover that cannot be loaded leaves the card without one; the node's panel says "Media removed".
   if (gone || src === null) return null
-  return <img src={src} alt={title} onError={onError} draggable={false} className="block h-auto max-h-64 w-full object-contain" />
+  return (
+    <img
+      src={src}
+      alt={title}
+      onError={onError}
+      draggable={false}
+      className="block h-auto max-h-64 w-full object-contain"
+    />
+  )
 }
 
 /** The node's cover image on top of its card in the viewer, at the card's width and its own proportions. */

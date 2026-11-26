@@ -40,7 +40,10 @@ export function createProjectFiles(pb: PocketBase) {
       if (file.size > MAX_IMPORT_BYTES) throw createBackendError('invalid', IMPORT_TOO_LARGE)
       const text = await file.text()
       const reply = await wrapped(() =>
-        pb.send<{ projectId: string }>(`/api/kwnto/teams/${encodeURIComponent(teamId)}/import`, { method: 'POST', body: text }),
+        pb.send<{ projectId: string }>(`/api/kwnto/teams/${encodeURIComponent(teamId)}/import`, {
+          method: 'POST',
+          body: text,
+        }),
       )
       return reply.projectId
     },

@@ -79,7 +79,9 @@ describe('media limits and quota rules', () => {
 
     // Refused ones leave no row
     const admin = await asAdmin()
-    const rows = await admin.collection('media').getFullList({ filter: admin.filter('project = {:p}', { p: projectId }) })
+    const rows = await admin
+      .collection('media')
+      .getFullList({ filter: admin.filter('project = {:p}', { p: projectId }) })
     expect(rows).toHaveLength(1)
     expect(rows[0].id).toBe(d5.id)
   })
@@ -116,7 +118,7 @@ describe('media limits and quota rules', () => {
   })
 
   // Protects: quota and size limits follow the admin's settings (C8)
-  test('quota and size limits follow the admin\'s settings', async () => {
+  test("quota and size limits follow the admin's settings", async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
 
@@ -139,7 +141,9 @@ describe('media limits and quota rules', () => {
     expect(r2.status).toBe(400)
     const d2 = await r2.json()
     expect(d2.data?.file?.code).toBe('media_over_quota')
-    expect(d2.message).toBe('Not enough storage: this file is 1 KB and you have 1 KB of 1 KB left. Nothing was deleted.')
+    expect(d2.message).toBe(
+      'Not enough storage: this file is 1 KB and you have 1 KB of 1 KB left. Nothing was deleted.',
+    )
 
     // Admin sets override 2000 -> 600 ok
     await setQuotaOverride(owner.id, 2000)
@@ -182,7 +186,9 @@ describe('media limits and quota rules', () => {
     expect(refused.data?.file?.code).toBe('media_over_quota')
 
     const admin = await asAdmin()
-    const rows = await admin.collection('media').getFullList({ filter: admin.filter('uploader = {:u}', { u: owner.id }) })
+    const rows = await admin
+      .collection('media')
+      .getFullList({ filter: admin.filter('uploader = {:u}', { u: owner.id }) })
     expect(rows).toHaveLength(1)
     expect(rows[0].size_bytes).toBe(600)
 
@@ -207,7 +213,9 @@ describe('media limits and quota rules', () => {
         uploadMedia(owner, { project: projectId, node: nodeId }, { name: 'p1.png', bytes: sampleBytes('png', 600) }),
         uploadMedia(member, { project: projectId, node: nodeId }, { name: 'p2.png', bytes: sampleBytes('png', 600) }),
       ])
-      const stored = await admin.collection('media').getFullList({ filter: admin.filter('project = {:p}', { p: projectId }) })
+      const stored = await admin
+        .collection('media')
+        .getFullList({ filter: admin.filter('project = {:p}', { p: projectId }) })
       expect(stored.length, `round ${round}: files kept`).toBeLessThanOrEqual(1)
       expect(results.filter((r) => r.status === 200).length, `round ${round}: uploads accepted`).toBe(stored.length)
       for (const row of stored) await admin.collection('media').delete(row.id)

@@ -10,8 +10,14 @@ export type Change =
   | { type: 'create'; kind: RemovableKind; record: ContentRecords[RemovableKind] }
   | { type: 'remove'; kind: RemovableKind; record: ContentRecords[RemovableKind] }
 // Creating a chapter or node is recorded as an update of `deleted` from true to false, so undo trashes it and redo restores it.
-export interface Step { label: string; changes: Change[] }
-export interface History { past: Step[]; future: Step[] }
+export interface Step {
+  label: string
+  changes: Change[]
+}
+export interface History {
+  past: Step[]
+  future: Step[]
+}
 
 export const HISTORY_DEPTH = 100
 export const EMPTY_HISTORY: History = { past: [], future: [] }
@@ -34,7 +40,9 @@ export function recordStep(h: History, step: Step): History {
 /** The history without one change (a write the server refused after it was recorded); a step left empty goes too. */
 export function withoutChange(h: History, change: Change): History {
   const strip = (steps: Step[]) =>
-    steps.map((st) => ({ ...st, changes: st.changes.filter((c) => c !== change) })).filter((st) => st.changes.length > 0)
+    steps
+      .map((st) => ({ ...st, changes: st.changes.filter((c) => c !== change) }))
+      .filter((st) => st.changes.length > 0)
   return { past: strip(h.past), future: strip(h.future) }
 }
 

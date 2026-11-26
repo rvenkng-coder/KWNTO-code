@@ -17,14 +17,27 @@ const b64 = (value: string | Buffer): string => Buffer.from(value).toString('bas
 
 export async function mintToken(email: string, type: TokenType): Promise<string> {
   const pb = await adminPB()
-  const user = await pb.collection('users').getFirstListItem(pb.filter('email = {:email}', { email: email.toLowerCase() }))
+  const user = await pb
+    .collection('users')
+    .getFirstListItem(pb.filter('email = {:email}', { email: email.toLowerCase() }))
   const tokenKey = crypto.randomBytes(25).toString('hex')
   await pb.collection('users').update(user.id, { tokenKey })
   const collection = await pb.collections.getOne('users')
   const field = SECRET_FIELD[type]
   await pb.collections.update('users', { [field]: { ...collection[field], secret: SECRET } })
   const header = b64(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
-  const claims = b64(JSON.stringify({ id: user.id, type, collectionId: collection.id, email: user.email, exp: Math.floor(Date.now() / 1000) + 3600 }))
-  const signature = crypto.createHmac('sha256', tokenKey + SECRET).update(`${header}.${claims}`).digest('base64url')
+  const claims = b64(
+    JSON.stringify({
+      id: user.id,
+      type,
+      collectionId: collection.id,
+      email: user.email,
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    }),
+  )
+  const signature = crypto
+    .createHmac('sha256', tokenKey + SECRET)
+    .update(`${header}.${claims}`)
+    .digest('base64url')
   return `${header}.${claims}.${signature}`
 }

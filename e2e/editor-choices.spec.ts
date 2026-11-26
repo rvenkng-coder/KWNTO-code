@@ -63,7 +63,8 @@ test('a second choice to the same node is refused with a message', async ({ page
   page.on('request', (r) => {
     if (r.method() === 'POST' && r.url().includes('/api/collections/connections/records')) posts += 1
   })
-  await page.locator(`[data-node-id="${a}"] [data-testid="new-choice-handle"]`)
+  await page
+    .locator(`[data-node-id="${a}"] [data-testid="new-choice-handle"]`)
     .dragTo(page.locator(`[data-node-id="${b}"] .react-flow__handle.target`))
   await expect(page.getByRole('alert')).toContainText('This node already has a choice to New node.')
   await expect(rows(page, a)).toHaveCount(1)
@@ -76,7 +77,11 @@ test('cues show on the card', async ({ page }) => {
   await readyCanvas(page, 0)
   const a = await addNodeAt(page, 40, 60)
   await card(page, a).click()
-  for (const [i, [type, text]] of [['audio', 'Rain'], ['lighting', 'Dim'], ['other', 'Fog']].entries()) {
+  for (const [i, [type, text]] of [
+    ['audio', 'Rain'],
+    ['lighting', 'Dim'],
+    ['other', 'Fog'],
+  ].entries()) {
     const created = waitForSave(page, 'cues', 'POST')
     await panel(page).getByRole('button', { name: 'Add cue' }).click()
     await created

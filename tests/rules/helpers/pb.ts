@@ -37,13 +37,19 @@ export async function createUser(options?: { verified?: boolean }): Promise<Test
 // Sign-up goes through the same door a visitor uses: the public users create, not the
 // admin API, so the sign-up hooks and rules apply. The result is NOT verified.
 // `extra` adds fields to the request body (for example a forged `verified: true`).
-export async function signUp(email: string, password: string, extra?: Record<string, unknown>): Promise<{ id: string }> {
-  const record = await asAnonymous().collection('users').create({
-    email,
-    password,
-    passwordConfirm: password,
-    ...extra,
-  })
+export async function signUp(
+  email: string,
+  password: string,
+  extra?: Record<string, unknown>,
+): Promise<{ id: string }> {
+  const record = await asAnonymous()
+    .collection('users')
+    .create({
+      email,
+      password,
+      passwordConfirm: password,
+      ...extra,
+    })
   return { id: record.id }
 }
 
@@ -80,6 +86,8 @@ export async function asUser(user: TestUser): Promise<PocketBase> {
 export async function createTeam(owner: TestUser, name = 'Test team'): Promise<{ id: string; joinCode: string }> {
   const team = await (await asUser(owner)).collection('teams').create({ name, owner: owner.id })
   const admin = await asAdmin()
-  const settings = await admin.collection('team_settings').getFirstListItem(admin.filter('team = {:team}', { team: team.id }))
+  const settings = await admin
+    .collection('team_settings')
+    .getFirstListItem(admin.filter('team = {:team}', { team: team.id }))
   return { id: team.id, joinCode: String(settings.join_code) }
 }

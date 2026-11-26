@@ -4,7 +4,7 @@ import { goOffline, syncStatus } from './helpers/offline'
 
 // Protects design 6.7: losing the connection with a project open is a normal event, so it must not raise an uncaught
 // error (an unhandled promise rejection from the live-connection client showed as `Something went wrong.` in the
-// console and in any error monitor). Found by the M8/M9 walk on 2026-11-26.
+// console and in any error monitor).
 test('going offline and back online raises no uncaught error', async ({ page, context }) => {
   const uncaught: string[] = []
   page.on('pageerror', (error) => uncaught.push(error.message))

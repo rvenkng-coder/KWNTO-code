@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest'
 import { adminSend } from './helpers/pb.ts'
 
-// Plan 6 D9 / Review Focus 1: PocketBase's default verification and reset mails link to the
-// dashboard (`/_/#/auth/...`), which the proxy blocks on the public address. The users
-// collection's templates must link into the app. Not a rule on a collection, so no coverage entry.
+// PocketBase's default verification and reset mails link to the dashboard (`/_/#/auth/...`), which
+// the proxy blocks on the public address, so the users collection's templates must link into the
+// app. Not a rule on a collection, so no coverage entry.
 
 type Template = { subject: string; body: string }
 type Users = { verificationTemplate: Template; resetPasswordTemplate: Template }

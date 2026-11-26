@@ -58,15 +58,18 @@ export function createLinks(pb: PocketBase) {
 
     subscribe: (projectId: string, onEvent: (e: LinkEvent) => void): Promise<() => Promise<void>> =>
       wrapped(() =>
-        pb.collection('node_links').subscribe(
-          '*',
-          (e) => {
-            if (e.action === 'create' || e.action === 'delete') {
-              onEvent({ action: e.action, record: fromLinkRecord(e.record as unknown as Record<string, unknown>) })
-            }
-          },
-          { filter: pb.filter('project = {:project}', { project: projectId }) },
-        ).then(closesQuietly),
+        pb
+          .collection('node_links')
+          .subscribe(
+            '*',
+            (e) => {
+              if (e.action === 'create' || e.action === 'delete') {
+                onEvent({ action: e.action, record: fromLinkRecord(e.record as unknown as Record<string, unknown>) })
+              }
+            },
+            { filter: pb.filter('project = {:project}', { project: projectId }) },
+          )
+          .then(closesQuietly),
       ),
   }
 }

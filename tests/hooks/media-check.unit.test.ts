@@ -2,33 +2,25 @@ import { createRequire } from 'node:module'
 import { describe, expect, test } from 'vitest'
 
 const require = createRequire(import.meta.url)
-const {
-  extensionType,
-  quotaFor,
-  formatBytes,
-  detectType,
-  kindOf,
-  checkUpload,
-  usedThrough,
-  MIB,
-} = require('../../backend/pb_hooks/lib/media-check.js') as {
-  extensionType: (fileName: string) => string | null
-  quotaFor: (defaultBytes: number, overrideBytes: number) => number
-  formatBytes: (bytes: number) => string
-  detectType: (head: number[]) => string | null
-  kindOf: (type: string) => 'audio' | 'video' | 'image'
-  checkUpload: (input: {
-    fileName: string
-    size: number
-    head: number[]
-    allowedTypes: string[]
-    maxMb: { audio: number; video: number; image: number }
-    usedBytes: number
-    quotaBytes: number
-  }) => { ok: true; type: string; kind: 'audio' | 'video' | 'image' } | { ok: false; code: string; message: string }
-  usedThrough: (rows: Array<{ id: string; created: string; size: number }>, id: string) => number
-  MIB: number
-}
+const { extensionType, quotaFor, formatBytes, detectType, kindOf, checkUpload, usedThrough, MIB } =
+  require('../../backend/pb_hooks/lib/media-check.js') as {
+    extensionType: (fileName: string) => string | null
+    quotaFor: (defaultBytes: number, overrideBytes: number) => number
+    formatBytes: (bytes: number) => string
+    detectType: (head: number[]) => string | null
+    kindOf: (type: string) => 'audio' | 'video' | 'image'
+    checkUpload: (input: {
+      fileName: string
+      size: number
+      head: number[]
+      allowedTypes: string[]
+      maxMb: { audio: number; video: number; image: number }
+      usedBytes: number
+      quotaBytes: number
+    }) => { ok: true; type: string; kind: 'audio' | 'video' | 'image' } | { ok: false; code: string; message: string }
+    usedThrough: (rows: Array<{ id: string; created: string; size: number }>, id: string) => number
+    MIB: number
+  }
 
 function stringToBytes(str: string): number[] {
   return Array.from(Buffer.from(str, 'ascii'))
@@ -36,7 +28,7 @@ function stringToBytes(str: string): number[] {
 
 describe('media-check names, quota and sizes', () => {
   // Protects: a file name's extension gives its claimed type
-  test('a file name\'s extension gives its claimed type', () => {
+  test("a file name's extension gives its claimed type", () => {
     expect(extensionType('a.JPG ')).toBe('jpeg')
     expect(extensionType('x.jpeg')).toBe('jpeg')
     expect(extensionType('song.Mp3')).toBe('mp3')
@@ -157,7 +149,7 @@ describe('media-check type detection and full check', () => {
   })
 
   // Protects: only types on the admin's list are allowed
-  test('only types on the admin\'s list are allowed', () => {
+  test("only types on the admin's list are allowed", () => {
     const pngBytes = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]
     const mp4Bytes = [0, 0, 0, 0, ...stringToBytes('ftyp'), ...stringToBytes('isom')]
     const baseInput = {
@@ -312,7 +304,13 @@ describe('media-check type detection and full check', () => {
 
 describe('media-check ogg, m4a and opus', () => {
   const allowedTypes = ['wav', 'mp3', 'ogg', 'm4a', 'opus', 'jpeg', 'png']
-  const base = { size: 1000, allowedTypes, maxMb: { audio: 50, video: 200, image: 50 }, usedBytes: 0, quotaBytes: 2 * 1024 * MIB }
+  const base = {
+    size: 1000,
+    allowedTypes,
+    maxMb: { audio: 50, video: 200, image: 50 },
+    usedBytes: 0,
+    quotaBytes: 2 * 1024 * MIB,
+  }
   const oggHead = [...stringToBytes('OggS'), 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
   const m4aHead = [0, 0, 0, 0x20, ...stringToBytes('ftyp'), ...stringToBytes('M4A '), 0, 0, 0, 0]
   const isomHead = [0, 0, 0, 0x20, ...stringToBytes('ftyp'), ...stringToBytes('isom'), 0, 0, 0, 0]
@@ -330,18 +328,35 @@ describe('media-check ogg, m4a and opus', () => {
   // Protects: an uploaded .ogg, .opus or .m4a is accepted as audio when its bytes fit
   test('real files are accepted as audio', () => {
     expect(checkUpload({ ...base, fileName: 'a.ogg', head: oggHead })).toEqual({ ok: true, type: 'ogg', kind: 'audio' })
-    expect(checkUpload({ ...base, fileName: 'a.opus', head: oggHead })).toEqual({ ok: true, type: 'opus', kind: 'audio' })
+    expect(checkUpload({ ...base, fileName: 'a.opus', head: oggHead })).toEqual({
+      ok: true,
+      type: 'opus',
+      kind: 'audio',
+    })
     expect(checkUpload({ ...base, fileName: 'a.m4a', head: m4aHead })).toEqual({ ok: true, type: 'm4a', kind: 'audio' })
-    expect(checkUpload({ ...base, fileName: 'a.m4a', head: isomHead })).toEqual({ ok: true, type: 'm4a', kind: 'audio' })
+    expect(checkUpload({ ...base, fileName: 'a.m4a', head: isomHead })).toEqual({
+      ok: true,
+      type: 'm4a',
+      kind: 'audio',
+    })
   })
 
   // Protects: a wrong name, wrong bytes or a switched-off type is still refused, and a video is not an m4a
   test('the wrong bytes or a type switched off are refused', () => {
     const fake = checkUpload({ ...base, fileName: 'a.ogg', head: stringToBytes('<!doctype html>') })
     expect(fake).toMatchObject({ ok: false, code: 'media_not_real' })
-    expect(checkUpload({ ...base, fileName: 'a.mp3', head: oggHead })).toMatchObject({ ok: false, code: 'media_not_real' })
-    expect(checkUpload({ ...base, fileName: 'a.ogg', head: m4aHead })).toMatchObject({ ok: false, code: 'media_not_real' })
-    expect(checkUpload({ ...base, allowedTypes: ['wav', 'mp3'], fileName: 'a.opus', head: oggHead })).toMatchObject({ ok: false, code: 'media_type_not_allowed' })
+    expect(checkUpload({ ...base, fileName: 'a.mp3', head: oggHead })).toMatchObject({
+      ok: false,
+      code: 'media_not_real',
+    })
+    expect(checkUpload({ ...base, fileName: 'a.ogg', head: m4aHead })).toMatchObject({
+      ok: false,
+      code: 'media_not_real',
+    })
+    expect(checkUpload({ ...base, allowedTypes: ['wav', 'mp3'], fileName: 'a.opus', head: oggHead })).toMatchObject({
+      ok: false,
+      code: 'media_type_not_allowed',
+    })
     expect(checkUpload({ ...base, fileName: 'a.mp4', head: m4aHead })).toMatchObject({ ok: false })
   })
 })

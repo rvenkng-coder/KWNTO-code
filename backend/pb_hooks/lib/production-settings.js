@@ -1,5 +1,6 @@
-// Pure: the production-only PocketBase settings (plan 6 D6, D7, D8, D10). Returns null unless
-// KWNTO_PRODUCTION is exactly "1", so the dev and test backends are never touched.
+// Pure: the production-only PocketBase settings (app name and URL, rate limits, trusted proxy
+// header, backup schedule). Returns null unless KWNTO_PRODUCTION is exactly "1", so the dev and
+// test backends are never touched.
 function productionSettings(env) {
   if (env.KWNTO_PRODUCTION !== "1") return null
   const url = env.KWNTO_PUBLIC_URL || ""

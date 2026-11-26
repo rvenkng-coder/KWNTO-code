@@ -1,7 +1,7 @@
 import type { NewEntry, OutboxEntry } from './outbox'
 import type { FailedEntry, OutboxStorage } from './outboxStorage'
 
-// The browser's outbox (offline sync plan Task 4, D1): one IndexedDB database with the waiting
+// The browser's outbox: one IndexedDB database with the waiting
 // entries and the failed ones. Every method is one transaction; `add` resolves only after the
 // transaction's `complete` event, so an edit that was reported stored survives closing the tab.
 
@@ -9,7 +9,12 @@ export const OUTBOX_DB = 'kwnto-outbox'
 const ENTRIES = 'entries'
 const FAILED = 'failed'
 
-interface FailedRow { seq: number; userId: string; entry: OutboxEntry; message: string }
+interface FailedRow {
+  seq: number
+  userId: string
+  entry: OutboxEntry
+  message: string
+}
 
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -25,7 +30,12 @@ function openDb(): Promise<IDBDatabase> {
 }
 
 /** Runs `work` in one transaction over `stores`; resolves with its result after the transaction completed. */
-async function transact<T>(db: Promise<IDBDatabase>, stores: string[], mode: IDBTransactionMode, work: (tx: IDBTransaction) => IDBRequest<T> | null): Promise<T | undefined> {
+async function transact<T>(
+  db: Promise<IDBDatabase>,
+  stores: string[],
+  mode: IDBTransactionMode,
+  work: (tx: IDBTransaction) => IDBRequest<T> | null,
+): Promise<T | undefined> {
   const tx = (await db).transaction(stores, mode)
   const request = work(tx)
   return new Promise((resolve, reject) => {
@@ -41,7 +51,9 @@ export function createIndexedDbOutbox(): OutboxStorage {
 
   return {
     async list(userId) {
-      const rows = await transact(db, [ENTRIES], 'readonly', (tx) => tx.objectStore(ENTRIES).index('byUser').getAll(userId))
+      const rows = await transact(db, [ENTRIES], 'readonly', (tx) =>
+        tx.objectStore(ENTRIES).index('byUser').getAll(userId),
+      )
       return bySeq((rows ?? []) as OutboxEntry[])
     },
     async add(entry: NewEntry) {
@@ -66,7 +78,9 @@ export function createIndexedDbOutbox(): OutboxStorage {
       })
     },
     async failed(userId): Promise<FailedEntry[]> {
-      const rows = await transact(db, [FAILED], 'readonly', (tx) => tx.objectStore(FAILED).index('byUser').getAll(userId))
+      const rows = await transact(db, [FAILED], 'readonly', (tx) =>
+        tx.objectStore(FAILED).index('byUser').getAll(userId),
+      )
       return bySeq((rows ?? []) as FailedRow[]).map((r) => ({ entry: r.entry, message: r.message }))
     },
     async dismiss(seq) {

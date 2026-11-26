@@ -43,14 +43,18 @@ function headingPicture(text: string): { dataUrl: string; width: number; height:
   ctx.fillStyle = '#000000'
   ctx.textBaseline = 'middle'
   ctx.fillText(text, 0, canvas.height / 2)
-  return { dataUrl: canvas.toDataURL('image/png'), width: canvas.width / HEADING_SCALE, height: canvas.height / HEADING_SCALE }
+  return {
+    dataUrl: canvas.toDataURL('image/png'),
+    width: canvas.width / HEADING_SCALE,
+    height: canvas.height / HEADING_SCALE,
+  }
 }
 
 export async function buildPdf(projectName: string, maps: MapImage[]): Promise<Blob> {
   const first = maps[0]
   if (first === undefined) throw new Error('Nothing to export.')
   // PERF: What: load jsPDF only when a PDF export starts. Why: the library is large and most
-  // sessions never export, so the editor's first load stays small (D1). Trade-off: the first
+  // sessions never export, so the editor's first load stays small. Trade-off: the first
   // export waits for one extra download.
   const { jsPDF } = await import('jspdf')
   const doc = new jsPDF({ orientation: pageOrientation(first), unit: 'pt', format: 'a4' })
@@ -77,7 +81,7 @@ export async function buildPdf(projectName: string, maps: MapImage[]): Promise<B
 
 export async function buildDocx(projectName: string, maps: MapImage[]): Promise<Blob> {
   if (maps.length === 0) throw new Error('Nothing to export.')
-  // PERF: What: load docx only when a Word export starts. Why: same as the PDF builder (D1).
+  // PERF: What: load docx only when a Word export starts. Why: same as the PDF builder.
   // Trade-off: the first export waits for one extra download.
   const { Document, HeadingLevel, ImageRun, Packer, PageOrientation, Paragraph } = await import('docx')
   const children = maps.flatMap((map, i) => {
@@ -85,19 +89,29 @@ export async function buildDocx(projectName: string, maps: MapImage[]): Promise<
     return [
       new Paragraph({ heading: HeadingLevel.HEADING_1, pageBreakBefore: i > 0, text: heading(projectName, map) }),
       new Paragraph({
-        children: [new ImageRun({
-          type: 'png', data: dataUrlBytes(map.dataUrl),
-          transformation: { width: Math.round(size.width), height: Math.round(size.height) },
-        })],
+        children: [
+          new ImageRun({
+            type: 'png',
+            data: dataUrlBytes(map.dataUrl),
+            transformation: { width: Math.round(size.width), height: Math.round(size.height) },
+          }),
+        ],
       }),
     ]
   })
   const margin = WORD_MARGIN
   const doc = new Document({
-    sections: [{
-      properties: { page: { size: { orientation: PageOrientation.LANDSCAPE }, margin: { top: margin, right: margin, bottom: margin, left: margin } } },
-      children,
-    }],
+    sections: [
+      {
+        properties: {
+          page: {
+            size: { orientation: PageOrientation.LANDSCAPE },
+            margin: { top: margin, right: margin, bottom: margin, left: margin },
+          },
+        },
+        children,
+      },
+    ],
   })
   const base64 = await Packer.toBase64String(doc)
   return new Blob([dataUrlBytes(`data:;base64,${base64}`)], { type: DOCX_TYPE })

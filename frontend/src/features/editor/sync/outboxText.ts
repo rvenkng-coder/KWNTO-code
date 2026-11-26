@@ -1,6 +1,6 @@
 import type { ContentKind } from '../../../backend'
 
-// The outbox's backoff and the words the person sees (offline sync plan Task 1, D7).
+// The outbox's backoff and the words the person sees.
 
 export const BASE_DELAY_MS = 1000
 export const MAX_DELAY_MS = 30000
@@ -22,9 +22,23 @@ export function failedText(count: number): string {
 }
 
 const LABELS: Record<string, string> = {
-  title: 'Title', color: 'Colour', x: 'Position', y: 'Position', width: 'Size', height: 'Size', deleted: 'In trash', character: 'Character',
-  text: 'Text', sortOrder: 'Order', type: 'Cue type', label: 'Choice text', toNodeId: 'Choice target',
-  name: 'Name', startNodeId: 'Start node', analyticsEnabled: 'Analytics', position: 'Tab order',
+  title: 'Title',
+  color: 'Colour',
+  x: 'Position',
+  y: 'Position',
+  width: 'Size',
+  height: 'Size',
+  deleted: 'In trash',
+  character: 'Character',
+  text: 'Text',
+  sortOrder: 'Order',
+  type: 'Cue type',
+  label: 'Choice text',
+  toNodeId: 'Choice target',
+  name: 'Name',
+  startNodeId: 'Start node',
+  analyticsEnabled: 'Analytics',
+  position: 'Tab order',
 }
 
 export function fieldLabel(_kind: ContentKind, field: string): string {

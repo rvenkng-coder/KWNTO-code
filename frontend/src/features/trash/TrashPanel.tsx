@@ -27,7 +27,11 @@ function useRetentionDays(): number | null {
   return days
 }
 
-interface RowProps { title: string; label: string; action: React.ReactNode }
+interface RowProps {
+  title: string
+  label: string
+  action: React.ReactNode
+}
 
 function Row({ title, label, action }: RowProps) {
   return (
@@ -45,14 +49,21 @@ export function TrashPanel({ onClose }: { onClose(): void }) {
   const items = useMemo(() => trashedItems(content), [content])
   // Fixed when the panel opens: the labels count whole days, so they need no ticking clock.
   const [now] = useState(() => Date.now())
-  const label = (at: string | null): string => trashLabel(at === null ? retention ?? DEFAULT_RETENTION : daysLeft(at, retention ?? DEFAULT_RETENTION, now))
+  const label = (at: string | null): string =>
+    trashLabel(at === null ? (retention ?? DEFAULT_RETENTION) : daysLeft(at, retention ?? DEFAULT_RETENTION, now))
   const empty = items.chapters.length === 0 && items.nodes.length === 0
 
   return (
-    <div role="dialog" aria-label="Trash" className="panel fixed right-4 top-24 z-50 flex max-h-[70vh] w-96 flex-col gap-2 overflow-y-auto">
+    <div
+      role="dialog"
+      aria-label="Trash"
+      className="panel fixed right-4 top-24 z-50 flex max-h-[70vh] w-96 flex-col gap-2 overflow-y-auto"
+    >
       <div className="flex items-center gap-2">
         <h3 className="flex-1">Trash</h3>
-        <button type="button" className="btn" aria-label="Close trash" onClick={onClose}>×</button>
+        <button type="button" className="btn" aria-label="Close trash" onClick={onClose}>
+          ×
+        </button>
       </div>
       {retention !== null && empty && <p className="text-muted">The trash is empty.</p>}
       {retention !== null && !empty && (
@@ -62,20 +73,38 @@ export function TrashPanel({ onClose }: { onClose(): void }) {
               key={c.id}
               title={`Chapter: ${c.title}`}
               label={label(c.deletedAt)}
-              action={<button type="button" className="btn" onClick={() => void edits.update('chapters', c.id, { deleted: false }, 'Restore chapter')}>Restore</button>}
+              action={
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => void edits.update('chapters', c.id, { deleted: false }, 'Restore chapter')}
+                >
+                  Restore
+                </button>
+              }
             />
           ))}
           {items.nodes.map(({ node, chapterTrashed }) => {
             const chapter = content.chapters[node.chapterId]
-            const at = node.deleted ? node.deletedAt : chapter?.deletedAt ?? null
+            const at = node.deleted ? node.deletedAt : (chapter?.deletedAt ?? null)
             return (
               <Row
                 key={node.id}
                 title={node.title === '' ? 'Untitled node' : node.title}
                 label={label(at)}
-                action={chapterTrashed
-                  ? <span>Restore the chapter {chapter?.title} first.</span>
-                  : <button type="button" className="btn" onClick={() => void edits.update('nodes', node.id, { deleted: false }, 'Restore node')}>Restore</button>}
+                action={
+                  chapterTrashed ? (
+                    <span>Restore the chapter {chapter?.title} first.</span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn"
+                      onClick={() => void edits.update('nodes', node.id, { deleted: false }, 'Restore node')}
+                    >
+                      Restore
+                    </button>
+                  )
+                }
               />
             )
           })}

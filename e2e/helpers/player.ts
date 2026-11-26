@@ -36,7 +36,7 @@ export interface PlayStory {
 }
 
 /**
- * Writes a small story as the admin (plan 2026-11-26-player-mode, Task 2). Chapter 1 holds `Gate` (the start:
+ * Writes a small story as the admin. Chapter 1 holds `Gate` (the start:
  * the hooks make the first node created the start) and `Door`; chapter 2, `The Garden`, holds `Garden`.
  * Gate: three lines (one with no name, one blank), a lighting cue, an image, the choices `Open the door`
  * (to Door) and `Wait` (no target). Door: a WAV, the choices `Go back` (to Gate) and one with no text (to Garden).
@@ -56,9 +56,13 @@ export async function seedPlayStory(projectId: string): Promise<PlayStory> {
   const maraLine = await say(gate.id, 'Mara', 'Who goes there?', 1)
   await say(gate.id, '', 'Rain falls.', 2)
   await say(gate.id, '', '', 3)
-  await pb.collection('cues').create({ project: projectId, node: gate.id, type: 'lighting', text: 'Dim the lights', sort_order: 1 }, opts)
+  await pb
+    .collection('cues')
+    .create({ project: projectId, node: gate.id, type: 'lighting', text: 'Dim the lights', sort_order: 1 }, opts)
   const choice = (from: string, to: string | null, label: string) =>
-    pb.collection('connections').create({ project: projectId, from_node: from, ...(to === null ? {} : { to_node: to }), label }, opts)
+    pb
+      .collection('connections')
+      .create({ project: projectId, from_node: from, ...(to === null ? {} : { to_node: to }), label }, opts)
   const openChoice = await choice(gate.id, door.id, 'Open the door')
   await choice(gate.id, null, 'Wait')
   await choice(door.id, gate.id, 'Go back')
@@ -72,7 +76,14 @@ export async function seedPlayStory(projectId: string): Promise<PlayStory> {
   }
   await upload(gate.id, PNG_1PX, 'image/png', 'pic.png')
   await upload(door.id, silentWav(), 'audio/wav', 'door.wav')
-  return { projectId, gate: gate.id, door: door.id, garden: garden.id, maraLine: maraLine.id, openChoice: openChoice.id }
+  return {
+    projectId,
+    gate: gate.id,
+    door: door.id,
+    garden: garden.id,
+    maraLine: maraLine.id,
+    openChoice: openChoice.id,
+  }
 }
 
 /** Changes text fields of a record as the admin; the content collections refuse an update without the current version. */
@@ -86,7 +97,9 @@ export async function changeRecord(collection: string, id: string, fields: Recor
 export async function playableProject(page: Page): Promise<PlayStory> {
   await ownerWithProject(page, 'Story')
   const story = await seedPlayStory(projectIdOf(page))
-  const media = page.waitForResponse((r) => r.url().includes('/collections/media/records') && r.request().method() === 'GET')
+  const media = page.waitForResponse(
+    (r) => r.url().includes('/collections/media/records') && r.request().method() === 'GET',
+  )
   await page.reload()
   await media
   await expect(cards(page)).toHaveCount(2)

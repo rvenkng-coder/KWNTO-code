@@ -9,10 +9,11 @@ function getTeamOwnerId(app, projectId) {
 
 function getOwnerUsedBytes(app, ownerId) {
   const row = new DynamicModel({ total: 0 })
-  app.db()
+  app
+    .db()
     .newQuery(
       "SELECT COALESCE(SUM(m.size_bytes), 0) AS total FROM media m " +
-      "JOIN projects p ON p.id = m.project JOIN teams t ON t.id = p.team WHERE t.owner = {:owner}"
+        "JOIN projects p ON p.id = m.project JOIN teams t ON t.id = p.team WHERE t.owner = {:owner}",
     )
     .bind({ owner: ownerId })
     .one(row)
@@ -64,15 +65,18 @@ function prepareUploadRecord(e, deps) {
   }
   const originalName = file.originalName || file.name
 
-  const check = checkAndThrow({
-    fileName: originalName,
-    size: file.size,
-    head,
-    allowedTypes: settings.allowedTypes,
-    maxMb: settings.maxMb,
-    usedBytes,
-    quotaBytes,
-  }, deps.checkUpload)
+  const check = checkAndThrow(
+    {
+      fileName: originalName,
+      size: file.size,
+      head,
+      allowedTypes: settings.allowedTypes,
+      maxMb: settings.maxMb,
+      usedBytes,
+      quotaBytes,
+    },
+    deps.checkUpload,
+  )
 
   e.record.set("kind", check.kind)
   e.record.set("size_bytes", file.size)
@@ -95,11 +99,12 @@ function verifyRaceQuota(e, deps, prep) {
     // every observer, so the later insert is always the one over quota. `created` below is the
     // position in that order, which is what `usedThrough` sorts by.
     const found = arrayOf(new DynamicModel({ id: "", size_bytes: 0 }))
-    txApp.db()
+    txApp
+      .db()
       .newQuery(
         "SELECT m.id AS id, COALESCE(m.size_bytes, 0) AS size_bytes FROM media m " +
-        "JOIN projects p ON p.id = m.project JOIN teams t ON t.id = p.team " +
-        "WHERE t.owner = {:owner} ORDER BY m.rowid"
+          "JOIN projects p ON p.id = m.project JOIN teams t ON t.id = p.team " +
+          "WHERE t.owner = {:owner} ORDER BY m.rowid",
       )
       .bind({ owner: prep.ownerId })
       .all(found)
@@ -117,15 +122,18 @@ function verifyRaceQuota(e, deps, prep) {
   })
 
   if (quotaExceeded) {
-    checkAndThrow({
-      fileName: prep.originalName,
-      size: prep.file.size,
-      head: prep.head,
-      allowedTypes: prep.settings.allowedTypes,
-      maxMb: prep.settings.maxMb,
-      usedBytes: usedBefore,
-      quotaBytes: prep.quotaBytes,
-    }, deps.checkUpload)
+    checkAndThrow(
+      {
+        fileName: prep.originalName,
+        size: prep.file.size,
+        head: prep.head,
+        allowedTypes: prep.settings.allowedTypes,
+        maxMb: prep.settings.maxMb,
+        usedBytes: usedBefore,
+        quotaBytes: prep.quotaBytes,
+      },
+      deps.checkUpload,
+    )
     // The record is already deleted: never report this create as a success.
     throw new BadRequestError("Not enough storage.", {
       file: new ValidationError("media_over_quota", "Not enough storage."),
@@ -143,7 +151,7 @@ function handleMediaCreate(e) {
   verifyRaceQuota(e, deps, prep)
 }
 
-// The headers every served media file carries (Plan 5 D6): the right type from the file's
+// The headers every served media file carries: the right type from the file's
 // extension, no sniffing, and a policy that lets a file show nothing but itself. Also used by
 // the share routes, which serve media without going through the file download request.
 function applyDownloadHeaders(response, name) {
@@ -166,10 +174,7 @@ function applyDownloadHeaders(response, name) {
     response.header().set("Content-Type", contentType)
   }
   response.header().set("X-Content-Type-Options", "nosniff")
-  response.header().set(
-    "Content-Security-Policy",
-    "default-src 'none'; img-src 'self'; media-src 'self'; sandbox"
-  )
+  response.header().set("Content-Security-Policy", "default-src 'none'; img-src 'self'; media-src 'self'; sandbox")
 }
 
 function handleFileDownload(e) {
@@ -225,7 +230,11 @@ function handleMediaUpdate(e) {
   const names = []
   for (const field of e.record.collection().fields) names.push(field.getName())
   const original = e.record.original()
-  const changed = changedFields(names, (n) => e.record.get(n), (n) => original.get(n))
+  const changed = changedFields(
+    names,
+    (n) => e.record.get(n),
+    (n) => original.get(n),
+  )
 
   if (changed.some((name) => name !== "removed_at")) {
     throw new BadRequestError("Media can only be removed or restored.")

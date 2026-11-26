@@ -1,7 +1,7 @@
 import type { Chapter, StoryNode } from '../../backend'
 import type { ContentState } from '../editor/model/state'
 
-// The pure parts of the trash screens (design 6.8, plan 7 Task 1).
+// The pure parts of the trash screens (design 6.8).
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
@@ -19,7 +19,10 @@ export function trashLabel(days: number): string {
   return days === 1 ? '1 day left' : `${days} days left`
 }
 
-export interface TrashedNode { node: StoryNode; chapterTrashed: boolean }
+export interface TrashedNode {
+  node: StoryNode
+  chapterTrashed: boolean
+}
 
 // A just-trashed record in this tab has no server time yet; it counts as the newest.
 function timeOf(deletedAt: string | null): number {

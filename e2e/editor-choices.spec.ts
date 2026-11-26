@@ -1,4 +1,4 @@
-// Protects: choices and cues on the node card (editor cards plan, Task 2; design goals 1 and 2):
+// Protects: choices and cues on the node card (editor cards design, goals 1 and 2):
 // a choice is a row with its own connector, "+" makes a new one, a dot re-links a choice and
 // keeps its id and text, a second choice to the same node is refused, and cues show on the card.
 import { expect, test, type Page } from '@playwright/test'
@@ -21,7 +21,7 @@ test('a choice dragged from the plus connector appears as a row with its own lin
   await expect(rows(page, a).locator(`[data-handleid="choice-${choiceId}"]`)).toHaveCount(1)
 })
 
-// Protects: design goal 1 and plan Review Focus 3: re-linking keeps the choice's id, text and place.
+// Protects: editor cards design, goal 1: re-linking keeps the choice's id, text and place.
 test("dragging a choice's dot to another node re-links it and keeps its text", async ({ page }) => {
   await ownerWithProject(page, 'Story')
   await readyCanvas(page, 0)
@@ -52,7 +52,7 @@ test("dragging a choice's dot to another node re-links it and keeps its text", a
   await check()
 })
 
-// Protects: design goal 1 (one choice per target) and plan Review Focus 4: the second drag is refused and nothing is sent.
+// Protects: editor cards design, goal 1 (one choice per target): the second drag is refused and nothing is sent.
 test('a second choice to the same node is refused with a message', async ({ page }) => {
   await ownerWithProject(page, 'Story')
   await readyCanvas(page, 0)
@@ -63,7 +63,8 @@ test('a second choice to the same node is refused with a message', async ({ page
   page.on('request', (r) => {
     if (r.method() === 'POST' && r.url().includes('/api/collections/connections/records')) posts += 1
   })
-  await page.locator(`[data-node-id="${a}"] [data-testid="new-choice-handle"]`)
+  await page
+    .locator(`[data-node-id="${a}"] [data-testid="new-choice-handle"]`)
     .dragTo(page.locator(`[data-node-id="${b}"] .react-flow__handle.target`))
   await expect(page.getByRole('alert')).toContainText('This node already has a choice to New node.')
   await expect(rows(page, a)).toHaveCount(1)
@@ -76,7 +77,11 @@ test('cues show on the card', async ({ page }) => {
   await readyCanvas(page, 0)
   const a = await addNodeAt(page, 40, 60)
   await card(page, a).click()
-  for (const [i, [type, text]] of [['audio', 'Rain'], ['lighting', 'Dim'], ['other', 'Fog']].entries()) {
+  for (const [i, [type, text]] of [
+    ['audio', 'Rain'],
+    ['lighting', 'Dim'],
+    ['other', 'Fog'],
+  ].entries()) {
     const created = waitForSave(page, 'cues', 'POST')
     await panel(page).getByRole('button', { name: 'Add cue' }).click()
     await created

@@ -4,7 +4,11 @@ import { spawnSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-export interface Change { path: string; status: 'added' | 'modified' | 'deleted' | 'renamed'; oldPath?: string }
+export interface Change {
+  path: string
+  status: 'added' | 'modified' | 'deleted' | 'renamed'
+  oldPath?: string
+}
 
 // Parses `git diff --name-status -M` output: tab-separated lines, or NUL-separated tokens (-z).
 export function parseNameStatus(output: string): Change[] {

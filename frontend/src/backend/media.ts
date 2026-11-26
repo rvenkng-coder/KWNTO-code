@@ -50,18 +50,21 @@ function buildUploadFormData(projectId: string, nodeId: string, uploaderId: stri
 
 function subscribeMedia(pb: PocketBase, projectId: string, onEvent: (e: MediaEvent) => void) {
   const filter = pb.filter('project = {:project}', { project: projectId })
-  return pb.collection('media').subscribe(
-    '*',
-    (e) => {
-      if (e.action === 'create' || e.action === 'update' || e.action === 'delete') {
-        onEvent({
-          action: e.action,
-          record: fromMediaRecord(e.record as unknown as Record<string, unknown>),
-        })
-      }
-    },
-    { filter },
-  ).then(closesQuietly)
+  return pb
+    .collection('media')
+    .subscribe(
+      '*',
+      (e) => {
+        if (e.action === 'create' || e.action === 'update' || e.action === 'delete') {
+          onEvent({
+            action: e.action,
+            record: fromMediaRecord(e.record as unknown as Record<string, unknown>),
+          })
+        }
+      },
+      { filter },
+    )
+    .then(closesQuietly)
 }
 
 export function createMedia(pb: PocketBase) {

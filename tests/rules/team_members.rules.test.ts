@@ -5,15 +5,14 @@ import { addMember, expectCreateRefused, expectNoEmail, expectNoEmailOf, memberR
 
 // Protects design section 5 (teams and roles): members see their team, "Only the owner
 // removes members", emails are private to everyone except the admin (teammates see
-// names, decision D6), and a member cannot leave or be made owner (decision D8).
-// Plan Review Focus 5: a user must not add themselves to a team by writing team_members.
-// Also docs/security.md section 2 (deny by default).
+// names), and a member cannot leave or be made owner. A user must not add themselves to a team by
+// writing team_members. Also docs/security.md section 2 (deny by default).
 
 async function setName(user: TestUser, name: string): Promise<void> {
   await (await asUser(user)).collection('users').update(user.id, { name })
 }
 
-// Design 5 and D6: a teammate sees the others by name, never by email.
+// Design 5: a teammate sees the others by name, never by email.
 test('team_members: a member lists the members of their team by name, with no email in the response', async () => {
   const [owner, member] = [await createUser(), await createUser()]
   await setName(owner, 'Olive Owner')
@@ -23,7 +22,10 @@ test('team_members: a member lists the members of their team by name, with no em
 
   const pb = await asUser(member)
   const rows = await pb.collection('team_members').getFullList()
-  expect(rows.map((r) => [r.user_name, r.role]).sort()).toEqual([['Max Member', 'member'], ['Olive Owner', 'owner']])
+  expect(rows.map((r) => [r.user_name, r.role]).sort()).toEqual([
+    ['Max Member', 'member'],
+    ['Olive Owner', 'owner'],
+  ])
   expectNoEmail(rows)
   const ownerRow = await memberRow(team.id, owner.id)
   expectNoEmail(await pb.collection('team_members').getOne(ownerRow.id))
@@ -48,8 +50,7 @@ test('team_members: an outsider and a signed-out visitor see none of the members
   }
 })
 
-// Review Focus 5: joining goes through the join code or an invite (Tasks 7 and 8),
-// never by writing a membership row directly.
+// Joining goes through the join code or an invite, never by writing a membership row directly.
 test("team_members: a user cannot add themselves to someone else's team", async () => {
   const [owner, intruder] = [await createUser(), await createUser()]
   const team = await createTeam(owner)
@@ -61,8 +62,8 @@ test("team_members: a user cannot add themselves to someone else's team", async 
   await expectNoRows(pb, 'teams')
 })
 
-// Review Focus 5 and D8: roles are fixed; a member cannot promote themselves, and no
-// one (the owner included) edits a membership row through the API.
+// Roles are fixed: a member cannot promote themselves, and no one (the owner included) edits a
+// membership row through the API.
 test('team_members: nobody can update a membership row, so a member cannot make themselves owner', async () => {
   const [owner, member] = [await createUser(), await createUser()]
   const team = await createTeam(owner)
@@ -77,8 +78,7 @@ test('team_members: nobody can update a membership row, so a member cannot make 
   expect((await memberRow(team.id, owner.id)).role).toBe('owner')
 })
 
-// Design 5: "Only the owner removes members". A removed member loses access at once
-// (plan, Review Focus: "a removed member loses access at once").
+// Design 5: "Only the owner removes members". A removed member loses access at once.
 test('team_members: the owner removes a member, who immediately loses access to the team', async () => {
   const [owner, member] = [await createUser(), await createUser()]
   const team = await createTeam(owner)
@@ -93,7 +93,7 @@ test('team_members: the owner removes a member, who immediately loses access to 
   await expectNoRows(memberPb, 'team_members')
 })
 
-// D8: the owner cannot be removed, not even by themselves (a team without its owner row
+// The owner cannot be removed, not even by themselves (a team without its owner row
 // would hide the team from its owner).
 test('team_members: the owner cannot delete their own owner row', async () => {
   const owner = await createUser()
@@ -104,7 +104,7 @@ test('team_members: the owner cannot delete their own owner row', async () => {
   expect((await memberRow(team.id, owner.id)).id).toBe(ownerRowId)
 })
 
-// D8: a plain member cannot remove anyone, themselves included (no leaving in the MVP).
+// A plain member cannot remove anyone, themselves included (no leaving in the MVP).
 test('team_members: a plain member cannot delete anyone, including themselves', async () => {
   const [owner, member, other] = [await createUser(), await createUser(), await createUser()]
   const team = await createTeam(owner)
@@ -136,7 +136,7 @@ test("team_members: deleting a member's account removes their memberships; delet
   expect((await memberRow(team.id, owner.id)).role).toBe('owner')
 })
 
-// D6: user_name is a copy kept in step by a hook, so a renamed member shows the new name.
+// user_name is a copy kept in step by a hook, so a renamed member shows the new name.
 test('team_members: user_name follows when a member changes their name', async () => {
   const [owner, member] = [await createUser(), await createUser()]
   await setName(member, 'Old Name')

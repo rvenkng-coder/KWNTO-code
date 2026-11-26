@@ -1,17 +1,27 @@
-// Protects: live editing by two people (editor core plan, Task 14; design 8b "two browsers
-// editing the same node"; decision 0002): edits of one node by two people both survive, a
-// teammate's work appears without a reload, a save that keeps conflicting is reported and
-// leaves nothing half-saved, and a member removed from the team loses the project.
+// Protects: live editing by two people (design 8b "two browsers editing the same node"; decision 0002): edits of one
+// node by two people both survive, a teammate's work appears without a reload, a save that keeps conflicting is
+// reported and leaves nothing half-saved, and a member removed from the team loses the project.
 import { expect, test, type Browser, type Page } from '@playwright/test'
 import { uniqueEmail } from './helpers/admin'
-import { addNodeAt, card, cards, connectNodes, createProject, nodePosition, openProject, readyCanvas, waitForSave } from './helpers/editor'
+import {
+  addNodeAt,
+  card,
+  cards,
+  connectNodes,
+  createProject,
+  nodePosition,
+  openProject,
+  readyCanvas,
+  waitForSave,
+} from './helpers/editor'
 import { createTeam, enableJoinCode, joinWithCode, openTeam, signUpVerifyAndSignIn } from './helpers/ui'
 
 const TOO_BUSY = 'Could not save: too many people are editing this at once. Try again.'
 const NOT_FOUND = 'This project does not exist or you are not a member of its team.'
 const panel = (page: Page) => page.getByTestId('editor-panel')
 const titleField = (page: Page) => panel(page).getByLabel('Title', { exact: true })
-const isNodePatch = (method: string, url: string) => method === 'PATCH' && url.includes('/api/collections/nodes/records/')
+const isNodePatch = (method: string, url: string) =>
+  method === 'PATCH' && url.includes('/api/collections/nodes/records/')
 
 /** The owner (page `a`) and a member who joined by code (page `b`), both with project `Story` open. */
 async function ownerAndMember(page: Page, browser: Browser): Promise<{ a: Page; b: Page }> {
@@ -51,9 +61,9 @@ async function dragRight(page: Page, id: string): Promise<void> {
   await page.mouse.up()
 }
 
-// Protects: design 8b and Review Focus 1: a title typed in one browser and a drag of the same
-// node in another, sent on the same version, both survive. B's PATCH is held until A's save has
-// landed, so it always meets a 409 and only the door's re-read and retry (guardedSave) saves it.
+// Protects: design 8b: a title typed in one browser and a drag of the same node in another, sent on the same version,
+// both survive. B's PATCH is held until A's save has landed, so it always meets a 409 and only the door's re-read and
+// retry (guardedSave) saves it.
 test('two people editing one node both keep their change', async ({ page, browser }) => {
   const { a, b } = await ownerAndMember(page, browser)
   const id = await sharedNode(a, b, 40, 60)
@@ -62,7 +72,9 @@ test('two people editing one node both keep their change', async ({ page, browse
   await expect(titleField(a)).toBeVisible()
   const titleSaved = waitForSave(a, 'nodes', 'PATCH')
   let markHeld = () => undefined as void
-  const held = new Promise<void>((resolve) => { markHeld = resolve })
+  const held = new Promise<void>((resolve) => {
+    markHeld = resolve
+  })
   let heldOnce = false
   await b.route('**/api/collections/nodes/records/**', async (route) => {
     const request = route.request()
@@ -96,7 +108,7 @@ test('two people editing one node both keep their change', async ({ page, browse
   }
 })
 
-// Protects: design 8b (live changes, D15): what a teammate adds, connects and trashes shows on
+// Protects: design 8b (live changes): what a teammate adds, connects and trashes shows on
 // the other page as it happens, with no reload.
 test("a teammate's edits appear without a reload", async ({ page, browser }) => {
   const { a, b } = await ownerAndMember(page, browser)
@@ -126,9 +138,8 @@ test("a teammate's edits appear without a reload", async ({ page, browser }) => 
   await expect(cards(a)).toHaveCount(2)
 })
 
-// Protects: plan Global Constraints (20 tries, then TOO_BUSY) and decision 0002's open point "the
-// 409 path seen by a person": every PATCH of A's node is answered 409, so A is told, its title
-// goes back, and nothing reaches B.
+// Protects: retries are bounded and the person is told when they run out (20 tries, then TOO_BUSY; decision 0002):
+// every PATCH of A's node is answered 409, so A is told, its title goes back, and nothing reaches B.
 test('when saving keeps conflicting the person is told and nothing half-saves', async ({ page, browser }) => {
   const { a, b } = await ownerAndMember(page, browser)
   const id = await sharedNode(a, b, 40, 60)
@@ -143,7 +154,11 @@ test('when saving keeps conflicting the person is told and nothing half-saves', 
   await a.route('**/api/collections/nodes/records/**', async (route) => {
     if (!isNodePatch(route.request().method(), route.request().url())) return route.continue()
     refused++
-    return route.fulfill({ status: 409, contentType: 'application/json', body: JSON.stringify({ status: 409, message: 'Conflict.', data: {} }) })
+    return route.fulfill({
+      status: 409,
+      contentType: 'application/json',
+      body: JSON.stringify({ status: 409, message: 'Conflict.', data: {} }),
+    })
   })
   await titleField(a).fill('New title')
   await titleField(a).blur()
@@ -158,7 +173,7 @@ test('when saving keeps conflicting the person is told and nothing half-saves', 
   await expect(card(b, id)).toContainText('Old title')
 })
 
-// Protects: security.md (members only) and Task 9's not-found screen: once the owner removes a
+// Protects: security.md (members only) and the not-found screen: once the owner removes a
 // member, that member's next load of the project shows the not-found text and no content.
 test('a removed member can no longer open the project', async ({ page, browser }) => {
   const { a, b } = await ownerAndMember(page, browser)

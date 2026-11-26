@@ -13,15 +13,28 @@
 import { type ChildProcess, spawn } from 'node:child_process'
 
 // notStarted is set when the command was refused (deadline passed or the run is closing); output says why.
-export interface CommandResult { code: number | null; timedOut: boolean; output: string; notStarted?: true }
-export interface CommandOptions { cwd: string; deadlineMs: number; now?: () => number; graceMs?: number }
+export interface CommandResult {
+  code: number | null
+  timedOut: boolean
+  output: string
+  notStarted?: true
+}
+export interface CommandOptions {
+  cwd: string
+  deadlineMs: number
+  now?: () => number
+  graceMs?: number
+}
 
 export const GRACE_MS = 5_000
 const POLL_MS = 25
 // One run's state: its process groups (started and not yet known to be empty) and whether it is closing.
 // openRun (called by runCheckTask at the start of every run) starts a fresh one, so a stopAll still finishing
 // for an earlier run can never stop, or refuse, a command of the next.
-interface RunState { closing: boolean; groups: Set<number> }
+interface RunState {
+  closing: boolean
+  groups: Set<number>
+}
 let current: RunState = { closing: false, groups: new Set() }
 
 export function openRun(): void {
@@ -50,7 +63,11 @@ async function emptyWithin(pgid: number, ms: number): Promise<boolean> {
 }
 
 // SIGTERM, wait up to the grace period, then SIGKILL and wait until the group is gone.
-export async function stopGroup(pgid: number, graceMs: number = GRACE_MS, groups: Set<number> = current.groups): Promise<void> {
+export async function stopGroup(
+  pgid: number,
+  graceMs: number = GRACE_MS,
+  groups: Set<number> = current.groups,
+): Promise<void> {
   if (signalGroup(pgid, 'SIGTERM') && !(await emptyWithin(pgid, graceMs))) {
     signalGroup(pgid, 'SIGKILL')
     await emptyWithin(pgid, 60_000) // SIGKILL cannot be ignored; this only waits for the kernel
@@ -79,12 +96,19 @@ export function runCommand(command: string, args: string[], options: CommandOpti
     const child: ChildProcess = spawn(command, args, { cwd, detached: true, stdio: ['ignore', 'pipe', 'pipe'] })
     const pgid = child.pid
     if (pgid !== undefined) run.groups.add(pgid)
-    child.stdout?.on('data', (chunk: Buffer) => { output += chunk.toString() })
-    child.stderr?.on('data', (chunk: Buffer) => { output += chunk.toString() })
-    const timer = setTimeout(() => {
-      timedOut = true
-      if (pgid !== undefined) void stopGroup(pgid, graceMs, run.groups)
-    }, Math.max(0, deadlineMs - now()))
+    child.stdout?.on('data', (chunk: Buffer) => {
+      output += chunk.toString()
+    })
+    child.stderr?.on('data', (chunk: Buffer) => {
+      output += chunk.toString()
+    })
+    const timer = setTimeout(
+      () => {
+        timedOut = true
+        if (pgid !== undefined) void stopGroup(pgid, graceMs, run.groups)
+      },
+      Math.max(0, deadlineMs - now()),
+    )
     let settled = false // a failed start can emit both 'error' and 'close'
     const finish = async (code: number | null, extra: string): Promise<void> => {
       if (settled) return
@@ -94,7 +118,10 @@ export function runCommand(command: string, args: string[], options: CommandOpti
       if (pgid !== undefined) await stopGroup(pgid, graceMs, run.groups)
       done({ code, timedOut, output: output + extra })
     }
-    child.on('error', (error: NodeJS.ErrnoException) => void finish(null, `cannot start ${command}: ${error.code ?? error.message}`))
+    child.on(
+      'error',
+      (error: NodeJS.ErrnoException) => void finish(null, `cannot start ${command}: ${error.code ?? error.message}`),
+    )
     child.on('close', (code) => void finish(code, ''))
   })
 }

@@ -1,7 +1,7 @@
 import { createRequire } from 'node:module'
 import { expect, test } from 'vitest'
 
-// The pure parts of the version-guarded update (decision 0002, option 2; plan D3).
+// The pure parts of the version-guarded update (decision 0002, option 2).
 // guardedTable picks the table name the guard puts into its SQL, so only the seven
 // content collections may pass; changedFields decides which fields the guard copies
 // onto the freshly read record, so version and timestamps must never be among them;
@@ -14,7 +14,10 @@ const { guardedTable, changedFields, parseSentVersion } = require('../../backend
   parseSentVersion: (value: unknown) => number | null
 }
 
-function readers(now: Record<string, unknown>, before: Record<string, unknown>): [(n: string) => unknown, (n: string) => unknown] {
+function readers(
+  now: Record<string, unknown>,
+  before: Record<string, unknown>,
+): [(n: string) => unknown, (n: string) => unknown] {
   return [(n) => now[n], (n) => before[n]]
 }
 

@@ -11,7 +11,7 @@ const { shouldWarn, warningSubject, DAY_MS } = require('../../backend/pb_hooks/l
 
 const T = Date.UTC(2026, 10, 20, 12, 0, 0)
 
-// Protects design 7c and plan D12: the admin is warned when the total passes the limit,
+// Protects design 7c: the admin is warned when the total passes the limit,
 // never at exactly the limit, never when the warning is off (limit 0), and at most
 // once a day. Each row pins one comparison; the day boundary counts as a new day.
 test('the storage warning fires over the limit at most once a day', () => {

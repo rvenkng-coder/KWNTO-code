@@ -9,19 +9,32 @@ import { moveChapter } from './chapterMoves'
 /** Adds `Chapter <n+1>` after the last one and returns its id. */
 export async function addChapter(projectId: string, ordered: Chapter[]): Promise<string> {
   const id = newId()
-  const placement = insertAt(ordered.map((c) => ({ id: c.id, order: c.position })), id, ordered.length)
-  const position = placement.kind === 'one' ? placement.order : (placement.orders.find((o) => o.id === id)?.order ?? ordered.length + 1)
+  const placement = insertAt(
+    ordered.map((c) => ({ id: c.id, order: c.position })),
+    id,
+    ordered.length,
+  )
+  const position =
+    placement.kind === 'one'
+      ? placement.order
+      : (placement.orders.find((o) => o.id === id)?.order ?? ordered.length + 1)
   await edits.group('Add chapter', async () => {
     // A renumber of the other chapters is rare (only after about 50 inserts in one gap).
     if (placement.kind === 'renumber') await renumberOthers(placement.orders, id)
-    await edits.create('chapters', { id, projectId, title: `Chapter ${ordered.length + 1}`, position, deleted: false, deletedAt: null, version: 0 }, 'Add chapter')
+    await edits.create(
+      'chapters',
+      { id, projectId, title: `Chapter ${ordered.length + 1}`, position, deleted: false, deletedAt: null, version: 0 },
+      'Add chapter',
+    )
   })
   return id
 }
 
 async function renumberOthers(orders: Array<{ id: string; order: number }>, exceptId: string): Promise<void> {
   await Promise.all(
-    orders.filter((o) => o.id !== exceptId).map((o) => edits.update('chapters', o.id, { position: o.order }, 'Add chapter')),
+    orders
+      .filter((o) => o.id !== exceptId)
+      .map((o) => edits.update('chapters', o.id, { position: o.order }, 'Add chapter')),
   )
 }
 

@@ -1,6 +1,6 @@
-// Protects: the editor frame and the chapter tabs (editor core plan, Task 9): a new project opens
-// with Chapter 1, chapter edits survive a reload, closing a tab differs from trashing a chapter,
-// only the owner trashes a project, deleting a team names its projects, and an outsider sees nothing.
+// Protects: the editor frame and the chapter tabs: a new project opens with Chapter 1, chapter edits survive a reload,
+// closing a tab differs from trashing a chapter, only the owner trashes a project, deleting a team names its projects,
+// and an outsider sees nothing.
 import { expect, test } from '@playwright/test'
 import { uniqueEmail } from './helpers/admin'
 import { createProject, ownerWithProject, tabTitles, waitForSave } from './helpers/editor'
@@ -86,7 +86,7 @@ test('only the owner can move a project to the trash', async ({ page, browser })
   await memberPage.close()
 })
 
-// Protects: the owner is told how many projects go with the team (decision D13).
+// Protects: deleting a team deletes its projects, so the owner is told how many go with it.
 test('deleting a team names its project count', async ({ page }) => {
   await ownerWithProject(page, 'One')
   await page.getByRole('button', { name: 'Back to teams' }).click()
@@ -111,8 +111,7 @@ test('an outsider sees no project content', async ({ page, browser }) => {
   await outsider.close()
 })
 
-
-// Protects: dragging the right edge of a tab changes its width, and it never goes below the minimum (decision D10).
+// Protects: dragging the right edge of a tab changes its width, and it never goes below the minimum.
 test('a tab can be resized by dragging its edge', async ({ page }) => {
   await ownerWithProject(page, 'Story')
   const tab = page.getByRole('tab', { name: 'Chapter 1' }).locator('..')

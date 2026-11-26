@@ -3,7 +3,21 @@
 
 import type { ReactElement } from 'react'
 
-export type IconName = 'add' | 'cut' | 'copy' | 'paste' | 'trash' | 'select' | 'panel' | 'export' | 'undo' | 'redo' | 'map' | 'link' | 'unlink' | 'grip'
+export type IconName =
+  | 'add'
+  | 'cut'
+  | 'copy'
+  | 'paste'
+  | 'trash'
+  | 'select'
+  | 'panel'
+  | 'export'
+  | 'undo'
+  | 'redo'
+  | 'map'
+  | 'link'
+  | 'unlink'
+  | 'grip'
 
 const SHAPES: Record<IconName, ReactElement> = {
   add: <path d="M8 3v10M3 8h10" />,
@@ -36,9 +50,12 @@ const SHAPES: Record<IconName, ReactElement> = {
   unlink: <path d="M7 4.5l.8-.8a2.5 2.5 0 0 1 3.5 3.5l-.8.8M9 11.5l-.8.8a2.5 2.5 0 0 1-3.5-3.5l.8-.8M3 3l10 10" />,
   grip: (
     <>
-      <circle cx="6" cy="4" r="0.9" /><circle cx="10" cy="4" r="0.9" />
-      <circle cx="6" cy="8" r="0.9" /><circle cx="10" cy="8" r="0.9" />
-      <circle cx="6" cy="12" r="0.9" /><circle cx="10" cy="12" r="0.9" />
+      <circle cx="6" cy="4" r="0.9" />
+      <circle cx="10" cy="4" r="0.9" />
+      <circle cx="6" cy="8" r="0.9" />
+      <circle cx="10" cy="8" r="0.9" />
+      <circle cx="6" cy="12" r="0.9" />
+      <circle cx="10" cy="12" r="0.9" />
     </>
   ),
   panel: (
@@ -51,8 +68,17 @@ const SHAPES: Record<IconName, ReactElement> = {
 
 export function Icon({ name }: { name: IconName }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"
-      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       {SHAPES[name]}
     </svg>
   )

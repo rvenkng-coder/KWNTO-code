@@ -5,9 +5,8 @@ import { memberProject } from './helpers/content.ts'
 import { unverifiedUser } from './helpers/invites.ts'
 import { addMember } from './helpers/teams.ts'
 
-// Rules of `share_links` (design 5; plan 2026-11-20-sharing Task 3, decisions D7 and D10).
-// A link is made by a verified team member; the server makes its token and snapshot; a
-// member may only revoke a link, never un-revoke, change or delete it.
+// Rules of `share_links` (design 5). A link is made by a verified team member; the server makes its
+// token and snapshot; a member may only revoke a link, never un-revoke, change or delete it.
 
 type Failure = { status?: number }
 
@@ -22,7 +21,9 @@ async function statusOf(promise: Promise<unknown>): Promise<number> {
 
 async function countLinks(projectId: string): Promise<number> {
   const admin = await asAdmin()
-  return (await admin.collection('share_links').getFullList({ filter: admin.filter('project = {:p}', { p: projectId }) })).length
+  return (
+    await admin.collection('share_links').getFullList({ filter: admin.filter('project = {:p}', { p: projectId }) })
+  ).length
 }
 
 function body(user: TestUser, projectId: string, extra: Record<string, unknown> = {}): Record<string, unknown> {
@@ -30,7 +31,8 @@ function body(user: TestUser, projectId: string, extra: Record<string, unknown> 
 }
 
 // Protects security.md 2: only a verified member makes a link, the server alone makes its
-// token (a client cannot choose one it knows) and a snapshot is view-only (D7).
+// token (a client cannot choose one it knows) and a snapshot is view-only,
+// because commenting on or editing a frozen copy makes no sense.
 test('only a verified member makes a link and the server makes its token', async () => {
   const { owner, member, projectId } = await memberProject()
   const outsider = await createUser()
@@ -58,7 +60,8 @@ test('only a verified member makes a link and the server makes its token', async
     () => asMember.collection('share_links').create(body(member, projectId, { snapshot_data: { x: 1 } })),
     () => asMember.collection('share_links').create(body(owner, projectId)),
     () => asMember.collection('share_links').create(body(member, projectId, { kind: 'snapshot', permission: 'edit' })),
-    () => asMember.collection('share_links').create(body(member, projectId, { kind: 'snapshot', permission: 'comment' })),
+    () =>
+      asMember.collection('share_links').create(body(member, projectId, { kind: 'snapshot', permission: 'comment' })),
   ]
   for (const attempt of attempts) {
     expect([400, 403, 404]).toContain(await statusOf(attempt()))
@@ -66,7 +69,7 @@ test('only a verified member makes a link and the server makes its token', async
   expect(await countLinks(projectId)).toBe(before)
 })
 
-// Protects D10: members see and revoke links; a revoked link cannot come back, nothing
+// Protects revoking: members see and revoke links; a revoked link cannot come back, nothing
 // else of a link can change, and nobody deletes one through the API.
 test('members see and revoke links and nobody edits or deletes them', async () => {
   const { owner, member, projectId } = await memberProject()
@@ -81,7 +84,9 @@ test('members see and revoke links and nobody edits or deletes them', async () =
 
   const admin = await asAdmin()
   const edit = await createLink(owner, projectId, 'edit', 'live')
-  await admin.collection('link_grants').create({ link: edit.id, user: holder.id, project: projectId, permission: 'edit', project_name: 'x' })
+  await admin
+    .collection('link_grants')
+    .create({ link: edit.id, user: holder.id, project: projectId, permission: 'edit', project_name: 'x' })
   expect(await (await asUser(holder)).collection('share_links').getFullList()).toEqual([])
 
   const asMember = await asUser(member)
@@ -89,9 +94,13 @@ test('members see and revoke links and nobody edits or deletes them', async () =
   expect((await admin.collection('share_links').getOne(link.id)).revoked).toBe(true)
   expect(await statusOf(asMember.collection('share_links').update(link.id, { revoked: false }))).toBe(404)
   expect(await statusOf(asMember.collection('share_links').update(edit.id, { permission: 'view' }))).toBe(404)
-  expect(await statusOf(asMember.collection('share_links').update(edit.id, { revoked: true, permission: 'view' }))).toBe(404)
+  expect(
+    await statusOf(asMember.collection('share_links').update(edit.id, { revoked: true, permission: 'view' })),
+  ).toBe(404)
   expect(await statusOf(asMember.collection('share_links').delete(edit.id))).toBe(403)
-  expect(await statusOf((await asUser(outsider)).collection('share_links').update(edit.id, { revoked: true }))).toBe(404)
+  expect(await statusOf((await asUser(outsider)).collection('share_links').update(edit.id, { revoked: true }))).toBe(
+    404,
+  )
   expect(await statusOf(asAnonymous().collection('share_links').update(edit.id, { revoked: true }))).toBe(404)
   expect((await admin.collection('share_links').getOne(edit.id)).revoked).toBe(false)
 

@@ -13,16 +13,12 @@ describe('media rules and collection', () => {
     }
   })
 
-  // Protects: verified member uploads an image and the server names it (C1)
+  // Protects: verified member uploads an image and the server names it
   test('a member uploads an image and the server names it', async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
 
-    const res = await uploadMedia(
-      owner,
-      { project: projectId, node: nodeId },
-      { name: 'My Photo.png', bytes: PNG_1PX },
-    )
+    const res = await uploadMedia(owner, { project: projectId, node: nodeId }, { name: 'My Photo.png', bytes: PNG_1PX })
     expect(res.status).toBe(200)
     const data = await res.json()
     expect(data.kind).toBe('image')
@@ -33,7 +29,7 @@ describe('media rules and collection', () => {
     expect(data.file).not.toContain('Photo')
   })
 
-  // Protects: only a verified member uploads, as themself, into their own project (C2)
+  // Protects: only a verified member uploads, as themself, into their own project
   test('only a verified member uploads, as themself, into their own project', async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -53,15 +49,35 @@ describe('media rules and collection', () => {
     // Unverified member
     const r3 = await uploadMedia(unverified, { project: projectId, node: nodeId }, { name: 'test.png', bytes: PNG_1PX })
     // Member with uploader set to owner
-    const r4 = await uploadMedia(member, { project: projectId, node: nodeId, uploader: owner.id }, { name: 'test.png', bytes: PNG_1PX })
+    const r4 = await uploadMedia(
+      member,
+      { project: projectId, node: nodeId, uploader: owner.id },
+      { name: 'test.png', bytes: PNG_1PX },
+    )
     // Member with a node of another project
-    const r5 = await uploadMedia(member, { project: projectId, node: otherNodeId }, { name: 'test.png', bytes: PNG_1PX })
+    const r5 = await uploadMedia(
+      member,
+      { project: projectId, node: otherNodeId },
+      { name: 'test.png', bytes: PNG_1PX },
+    )
     // Member sending kind
-    const r6 = await uploadMedia(member, { project: projectId, node: nodeId, kind: 'image' }, { name: 'test.png', bytes: PNG_1PX })
+    const r6 = await uploadMedia(
+      member,
+      { project: projectId, node: nodeId, kind: 'image' },
+      { name: 'test.png', bytes: PNG_1PX },
+    )
     // Member sending size_bytes
-    const r7 = await uploadMedia(member, { project: projectId, node: nodeId, size_bytes: 67 }, { name: 'test.png', bytes: PNG_1PX })
+    const r7 = await uploadMedia(
+      member,
+      { project: projectId, node: nodeId, size_bytes: 67 },
+      { name: 'test.png', bytes: PNG_1PX },
+    )
     // Member sending title
-    const r8 = await uploadMedia(member, { project: projectId, node: nodeId, title: 'Forged' }, { name: 'test.png', bytes: PNG_1PX })
+    const r8 = await uploadMedia(
+      member,
+      { project: projectId, node: nodeId, title: 'Forged' },
+      { name: 'test.png', bytes: PNG_1PX },
+    )
 
     const statuses = [r1.status, r2.status, r3.status, r4.status, r5.status, r6.status, r7.status, r8.status]
     for (const [i, s] of statuses.entries()) {
@@ -73,17 +89,13 @@ describe('media rules and collection', () => {
     expect(list).toHaveLength(0)
   })
 
-  // Protects: only the team can read a media row or its file (C3)
+  // Protects: only the team can read a media row or its file
   test('only the team can read a media row or its file', async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
     const outsider = await createUser()
 
-    const res = await uploadMedia(
-      owner,
-      { project: projectId, node: nodeId },
-      { name: 'test.png', bytes: PNG_1PX },
-    )
+    const res = await uploadMedia(owner, { project: projectId, node: nodeId }, { name: 'test.png', bytes: PNG_1PX })
     expect(res.status).toBe(200)
     const record = await res.json()
 
@@ -117,17 +129,13 @@ describe('media rules and collection', () => {
     expect(bytes).toEqual(PNG_1PX)
   })
 
-  // Protects: media is never edited; only the team lead deletes it (C4)
+  // Protects: media is never edited; only the team lead deletes it
   test('media is never edited and only the lead deletes it', async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
     const outsider = await createUser()
 
-    const res = await uploadMedia(
-      member,
-      { project: projectId, node: nodeId },
-      { name: 'test.png', bytes: PNG_1PX },
-    )
+    const res = await uploadMedia(member, { project: projectId, node: nodeId }, { name: 'test.png', bytes: PNG_1PX })
     expect(res.status).toBe(200)
     const record = await res.json()
 
@@ -153,7 +161,7 @@ describe('media rules and collection', () => {
     expect(fileRes.status).not.toBe(200)
   })
 
-  // Protects: a member removes media, only the lead restores it, and nobody else can (C12)
+  // Protects: a member removes media, only the lead restores it, and nobody else can
   test('a member removes media and only the lead restores it', async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -164,7 +172,9 @@ describe('media rules and collection', () => {
     expect(record.removed_at).toBe('')
 
     // Outsider cannot remove
-    await expect((await asUser(outsider)).collection('media').update(record.id, { removed_at: '2026-11-20 08:00:00.000Z' })).rejects.toThrow()
+    await expect(
+      (await asUser(outsider)).collection('media').update(record.id, { removed_at: '2026-11-20 08:00:00.000Z' }),
+    ).rejects.toThrow()
 
     // Member removes: the row stays and still counts
     const memberPb = await asUser(member)
@@ -173,7 +183,9 @@ describe('media rules and collection', () => {
     expect((await memberPb.collection('media').getOne(record.id)).id).toBe(record.id)
 
     // Removing and changing something else in one request is refused
-    await expect(memberPb.collection('media').update(record.id, { removed_at: '2026-11-20 09:00:00.000Z', title: 'x' })).rejects.toThrow()
+    await expect(
+      memberPb.collection('media').update(record.id, { removed_at: '2026-11-20 09:00:00.000Z', title: 'x' }),
+    ).rejects.toThrow()
 
     // The member cannot restore
     await expect(memberPb.collection('media').update(record.id, { removed_at: '' })).rejects.toThrow()
@@ -183,34 +195,50 @@ describe('media rules and collection', () => {
     expect(restored.removed_at).toBe('')
   })
 
-  // Protects: a member's upload counts against the lead's quota, not their own (C13)
+  // Protects: a member's upload counts against the lead's quota, not their own
   test("a member's upload counts against the lead's quota", async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
     await setQuotaOverride(owner.id, 1000)
 
-    const r1 = await uploadMedia(member, { project: projectId, node: nodeId }, { name: 'a.png', bytes: sampleBytes('png', 600) })
+    const r1 = await uploadMedia(
+      member,
+      { project: projectId, node: nodeId },
+      { name: 'a.png', bytes: sampleBytes('png', 600) },
+    )
     expect(r1.status).toBe(200)
     const kept = await r1.json()
 
     // The lead's quota is shared by the whole team
-    const r2 = await uploadMedia(owner, { project: projectId, node: nodeId }, { name: 'b.png', bytes: sampleBytes('png', 600) })
+    const r2 = await uploadMedia(
+      owner,
+      { project: projectId, node: nodeId },
+      { name: 'b.png', bytes: sampleBytes('png', 600) },
+    )
     expect(r2.status).toBe(400)
     expect((await r2.json()).data?.file?.code).toBe('media_over_quota')
 
     // Removing it hides it but does not free the space
     const memberPb = await asUser(member)
     await memberPb.collection('media').update(kept.id, { removed_at: '2026-11-20 08:00:00.000Z' })
-    const r3 = await uploadMedia(member, { project: projectId, node: nodeId }, { name: 'c.png', bytes: sampleBytes('png', 600) })
+    const r3 = await uploadMedia(
+      member,
+      { project: projectId, node: nodeId },
+      { name: 'c.png', bytes: sampleBytes('png', 600) },
+    )
     expect(r3.status).toBe(400)
 
     // Deleting it for good does
     await (await asUser(owner)).collection('media').delete(kept.id)
-    const r4 = await uploadMedia(member, { project: projectId, node: nodeId }, { name: 'd.png', bytes: sampleBytes('png', 600) })
+    const r4 = await uploadMedia(
+      member,
+      { project: projectId, node: nodeId },
+      { name: 'd.png', bytes: sampleBytes('png', 600) },
+    )
     expect(r4.status).toBe(200)
   })
 
-  // Protects: deleting the uploader's account keeps the file with the lead (C14)
+  // Protects: deleting the uploader's account keeps the file with the lead
   test("deleting the uploader's account keeps the file", async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -225,7 +253,7 @@ describe('media rules and collection', () => {
     expect(kept.size_bytes).toBe(67)
   })
 
-  // Protects: a lead with no limits row gets the default quota, and the admin can restore media (C15)
+  // Protects: a lead with no limits row gets the default quota, and the admin can restore media
   test('a lead with no limits row gets the default quota and the admin can restore', async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -246,16 +274,12 @@ describe('media rules and collection', () => {
     expect(restored.removed_at).toBe('')
   })
 
-  // Protects: deleting a team removes its media (C11)
+  // Protects: deleting a team removes its media
   test('deleting a team removes its media', async () => {
     const { owner, teamId, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
 
-    const res = await uploadMedia(
-      owner,
-      { project: projectId, node: nodeId },
-      { name: 'test.png', bytes: PNG_1PX },
-    )
+    const res = await uploadMedia(owner, { project: projectId, node: nodeId }, { name: 'test.png', bytes: PNG_1PX })
     expect(res.status).toBe(200)
     const record = await res.json()
 
@@ -266,30 +290,29 @@ describe('media rules and collection', () => {
     await expect(admin.collection('media').getOne(record.id)).rejects.toThrow()
   })
 
-  // Protects: stored files are served so they cannot run as a page (C6)
+  // Protects: stored files are served so they cannot run as a page
   test('stored files are served so they cannot run as a page', async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
 
     // 1. Regular PNG
-    const r1 = await uploadMedia(
-      owner,
-      { project: projectId, node: nodeId },
-      { name: 'photo.png', bytes: PNG_1PX },
-    )
+    const r1 = await uploadMedia(owner, { project: projectId, node: nodeId }, { name: 'photo.png', bytes: PNG_1PX })
     expect(r1.status).toBe(200)
     const d1 = await r1.json()
 
     // 2. Polyglot PNG
     const polyglotBytes = new Uint8Array([
-      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+      0x89,
+      0x50,
+      0x4e,
+      0x47,
+      0x0d,
+      0x0a,
+      0x1a,
+      0x0a,
       ...Buffer.from('<script>alert(1)</script>'),
     ])
-    const r2 = await uploadMedia(
-      owner,
-      { project: projectId, node: nodeId },
-      { name: 'x.png', bytes: polyglotBytes },
-    )
+    const r2 = await uploadMedia(owner, { project: projectId, node: nodeId }, { name: 'x.png', bytes: polyglotBytes })
     expect(r2.status).toBe(200)
     const d2 = await r2.json()
 
@@ -308,7 +331,7 @@ describe('media rules and collection', () => {
     }
   })
 
-  // Protects: the storage route shows the lead's usage to the team and nobody else (C10)
+  // Protects: the storage route shows the lead's usage to the team and nobody else
   test("the storage route shows the lead's usage to the team and nobody else", async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -316,7 +339,11 @@ describe('media rules and collection', () => {
     // Owner uploads 67 bytes, member uploads 600 bytes: both count for the lead
     const r1 = await uploadMedia(owner, { project: projectId, node: nodeId }, { name: 'f1.png', bytes: PNG_1PX })
     expect(r1.status).toBe(200)
-    const r2 = await uploadMedia(member, { project: projectId, node: nodeId }, { name: 'f2.png', bytes: sampleBytes('png', 600) })
+    const r2 = await uploadMedia(
+      member,
+      { project: projectId, node: nodeId },
+      { name: 'f2.png', bytes: sampleBytes('png', 600) },
+    )
     expect(r2.status).toBe(200)
 
     const path = `/api/kwnto/storage?project=${projectId}`

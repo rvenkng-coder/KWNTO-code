@@ -10,11 +10,23 @@ const SEPARATOR = ' :: '
 
 // A test path must stay inside the repository and must not read as an option.
 function unsafePath(path: string): boolean {
-  return path === '' || path.startsWith('-') || path.startsWith('/') || /^[A-Za-z]:/.test(path) || path.split(/[\\/]/).includes('..')
+  return (
+    path === '' ||
+    path.startsWith('-') ||
+    path.startsWith('/') ||
+    /^[A-Za-z]:/.test(path) ||
+    path.split(/[\\/]/).includes('..')
+  )
 }
 
 function isNone(flow: string): boolean {
-  return flow.trim().replace(/^`(.*)`$/, '$1').trim().toLowerCase() === 'none'
+  return (
+    flow
+      .trim()
+      .replace(/^`(.*)`$/, '$1')
+      .trim()
+      .toLowerCase() === 'none'
+  )
 }
 
 // The problem with one "path :: title" reference, or null when the test exists.
@@ -27,8 +39,10 @@ function referenceProblem(id: string, reference: string, readFile: (path: string
   const source = readFile(path)
   if (source === null) return `${id}: test file ${path} does not exist or cannot be read`
   const parsed = parseTestFile(path, source)
-  if (!parsed.ok) return `${id}: ${path} does not parse (${parsed.error ?? 'syntax error'}), so its tests cannot be found`
-  if (!parsed.declarations.some((declaration) => declaration.title === title)) return `${id}: no test titled "${title}" in ${path}`
+  if (!parsed.ok)
+    return `${id}: ${path} does not parse (${parsed.error ?? 'syntax error'}), so its tests cannot be found`
+  if (!parsed.declarations.some((declaration) => declaration.title === title))
+    return `${id}: no test titled "${title}" in ${path}`
   return null
 }
 
@@ -37,7 +51,8 @@ export function coverageProblems(plan: TestPlan, readFile: (path: string) => str
   const problems: string[] = []
   for (const row of plan.cases) {
     if (row.layer === 'manual') {
-      if (isNone(plan.flow)) problems.push(`${row.id}: a manual case needs a Flow section that describes what to do (Flow is "none")`)
+      if (isNone(plan.flow))
+        problems.push(`${row.id}: a manual case needs a Flow section that describes what to do (Flow is "none")`)
       continue
     }
     const problem = referenceProblem(row.id, row.test, readFile)

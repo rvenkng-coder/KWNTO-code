@@ -1,5 +1,5 @@
 /// <reference path="../pb_data/types.d.ts" />
-// The disk-usage warning (design 7c, plan 6 D12): every hour, add up every stored file;
+// The disk-usage warning (design 7c): every hour, add up every stored file;
 // over system_storage.total_warning_bytes, and if no warning went out in the last 24
 // hours, write a `storage` security log entry and mail every admin (when mail is set up).
 
@@ -36,12 +36,14 @@ cronAdd("kwnto_storage_check", "0 * * * *", () => {
   // One failed recipient or a broken mail setup must not stop the others or the job.
   for (const admin of $app.findAllRecords("_superusers")) {
     try {
-      $app.newMailClient().send(new MailerMessage({
-        from: { address: meta.senderAddress, name: meta.senderName },
-        to: [{ address: admin.email() }],
-        subject: subject,
-        text: text,
-      }))
+      $app.newMailClient().send(
+        new MailerMessage({
+          from: { address: meta.senderAddress, name: meta.senderName },
+          to: [{ address: admin.email() }],
+          subject: subject,
+          text: text,
+        }),
+      )
     } catch (error) {
       // The server console is the only place a hook can report this; the log entry is already written.
       // eslint-disable-next-line no-console

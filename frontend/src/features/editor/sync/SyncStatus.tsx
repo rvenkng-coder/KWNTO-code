@@ -15,7 +15,9 @@ export function SyncStatus() {
       {failed > 0 && (
         <>
           <span className="text-danger">{failedText(failed)}</span>
-          <button type="button" className="btn" onClick={() => setOpen((o) => !o)}>Show</button>
+          <button type="button" className="btn" onClick={() => setOpen((o) => !o)}>
+            Show
+          </button>
         </>
       )}
       {failed > 0 && open && <FailedList onEmpty={() => setOpen(false)} />}

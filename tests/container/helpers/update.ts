@@ -22,7 +22,11 @@ const GIT_ENV = {
   GIT_CONFIG_NOSYSTEM: '1',
 }
 
-export interface Checkout { root: string; vm: string; dev: string }
+export interface Checkout {
+  root: string
+  vm: string
+  dev: string
+}
 
 export function git(cwd: string, args: string[]): string {
   return execFileSync('git', args, { cwd, encoding: 'utf8', env: { ...process.env, ...GIT_ENV } }).trim()
@@ -76,11 +80,22 @@ export function updateStackDown(c: Checkout | undefined, backupDir: string | und
 
 // Runs the VM clone's deploy/update.sh with `cwd` as the current folder (the VM clone by default).
 export function runUpdate(
-  c: Checkout, backupDir: string, opts: { args?: string[]; input?: string; cwd?: string; env?: Record<string, string> } = {},
+  c: Checkout,
+  backupDir: string,
+  opts: { args?: string[]; input?: string; cwd?: string; env?: Record<string, string> } = {},
 ): ScriptResult {
-  const env = { ...process.env, ...GIT_ENV, KWNTO_COMPOSE_FILES: COMPOSE_FILES, KWNTO_BACKUP_DIR: backupDir, ...opts.env }
+  const env = {
+    ...process.env,
+    ...GIT_ENV,
+    KWNTO_COMPOSE_FILES: COMPOSE_FILES,
+    KWNTO_BACKUP_DIR: backupDir,
+    ...opts.env,
+  }
   const res = spawnSync('sh', [join(c.vm, 'deploy', 'update.sh'), ...(opts.args ?? [])], {
-    cwd: opts.cwd ?? c.vm, input: opts.input ?? '', encoding: 'utf8', env,
+    cwd: opts.cwd ?? c.vm,
+    input: opts.input ?? '',
+    encoding: 'utf8',
+    env,
   })
   return { status: res.status, stdout: res.stdout, stderr: res.stderr }
 }

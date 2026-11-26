@@ -3,10 +3,9 @@ import { createNode, guardedUpdate, memberProject, readAsAdmin, type MemberProje
 import { asUser, createUser, type TestUser } from './helpers/pb.ts'
 import { createLink, joinShare } from './helpers/share.ts'
 
-// Review finding M1 of plan 2026-11-20-sharing (design 6.8: a trashed project is hidden with
-// its contents): a person who already joined an edit or comment link loses the project while
-// it is in the trash and gets it back when the owner restores it. Without this, a leaked
-// link keeps working for the whole retention period.
+// A trashed project is hidden with its contents (design 6.8): a person who already joined an edit or
+// comment link loses the project while it is in the trash and gets it back when the owner restores it.
+// Without this, a leaked link keeps working for the whole retention period.
 
 async function holder(ctx: MemberProject, permission: 'comment' | 'edit'): Promise<TestUser> {
   const user = await createUser()
@@ -17,7 +16,9 @@ async function holder(ctx: MemberProject, permission: 'comment' | 'edit'): Promi
 
 async function setTrashed(ctx: MemberProject, deletedAt: string): Promise<void> {
   const version = Number((await readAsAdmin('projects', ctx.projectId)).version)
-  expect((await guardedUpdate(ctx.owner, 'projects', ctx.projectId, { deleted_at: deletedAt, version })).status).toBe(200)
+  expect((await guardedUpdate(ctx.owner, 'projects', ctx.projectId, { deleted_at: deletedAt, version })).status).toBe(
+    200,
+  )
 }
 
 async function count(user: TestUser, collection: string, projectId: string): Promise<number> {
@@ -30,7 +31,7 @@ async function rename(user: TestUser, nodeId: string, title: string): Promise<nu
   return (await guardedUpdate(user, 'nodes', nodeId, { title, version })).status
 }
 
-// Protects M1: while the project is in the trash an edit-link holder cannot read or edit it
+// Protects link holders: while the project is in the trash an edit-link holder cannot read or edit it
 // and a comment-link holder cannot read or post comments; their grant rows are hidden too
 // (so "Shared with me" drops it); after the restore everything works again.
 test('link holders lose a trashed project and get it back on restore', async () => {
@@ -38,7 +39,11 @@ test('link holders lose a trashed project and get it back on restore', async () 
   const nodeId = await createNode(ctx.member, ctx.projectId, ctx.chapterId, { title: 'start' })
   const editor = await holder(ctx, 'edit')
   const commenter = await holder(ctx, 'comment')
-  await (await asUser(commenter)).collection('comments').create({ project: ctx.projectId, node: nodeId, author: commenter.id, body: 'before' })
+  await (
+    await asUser(commenter)
+  )
+    .collection('comments')
+    .create({ project: ctx.projectId, node: nodeId, author: commenter.id, body: 'before' })
 
   expect(await count(editor, 'projects', ctx.projectId)).toBe(1)
   expect(await count(editor, 'link_grants', ctx.projectId)).toBe(1)
@@ -51,7 +56,9 @@ test('link holders lose a trashed project and get it back on restore', async () 
   expect(await count(commenter, 'comments', ctx.projectId)).toBe(0)
   expect(await count(commenter, 'link_grants', ctx.projectId)).toBe(0)
   await expect(
-    (await asUser(commenter)).collection('comments').create({ project: ctx.projectId, node: nodeId, author: commenter.id, body: 'while trashed' }),
+    (await asUser(commenter))
+      .collection('comments')
+      .create({ project: ctx.projectId, node: nodeId, author: commenter.id, body: 'while trashed' }),
   ).rejects.toMatchObject({ status: 400 })
   expect(await count(ctx.member, 'nodes', ctx.projectId)).toBeGreaterThan(0)
 

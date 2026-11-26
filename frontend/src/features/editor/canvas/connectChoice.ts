@@ -5,7 +5,7 @@ import { edits } from '../store/edits'
 
 // What a drag between handles does (editor cards design, goal 1): a choice's own dot links
 // or re-links that choice, the "+" makes a new choice already linked. A second choice to
-// the same node is refused with the message (F3) and nothing is saved.
+// the same node is refused with a message in the editor's error banner and nothing is saved.
 
 function refuseDuplicate(toId: string): void {
   const title = editorStore.getState().content.nodes[toId]?.title ?? ''

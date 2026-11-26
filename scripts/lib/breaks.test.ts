@@ -4,7 +4,11 @@ import type { BreakRow } from './test-plan.ts'
 
 // An in-memory BreakDeps. `passes` decides whether the named tests pass, given the files as they are
 // at the moment the tests run; every write and every test run is recorded.
-interface Fake extends BreakDeps { files: Map<string, string>; writes: string[]; runs: string[][] }
+interface Fake extends BreakDeps {
+  files: Map<string, string>
+  writes: string[]
+  runs: string[][]
+}
 function fake(files: Record<string, string>, passes: (files: Map<string, string>, tests: string[]) => boolean): Fake {
   const state = new Map(Object.entries(files))
   const writes: string[] = []
@@ -30,7 +34,13 @@ function fake(files: Record<string, string>, passes: (files: Map<string, string>
 }
 
 const SOURCE = 'export const isAdult = (age: number) => age >= 18\n'
-const row = (id: string, find: string, replace: string, file = 'frontend/src/a.ts', tests = ['frontend/src/a.test.ts']): BreakRow => ({ id, file, find, replace, tests })
+const row = (
+  id: string,
+  find: string,
+  replace: string,
+  file = 'frontend/src/a.ts',
+  tests = ['frontend/src/a.test.ts'],
+): BreakRow => ({ id, file, find, replace, tests })
 // The tests "catch" any change: they pass only while frontend/src/a.ts holds the original source.
 const strictTests = (files: Map<string, string>) => files.get('frontend/src/a.ts') === SOURCE
 const blindTests = () => true
@@ -41,7 +51,7 @@ describe('applyBreak', () => {
     expect(applyBreak('a >= 18; b', '>=', '>')).toBe('a > 18; b')
   })
 
-  // Protects Review Focus 2: a Find that is missing or ambiguous never edits the file.
+  // Protects: a Find that is missing or ambiguous never edits the file.
   test('applyBreak returns null for zero and for two occurrences', () => {
     expect(applyBreak('a >= 18', '<=', '<')).toBeNull()
     expect(applyBreak('a >= 18 && b >= 3', '>=', '>')).toBeNull()
@@ -67,9 +77,18 @@ describe('applyBreak', () => {
 describe('runBreaks', () => {
   // Protects design 6.3: a break may touch only code Vitest reaches; nothing is written otherwise.
   test('runBreaks marks a break on a non-breakable path (tests/x.ts, a hook such as backend/pb_hooks/users-signup.pb.js, ../x.ts) invalid and writes nothing', async () => {
-    const paths = ['tests/x.ts', 'backend/pb_hooks/users-signup.pb.js', '../x.ts', 'frontend/src/a.test.ts', '/etc/passwd']
+    const paths = [
+      'tests/x.ts',
+      'backend/pb_hooks/users-signup.pb.js',
+      '../x.ts',
+      'frontend/src/a.test.ts',
+      '/etc/passwd',
+    ]
     const deps = fake(Object.fromEntries(paths.map((path) => [path, SOURCE])), blindTests)
-    const { results } = await runBreaks(paths.map((path, index) => row(`B${index}`, '>=', '>', path)), deps)
+    const { results } = await runBreaks(
+      paths.map((path, index) => row(`B${index}`, '>=', '>', path)),
+      deps,
+    )
     expect(results.map((result) => result.status)).toEqual(paths.map(() => 'invalid'))
     expect(deps.writes).toEqual([])
   })
@@ -96,11 +115,13 @@ describe('runBreaks', () => {
   test('a surviving break is reported and the file is restored', async () => {
     const deps = fake({ 'frontend/src/a.ts': SOURCE }, blindTests)
     const { results } = await runBreaks([row('B1', '>=', '>')], deps)
-    expect(results).toEqual([{ id: 'B1', status: 'survived', detail: 'the tests did not notice frontend/src/a.ts: >= -> >' }])
+    expect(results).toEqual([
+      { id: 'B1', status: 'survived', detail: 'the tests did not notice frontend/src/a.ts: >= -> >' },
+    ])
     expect(deps.files.get('frontend/src/a.ts')).toBe(SOURCE)
   })
 
-  // Protects Review Focus 2: a crash in the test run never leaves the broken file behind.
+  // Protects: a crash in the test run never leaves the broken file behind.
   test('runTests throwing still restores the file and rethrows', async () => {
     let calls = 0
     const deps = fake({ 'frontend/src/a.ts': SOURCE }, () => {
@@ -113,10 +134,15 @@ describe('runBreaks', () => {
     expect(deps.writes).toEqual(['frontend/src/a.ts', 'frontend/src/a.ts'])
   })
 
-  // Protects Review Focus 2: an ambiguous or missing Find, an unreadable file or no tests is invalid, never applied.
+  // Protects: an ambiguous or missing Find, an unreadable file or no tests is invalid, never applied.
   test('an invalid break (find twice) writes nothing', async () => {
     const deps = fake({ 'frontend/src/a.ts': 'a >= 1 && b >= 2\n' }, blindTests)
-    const breaks = [row('B1', '>=', '>'), row('B2', '<', '<='), row('B3', 'a', 'b', 'frontend/src/missing.ts'), row('B4', '&&', '||', 'frontend/src/a.ts', [])]
+    const breaks = [
+      row('B1', '>=', '>'),
+      row('B2', '<', '<='),
+      row('B3', 'a', 'b', 'frontend/src/missing.ts'),
+      row('B4', '&&', '||', 'frontend/src/a.ts', []),
+    ]
     const { results } = await runBreaks(breaks, deps)
     expect(results.map((result) => result.status)).toEqual(['invalid', 'invalid', 'invalid', 'invalid'])
     expect(results[0].detail).toMatch(/2 times/)
@@ -129,11 +155,21 @@ describe('runBreaks', () => {
   // Protects: a break is judged by the tests the plan names for it, and the baseline runs the union once.
   test('each break runs only its own named tests', async () => {
     const deps = fake({ 'frontend/src/a.ts': SOURCE, 'frontend/src/b.ts': 'x < 1\n' }, blindTests)
-    await runBreaks([row('B1', '>=', '>', 'frontend/src/a.ts', ['frontend/src/a.test.ts']), row('B2', '<', '<=', 'frontend/src/b.ts', ['frontend/src/b.test.ts', 'frontend/src/a.test.ts'])], deps)
-    expect(deps.runs).toEqual([['frontend/src/a.test.ts', 'frontend/src/b.test.ts'], ['frontend/src/a.test.ts'], ['frontend/src/b.test.ts', 'frontend/src/a.test.ts']])
+    await runBreaks(
+      [
+        row('B1', '>=', '>', 'frontend/src/a.ts', ['frontend/src/a.test.ts']),
+        row('B2', '<', '<=', 'frontend/src/b.ts', ['frontend/src/b.test.ts', 'frontend/src/a.test.ts']),
+      ],
+      deps,
+    )
+    expect(deps.runs).toEqual([
+      ['frontend/src/a.test.ts', 'frontend/src/b.test.ts'],
+      ['frontend/src/a.test.ts'],
+      ['frontend/src/b.test.ts', 'frontend/src/a.test.ts'],
+    ])
   })
 
-  // Protects Review Focus 2: the restore writes back exactly what was read, line endings and all.
+  // Protects: the restore writes back exactly what was read, line endings and all.
   test('the restored content is byte-identical (including CRLF and no trailing newline)', async () => {
     const original = 'line one\r\nif (age >= 18) {\r\n  return true\r\n}'
     const deps = fake({ 'frontend/src/a.ts': original }, (files) => files.get('frontend/src/a.ts') === original)

@@ -1,8 +1,7 @@
 // The per-user limit on join-code and invite attempts (design 5, docs/security.md
-// section 3; setting `team_attempts_per_hour`, decision D3). Both routes share one
-// limit, so they must count the same way: moved here from teams-join.pb.js in Task 8,
-// because hook handlers run in isolated scopes and the invite route could not reach the
-// join route's helpers. The logic is unchanged.
+// section 3; setting `team_attempts_per_hour`). Both routes share one limit, so they
+// must count the same way: the counting lives here because hook handlers run in isolated
+// scopes, where one route cannot reach another's helpers.
 // CommonJS so hooks can load it with require(`${__hooks}/lib/team-attempts.js`).
 // Reads the security log through the app, so it is checked by the rule tests; the pure
 // decision is isOverLimit (lib/rate-limit.js, unit tested).

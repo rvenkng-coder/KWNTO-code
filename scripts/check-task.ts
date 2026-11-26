@@ -13,9 +13,25 @@ import { parseTestPlan, type TestPlan } from './lib/test-plan.ts'
 
 export { defaultSteps } from './lib/check-steps.ts'
 
-export interface StepResult { name: string; ok: boolean; informational?: boolean; lines: string[] }
-export interface CheckContext { base: string; taskFile: string; taskNumber: number; builtBy: 'local' | 'strong'; plan: TestPlan | null; changed: string[]; deadlineMs: number }
-export interface Step { name: string; run(ctx: CheckContext): Promise<StepResult> }
+export interface StepResult {
+  name: string
+  ok: boolean
+  informational?: boolean
+  lines: string[]
+}
+export interface CheckContext {
+  base: string
+  taskFile: string
+  taskNumber: number
+  builtBy: 'local' | 'strong'
+  plan: TestPlan | null
+  changed: string[]
+  deadlineMs: number
+}
+export interface Step {
+  name: string
+  run(ctx: CheckContext): Promise<StepResult>
+}
 
 export const BUDGET_MS = 600_000
 const USAGE = 'usage: npm run check:task -- --task <task file> [--base <sha>] [--built-by local|strong]'
@@ -65,7 +81,11 @@ export function formatReport(results: StepResult[]): { ok: boolean; report: stri
   return { ok: failures.length === 0, report: lines.join('\n') }
 }
 
-export async function runCheckTask(ctx: CheckContext, steps: Step[], now: () => number = Date.now): Promise<{ ok: boolean; report: string }> {
+export async function runCheckTask(
+  ctx: CheckContext,
+  steps: Step[],
+  now: () => number = Date.now,
+): Promise<{ ok: boolean; report: string }> {
   openRun()
   const results: StepResult[] = []
   for (const step of steps) results.push(await runStep(step, ctx, now))
@@ -78,7 +98,12 @@ export function taskNumberOf(path: string): number | null {
   return match ? Number(match[1]) : null
 }
 
-export interface Args { task: string; base: string | null; builtBy: 'local' | 'strong'; taskNumber: number }
+export interface Args {
+  task: string
+  base: string | null
+  builtBy: 'local' | 'strong'
+  taskNumber: number
+}
 
 // Each option once, each with a value that does not start with "-" (so a value is never read as an option).
 function readOptions(argv: string[]): Map<string, string> | string {
@@ -87,7 +112,8 @@ function readOptions(argv: string[]): Map<string, string> | string {
     const [name, value] = [argv[i], argv[i + 1]]
     if (!['--task', '--base', '--built-by'].includes(name)) return `unknown argument "${name}"`
     if (options.has(name)) return `${name} given twice`
-    if (value === undefined || value === '' || value.startsWith('-')) return `${name} needs a value that does not start with "-"`
+    if (value === undefined || value === '' || value.startsWith('-'))
+      return `${name} needs a value that does not start with "-"`
     options.set(name, value)
   }
   return options
@@ -99,15 +125,18 @@ export function parseArgs(argv: string[]): Args | { error: string } {
   const task = options.get('--task')
   if (task === undefined) return { error: '--task is required' }
   const taskNumber = taskNumberOf(task)
-  if (taskNumber === null) return { error: `cannot read a task number from "${basename(task)}" (expected task-<N>-<name>.md)` }
+  if (taskNumber === null)
+    return { error: `cannot read a task number from "${basename(task)}" (expected task-<N>-<name>.md)` }
   const builtBy = options.get('--built-by') ?? 'local'
-  if (builtBy !== 'local' && builtBy !== 'strong') return { error: `--built-by must be local or strong, not "${builtBy}"` }
+  if (builtBy !== 'local' && builtBy !== 'strong')
+    return { error: `--built-by must be local or strong, not "${builtBy}"` }
   return { task, base: options.get('--base') ?? null, builtBy, taskNumber }
 }
 
 function mergeBaseWithMain(root: string): string {
   const result = spawnSync('git', ['merge-base', 'HEAD', 'main'], { cwd: root, encoding: 'utf8' })
-  if (result.status !== 0) throw new Error(`cannot find the merge base with main (pass --base <sha>): ${result.stderr.trim()}`)
+  if (result.status !== 0)
+    throw new Error(`cannot find the merge base with main (pass --base <sha>): ${result.stderr.trim()}`)
   return result.stdout.trim()
 }
 
@@ -124,8 +153,18 @@ function buildContext(args: Args, now: () => number): { ctx: CheckContext; root:
   // A plan with any problem fails the plan step; the steps that need it then say it could not be read.
   const parsed = parseTestPlan(markdown)
   const plan = parsed.problems.length === 0 ? parsed.plan : null
-  const changed = changedFiles(base, root).flatMap((change) => (change.oldPath ? [change.path, change.oldPath] : [change.path]))
-  const ctx = { base, taskFile: args.task, taskNumber: args.taskNumber, builtBy: args.builtBy, plan, changed, deadlineMs: now() + BUDGET_MS }
+  const changed = changedFiles(base, root).flatMap((change) =>
+    change.oldPath ? [change.path, change.oldPath] : [change.path],
+  )
+  const ctx = {
+    base,
+    taskFile: args.task,
+    taskNumber: args.taskNumber,
+    builtBy: args.builtBy,
+    plan,
+    changed,
+    deadlineMs: now() + BUDGET_MS,
+  }
   return { ctx, root }
 }
 
@@ -136,11 +175,16 @@ function buildContext(args: Args, now: () => number): { ctx: CheckContext; root:
 let stopping: Promise<void> | null = null
 
 function installSignalHandlers(): void {
-  for (const [signal, code] of [['SIGINT', 130], ['SIGTERM', 143]] as const) {
+  for (const [signal, code] of [
+    ['SIGINT', 130],
+    ['SIGTERM', 143],
+  ] as const) {
     process.on(signal, () => {
       if (stopping) return
       stopping = stopAll().then(() => {
-        console.log(`check:task: ${signal}; stopped. Run git status and put back any source file you did not edit (git checkout -- <file>).`)
+        console.log(
+          `check:task: ${signal}; stopped. Run git status and put back any source file you did not edit (git checkout -- <file>).`,
+        )
         process.exit(code)
       })
     })

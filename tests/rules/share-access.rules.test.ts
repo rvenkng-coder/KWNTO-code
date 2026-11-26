@@ -1,7 +1,15 @@
 import { afterEach, expect, test } from 'vitest'
 import { createBackend } from '../../frontend/src/backend/client'
 import type { RemoteEvent } from '../../frontend/src/backend/content-types'
-import { createLine, createNode, createProject, guardedUpdate, memberProject, readAsAdmin, type MemberProject } from './helpers/content.ts'
+import {
+  createLine,
+  createNode,
+  createProject,
+  guardedUpdate,
+  memberProject,
+  readAsAdmin,
+  type MemberProject,
+} from './helpers/content.ts'
 import { deleteAllMedia, PNG_1PX, uploadMedia } from './helpers/media.ts'
 import { asUser, createUser, PB_URL, type TestUser } from './helpers/pb.ts'
 import { createLink, joinShare, revokeLink } from './helpers/share.ts'
@@ -9,11 +17,14 @@ import { createLink, joinShare, revokeLink } from './helpers/share.ts'
 // Media made here must not outlive the file: other rule files count the whole table.
 afterEach(deleteAllMedia)
 
-// What an edit link opens in the content rules (design 5; plan 2026-11-20-sharing Task 3,
-// D2 and D8): one project, never the team, only through ONE live grant row of permission
-// `edit`. Grants are made by the join route, as a visitor would.
+// What an edit link opens in the content rules (design 5): one project, never the team, only
+// through ONE live grant row of permission `edit`. Grants are made by the join route, as a visitor
+// would.
 
-async function holderOf(ctx: MemberProject, permission: 'comment' | 'edit'): Promise<{ holder: TestUser; linkId: string }> {
+async function holderOf(
+  ctx: MemberProject,
+  permission: 'comment' | 'edit',
+): Promise<{ holder: TestUser; linkId: string }> {
   const holder = await createUser()
   const link = await createLink(ctx.member, ctx.projectId, permission, 'live')
   expect((await joinShare(link.token, holder)).status).toBe(200)
@@ -38,7 +49,7 @@ async function failure(promise: Promise<unknown>): Promise<number> {
   }
 }
 
-// Protects Review Focus 4 and 1: an edit-grant holder works in the one project (read, edit,
+// Protects the edit link's reach: an edit-grant holder works in the one project (read, edit,
 // add lines, upload) and sees nothing else of the team; the owner-only actions stay closed;
 // a comment grant edits nothing; and once the link is revoked every write is refused and
 // the open live subscription stops receiving events.
@@ -54,14 +65,18 @@ test('an edit link opens one project, never the team, until revoked', async () =
   expect((await asHolder.collection('nodes').getOne(nodeId)).title).toBe('start')
   expect(await rename(holder, nodeId, 'edited')).toBe(200)
   await createLine(holder, projectId, nodeId)
-  expect((await uploadMedia(holder, { project: projectId, node: nodeId }, { name: 'pic.png', bytes: PNG_1PX })).status).toBe(200)
+  expect(
+    (await uploadMedia(holder, { project: projectId, node: nodeId }, { name: 'pic.png', bytes: PNG_1PX })).status,
+  ).toBe(200)
 
   expect(await failure(asHolder.collection('teams').getOne(teamId))).toBe(404)
   expect(await failure(asHolder.collection('projects').getOne(other.id))).toBe(404)
   expect((await asHolder.collection('projects').getFullList()).map((p) => p.id)).toEqual([projectId])
   for (const collection of ['teams', 'team_members', 'team_settings']) expect(await visible(holder, collection)).toBe(0)
   const version = Number((await readAsAdmin('projects', projectId)).version)
-  expect((await guardedUpdate(holder, 'projects', projectId, { deleted_at: '2026-11-20 10:00:00.000Z', version })).status).toBe(404)
+  expect(
+    (await guardedUpdate(holder, 'projects', projectId, { deleted_at: '2026-11-20 10:00:00.000Z', version })).status,
+  ).toBe(404)
   const media = (await asHolder.collection('media').getFullList())[0]
   expect(await failure(asHolder.collection('media').delete(media.id))).toBe(404)
 
@@ -95,7 +110,7 @@ test('an edit link opens one project, never the team, until revoked', async () =
   await closeMember()
 })
 
-// Protects D2: the grant is one row, so a comment grant on one project plus an edit grant on
+// Protects the grant check: the grant is one row, so a comment grant on one project plus an edit grant on
 // another does not open the first, and a revoked grant on one project does not stop a live
 // one on another.
 test('one grant row decides, never parts of two', async () => {

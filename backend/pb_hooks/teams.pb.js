@@ -1,18 +1,17 @@
 /// <reference path="../pb_data/types.d.ts" />
 // Teams (design section 5): a new team gets its owner's membership row and its settings
-// row; membership rows carry a copy of the member's name (decision D6), kept in step
+// row; membership rows carry a copy of the member's name, kept in step
 // when the name changes. Model hooks, so they hold for every way a record is made: the
-// API, the admin dashboard and server code (Tasks 7 and 8 add members from routes).
+// API, the admin dashboard and server code (the join and invite routes add members).
 
 // The team's own insert (e.next()) must stay outside a transaction of ours: with the insert
 // moved into one (e.app = txApp), PocketBase 0.40.6 sends no realtime create event for the
-// team, so the creator's open list never updates (plan 7 Task 7; the same finding as the nodes
-// hook in projects.pb.js). So the team is inserted first, and its owner row and settings row
+// team, so the creator's open list never updates (the same as for the nodes hook in
+// projects.pb.js). So the team is inserted first, and its owner row and settings row
 // are saved together in a transaction of their own. If that fails, the team is deleted again
 // and the error goes on, so no team is left without them.
 onRecordCreate((e) => {
-  // Shared with the regenerate route (teams-join.pb.js) since Task 7, so both pick codes
-  // the same way; the logic itself is unchanged.
+  // Shared with the regenerate route (teams-join.pb.js), so both pick codes the same way.
   const { unusedJoinCode } = require(`${__hooks}/lib/unused-join-code.js`)
 
   e.next()
@@ -27,7 +26,7 @@ onRecordCreate((e) => {
       const settings = new Record(txApp.findCollectionByNameOrId("team_settings"))
       settings.set("team", e.record.id)
       settings.set("join_code", unusedJoinCode(txApp))
-      settings.set("join_code_enabled", false) // decision D1: off until the owner turns it on
+      settings.set("join_code_enabled", false) // off until the owner turns it on
       txApp.save(settings)
     })
   } catch (err) {
@@ -44,9 +43,9 @@ onRecordCreate((e) => {
   e.next()
 }, "team_members")
 
-// A renamed user's membership rows follow (decision D6). The account is already saved,
-// so a failure here is logged instead of failing the user's own update; the copy is
-// refreshed again on their next rename.
+// A renamed user's membership rows follow, so the copied name stays current. The account
+// is already saved, so a failure here is logged instead of failing the user's own update;
+// the copy is refreshed again on their next rename.
 onRecordAfterUpdateSuccess((e) => {
   const name = e.record.getString("name")
   try {
@@ -59,7 +58,15 @@ onRecordAfterUpdateSuccess((e) => {
       e.app.save(row)
     }
   } catch (error) {
-    e.app.logger().error("teams: could not copy the new name of a user to team_members", "user", e.record.id, "error", String(error))
+    e.app
+      .logger()
+      .error(
+        "teams: could not copy the new name of a user to team_members",
+        "user",
+        e.record.id,
+        "error",
+        String(error),
+      )
   }
   e.next()
 }, "users")

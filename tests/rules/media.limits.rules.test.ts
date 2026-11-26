@@ -18,7 +18,7 @@ describe('media limits and quota rules', () => {
     }
   })
 
-  // Protects: a file whose bytes do not match is refused on the server (C5)
+  // Protects: a file whose bytes do not match is refused on the server
   test('a file whose bytes do not match is refused on the server', async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -79,12 +79,14 @@ describe('media limits and quota rules', () => {
 
     // Refused ones leave no row
     const admin = await asAdmin()
-    const rows = await admin.collection('media').getFullList({ filter: admin.filter('project = {:p}', { p: projectId }) })
+    const rows = await admin
+      .collection('media')
+      .getFullList({ filter: admin.filter('project = {:p}', { p: projectId }) })
     expect(rows).toHaveLength(1)
     expect(rows[0].id).toBe(d5.id)
   })
 
-  // Protects: files under a trashed node still count toward the quota (C7)
+  // Protects: files under a trashed node still count toward the quota
   test('files under a trashed node still count toward the quota', async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -115,8 +117,8 @@ describe('media limits and quota rules', () => {
     expect(d2.data?.file?.code).toBe('media_over_quota')
   })
 
-  // Protects: quota and size limits follow the admin's settings (C8)
-  test('quota and size limits follow the admin\'s settings', async () => {
+  // Protects: quota and size limits follow the admin's settings
+  test("quota and size limits follow the admin's settings", async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
 
@@ -139,7 +141,9 @@ describe('media limits and quota rules', () => {
     expect(r2.status).toBe(400)
     const d2 = await r2.json()
     expect(d2.data?.file?.code).toBe('media_over_quota')
-    expect(d2.message).toBe('Not enough storage: this file is 1 KB and you have 1 KB of 1 KB left. Nothing was deleted.')
+    expect(d2.message).toBe(
+      'Not enough storage: this file is 1 KB and you have 1 KB of 1 KB left. Nothing was deleted.',
+    )
 
     // Admin sets override 2000 -> 600 ok
     await setQuotaOverride(owner.id, 2000)
@@ -163,7 +167,7 @@ describe('media limits and quota rules', () => {
     expect(d4.message).toBe('This image file is larger than the 1 MB limit.')
   })
 
-  // Protects: two uploads at once cannot both slip under the quota (C9)
+  // Protects: two uploads at once cannot both slip under the quota
   test('two uploads at once cannot both slip under the quota', async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -182,7 +186,9 @@ describe('media limits and quota rules', () => {
     expect(refused.data?.file?.code).toBe('media_over_quota')
 
     const admin = await asAdmin()
-    const rows = await admin.collection('media').getFullList({ filter: admin.filter('uploader = {:u}', { u: owner.id }) })
+    const rows = await admin
+      .collection('media')
+      .getFullList({ filter: admin.filter('uploader = {:u}', { u: owner.id }) })
     expect(rows).toHaveLength(1)
     expect(rows[0].size_bytes).toBe(600)
 
@@ -194,8 +200,8 @@ describe('media limits and quota rules', () => {
     }
   })
 
-  // Protects: whoever the two parallel uploaders are, many rounds never leave both files in (C9, repeated).
-  // Before the check went by insertion order, about 1 round in 6 kept both.
+  // Protects: whoever the two parallel uploaders are, many rounds never leave both files in.
+  // A quota check that did not go by insertion order kept both in about 1 round in 6, hence the many rounds.
   test('repeated parallel uploads from two people never both stay', async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -207,7 +213,9 @@ describe('media limits and quota rules', () => {
         uploadMedia(owner, { project: projectId, node: nodeId }, { name: 'p1.png', bytes: sampleBytes('png', 600) }),
         uploadMedia(member, { project: projectId, node: nodeId }, { name: 'p2.png', bytes: sampleBytes('png', 600) }),
       ])
-      const stored = await admin.collection('media').getFullList({ filter: admin.filter('project = {:p}', { p: projectId }) })
+      const stored = await admin
+        .collection('media')
+        .getFullList({ filter: admin.filter('project = {:p}', { p: projectId }) })
       expect(stored.length, `round ${round}: files kept`).toBeLessThanOrEqual(1)
       expect(results.filter((r) => r.status === 200).length, `round ${round}: uploads accepted`).toBe(stored.length)
       for (const row of stored) await admin.collection('media').delete(row.id)

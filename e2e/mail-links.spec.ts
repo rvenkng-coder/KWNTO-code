@@ -1,5 +1,5 @@
-// Protects Plan 6 D9 / Review Focus 1: the pages the verification and reset mails link to finish
-// the job inside the app (the dashboard is blocked on the public address).
+// Protects: the pages the verification and reset mails link to finish the job inside the app (the dashboard is blocked
+// on the public address).
 import { test, expect } from '@playwright/test'
 import { uniqueEmail } from './helpers/admin'
 import { mintToken } from './helpers/tokens'
@@ -14,15 +14,17 @@ async function signIn(page: import('@playwright/test').Page, email: string, pass
   await page.getByRole('button', { name: 'Sign in' }).click()
 }
 
-// C4: a bad verification link says so and offers the way back
+// A bad verification link says so and offers the way back
 test('a bad verification link says so and offers the way back', async ({ page }) => {
   await page.goto('/#/verify/aaa.bbb.ccc')
-  await expect(page.getByRole('alert')).toHaveText('This verification link is not valid or has expired. Sign in and ask for a new one.')
+  await expect(page.getByRole('alert')).toHaveText(
+    'This verification link is not valid or has expired. Sign in and ask for a new one.',
+  )
   await page.getByRole('link', { name: 'Go to KWNTO' }).click()
   await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
 })
 
-// C5: the verification link verifies the account
+// The verification link verifies the account
 test('the verification link verifies the account', async ({ page }) => {
   const email = uniqueEmail()
   await page.goto('/')
@@ -41,7 +43,7 @@ test('the verification link verifies the account', async ({ page }) => {
   await expect(page.getByText('Verify your email to create or join a team.')).toHaveCount(0)
 })
 
-// C6: the reset link sets a new password that follows the rules
+// The reset link sets a new password that follows the rules
 test('the reset link sets a new password that follows the rules', async ({ page }) => {
   const email = uniqueEmail()
   await page.goto('/')

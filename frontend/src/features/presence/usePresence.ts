@@ -3,7 +3,7 @@ import { create } from 'zustand'
 import { useSync } from '../editor/sync/syncStore'
 import { backend, type PresenceEvent, type PresenceRow } from '../../backend'
 
-// Who is editing what (plan 7 D14). The store holds the rows this browser has received and when
+// Who is editing what. The store holds the rows this browser has received and when
 // (its own clock); the field the person has focus on is reported by a heartbeat.
 
 export const HEARTBEAT_MS = 10_000
@@ -20,7 +20,13 @@ interface PresenceState {
   focus: { nodeId: string; field: string } | null
 }
 
-export const usePresenceStore = create<PresenceState>(() => ({ rows: {}, seenAt: {}, now: Date.now(), timeoutMs: DEFAULT_TIMEOUT_MS, focus: null }))
+export const usePresenceStore = create<PresenceState>(() => ({
+  rows: {},
+  seenAt: {},
+  now: Date.now(),
+  timeoutMs: DEFAULT_TIMEOUT_MS,
+  focus: null,
+}))
 
 /** Props for an input: while it has focus the person is shown as editing this field. */
 export function presenceFocus(nodeId: string, field: string) {
@@ -54,11 +60,17 @@ function useFollowRows(projectId: string): void {
     if (!online) return
     let cancelled = false
     let close: () => Promise<void> = () => Promise.resolve()
-    backend.appSettings.get().then((s) => usePresenceStore.setState({ timeoutMs: s.presenceTimeoutSeconds * 1000 })).catch(() => undefined)
-    backend.presence.subscribe(projectId, receive).then((closer) => {
-      if (cancelled) void closer()
-      else close = closer
-    }).catch(() => undefined)
+    backend.appSettings
+      .get()
+      .then((s) => usePresenceStore.setState({ timeoutMs: s.presenceTimeoutSeconds * 1000 }))
+      .catch(() => undefined)
+    backend.presence
+      .subscribe(projectId, receive)
+      .then((closer) => {
+        if (cancelled) void closer()
+        else close = closer
+      })
+      .catch(() => undefined)
     const tick = setInterval(() => usePresenceStore.setState({ now: Date.now() }), TICK_MS)
     return () => {
       cancelled = true
@@ -86,7 +98,8 @@ function useReportFocus(projectId: string): void {
       clearInterval(beat)
       // Only if focus is still nowhere then: when it moved to another field the new run reports that one.
       setTimeout(() => {
-        if (usePresenceStore.getState().focus === null && navigator.onLine) void backend.presence.clear(projectId).catch(() => undefined)
+        if (usePresenceStore.getState().focus === null && navigator.onLine)
+          void backend.presence.clear(projectId).catch(() => undefined)
       }, CLEAR_DELAY_MS)
     }
   }, [projectId, nodeId, field])

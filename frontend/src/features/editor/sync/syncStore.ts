@@ -6,8 +6,8 @@ import { createIndexedDbOutbox } from './indexedDbOutbox'
 import { createSyncEngine, type TabMessage, type SyncDeps, type SyncEngine, type SyncSnapshot } from './syncEngine'
 import { createSyncLifecycle, type SyncLifecycle } from './syncLifecycle'
 
-// The app's sync engine (offline sync plan Task 4): one per signed-in account, on IndexedDB, the
-// browser's Web Locks, a BroadcastChannel between tabs and the window's online/offline events.
+// The app's sync engine: one per signed-in account, on IndexedDB, the browser's Web Locks, a
+// BroadcastChannel between tabs and the window's online/offline events.
 // Built on first use, so importing this module touches no browser API.
 
 /** The editor store registers here to hear what happened to its edits. */
@@ -36,7 +36,7 @@ let built: SyncLifecycle | undefined
 
 const PROBE_MS = 1000
 
-// Tells the engine whether the connection is usable (plan 7 Task 7). Besides the browser's own
+// Tells the engine whether the connection is usable. Besides the browser's own
 // online and offline events it follows the live stream: when the stream drops and stays down for
 // three seconds the engine is told "offline", so the top bar says so without an edit having to
 // fail first. Once the editor is offline it closes its subscriptions, so no event can say the
@@ -93,9 +93,18 @@ function build(): SyncLifecycle {
   }
   const lifecycle = createSyncLifecycle(onUser, (userId) => {
     const engine = createSyncEngine({
-      userId, door: backend.content, storage, hooks: registry.hooks, lock: browserLock, channel: browserChannel(),
+      userId,
+      door: backend.content,
+      storage,
+      hooks: registry.hooks,
+      lock: browserLock,
+      channel: browserChannel(),
       refreshSession: async () => (await backend.auth.refresh()) !== null,
-      clock: { now: () => Date.now(), setTimeout: (fn, ms) => setTimeout(fn, ms), clearTimeout: (h) => clearTimeout(h as ReturnType<typeof setTimeout>) },
+      clock: {
+        now: () => Date.now(),
+        setTimeout: (fn, ms) => setTimeout(fn, ms),
+        clearTimeout: (h) => clearTimeout(h as ReturnType<typeof setTimeout>),
+      },
     })
     engine.setOnline(navigator.onLine)
     return engine

@@ -1,5 +1,5 @@
 // The real steps of check:task (docs/developer/check-task.md). Fast checks run in this process through the
-// exported functions of Tasks 2 to 7; npm scripts, breaks and probes run as child processes with a deadline.
+// single checks' exported functions; npm scripts, breaks and probes run as child processes with a deadline.
 import { readFileSync } from 'node:fs'
 import { basename, dirname, join, resolve } from 'node:path'
 import type { CheckContext, Step, StepResult } from '../check-task.ts'
@@ -22,7 +22,13 @@ const fail = (name: string, lines: string[]): StepResult => ({ name, ok: false, 
 
 // One command; on failure the last lines of its output (a test runner's own report) are kept.
 // `summary` keeps the last line of a passing run (run-breaks and run-probes end with a count).
-async function command(name: string, cmd: string[], root: string, ctx: CheckContext, summary = false): Promise<StepResult> {
+async function command(
+  name: string,
+  cmd: string[],
+  root: string,
+  ctx: CheckContext,
+  summary = false,
+): Promise<StepResult> {
   const result = await runCommand(cmd[0], cmd.slice(1), { cwd: root, deadlineMs: ctx.deadlineMs })
   if (result.notStarted) return fail(name, [result.output])
   if (result.timedOut) return fail(name, [KILLED, ...lastLines(result.output, TAIL)])
@@ -75,7 +81,10 @@ function layersStep(root: string): Step {
     const lines: string[] = []
     let ok = true
     for (const layer of TEST_LAYERS) {
-      if (!needed.has(layer)) { lines.push(`${layer}: not required by this task's test plan`); continue }
+      if (!needed.has(layer)) {
+        lines.push(`${layer}: not required by this task's test plan`)
+        continue
+      }
       const result = await command(layer, ['npm', 'run', '--silent', `test:${layer}`], root, ctx)
       ok = ok && result.ok
       lines.push(result.ok ? `${layer}: passed` : `${layer}: FAILED`, ...(result.ok ? [] : result.lines))
@@ -86,7 +95,9 @@ function layersStep(root: string): Step {
 
 // Fail closed: with no changed file the hygiene and quality steps would pass on nothing.
 const nothingChanged = (name: string, ctx: CheckContext): StepResult | null =>
-  ctx.changed.length === 0 ? fail(name, [`nothing changed since ${ctx.base}; pass --base <the commit the task started from>`]) : null
+  ctx.changed.length === 0
+    ? fail(name, [`nothing changed since ${ctx.base}; pass --base <the commit the task started from>`])
+    : null
 
 function hygieneStep(root: string): Step {
   return {
@@ -95,7 +106,13 @@ function hygieneStep(root: string): Step {
       const empty = nothingChanged('hygiene', ctx)
       if (empty) return empty
       const problems = checkHygiene(ctx.base, root)
-      const result = problems.length === 0 ? pass('hygiene') : fail('hygiene', problems.map((p) => `${p.file}: ${p.rule}: ${p.detail}`))
+      const result =
+        problems.length === 0
+          ? pass('hygiene')
+          : fail(
+              'hygiene',
+              problems.map((p) => `${p.file}: ${p.rule}: ${p.detail}`),
+            )
       return inTime('hygiene', ctx, result)
     },
   }
@@ -125,31 +142,50 @@ function coverageStep(root: string): Step {
   }
   return needsPlan('coverage', async (ctx, plan) => {
     const problems = coverageProblems(plan, readFile)
-    const result = problems.length === 0 ? pass('coverage', [`${plan.cases.length} cases point at tests that exist`]) : fail('coverage', problems)
+    const result =
+      problems.length === 0
+        ? pass('coverage', [`${plan.cases.length} cases point at tests that exist`])
+        : fail('coverage', problems)
     return inTime('coverage', ctx, result)
   })
 }
 
 function breaksStep(root: string): Step {
-  return needsPlan('breaks', (ctx) => command('breaks', [process.execPath, join(SCRIPTS, 'run-breaks.ts'), '--cwd', root, resolve(ctx.taskFile)], root, ctx, true))
+  return needsPlan('breaks', (ctx) =>
+    command(
+      'breaks',
+      [process.execPath, join(SCRIPTS, 'run-breaks.ts'), '--cwd', root, resolve(ctx.taskFile)],
+      root,
+      ctx,
+      true,
+    ),
+  )
 }
 
 // run-probes prints only rows and kinds, so its lines are safe to show; a missing or empty folder fails there.
 function probesStep(root: string): Step {
   return needsPlan('probes', async (ctx, plan) => {
     if (plan.probeFolder === null) return pass('probes', ['the Test plan names no probe folder (none)'])
-    return command('probes', [process.execPath, join(SCRIPTS, 'run-probes.ts'), '--cwd', root, plan.probeFolder], root, ctx, true)
+    return command(
+      'probes',
+      [process.execPath, join(SCRIPTS, 'run-probes.ts'), '--cwd', root, plan.probeFolder],
+      root,
+      ctx,
+      true,
+    )
   })
 }
 
-// Escape rate for the review line (ruling of Task 8): no file or no tracking table means 0, said so;
+// Escape rate for the review line: no file or no tracking table means 0, said so;
 // any other problem is shown and counts as 1, so every local task is reviewed (fail closed).
 // `markdown` is null when the file does not exist, an Error when it exists but cannot be read.
 export function escapeRateFor(markdown: string | null | Error, path: string): { rate: number; note: string } {
   if (markdown === null) return { rate: 0, note: `no ${path}; escape rate 0` }
-  if (markdown instanceof Error) return { rate: 1, note: `cannot read ${path} (${markdown.message}); escape rate taken as 1` }
+  if (markdown instanceof Error)
+    return { rate: 1, note: `cannot read ${path} (${markdown.message}); escape rate taken as 1` }
   const { rows, problems } = parseProgress(markdown)
-  if (problems.length === 1 && problems[0] === MISSING_TABLE) return { rate: 0, note: `${path} does not track escapes; escape rate 0` }
+  if (problems.length === 1 && problems[0] === MISSING_TABLE)
+    return { rate: 0, note: `${path} does not track escapes; escape rate 0` }
   if (problems.length > 0) return { rate: 1, note: `${path}: ${problems.join('; ')}; escape rate taken as 1` }
   const measured = escapeRate(rows)
   return { rate: measured.rate, note: `escape rate ${measured.escapedTasks} of ${measured.localTasks} local tasks` }
@@ -170,15 +206,34 @@ export function reviewStep(root: string): Step {
     run: async (ctx) => {
       const path = join('.planning', basename(dirname(resolve(ctx.taskFile))), 'progress.md')
       const { rate, note } = escapeRateFor(readProgress(join(root, path)), path)
-      const review = needsReview({ changedFiles: ctx.changed, taskNumber: ctx.taskNumber, builtBy: ctx.builtBy, escapeRate: rate })
-      return { name: 'review', ok: true, informational: true, lines: [`Review required: ${review.required ? 'yes' : 'no'} (${review.reason})`, note] }
+      const review = needsReview({
+        changedFiles: ctx.changed,
+        taskNumber: ctx.taskNumber,
+        builtBy: ctx.builtBy,
+        escapeRate: rate,
+      })
+      return {
+        name: 'review',
+        ok: true,
+        informational: true,
+        lines: [`Review required: ${review.required ? 'yes' : 'no'} (${review.reason})`, note],
+      }
     },
   }
 }
 
 export function defaultSteps(root: string = process.cwd()): Step[] {
   return [
-    planStep(), npmStep('lint', 'lint', root), npmStep('typecheck', 'typecheck', root), npmStep('unit', 'test:unit', root),
-    layersStep(root), hygieneStep(root), qualityStep(root), coverageStep(root), breaksStep(root), probesStep(root), reviewStep(root),
+    planStep(),
+    npmStep('lint', 'lint', root),
+    npmStep('typecheck', 'typecheck', root),
+    npmStep('unit', 'test:unit', root),
+    layersStep(root),
+    hygieneStep(root),
+    qualityStep(root),
+    coverageStep(root),
+    breaksStep(root),
+    probesStep(root),
+    reviewStep(root),
   ]
 }

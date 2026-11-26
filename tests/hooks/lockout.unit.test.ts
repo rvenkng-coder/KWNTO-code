@@ -6,10 +6,10 @@ import { expect, test } from 'vitest'
 // itself: it is computed from the failure times alone, so time passing unlocks it, and
 // retryAfterSeconds tells the person exactly when.
 //
-// The input is the failures of ONE account from ONE IP (decision D2). Choosing which
-// failures belong to the pair is the hook's job (users-signin.pb.js); the rule tests
-// all come from 127.0.0.1, so the per-IP split is only visible here: a list that holds
-// only this pair's failures decides for this pair alone.
+// The input is the failures of ONE account from ONE IP, so that nobody can lock another person out
+// from a different address. Choosing which failures belong to the pair is the hook's job
+// (users-signin.pb.js); the rule tests all come from 127.0.0.1, so the per-IP split is only visible
+// here: a list that holds only this pair's failures decides for this pair alone.
 
 const require = createRequire(import.meta.url)
 type Decision = { locked: boolean; retryAfterSeconds: number }
@@ -37,14 +37,18 @@ test('two failures in the window with a limit of 3: not locked', () => {
 // Protects design 7c: the third failure within 5 minutes locks, and the lockout ends
 // when the oldest of those three is 5 minutes old (here in 60 seconds).
 test('three failures in the last 5 minutes lock until the oldest leaves the window', () => {
-  expect(decideLockout([minutesAgo(4), minutesAgo(2), minutesAgo(1)], NOW, 3, 5))
-    .toEqual({ locked: true, retryAfterSeconds: 60 })
+  expect(decideLockout([minutesAgo(4), minutesAgo(2), minutesAgo(1)], NOW, 3, 5)).toEqual({
+    locked: true,
+    retryAfterSeconds: 60,
+  })
 })
 
 // Protects "the lockout ends by itself": a failure older than the window no longer counts.
 test('three failures, the oldest 6 minutes ago, leave only two in the window: not locked', () => {
-  expect(decideLockout([minutesAgo(6), minutesAgo(2), minutesAgo(1)], NOW, 3, 5))
-    .toEqual({ locked: false, retryAfterSeconds: 0 })
+  expect(decideLockout([minutesAgo(6), minutesAgo(2), minutesAgo(1)], NOW, 3, 5)).toEqual({
+    locked: false,
+    retryAfterSeconds: 0,
+  })
 })
 
 // Protects the length of the lockout: it lasts until fewer than the limit remain in the
@@ -67,17 +71,23 @@ test('a limit of 1 locks after one failure', () => {
 
 // Protects the settings: lockout_minutes 1 gives a 60-second window.
 test('one lockout minute is a 60-second window', () => {
-  expect(decideLockout([NOW - 50_000, NOW - 40_000, NOW - 10_000], NOW, 3, 1))
-    .toEqual({ locked: true, retryAfterSeconds: 10 })
-  expect(decideLockout([NOW - 61_000, NOW - 40_000, NOW - 10_000], NOW, 3, 1))
-    .toEqual({ locked: false, retryAfterSeconds: 0 })
+  expect(decideLockout([NOW - 50_000, NOW - 40_000, NOW - 10_000], NOW, 3, 1)).toEqual({
+    locked: true,
+    retryAfterSeconds: 10,
+  })
+  expect(decideLockout([NOW - 61_000, NOW - 40_000, NOW - 10_000], NOW, 3, 1)).toEqual({
+    locked: false,
+    retryAfterSeconds: 0,
+  })
 })
 
 // Protects the rounding promised in the interface: a part second counts as a whole one,
 // so the person is never told to retry before the lockout has ended.
 test('retryAfterSeconds rounds up to whole seconds', () => {
-  expect(decideLockout([NOW - 299_500, NOW - 1_000, NOW - 500], NOW, 3, 5))
-    .toEqual({ locked: true, retryAfterSeconds: 1 })
+  expect(decideLockout([NOW - 299_500, NOW - 1_000, NOW - 500], NOW, 3, 5)).toEqual({
+    locked: true,
+    retryAfterSeconds: 1,
+  })
 })
 
 // Protects the admin from locking everyone out by mistake: the settings allow 0, and 0

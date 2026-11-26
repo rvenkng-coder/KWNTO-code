@@ -27,7 +27,10 @@ function localBlockProblems(markdown: string, tier: string | null): string[] {
   if (!local) return []
   let fenced = false
   const lines = text.split('\n').filter((line) => {
-    if (/^\s*(```|~~~)/.test(line)) { fenced = !fenced; return false }
+    if (/^\s*(```|~~~)/.test(line)) {
+      fenced = !fenced
+      return false
+    }
     return !fenced && !/^\s*<!--.*-->\s*$/.test(line)
   })
   const starts = lines.flatMap((line, index) => (line.trimEnd() === LOCAL_HEADING ? [index] : []))
@@ -36,7 +39,9 @@ function localBlockProblems(markdown: string, tier: string | null): string[] {
   const rest = lines.slice(starts[0] + 1)
   const end = rest.findIndex((line) => /^##\s/.test(line))
   const body = (end === -1 ? rest : rest.slice(0, end)).join('\n')
-  const problems = LOCAL_PARTS.filter((part) => !part.pattern.test(body)).map((part) => `"${LOCAL_HEADING}" block: "${part.name}" is missing or empty`)
+  const problems = LOCAL_PARTS.filter((part) => !part.pattern.test(body)).map(
+    (part) => `"${LOCAL_HEADING}" block: "${part.name}" is missing or empty`,
+  )
   if (starts.length > 1) problems.push(`the "${LOCAL_HEADING}" heading appears more than once`)
   return problems
 }
@@ -55,7 +60,9 @@ export function checkTaskFile(path: string, markdown: string): string[] {
 }
 
 export function taskFiles(dir: string): string[] {
-  return readdirSync(dir).filter((name) => /^task-.*\.md$/.test(name)).sort()
+  return readdirSync(dir)
+    .filter((name) => /^task-.*\.md$/.test(name))
+    .sort()
 }
 
 export function checkPlanFolder(dir: string): string[] {

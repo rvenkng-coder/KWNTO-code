@@ -7,7 +7,9 @@ export function ErrorBanner() {
   return (
     <div role="alert" className="panel flex items-center justify-between gap-3">
       <span>{error}</span>
-      <button type="button" className="btn" onClick={() => editorStore.getState().dismissError()}>Dismiss</button>
+      <button type="button" className="btn" onClick={() => editorStore.getState().dismissError()}>
+        Dismiss
+      </button>
     </div>
   )
 }

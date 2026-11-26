@@ -49,6 +49,7 @@ Enforced by lint where marked:
 
 - Only `frontend/src/backend/` imports PocketBase (lint).
 - 300 lines per file (lint). No `any` without a comment saying why (lint).
+- A comment gives the reason and never cites a plan, task or case id (lint). Layout is Prettier's: `npm run format` (CI checks it).
 - Text from people (titles, lines, labels, comments) is drawn as React text. Never `dangerouslySetInnerHTML` (lint). Write a test with HTML in the text, as `e2e/player.spec.ts` does.
 - Access is enforced by the **server** (rules and hooks), never only in the browser.
 - Settings (limits, timings) live in the settings tables, not in code.
@@ -59,11 +60,12 @@ Enforced by lint where marked:
 | When | Run | What it covers |
 |---|---|---|
 | While writing | `npx vitest run <file>` | One unit test file, in a second |
-| After a code change | `npm run lint && npm run typecheck && npm run test:unit` | Style, types, all unit tests (about the same as the CI `checks` job) |
+| After a code change | `npm run format && npm run lint && npm run typecheck && npm run test:unit` | Layout, style, types, all unit tests (about the same as the CI `checks` job) |
 | Changed a hook, rule or collection | `npm run test:rules` (or `npm run test:rules -- tests/rules/<name>.rules.test.ts` for one file) | Access rules against a live PocketBase in Docker |
 | Changed a screen | `npm run test:e2e -- e2e/<name>.spec.ts --project chromium` | One spec in one browser; drop `--project` for both |
 | Before the PR | `npm test` | Everything the CI runs (lint, typecheck, unit, container, rules, e2e). Slow; the e2e part takes the longest |
-| Before the PR, **local only** | `npm run check:hygiene -- --base origin/main` and `npm run check:quality -- --base origin/main` | Every new test has its `// Protects:` header, nothing is skipped or focused, no test or assertion was lost, and changed files stay inside the function-length, complexity and nesting limits. **The CI does not run these two**, so nobody will catch a miss for you |
+| Before the PR | `npm run check:hygiene -- --base origin/main` | Every new test has its `// Protects:` header, nothing is skipped or focused, no test or assertion was lost. CI runs it on every pull request |
+| Before the PR, **local only** | `npm run check:quality -- --base origin/main` | Changed files stay inside the function-length, complexity and nesting limits. **The CI does not enforce this** (it only prints counts for the whole repository), so nobody will catch a miss for you |
 
 ### 2.6 Document it
 
@@ -234,15 +236,15 @@ The workflow is `.github/workflows/ci.yml`. It runs on every pull request and on
 
 | Job | It runs | It needs | Reproduce locally | Usual reasons it fails |
 |---|---|---|---|---|
-| `checks` (about 3 min) | `npm run lint`, `npm run typecheck`, `npm run test:unit`, `npm audit --omit=dev --audit-level=high` | Nothing but Node | `npm run lint && npm run typecheck && npm run test:unit && npm audit --omit=dev --audit-level=high` | A lint rule (file over 300 lines, `any`, a banned API); a broken relative link in the docs; a type error; a failing unit test; a **high** advisory in a shipped dependency: update it, or record the decision |
+| `checks` (about 3 min) | `npm run lint`, `npm run format:check`, `npm run typecheck`, `npm run test:unit`, on a pull request `check:hygiene` against the target branch, `npm run report:quality`, `npm audit --omit=dev --audit-level=high` | Nothing but Node | `npm run lint && npm run format:check && npm run typecheck && npm run test:unit && npm audit --omit=dev --audit-level=high` | A lint rule (file over 300 lines, `any`, a banned API, a comment citing a task); an unformatted file; a new test without its header or a lost assertion; a broken relative link in the docs; a type error; a failing unit test; a **high** advisory in a shipped dependency: update it, or record the decision |
 | `backend` (about 8 min) | `npm run test:container`, `npm run test:rules` | Docker on the runner (each starts its own throwaway PocketBase) | the two commands | A rule or hook change without a matching test update; a collection without a `<name>.rules.test.ts`; a rule set to `""` not listed in `PUBLIC_RULES`; a Docker or compose change that breaks the hardening tests |
-| `e2e` (4 runners: `chromium` and `firefox`, each in 2 shards) | `npx playwright install --with-deps <browser>`, then `npm run test:e2e -- --project <browser> --shard <n>/2` | Docker, ports 5174 and 5175 free | `npm run test:e2e` (everything), or the job's command (one part) | A real regression; or a timing flake (see 8). On failure each runner uploads `playwright-report-<browser>-<n>` as an artifact for 30 days (open the run on GitHub, "Artifacts") |
-| `e2e-performance` | both browsers, then `npm run test:e2e -- --project perf-chromium --project perf-firefox --no-deps --workers 1` | Docker, both browsers, ports 5174 and 5175 free | the job's command | A slower app (the 3 s canvas budget, decision 0003); or a slow runner |
+| `e2e` (about 11 min; 4 runners: `chromium` and `firefox`, each in 2 shards) | `npx playwright install --with-deps <browser>`, then `npm run test:e2e -- --project <browser> --shard <n>/2` | Docker, ports 5174 and 5175 free | `npm run test:e2e` (everything), or the job's command (one part) | A real regression; or a timing flake (see 8). On failure, read that runner's job log: the workflow's upload of `playwright-report/` finds nothing, because the CI run makes no HTML report |
+| `e2e-performance` (about 3 min) | both browsers, then `npm run test:e2e -- --project perf-chromium --project perf-firefox --no-deps --workers 1` | Docker, both browsers, ports 5174 and 5175 free | the job's command | A slower app (the 3 s canvas budget, decision 0003); or a slow runner |
 | `secrets` (seconds) | gitleaks over the full git history | Nothing | `gitleaks detect` (`gitleaks git` in newer releases) | A key, password or token anywhere in any commit of the branch |
 
 Dependabot also opens a monthly pull request for npm and GitHub Actions updates; treat it like your own: the CI must be green before you merge it. It skips the PocketBase JS client on purpose.
 
-What the CI does **not** check: `check:hygiene` and `check:quality` (run them yourself, section 2.5), anything on the manual sign-off list (look and feel, real mail), the live site, and whether your docs are *good* (only that their links resolve).
+What the CI does **not** check: `check:quality` (run it yourself, section 2.5), anything on the manual sign-off list (look and feel, real mail), the live site, and whether your docs are *good* (only that their links resolve).
 
 ## 6. Where the documentation goes
 
@@ -260,7 +262,7 @@ New pages must be linked from somewhere (a README or the guide that fits); `npm 
 
 ## 7. Before you merge your own PR
 
-- [ ] A failing test existed first, and I saw it fail; each new test has its `// Protects:` header, and `check:hygiene` and `check:quality` pass (the CI does not run them).
+- [ ] A failing test existed first, and I saw it fail; each new test has its `// Protects:` header, and `check:hygiene` passes; `check:quality` passes (the CI does not enforce it).
 - [ ] `npm test` passes locally, or at least the layers my change touches, and the CI is green.
 - [ ] Docs updated (section 6), including the exact on-screen wording and the test-plan row.
 - [ ] I read my own diff: no stray debugging, nothing unrelated, no file over 300 lines.

@@ -1,4 +1,4 @@
-// The decisions behind the disk-usage warning (design 7c, plan 6 D12): when the admin
+// The decisions behind the disk-usage warning (design 7c): when the admin
 // is warned and what the mail subject says. Pure, so Vitest tests it.
 // CommonJS so hooks can load it with require(`${__hooks}/lib/storage-warning.js`).
 

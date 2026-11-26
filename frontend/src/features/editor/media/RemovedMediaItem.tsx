@@ -27,14 +27,21 @@ export function RemovedMediaItem({ media, onRestore, onDeletePermanently }: Remo
   return (
     <div data-testid="removed-media-item" className="flex flex-col gap-1 rounded-base border border-border p-2 text-xs">
       <div className="flex items-center gap-2">
-        <span className="flex-1 truncate" title={media.title}>{media.title}</span>
+        <span className="flex-1 truncate" title={media.title}>
+          {media.title}
+        </span>
         <span className="text-muted">{formatSize(media.sizeBytes)}</span>
       </div>
       {confirming ? (
         <div className="flex flex-col gap-1">
           <span>Delete {media.title} for good? This cannot be undone.</span>
           <div className="flex gap-2">
-            <button type="button" className="btn btn-sm btn-danger text-xs" disabled={busy} onClick={() => void run(onDeletePermanently)}>
+            <button
+              type="button"
+              className="btn btn-sm btn-danger text-xs"
+              disabled={busy}
+              onClick={() => void run(onDeletePermanently)}
+            >
               Delete for good
             </button>
             <button type="button" className="btn btn-sm text-xs" disabled={busy} onClick={() => setConfirming(false)}>

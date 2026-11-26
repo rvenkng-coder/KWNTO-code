@@ -22,13 +22,31 @@ export function JoinDialog({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
-      <form role="dialog" aria-modal="true" aria-labelledby={titleId} onSubmit={(e) => void handleJoin(e)} onClick={(e) => e.stopPropagation()}
-        className="panel flex w-full max-w-sm flex-col gap-3 shadow-lg">
+      <form
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        onSubmit={(e) => void handleJoin(e)}
+        onClick={(e) => e.stopPropagation()}
+        className="panel flex w-full max-w-sm flex-col gap-3 shadow-lg"
+      >
         <h3 id={titleId}>Join with code</h3>
-        <input className="field w-full" type="text" autoFocus value={code} onChange={(e) => setCode(e.target.value)} aria-label="Join code" placeholder="Join code" />
+        <input
+          className="field w-full"
+          type="text"
+          autoFocus
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          aria-label="Join code"
+          placeholder="Join code"
+        />
         <div className="flex justify-end gap-2">
-          <button type="button" className="btn" onClick={onClose}>Cancel</button>
-          <button type="submit" className="btn-primary" disabled={!user?.verified}>Join</button>
+          <button type="button" className="btn" onClick={onClose}>
+            Cancel
+          </button>
+          <button type="submit" className="btn-primary" disabled={!user?.verified}>
+            Join
+          </button>
         </div>
       </form>
     </div>

@@ -3,15 +3,21 @@ import { fieldLabel } from './outboxText'
 import type { OutboxEntry } from './outbox'
 import type { PendingConflict } from './syncEngine'
 
-// The words of the failed list and the conflict dialog (offline sync plan Task 4, router "Exact copy").
+// The words of the failed list and the conflict dialog.
 
 const THINGS: Partial<Record<ContentKind, string>> = {
-  script_lines: 'script line', cues: 'cue', connections: 'connection', nodes: 'node', chapters: 'chapter',
+  script_lines: 'script line',
+  cues: 'cue',
+  connections: 'connection',
+  nodes: 'node',
+  chapters: 'chapter',
 }
 export const thingOf = (kind: ContentKind): string => THINGS[kind] ?? 'item'
 
 export const conflictHeading = (c: PendingConflict): string =>
-  c.deleted ? `Someone else deleted this ${thingOf(c.entry.kind)} while you were offline` : 'Someone else changed this while you were offline'
+  c.deleted
+    ? `Someone else deleted this ${thingOf(c.entry.kind)} while you were offline`
+    : 'Someone else changed this while you were offline'
 
 /** What a failed entry was: the fields it changed, or that it added or removed something. */
 export function describeEntry(entry: OutboxEntry): string {
@@ -33,7 +39,11 @@ function show(field: string, source: Record<string, unknown>, titleOf: TitleOf):
   return isEmpty(value) ? '(empty)' : String(value)
 }
 
-export interface ConflictRow { label: string; yours: string; theirs: string }
+export interface ConflictRow {
+  label: string
+  yours: string
+  theirs: string
+}
 
 export function conflictRows(c: PendingConflict, titleOf: TitleOf): ConflictRow[] {
   const { entry, server } = c
@@ -52,8 +62,8 @@ export function conflictRows(c: PendingConflict, titleOf: TitleOf): ConflictRow[
   return rows
 }
 
-
-// D13: the sign-out question is drawn in the page (never `confirm()`), and only when changes are waiting.
+// The sign-out question is drawn in the page (never `confirm()`: no browser pop-ups), and only when changes are
+// waiting.
 export const signOutQuestion = (waiting: number): string =>
   waiting === 1
     ? '1 change has not been saved yet. It will be saved the next time you sign in on this browser. Sign out anyway?'

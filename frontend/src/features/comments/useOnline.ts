@@ -9,7 +9,7 @@ function subscribe(onChange: () => void): () => void {
   }
 }
 
-/** Whether the browser thinks it is online. Comments are not queued offline (D13). */
+/** Whether the browser thinks it is online. Comments are not queued offline, so adding one needs a connection. */
 export function useOnline(): boolean {
   return useSyncExternalStore(subscribe, () => navigator.onLine)
 }

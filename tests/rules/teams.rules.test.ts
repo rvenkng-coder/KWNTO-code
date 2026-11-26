@@ -4,8 +4,8 @@ import { asAdmin, asAnonymous, asUser, createTeam, createUser } from './helpers/
 import { addMember, expectCreateRefused, expectNoEmail, teamRows } from './helpers/teams.ts'
 
 // Protects design section 5 (teams): "The team creator is its owner", "A user can belong
-// to several teams", "Only the owner ... deletes the team", and the router's "Verified
-// email is required to create or join teams". Also docs/security.md section 2 (deny by
+// to several teams", "Only the owner ... deletes the team", and that a verified
+// email is required to create or join teams. Also docs/security.md section 2 (deny by
 // default: someone outside a team sees nothing of it).
 
 async function teamsOwnedBy(userId: string): Promise<Record<string, unknown>[]> {
@@ -15,7 +15,7 @@ async function teamsOwnedBy(userId: string): Promise<Record<string, unknown>[]> 
 
 // Design 5: "The team creator is its owner"; the owner row and the settings row are made
 // with the team (ERD: rows that should exist are created with the parent), and the join
-// code is off by default (decision D1).
+// code is off by default.
 test('teams: a verified user creates a team and becomes its owner, with a settings row', async () => {
   const owner = await createUser()
   const created = await (await asUser(owner)).collection('teams').create({ name: 'Capstone', owner: owner.id })
@@ -31,12 +31,18 @@ test('teams: a verified user creates a team and becomes its owner, with a settin
   expect(settings[0]?.join_code_enabled).toBe(false)
 })
 
-// Router: "Verified email is required to create or join teams" (the Task 3 rule fragment
+// Verified email is required to create or join teams (the create rule asks for
 // @request.auth.verified = true). PocketBase answers a failed create rule with 400.
 test('teams: an unverified user cannot create a team', async () => {
   const unverified = await createUser({ verified: false })
   const pb = await asUser(unverified)
-  const error: unknown = await pb.collection('teams').create({ name: 'Nope', owner: unverified.id }).then(() => null, (e: unknown) => e)
+  const error: unknown = await pb
+    .collection('teams')
+    .create({ name: 'Nope', owner: unverified.id })
+    .then(
+      () => null,
+      (e: unknown) => e,
+    )
   expect((error as { status?: number } | null)?.status).toBe(400)
   expect(await teamsOwnedBy(unverified.id)).toHaveLength(0)
 })
@@ -54,7 +60,9 @@ test('teams: an empty name or one longer than 80 characters is refused', async (
   const owner = await createUser()
   const pb = await asUser(owner)
   await expect(pb.collection('teams').create({ name: '', owner: owner.id })).rejects.toMatchObject({ status: 400 })
-  await expect(pb.collection('teams').create({ name: 'x'.repeat(81), owner: owner.id })).rejects.toMatchObject({ status: 400 })
+  await expect(pb.collection('teams').create({ name: 'x'.repeat(81), owner: owner.id })).rejects.toMatchObject({
+    status: 400,
+  })
   expect(await teamsOwnedBy(owner.id)).toHaveLength(0)
 })
 
@@ -141,10 +149,9 @@ test('teams: an injection string in a filter returns nothing', async () => {
   await expectNoRows(pb, 'teams', pb.filter('id = {:n}', { n: `' OR 1=1 --` }))
 })
 
-// Protects the offline-sync carry-over of plan 3 (plan 7 Task 7, D15): a team made by a person
-// reaches that person's open lists as a live `create` event (PocketBase sends it only when the
-// team's own insert is not inside a transaction of ours), and its owner row and settings row
-// still exist.
+// Protects live lists: a team made by a person reaches that person's open lists as a live `create`
+// event (PocketBase sends it only when the team's own insert is not inside a transaction of ours),
+// and its owner row and settings row still exist.
 test('a new team arrives as a live create event with its rows', async () => {
   const owner = await createUser()
   const pb = await asUser(owner)

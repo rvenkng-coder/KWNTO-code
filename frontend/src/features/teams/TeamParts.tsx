@@ -16,9 +16,13 @@ export function MemberList({ members, isOwner, loaded, onRemove }: MemberListPro
         {members.map((m) => (
           <li key={m.id} className="flex items-center gap-2 py-0.5">
             <Avatar name={m.name} />
-            <span className="min-w-0 flex-1 truncate">{m.name} ({m.role})</span>
+            <span className="min-w-0 flex-1 truncate">
+              {m.name} ({m.role})
+            </span>
             {isOwner && m.role !== 'owner' && (
-              <button className="btn-quiet" onClick={() => onRemove(m.id)}>Remove</button>
+              <button className="btn-quiet" onClick={() => onRemove(m.id)}>
+                Remove
+              </button>
             )}
           </li>
         ))}
@@ -36,11 +40,15 @@ interface JoinCodeRowProps {
 export function JoinCodeRow({ settings, onToggle, onRegenerate }: JoinCodeRowProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span data-testid="join-code" className="font-mono">{settings.joinCode}</span>
+      <span data-testid="join-code" className="font-mono">
+        {settings.joinCode}
+      </span>
       <button className="btn" onClick={onToggle}>
         {settings.joinCodeEnabled ? 'Disable' : 'Enable'}
       </button>
-      <button className="btn" onClick={onRegenerate}>Regenerate</button>
+      <button className="btn" onClick={onRegenerate}>
+        Regenerate
+      </button>
     </div>
   )
 }

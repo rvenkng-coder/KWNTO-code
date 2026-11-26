@@ -22,7 +22,11 @@ test('a project hash with a chapter gives both ids', () => {
 
 // Protects: a project hash without a chapter must set chapterId to null.
 test('a project hash without a chapter gives a null chapter', () => {
-  expect(parseRoute('#/project/abcdefghijk0123')).toEqual({ name: 'project', projectId: 'abcdefghijk0123', chapterId: null })
+  expect(parseRoute('#/project/abcdefghijk0123')).toEqual({
+    name: 'project',
+    projectId: 'abcdefghijk0123',
+    chapterId: null,
+  })
 })
 
 // Protects: any id that does not match the 15-char a-z0-9 PocketBase format must fall
@@ -61,9 +65,7 @@ test('routeToHash and parseRoute round-trip', () => {
 // back to teams instead of being silently accepted as valid routes.
 test('extra segments after a project or chapter route fall back to teams', () => {
   expect(parseRoute('#/project/abcdefghijk0123/extra')).toEqual({ name: 'teams' })
-  expect(
-    parseRoute('#/project/abcdefghijk0123/chapter/zyxwvutsrq98765/extra')
-  ).toEqual({ name: 'teams' })
+  expect(parseRoute('#/project/abcdefghijk0123/chapter/zyxwvutsrq98765/extra')).toEqual({ name: 'teams' })
 })
 
 // Protects: a project hash with only the word "chapter" and no chapter id must fall
@@ -72,7 +74,7 @@ test('project chapter without an id falls back to teams', () => {
   expect(parseRoute('#/project/abcdefghijk0123/chapter')).toEqual({ name: 'teams' })
 })
 
-// Protects D8: a share address carries a 40-character token of letters and digits and
+// Protects: a share address carries a 40-character token of letters and digits and
 // nothing else; a short token, a long one or one with another character is not a share route.
 test('a share hash needs a 40-character token', () => {
   const token = 'aB3'.repeat(13) + 'x'
@@ -83,14 +85,17 @@ test('a share hash needs a 40-character token', () => {
   expect(parseRoute(`#/s/${token.slice(1)}-`)).toEqual({ name: 'teams' })
 })
 
-// Protects Plan 6 D9 / C1: the verify and reset links carry only a JWT-shaped value (three
-// dot-separated URL-safe parts, at most 2048 characters); anything else is the teams list, so a
-// crafted link cannot put arbitrary text into the route or the request that follows.
+// Protects: the verify and reset links carry only a JWT-shaped value (three dot-separated URL-safe parts, at most 2048
+// characters); anything else is the teams list, so a crafted link cannot put arbitrary text into the route or the
+// request that follows.
 test('verify and reset links carry only a token-shaped value', () => {
   expect(parseRoute('#/verify/aaa.bbb.ccc')).toEqual({ name: 'verify', token: 'aaa.bbb.ccc' })
   expect(parseRoute('#/reset/a-b.c_d.e')).toEqual({ name: 'reset', token: 'a-b.c_d.e' })
   expect(parseRoute(`#/verify/${'a'.repeat(2049 - 4)}.b.c`)).toEqual({ name: 'teams' }) // 2049 chars
-  expect(parseRoute(`#/verify/${'a'.repeat(2048 - 4)}.b.c`)).toEqual({ name: 'verify', token: `${'a'.repeat(2044)}.b.c` }) // 2048 chars
+  expect(parseRoute(`#/verify/${'a'.repeat(2048 - 4)}.b.c`)).toEqual({
+    name: 'verify',
+    token: `${'a'.repeat(2044)}.b.c`,
+  }) // 2048 chars
   expect(parseRoute('#/verify/aaa.bbb')).toEqual({ name: 'teams' })
   expect(parseRoute('#/reset/a.b.c/extra')).toEqual({ name: 'teams' })
   expect(parseRoute('#/verify/<script>.b.c')).toEqual({ name: 'teams' })

@@ -16,14 +16,29 @@ const SCRIPT = join(import.meta.dirname, 'prepare-local-run.ts')
 const PLAN = 'docs/superpowers/plans/2026-01-01-demo'
 const PASS = 'node -e "process.exit(0)"'
 const BLOCK = [
-  '## Sized for the local model', '**May touch:** `scripts/a.ts`, `scripts/a.test.ts` (exhaustive)', '**Must not change:** the signature of `a`',
-  'Stop and report if you need to touch anything else.', '**Model server:** run `npm run ping:model` first', '**Checkpoint given:** Checkpoint 1A only',
+  '## Sized for the local model',
+  '**May touch:** `scripts/a.ts`, `scripts/a.test.ts` (exhaustive)',
+  '**Must not change:** the signature of `a`',
+  'Stop and report if you need to touch anything else.',
+  '**Model server:** run `npm run ping:model` first',
+  '**Checkpoint given:** Checkpoint 1A only',
 ].join('\n')
 const TEST_PLAN = [
-  '## Test plan', '### Cases', '| ID | Behaviour | Layer | Input | Expected | Test |', '|---|---|---|---|---|---|',
-  '| C1 | b | unit | `a()` | `1` | scripts/a.test.ts :: b |', '### Probes', '**Probe folder:** `tests/probes/demo/1/`',
-  '### Breaks', '| ID | File | Find | Replace | Tests |', '|---|---|---|---|---|', '| B1 | scripts/a.ts | `a < b` | `a <= b` | scripts/a.test.ts |',
-  '### Flow', 'none', '### Evidence', 'the output',
+  '## Test plan',
+  '### Cases',
+  '| ID | Behaviour | Layer | Input | Expected | Test |',
+  '|---|---|---|---|---|---|',
+  '| C1 | b | unit | `a()` | `1` | scripts/a.test.ts :: b |',
+  '### Probes',
+  '**Probe folder:** `tests/probes/demo/1/`',
+  '### Breaks',
+  '| ID | File | Find | Replace | Tests |',
+  '|---|---|---|---|---|',
+  '| B1 | scripts/a.ts | `a < b` | `a <= b` | scripts/a.test.ts |',
+  '### Flow',
+  'none',
+  '### Evidence',
+  'the output',
 ].join('\n')
 function taskFile(tier = 'local', block = BLOCK, checkpoints = ['1A']): string {
   const headings = checkpoints.map((id) => `## Checkpoint ${id}: part\n- [ ] step`).join('\n')
@@ -31,13 +46,18 @@ function taskFile(tier = 'local', block = BLOCK, checkpoints = ['1A']): string {
 }
 
 const cleanup: string[] = []
-afterEach(() => { for (const dir of cleanup.splice(0)) rmSync(dir, { recursive: true, force: true }) })
+afterEach(() => {
+  for (const dir of cleanup.splice(0)) rmSync(dir, { recursive: true, force: true })
+})
 
 function repo(files: Record<string, string> = {}, lint = PASS): string {
   const pkg = JSON.stringify({ name: 'fake', private: true, scripts: { lint, typecheck: PASS } })
   const { cwd } = makeRepo({
-    '.gitignore': 'node_modules/\n', 'package.json': pkg, '.pi/skills/local-task/SKILL.md': 'skill\n',
-    [`${PLAN}/task-1-demo.md`]: taskFile(), ...files,
+    '.gitignore': 'node_modules/\n',
+    'package.json': pkg,
+    '.pi/skills/local-task/SKILL.md': 'skill\n',
+    [`${PLAN}/task-1-demo.md`]: taskFile(),
+    ...files,
   })
   writeIn(cwd, 'node_modules/.keep', '')
   cleanup.push(cwd)
@@ -49,19 +69,29 @@ function outPath(): string {
   return join(parent, 'sand box')
 }
 
-interface Result { code: number | null; out: string }
+interface Result {
+  code: number | null
+  out: string
+}
 // Async spawn: a throwaway server may live in this process, so a blocking spawn would starve it.
 function run(cwd: string, ...args: string[]): Promise<Result> {
   return new Promise((resolve) => {
     const child = spawn(process.execPath, [SCRIPT, '--cwd', cwd, ...args], { stdio: ['ignore', 'pipe', 'pipe'] })
     let out = ''
-    child.stdout.on('data', (chunk: Buffer) => { out += chunk.toString() })
-    child.stderr.on('data', (chunk: Buffer) => { out += chunk.toString() })
+    child.stdout.on('data', (chunk: Buffer) => {
+      out += chunk.toString()
+    })
+    child.stderr.on('data', (chunk: Buffer) => {
+      out += chunk.toString()
+    })
     child.on('close', (code) => resolve({ code, out }))
   })
 }
-const go = (cwd: string, extra: string[] = [], task = '1', out = outPath()): Promise<Result> => run(cwd, PLAN, task, '--no-ping', '--out', out, ...extra)
-const noStack = (out: string): void => { expect(out).not.toMatch(/\n\s+at |node:internal|TypeError|Error:/) }
+const go = (cwd: string, extra: string[] = [], task = '1', out = outPath()): Promise<Result> =>
+  run(cwd, PLAN, task, '--no-ping', '--out', out, ...extra)
+const noStack = (out: string): void => {
+  expect(out).not.toMatch(/\n\s+at |node:internal|TypeError|Error:/)
+}
 
 describe('prepare-local-run: refusals create nothing', () => {
   async function refused(cwd: string, args: string[], message: RegExp, out = outPath()): Promise<string> {
@@ -122,7 +152,9 @@ describe('prepare-local-run: refusals create nothing', () => {
     const half = '## Sized for the local model\n**May touch:** `a`\n'
     const cwd = repo({ [`${PLAN}/task-1-demo.md`]: taskFile('local', half) })
     const output = await refused(cwd, [], /"Must not change" is missing/)
-    expect(output).toMatch(/"Stop and report" is missing.*\n.*"Model server" is missing.*\n.*"Checkpoint given" is missing/)
+    expect(output).toMatch(
+      /"Stop and report" is missing.*\n.*"Model server" is missing.*\n.*"Checkpoint given" is missing/,
+    )
     await refused(repo({ [`${PLAN}/task-1-demo.md`]: '## Checkpoint 1A: x\nnothing\n' }), [], /Model tier/)
   })
 
@@ -192,7 +224,11 @@ describe('prepare-local-run: never removes what it did not create', () => {
     expect(existsSync(join(cwd, 'inner'))).toBe(false)
   })
 
-  const base = { ping: async () => ({ ok: true, loaded: true, detail: '' }), runCheck: () => ({ ok: true, output: '' }), now: () => 0 }
+  const base = {
+    ping: async () => ({ ok: true, loaded: true, detail: '' }),
+    runCheck: () => ({ ok: true, output: '' }),
+    now: () => 0,
+  }
 
   // Protects: a build failure after this run made the directory removes that directory only, and the node_modules it links to survives.
   test('a failure after our own mkdir cleans up only our directory', async () => {
@@ -227,12 +263,22 @@ describe('prepare-local-run: never removes what it did not create', () => {
   test('an unexpected error prints no stack', async () => {
     const cwd = repo()
     const out = outPath()
-    const baseline = await runPrepare(['--cwd', cwd, PLAN, '1', '--out', out], { ...base, runCheck: () => { throw new Error('secret http://u:p@h detail') } })
+    const baseline = await runPrepare(['--cwd', cwd, PLAN, '1', '--out', out], {
+      ...base,
+      runCheck: () => {
+        throw new Error('secret http://u:p@h detail')
+      },
+    })
     expect(baseline.code).toBe(1)
     expect(baseline.lines.join('\n')).toContain('could not confirm the baseline')
     expect(baseline.lines.join('\n')).toContain(out)
     expect(baseline.lines.join('\n')).not.toMatch(/secret|u:p@/)
-    const pinged = await runPrepare(['--cwd', cwd, PLAN, '1'], { ...base, ping: async () => { throw new Error('secret http://u:p@h detail') } })
+    const pinged = await runPrepare(['--cwd', cwd, PLAN, '1'], {
+      ...base,
+      ping: async () => {
+        throw new Error('secret http://u:p@h detail')
+      },
+    })
     expect(pinged.code).toBe(1)
     expect(pinged.lines.join('\n')).toContain('unexpected error')
     expect(pinged.lines.join('\n')).not.toMatch(/secret|u:p@/)
@@ -241,12 +287,15 @@ describe('prepare-local-run: never removes what it did not create', () => {
 
 describe('prepare-local-run: arguments', () => {
   // Protects: usage errors exit 2 with a usage line, never a stack.
-  test.each([[[]], [['p']], [['p', 'x']], [['p', '1', '--bogus']], [['p', '1', '--out']]])('usage error %j exits 2', async (args) => {
-    const result = await run(repo(), ...args)
-    expect(result.code).toBe(2)
-    expect(result.out).toContain('usage: node scripts/prepare-local-run.ts')
-    noStack(result.out)
-  })
+  test.each([[[]], [['p']], [['p', 'x']], [['p', '1', '--bogus']], [['p', '1', '--out']]])(
+    'usage error %j exits 2',
+    async (args) => {
+      const result = await run(repo(), ...args)
+      expect(result.code).toBe(2)
+      expect(result.out).toContain('usage: node scripts/prepare-local-run.ts')
+      noStack(result.out)
+    },
+  )
 
   // Protects: a model URL with a password is refused (exit 2) and the password is never printed.
   test('a model url with credentials is refused without echoing it', async () => {
@@ -259,10 +308,16 @@ describe('prepare-local-run: arguments', () => {
 
 describe('prepare-local-run: the model server', () => {
   let server: Server | undefined
-  afterEach(() => { server?.close(); server = undefined })
-  const serve = (body: string): Promise<string> => new Promise((resolve) => {
-    server = createServer((_request, response) => { response.end(body) }).listen(0, '127.0.0.1', () => resolve(`http://127.0.0.1:${(server?.address() as AddressInfo).port}`))
+  afterEach(() => {
+    server?.close()
+    server = undefined
   })
+  const serve = (body: string): Promise<string> =>
+    new Promise((resolve) => {
+      server = createServer((_request, response) => {
+        response.end(body)
+      }).listen(0, '127.0.0.1', () => resolve(`http://127.0.0.1:${(server?.address() as AddressInfo).port}`))
+    })
 
   // Protects: a server that does not answer stops the run before anything is created.
   test('not answering stops before anything is created', async () => {
@@ -284,7 +339,15 @@ describe('prepare-local-run: the model server', () => {
     expect(idle.out).toContain('model idle')
     expect(idle.out).toContain('first request will be slow')
     server?.close()
-    const loaded = await run(cwd, PLAN, '1', '--out', outPath(), '--model-url', await serve('{"running":[{"model":"coder","state":"ready"}]}'))
+    const loaded = await run(
+      cwd,
+      PLAN,
+      '1',
+      '--out',
+      outPath(),
+      '--model-url',
+      await serve('{"running":[{"model":"coder","state":"ready"}]}'),
+    )
     expect(loaded.code).toBe(0)
     expect(loaded.out).toContain('model server: answering, model loaded')
     const skipped = await go(cwd)
@@ -354,7 +417,10 @@ describe('runPrepare with injected effects', () => {
     const seen: string[] = []
     const outcome = await runPrepare(['--cwd', cwd, PLAN, '1', '--out', out], {
       ping: async () => ({ ok: true, loaded: true, detail: 'model loaded' }),
-      runCheck: (name, dir) => { seen.push(`${name}@${dir}`); return { ok: name !== 'typecheck', output: 'type error\n' } },
+      runCheck: (name, dir) => {
+        seen.push(`${name}@${dir}`)
+        return { ok: name !== 'typecheck', output: 'type error\n' }
+      },
       now: () => 0,
     })
     expect(seen).toEqual([`lint@${out}`, `typecheck@${out}`])

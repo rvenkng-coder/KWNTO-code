@@ -12,13 +12,23 @@ type RowOf<K extends RowKind> = K extends 'script_lines' ? ScriptLine : Cue
 
 const NAMES = { script_lines: 'line', cues: 'cue' } as const
 
-async function writeOrders(kind: RowKind, writes: { id: string; order: number }[], skip: string | null, label: string): Promise<void> {
-  await Promise.all(writes.filter((w) => w.id !== skip).map((w) => edits.update(kind, w.id, { sortOrder: w.order }, label)))
+async function writeOrders(
+  kind: RowKind,
+  writes: { id: string; order: number }[],
+  skip: string | null,
+  label: string,
+): Promise<void> {
+  await Promise.all(
+    writes.filter((w) => w.id !== skip).map((w) => edits.update(kind, w.id, { sortOrder: w.order }, label)),
+  )
 }
 
 /** Makes a new record at `index` among `rows` and returns its id. `make` fills in everything but the id and order. */
 export async function insertRow<K extends RowKind>(
-  kind: K, rows: RowOf<K>[], index: number, make: (id: string, sortOrder: number) => RowOf<K>,
+  kind: K,
+  rows: RowOf<K>[],
+  index: number,
+  make: (id: string, sortOrder: number) => RowOf<K>,
 ): Promise<string> {
   const id = newId()
   const writes = orderWrites(rows, insertAt(asOrdered(rows), id, index))

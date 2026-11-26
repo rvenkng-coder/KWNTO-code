@@ -40,7 +40,7 @@ test('a conflict is retried with the fresh version and the same fields', async (
   ])
 })
 
-// Protects: the retry is bounded and ends with the message the plan names.
+// Protects: the retry is bounded and ends by telling the person that too many people are editing.
 test('it gives up after twenty conflicts', async () => {
   const { io, sent } = fakeIO(['conflict'], [{ version: 1 }])
 
@@ -79,7 +79,7 @@ test('a retry stops when the caller sees a real conflict', async () => {
   expect(reads()).toBe(1)
 })
 
-// Protects: online saves keep Plan 3's behaviour: without the option, or when the caller sees no conflict, the retry goes on.
+// Protects: online saves retry silently: without the option, or when the caller sees no conflict, the retry goes on.
 test('a retry goes on when the caller sees no conflict', async () => {
   const saved = { version: 6, title: 'B' }
   const { io, sent } = fakeIO(['conflict', saved], [{ version: 5, title: 'A' }])

@@ -2,19 +2,20 @@ import type { NewEntry, OutboxEntry } from './outbox'
 import { nextDelay } from './outboxText'
 import type { FailedEntry } from './outboxStorage'
 import { AnswerBook, type Answer, type TabMessage } from './syncAnswers'
-import { mineEntry, theirsEntry } from './syncResolve'
+import { applyChoice } from './syncResolve'
 import { createSender, type Outcome } from './syncSend'
 import { TabLink, writeEntry } from './syncTabs'
 import type { EngineEntry, PendingConflict, SyncDeps, SyncEngine, SyncSnapshot } from './syncTypes'
 
-// The one loop that sends outbox entries (offline sync plan Task 3, D2, D7 to D9, D12): in seq
-// order, one request at a time, only in the tab holding the Web Lock, backing off while the
-// server cannot be reached. Everything it touches is injected.
+// The one loop that sends outbox entries: in seq order, one request at a time, so a record's create
+// arrives before its update and a later edit wins over an earlier one. Only the tab holding the Web
+// Lock sends. It backs off while the server cannot be reached, moves a refused entry to the failed
+// list so the entries after it still go, and stops while a conflict waits for the person.
+// Everything it touches is injected.
 
 export type { Answer, TabMessage }
 export type { EngineEntry, PendingConflict, SyncDeps, SyncDoor, SyncEngine, SyncHooks, SyncSnapshot } from './syncTypes'
 export const LOCK_PREFIX = 'kwnto-sync-'
-const NO_COPY = 'The record was deleted and no copy of your change is left to restore it.'
 
 class Engine implements SyncEngine {
   private queue: OutboxEntry[] = []
@@ -64,9 +65,13 @@ class Engine implements SyncEngine {
 
   private build(): SyncSnapshot {
     return {
-      online: this.netOnline && !this.serverDown && (this.owner || this.link.remoteOnline), owner: this.owner,
-      waiting: this.queue.length + this.adding, sendingSeq: this.sendingSeq,
-      failed: this.failed, conflict: this.owner ? this.conflict : this.link.remoteConflict, entries: this.queue,
+      online: this.netOnline && !this.serverDown && (this.owner || this.link.remoteOnline),
+      owner: this.owner,
+      waiting: this.queue.length + this.adding,
+      sendingSeq: this.sendingSeq,
+      failed: this.failed,
+      conflict: this.owner ? this.conflict : this.link.remoteConflict,
+      entries: this.queue,
     }
   }
 
@@ -106,7 +111,10 @@ class Engine implements SyncEngine {
   /** Storage work never interleaves: adds, picks and bookkeeping run one after another. */
   private exclusive<T>(fn: () => Promise<T>): Promise<T> {
     const run = this.chain.then(fn)
-    this.chain = run.then(() => undefined, () => undefined)
+    this.chain = run.then(
+      () => undefined,
+      () => undefined,
+    )
     return run
   }
 
@@ -176,7 +184,12 @@ class Engine implements SyncEngine {
     this.publish()
     return this.exclusive(async () => {
       try {
-        const entry = { ...partial, userId: this.deps.userId, offline: !this.current.online, made: this.deps.clock.now() } as NewEntry
+        const entry = {
+          ...partial,
+          userId: this.deps.userId,
+          offline: !this.current.online,
+          made: this.deps.clock.now(),
+        } as NewEntry
         const seq = await this.store(entry)
         if (seq > 0) this.answers.remember(seq, { ...entry, seq } as OutboxEntry)
         return seq
@@ -189,14 +202,18 @@ class Engine implements SyncEngine {
     })
   }
 
-  // The tab that sends merges waiting edits (D5); another tab only appends, because it cannot know what is on the wire.
+  // Only the sending tab merges waiting edits: another tab cannot know what is on the wire, so it only appends.
   private async store(entry: NewEntry): Promise<number> {
     const { storage } = this.deps
     if (!this.owner) return storage.add(entry)
     const locked = this.sendingSeq ?? this.conflict?.entry.seq ?? null
     const { seq, dropped } = await writeEntry(storage, this.queue, locked, entry)
     // Edits the new one cancelled never reach the server; that is what the person asked for, so they are answered as done.
-    for (const seqOf of dropped) this.answers.announce(this.queue.find((q) => q.seq === seqOf), { seq: seqOf, type: 'saved', record: null })
+    for (const seqOf of dropped)
+      this.answers.announce(
+        this.queue.find((q) => q.seq === seqOf),
+        { seq: seqOf, type: 'saved', record: null },
+      )
     return seq
   }
 
@@ -213,18 +230,11 @@ class Engine implements SyncEngine {
     const { conflict } = this
     if (conflict === null) return
     await this.exclusive(async () => {
-      const { storage } = this.deps
-      const mine = choice === 'mine' ? mineEntry(conflict) : null
-      // Keep theirs still sends the fields that did not conflict (D12).
-      const replacement = choice === 'mine' ? mine : theirsEntry(conflict)
-      if (replacement !== null) await storage.put(replacement)
-      else if (choice === 'theirs') await storage.remove([conflict.entry.seq])
-      else await storage.fail(conflict.entry, NO_COPY)
+      const answer = await applyChoice(this.deps.storage, conflict, choice)
       this.conflict = null
+      // After the refresh: whoever hears the answer sees a snapshot without the answered entry.
       await this.refresh()
-      const { entry } = conflict
-      if (choice === 'theirs') this.answers.announce(entry, { seq: entry.seq, type: 'theirs', server: conflict.server })
-      else if (mine === null) this.answers.announce(entry, { seq: entry.seq, type: 'refused', message: NO_COPY })
+      if (answer !== null) this.answers.announce(conflict.entry, answer)
     })
     this.deps.channel.post()
     this.wake()
@@ -287,9 +297,7 @@ class Engine implements SyncEngine {
   }
 
   private markReachable(): void {
-    let { attempt } = this
-    if (attempt > 0) attempt = 0 // reset after a success
-    this.attempt = attempt
+    this.attempt = 0
     this.serverDown = false
   }
 
@@ -310,7 +318,8 @@ class Engine implements SyncEngine {
     } else {
       this.markReachable()
       await storage.fail(entry, outcome.error.message)
-      tell = () => this.answers.announce(entry, { seq: entry.seq, type: 'refused', message: outcome.error.message }, outcome.error)
+      tell = () =>
+        this.answers.announce(entry, { seq: entry.seq, type: 'refused', message: outcome.error.message }, outcome.error)
     }
     await this.refresh()
     // After the refresh: whoever hears the answer sees a snapshot without the entry that was just answered.

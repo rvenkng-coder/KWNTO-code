@@ -5,23 +5,32 @@ import { exportChapters, exportFileName, exportPixelRatio, fitInto, isSmallText,
 
 // Protects: an export never includes empty or trashed chapters, and an empty export is refused, not downloaded blank.
 test('the chapters to export skip empty and trashed chapters', () => {
-  const s = fromContent(content({
-    chapters: [
-      chapter('A', { position: 1 }), chapter('B', { position: 2 }), chapter('C', { position: 3 }),
-      chapter('D', { position: 4, deleted: true }),
-    ],
-    nodes: [
-      node('a1', { chapterId: 'A' }), node('a2', { chapterId: 'A' }),
-      node('c1', { chapterId: 'C' }), node('c2', { chapterId: 'C', deleted: true }),
-      node('d1', { chapterId: 'D' }),
-    ],
-  }))
+  const s = fromContent(
+    content({
+      chapters: [
+        chapter('A', { position: 1 }),
+        chapter('B', { position: 2 }),
+        chapter('C', { position: 3 }),
+        chapter('D', { position: 4, deleted: true }),
+      ],
+      nodes: [
+        node('a1', { chapterId: 'A' }),
+        node('a2', { chapterId: 'A' }),
+        node('c1', { chapterId: 'C' }),
+        node('c2', { chapterId: 'C', deleted: true }),
+        node('d1', { chapterId: 'D' }),
+      ],
+    }),
+  )
   const ids = (r: ReturnType<typeof exportChapters>) => (r.ok ? r.chapters.map((c) => c.id) : r)
   expect(ids(exportChapters(s, 'chapter', 'A'))).toEqual(['A'])
   expect(exportChapters(s, 'chapter', 'B')).toEqual({ ok: false, message: 'This chapter has no nodes to export.' })
   expect(ids(exportChapters(s, 'project', 'A'))).toEqual(['A', 'C'])
   const onlyTrashed = fromContent(content({ nodes: [node('x', { deleted: true })] }))
-  expect(exportChapters(onlyTrashed, 'project', null)).toEqual({ ok: false, message: 'This project has no nodes to export.' })
+  expect(exportChapters(onlyTrashed, 'project', null)).toEqual({
+    ok: false,
+    message: 'This project has no nodes to export.',
+  })
   expect(exportChapters(s, 'chapter', null)).toEqual({ ok: false, message: 'This chapter has no nodes to export.' })
 })
 
@@ -54,10 +63,17 @@ test('file names have no stray edges and no reserved names', () => {
 
 // Protects: a whole-project export tells how many empty chapters it left out, so a short file is not a surprise.
 test('the export counts the chapters it skipped', () => {
-  const s = fromContent(content({
-    chapters: [chapter('A', { position: 1 }), chapter('B', { position: 2 }), chapter('C', { position: 3 }), chapter('D', { position: 4, deleted: true })],
-    nodes: [node('a1', { chapterId: 'A' })],
-  }))
+  const s = fromContent(
+    content({
+      chapters: [
+        chapter('A', { position: 1 }),
+        chapter('B', { position: 2 }),
+        chapter('C', { position: 3 }),
+        chapter('D', { position: 4, deleted: true }),
+      ],
+      nodes: [node('a1', { chapterId: 'A' })],
+    }),
+  )
   const skipped = (r: ReturnType<typeof exportChapters>) => (r.ok ? r.skipped : -1)
   expect(skipped(exportChapters(s, 'project', 'A'))).toBe(2)
   expect(skipped(exportChapters(s, 'chapter', 'A'))).toBe(0)

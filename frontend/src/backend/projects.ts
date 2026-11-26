@@ -51,15 +51,25 @@ export function createProjects(pb: PocketBase) {
         const chapters = await pb.collection('chapters').getList(1, 1, { filter: live, sort: 'position' })
         const all = await pb.collection('nodes').getList(1, 1, { filter: live })
         const first = chapters.items[0]
-        const rows = first === undefined ? [] : (await pb.collection('nodes').getList(1, 80, {
-          filter: pb.filter("project = {:p} && chapter = {:c} && deleted_at = ''", { p: projectId, c: first.id }),
-        })).items
-        const nodes = rows.map((row) => fromRecord('nodes', row)).map((n) => ({ x: n.x, y: n.y, width: n.width, height: n.height }))
+        const rows =
+          first === undefined
+            ? []
+            : (
+                await pb.collection('nodes').getList(1, 80, {
+                  filter: pb.filter("project = {:p} && chapter = {:c} && deleted_at = ''", {
+                    p: projectId,
+                    c: first.id,
+                  }),
+                })
+              ).items
+        const nodes = rows
+          .map((row) => fromRecord('nodes', row))
+          .map((n) => ({ x: n.x, y: n.y, width: n.width, height: n.height }))
         return { chapterCount: chapters.totalItems, nodeCount: all.totalItems, nodes }
       })
     },
 
-    /** The server hook adds the project's settings and its first chapter (plan D6). */
+    /** The server hook adds the project's settings and its first chapter. */
     async create(teamId: string, name: string): Promise<Project> {
       return wrapped(async () => fromRecord('projects', await pb.collection('projects').create({ team: teamId, name })))
     },

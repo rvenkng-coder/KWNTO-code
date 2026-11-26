@@ -5,7 +5,7 @@ import { existsSync } from 'node:fs'
 // PocketBase without Tailscale). Plain fetch only; tests/container does not import pocketbase.
 
 export const EDGE_URL = 'http://127.0.0.1:8094'
-// PocketBase direct, the stand-in for the tailnet port of D5: set-up calls only, never an app request.
+// PocketBase direct, the stand-in for the tailnet-only port the admin uses: set-up calls only, never an app request.
 export const EDGE_ADMIN_URL = 'http://127.0.0.1:8095'
 
 const COMPOSE = ['compose', '-f', 'compose.prod.yaml', '-f', 'compose.edge-test.yaml']

@@ -1,6 +1,12 @@
 import type PocketBase from 'pocketbase'
 import type {
-  ContentKind, ContentRecords, CreatableKind, EditableFields, ProjectContent, RemoteEvent, RemovableKind,
+  ContentKind,
+  ContentRecords,
+  CreatableKind,
+  EditableFields,
+  ProjectContent,
+  RemoteEvent,
+  RemovableKind,
 } from './content-types'
 import { fromRecord, toCreateBody, toUpdateBody } from './content-mappers'
 import { BackendError, toBackendError } from './errors'
@@ -30,15 +36,22 @@ function refusedCreate(err: unknown): BackendError {
   return new BackendError('forbidden', error.status, {}, error.message)
 }
 
-export interface UpdateOptions<K extends ContentKind> { shouldRetry?: (current: ContentRecords[K]) => boolean }
+export interface UpdateOptions<K extends ContentKind> {
+  shouldRetry?: (current: ContentRecords[K]) => boolean
+}
 
-async function getOrNull<K extends ContentKind>(pb: PocketBase, kind: K, id: string): Promise<ContentRecords[K] | null> {
+async function getOrNull<K extends ContentKind>(
+  pb: PocketBase,
+  kind: K,
+  id: string,
+): Promise<ContentRecords[K] | null> {
   try {
     return await wrapped(async () => fromRecord(kind, await pb.collection(kind).getOne(id)))
   } catch (err) {
     // PocketBase's 404 carries a message; one without (the door's default) came from a proxy with no route: not "gone".
     if (err instanceof BackendError && err.kind === 'not-found' && err.message !== 'Request failed') return null
-    if (err instanceof BackendError && err.kind === 'not-found') throw new BackendError('unreachable', 0, {}, 'The server cannot be reached.')
+    if (err instanceof BackendError && err.kind === 'not-found')
+      throw new BackendError('unreachable', 0, {}, 'The server cannot be reached.')
     throw err
   }
 }
@@ -60,7 +73,10 @@ function updateRecord<K extends ContentKind>(
 export function createContent(pb: PocketBase) {
   function all<K extends ContentKind>(kind: K, projectId: string): Promise<Array<ContentRecords[K]>> {
     const filter = pb.filter('project = {:project}', { project: projectId })
-    return pb.collection(kind).getFullList({ filter, batch: PAGE }).then((rows) => rows.map((row) => fromRecord(kind, row)))
+    return pb
+      .collection(kind)
+      .getFullList({ filter, batch: PAGE })
+      .then((rows) => rows.map((row) => fromRecord(kind, row)))
   }
 
   return {
@@ -69,8 +85,14 @@ export function createContent(pb: PocketBase) {
       return wrapped(async () => {
         const settingsFilter = pb.filter('project = {:project}', { project: projectId })
         const [project, settings, chapters, nodes, lines, cues, connections] = await Promise.all([
-          pb.collection('projects').getOne(projectId).then((row) => fromRecord('projects', row)),
-          pb.collection('project_settings').getFirstListItem(settingsFilter).then((row) => fromRecord('project_settings', row)),
+          pb
+            .collection('projects')
+            .getOne(projectId)
+            .then((row) => fromRecord('projects', row)),
+          pb
+            .collection('project_settings')
+            .getFirstListItem(settingsFilter)
+            .then((row) => fromRecord('project_settings', row)),
           all('chapters', projectId),
           all('nodes', projectId),
           all('script_lines', projectId),
@@ -111,7 +133,11 @@ export function createContent(pb: PocketBase) {
     },
 
     /** Live changes of the project; `onReconnect` fires when the stream comes back. Resolves to a function that closes every subscription. */
-    subscribe(projectId: string, onEvent: (event: RemoteEvent) => void, onReconnect?: () => void): Promise<() => Promise<void>> {
+    subscribe(
+      projectId: string,
+      onEvent: (event: RemoteEvent) => void,
+      onReconnect?: () => void,
+    ): Promise<() => Promise<void>> {
       return subscribeProject(pb, projectId, onEvent, onReconnect)
     },
   }

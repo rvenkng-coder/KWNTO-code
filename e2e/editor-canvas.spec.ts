@@ -1,6 +1,5 @@
-// Protects: the canvas (editor core plan, Task 10; design 6.1): nodes and connections are saved,
-// a drag saves once on drop, start/end/unreachable markers follow the connections and trashing
-// the start node, and the minimap choice is kept with the account.
+// Protects: the canvas (design 6.1): nodes and connections are saved, a drag saves once on drop, start/end/unreachable
+// markers follow the connections and trashing the start node, and the minimap choice is kept with the account.
 import { expect, test, type Page } from '@playwright/test'
 import { addNodeAt, cards, connectNodes, nodePosition, ownerWithProject, waitForSave } from './helpers/editor'
 
@@ -26,7 +25,7 @@ test('nodes and a connection survive a reload', async ({ page }) => {
   await expect(page.locator('.react-flow__edge')).toHaveCount(1)
 })
 
-// Protects: plan Global Constraints and engineering 9: a position is saved on drag end only, once.
+// Protects: engineering 9: a position is saved on drag end only, once.
 test('dragging a node saves its position once when dropped', async ({ page }) => {
   await ownerWithProject(page, 'Story')
   await readyCanvas(page, 0)
@@ -53,7 +52,7 @@ test('dragging a node saves its position once when dropped', async ({ page }) =>
   expect(patches).toHaveLength(1)
 })
 
-// Protects: design 6.1, D7, D8 and Review Focus 5: markers follow connections; trashing the start node leaves no edge and no crash.
+// Protects: design 6.1: markers follow connections; trashing the start node leaves no edge and no crash.
 test('markers follow connections and trashing the start node', async ({ page }) => {
   await ownerWithProject(page, 'Story')
   await readyCanvas(page, 0)

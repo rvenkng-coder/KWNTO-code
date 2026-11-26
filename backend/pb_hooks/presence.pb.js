@@ -1,5 +1,5 @@
 /// <reference path="../pb_data/types.d.ts" />
-// Presence (plan 7 Task 6, D14): the name is copied from the account when a row is made, and a
+// Presence (design 5): the name is copied from the account when a row is made, and a
 // job removes rows nobody refreshes any more (a closed tab or a lost connection).
 
 onRecordCreate((e) => {
@@ -20,7 +20,14 @@ cronAdd("purge_presence", "* * * * *", () => {
   purgeInBatches(
     (skipIds) => {
       const params = { cutoff: cutoff }
-      return $app.findRecordsByFilter("presence", withoutSkipped("updated < {:cutoff}", skipIds, params), "", 200, 0, params)
+      return $app.findRecordsByFilter(
+        "presence",
+        withoutSkipped("updated < {:cutoff}", skipIds, params),
+        "",
+        200,
+        0,
+        params,
+      )
     },
     (row) => $app.delete(row),
     (row, error) => $app.logger().error("purge_presence: could not delete a row", "id", row.id, "error", String(error)),

@@ -1,17 +1,21 @@
 # Lint and guardrail checks
 
-`npm run lint` runs ESLint on the whole repo, then the PERF comment check. Both must pass before a change is done. Both are required by [engineering.md](../engineering.md); this page says what each one catches and how to fix it.
+`npm run lint` runs ESLint on the whole repo, then the PERF comment check, the docs link check, the plan check and the history-reference check. All must pass before a change is done. [engineering.md](../engineering.md) requires them; this page says what each one catches and how to fix it.
 
 ## What ESLint enforces
 
-Rules apply to `frontend/src/**/*.{ts,tsx}`. The config is `eslint.config.js`; the rule tests are `tests/lint/guardrails.test.ts`.
+The rules in this table apply to `frontend/src/**/*.{ts,tsx}`. The config is `eslint.config.js`; the rule tests are `tests/lint/guardrails.test.ts`.
 
 | Rule | What it catches | What to do |
 |---|---|---|
-| `max-lines` (300) | A file over 300 lines, not counting blank lines and comments | Split it by feature or responsibility |
+| `max-lines` (300; test files 500) | A file over the limit, not counting blank lines and comments | Split it by feature or responsibility |
 | `no-restricted-imports` | `import ... from 'pocketbase'` anywhere except `frontend/src/backend/`, `tests/rules/` and `e2e/` | Call the backend through a function in `frontend/src/backend/` |
 | `@typescript-eslint/no-explicit-any` | The `any` type | Use a real type or `unknown`. If `any` is truly needed: `// eslint-disable-next-line @typescript-eslint/no-explicit-any -- <reason>` |
 | `no-restricted-syntax` | The React prop `dangerouslySetInnerHTML` | Render text as text (security.md section 5) |
+
+## Backend hooks
+
+`backend/pb_hooks/**/*.js` is run by PocketBase and is not typechecked, so lint is its only static check: the recommended ESLint rules (an undefined name, an unused variable) and `max-lines` (300). The names PocketBase provides are listed in `POCKETBASE_GLOBALS` in `eslint.config.js`; add a name there only when PocketBase really provides it (`backend/pb_data/types.d.ts` in a running container lists them). A `catch (error)` whose `error` is unused is allowed.
 
 ESLint skips `dist/`, `spike/`, `.agents/`, `.claude/` and the prototype `branching_narrative_tool.tsx`.
 
@@ -33,11 +37,18 @@ A comment is one `/* */` block, or a run of adjacent `//` lines. Either of these
 
 Two `PERF:` notes in one run of `//` lines are checked separately. The check works on the comment text only; it does not judge whether the content is true, so a reviewer still reads it.
 
+## Comments that point at history
+
+A comment states its reason where it is. A reference to a plan, task, case, finding or decision number sends the reader to old project history. `scripts/check-comment-refs.ts` reads the comments (not strings or text on screen) of the code under `frontend/src`, `backend/pb_hooks`, `e2e`, `tests` and `scripts`; probe files and migrations are left out. A design section or a decision record may be cited after the reason. `npm run lint` runs it, so CI refuses what it recognises: `Task <n>`, `D<n>`, `C<n>`, `M<n>`, `finding <x>`, a plan named by number, date or subject, and `Review Focus`. Other ids (`E1`, `F2`, `L4`, `I1`, "checkpoint 3") pass it, so a reviewer watches for those.
+
+- `npm run check:comments` prints `file:line: reference` for each one and exits with 1. Add paths to check less: `npm run check:comments -- backend/pb_hooks`.
+- `npm run check:comments -- --same-code <base>` lists each code file that differs from `<base>` in more than its comments, and each added, deleted or renamed one. Use it to prove that a comment rewrite changed no code. It cannot see an added or removed directive comment (`eslint-disable`, `@ts-expect-error`, `@vitest-environment`, `@vite-ignore`) or a removed `// Protects:` header, so read the diff for those. Lint and typecheck catch some of them; `check:hygiene` asks for a header only on new tests.
+
 ## Commands
 
 | Command | What it does |
 |---|---|
-| `npm run lint` | ESLint, then the PERF check |
+| `npm run lint` | ESLint, the PERF check, docs links, plan files and history references |
 | `npx eslint .` | ESLint only |
 | `node scripts/check-perf-comments.ts` | PERF check only |
 | `npm run test:unit` | Includes the tests for the rules above |

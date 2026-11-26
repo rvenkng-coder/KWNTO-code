@@ -4,7 +4,7 @@ import { useMediaStore } from '../editor/media/useProjectMedia'
 import type { MediaSrc, UseMediaSrc } from './PlayerMedia'
 
 /**
- * The editor's media loader for the player (plan D8). The URL is built once, from the first file token this
+ * The editor's media loader for the player. The URL is built once, from the first file token this
  * item sees, and kept: the store refreshes its token every 45 s, and a new URL would restart a playing file.
  */
 export const useEditorMediaSrc: UseMediaSrc = (media): MediaSrc => {

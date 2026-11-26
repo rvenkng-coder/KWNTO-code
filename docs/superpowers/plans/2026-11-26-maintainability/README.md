@@ -59,9 +59,9 @@ Already fixed before this plan: card size and node links lost by export and shar
 
 | Task | What | Tier | Status |
 |---|---|---|---|
-| [1](task-1-lint-hooks.md) | Lint the backend hooks | mid | planned |
-| [2](task-2-typecheck-tooling.md) | Typecheck tests, end-to-end tests and scripts | mid | planned |
-| [3](task-3-before-formatting.md) | Prepare for formatting: assertion counter, sync engine, backend index | strong | planned |
+| [1](task-1-lint-hooks.md) | Lint the backend hooks | mid | done |
+| [2](task-2-typecheck-tooling.md) | Typecheck tests, end-to-end tests and scripts | mid | done |
+| [3](task-3-before-formatting.md) | Prepare for formatting: assertion counter, sync engine, backend index | strong | done |
 | [4](task-4-prettier.md) | Prettier and the format-only commit | mid | planned |
 | [5](task-5-comment-checker.md) | A checker for history references and comment-only changes | mid | planned |
 | [6](task-6-comments-hooks.md) | Rewrite comments: backend hooks | strong | planned |

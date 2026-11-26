@@ -24,7 +24,7 @@ async function setup() {
   const chapter = (await b.content.load(project.id)).chapters[0]
   if (!chapter) throw new Error('the project has no chapter')
   const node = await b.content.create('nodes', {
-    id: clientId(), projectId: project.id, chapterId: chapter.id, title: 'base title', color: 'slate', x: 0, y: 0, deleted: false, version: 0,
+    id: clientId(), projectId: project.id, chapterId: chapter.id, title: 'base title', color: 'slate', x: 0, y: 0, width: 0, height: 0, coverMediaId: '', deleted: false, deletedAt: null, version: 0,
   })
   return { a, b, out, project, chapterId: chapter.id, node }
 }

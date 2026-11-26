@@ -4,7 +4,7 @@
 // are refused. The client has a copy in frontend/src/features/editor/links/linkCheck.ts; a rules test
 // keeps the two in step.
 const MAX_LENGTH = 2000
-const WEB_ADDRESS = /^(https?):\/\/([^\s\/?#@\\]+)([\/?#]\S*)?$/i
+const WEB_ADDRESS = /^(https?):\/\/([^\s/?#@\\]+)([/?#]\S*)?$/i
 
 function refuse(code, message) {
   return { ok: false, code, message }

@@ -2,7 +2,7 @@ import type { NewEntry, OutboxEntry } from './outbox'
 import { nextDelay } from './outboxText'
 import type { FailedEntry } from './outboxStorage'
 import { AnswerBook, type Answer, type TabMessage } from './syncAnswers'
-import { mineEntry, theirsEntry } from './syncResolve'
+import { applyChoice } from './syncResolve'
 import { createSender, type Outcome } from './syncSend'
 import { TabLink, writeEntry } from './syncTabs'
 import type { EngineEntry, PendingConflict, SyncDeps, SyncEngine, SyncSnapshot } from './syncTypes'
@@ -14,7 +14,6 @@ import type { EngineEntry, PendingConflict, SyncDeps, SyncEngine, SyncSnapshot }
 export type { Answer, TabMessage }
 export type { EngineEntry, PendingConflict, SyncDeps, SyncDoor, SyncEngine, SyncHooks, SyncSnapshot } from './syncTypes'
 export const LOCK_PREFIX = 'kwnto-sync-'
-const NO_COPY = 'The record was deleted and no copy of your change is left to restore it.'
 
 class Engine implements SyncEngine {
   private queue: OutboxEntry[] = []
@@ -213,18 +212,11 @@ class Engine implements SyncEngine {
     const { conflict } = this
     if (conflict === null) return
     await this.exclusive(async () => {
-      const { storage } = this.deps
-      const mine = choice === 'mine' ? mineEntry(conflict) : null
-      // Keep theirs still sends the fields that did not conflict (D12).
-      const replacement = choice === 'mine' ? mine : theirsEntry(conflict)
-      if (replacement !== null) await storage.put(replacement)
-      else if (choice === 'theirs') await storage.remove([conflict.entry.seq])
-      else await storage.fail(conflict.entry, NO_COPY)
+      const answer = await applyChoice(this.deps.storage, conflict, choice)
       this.conflict = null
+      // After the refresh: whoever hears the answer sees a snapshot without the answered entry.
       await this.refresh()
-      const { entry } = conflict
-      if (choice === 'theirs') this.answers.announce(entry, { seq: entry.seq, type: 'theirs', server: conflict.server })
-      else if (mine === null) this.answers.announce(entry, { seq: entry.seq, type: 'refused', message: NO_COPY })
+      if (answer !== null) this.answers.announce(conflict.entry, answer)
     })
     this.deps.channel.post()
     this.wake()
@@ -287,9 +279,7 @@ class Engine implements SyncEngine {
   }
 
   private markReachable(): void {
-    let { attempt } = this
-    if (attempt > 0) attempt = 0 // reset after a success
-    this.attempt = attempt
+    this.attempt = 0
     this.serverDown = false
   }
 

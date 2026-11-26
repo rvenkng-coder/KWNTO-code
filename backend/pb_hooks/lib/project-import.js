@@ -1,5 +1,5 @@
 // Writes an import plan (lib/project-file.js importPlan) to the database: one new project
-// with its chapters, nodes, lines, cues and choices. Call it inside e.app.runInTransaction,
+// with its chapters, nodes, lines, cues, choices and node links. Call it inside e.app.runInTransaction,
 // with the transaction's app, so a failure leaves nothing behind. Not pure (it needs
 // PocketBase's Record), so it is covered by tests/rules/project-file.rules.test.ts.
 
@@ -32,9 +32,9 @@ function createChapters(app, projectId, chapters) {
   return chapterIds
 }
 
-function createContent(app, projectId, chapterIds, plan) {
+function createContent(app, projectId, creatorId, chapterIds, plan) {
   for (const n of plan.nodes) {
-    add(app, "nodes", { id: n.id, project: projectId, chapter: chapterIds[n.chapter], title: n.title, color: n.color, x: n.x, y: n.y })
+    add(app, "nodes", { id: n.id, project: projectId, chapter: chapterIds[n.chapter], title: n.title, color: n.color, x: n.x, y: n.y, width: n.width, height: n.height })
   }
   for (const l of plan.lines) {
     add(app, "script_lines", { id: l.id, project: projectId, node: l.node, character: l.character, text: l.text, sort_order: l.sortOrder })
@@ -45,13 +45,17 @@ function createContent(app, projectId, chapterIds, plan) {
   for (const k of plan.connections) {
     add(app, "connections", { id: k.id, project: projectId, from_node: k.from, to_node: k.to === null ? "" : k.to, label: k.label })
   }
+  for (const l of plan.links) {
+    add(app, "node_links", { id: l.id, project: projectId, node: l.node, creator: creatorId, title: l.title, url: l.url })
+  }
 }
 
-// Returns the new project's id. `name` is the final name (see importedName).
-function createImportedProject(app, teamId, name, plan) {
+// Returns the new project's id. `name` is the final name (see importedName); `creatorId` is the
+// person importing, who becomes the creator of the links.
+function createImportedProject(app, teamId, creatorId, name, plan) {
   const project = add(app, "projects", { team: teamId, name: name })
   const chapterIds = createChapters(app, project.id, plan.chapters)
-  createContent(app, project.id, chapterIds, plan)
+  createContent(app, project.id, creatorId, chapterIds, plan)
   // The first-node hook set a start node; the file's own choice (or none) replaces it.
   const stored = app.findRecordById("projects", project.id)
   stored.set("start_node", plan.startNode === null ? "" : plan.startNode)

@@ -31,3 +31,17 @@ test('files over 300 lines are rejected, 300 is allowed', async () => {
   expect(await ruleIds(lines(301), 'frontend/src/features/canvas/big.ts')).toContain('max-lines')
   expect(await ruleIds(lines(300), 'frontend/src/features/canvas/ok.ts')).not.toContain('max-lines')
 })
+
+// Protects the backend hooks, which no typecheck covers: a misspelled name fails lint, not a request at run time.
+test('an undefined name in a hook is rejected, the PocketBase globals are known', async () => {
+  const hook = (body: string) => `onRecordCreate((e) => { ${body} }, 'media')\n`
+  expect(await ruleIds(hook('ee.next()'), 'backend/pb_hooks/a.pb.js')).toContain('no-undef')
+  expect(await ruleIds(hook("require(`${__hooks}/lib/a.js`); e.next()"), 'backend/pb_hooks/a.pb.js')).toEqual([])
+})
+
+// Protects the same rule for test files, which hold many cases of one module: 500 lines.
+test('a test file may have 500 lines, not 501', async () => {
+  const lines = (n: number) => Array.from({ length: n }, (_, i) => `export const v${i} = ${i}`).join('\n') + '\n'
+  expect(await ruleIds(lines(501), 'frontend/src/features/canvas/big.test.ts')).toContain('max-lines')
+  expect(await ruleIds(lines(500), 'frontend/src/features/canvas/ok.test.ts')).not.toContain('max-lines')
+})

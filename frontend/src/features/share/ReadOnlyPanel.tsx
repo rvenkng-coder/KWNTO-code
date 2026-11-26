@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type { ProjectFile } from '../../backend'
+import { ShareLinks } from './ShareLinks'
 import { ShareMedia } from './ShareMedia'
 
 interface ReadOnlyPanelProps {
@@ -11,7 +12,7 @@ interface ReadOnlyPanelProps {
   children?: ReactNode
 }
 
-/** A node's content as text only (security.md 5): title, script lines, choices, cues and media. */
+/** A node's content as text only (security.md 5): title, script lines, choices, cues, media and links. */
 export function ReadOnlyPanel({ file, nodeId, token, needsSignIn, children }: ReadOnlyPanelProps) {
   const node = file.nodes.find((n) => n.id === nodeId)
   if (node === undefined) return null
@@ -42,6 +43,7 @@ export function ReadOnlyPanel({ file, nodeId, token, needsSignIn, children }: Re
         </ul>
       )}
       {media.map((m) => <ShareMedia key={m.id} token={token} media={m} needsSignIn={needsSignIn} />)}
+      <ShareLinks links={(file.links ?? []).filter((l) => l.node === nodeId)} />
       {children}
     </aside>
   )

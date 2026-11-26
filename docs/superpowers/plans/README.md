@@ -24,6 +24,8 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 
 **Tooling plan (not a product plan):** [Local-AI quality tooling](2026-11-13-local-ai-quality/README.md) (test strategy, project test plan, `check:task`), status `done`; built before Plan 3 so Plan 3's tasks can carry the Test plan block.
 
+**Maintenance plan (not a product plan):** [Maintainability](2026-11-26-maintainability/README.md) (formatter, static checks, comments, docs for working by hand), status `in progress`.
+
 If time runs out, cut from the bottom (design section 11). Plans 8 to 10 are the first to go.
 
 ## Carried over from Plan 2

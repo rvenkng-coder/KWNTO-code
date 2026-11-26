@@ -26,7 +26,7 @@ Every step runs, even after an earlier one failed, so the report is complete.
 |---|---|---|
 | `plan` | `checkTaskFile` from `check:plan` on the task file | The task file has a tier, an Interfaces line and a complete Test plan block ([format](test-plan-format.md)). A Test plan with any problem fails this step; the other steps still run, and `layers`, `coverage`, `breaks` and `probes` then fail with `not run: the Test plan could not be read (see the plan step)` instead of describing a plan that was not read |
 | `lint` | `npm run lint` | ESLint, `PERF:` comments, documentation links and every opted-in plan |
-| `typecheck` | `npm run typecheck` | Strict TypeScript compiles for `frontend/src/` only (`tsc -b`); `scripts/`, `tests/` and `e2e/` are not typechecked (Vitest and node strip types) |
+| `typecheck` | `npm run typecheck` | Strict TypeScript compiles for the app and, with `tsconfig.tooling.json`, for `scripts/`, `tests/` (not `tests/probes/`) and `e2e/` (`tsc -b`) |
 | `unit` | `npm run test:unit` | The whole unit layer passes, not only the task's tests |
 | `layers` | `npm run test:rules`, `test:e2e`, `test:container`, only for the layers the Test plan's Cases name | Each named layer passes. A layer not named is printed as `not required by this task's test plan`, never as a pass |
 | `hygiene` | `checkHygiene` (as `check:hygiene --base <base>`) | New tests have a header comment, nothing is skipped or focused, no test or assertion was lost. An empty change set is a FAIL (see `--base`) |

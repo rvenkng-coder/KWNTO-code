@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { checkSource, compareWithBase } from './check-test-hygiene.ts'
+import { countRawExpects } from './lib/test-raw.ts'
 
 const lines = (...rows: string[]): string => rows.join('\n') + '\n'
 const rules = (problems: { rule: string }[]): string[] => problems.map((problem) => problem.rule)
@@ -52,3 +53,9 @@ describe('unterminated constructs', () => {
     expect(checkSource('a.test.ts', lines('/* ok */', `const t = ${q}x${q}`, '// Protects: r', one), null)).toEqual([])
   })
 })
+
+// Protects: the assertion count does not change when a formatter splits `expect.poll` over lines.
+test('an expect split over lines is still counted', () => {
+  expect(countRawExpects('await expect\n  .poll(read)\n  .toBe(1)\nexpect\n  .soft(a)\n  .toBe(2)')).toBe(2)
+})
+

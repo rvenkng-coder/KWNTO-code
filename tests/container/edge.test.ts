@@ -8,7 +8,7 @@ const PNG_1PX = new Uint8Array(
   Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAAAAAA6fptVAAAACklEQVR4nGNgAAAAAgABSK+kcQAAAABJRU5ErkJggg==', 'base64'),
 )
 
-function sampleBytes(size: number): Uint8Array {
+function sampleBytes(size: number): Uint8Array<ArrayBuffer> {
   return new Uint8Array(size)
 }
 

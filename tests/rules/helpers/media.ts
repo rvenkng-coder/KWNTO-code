@@ -1,6 +1,6 @@
 import { asAdmin, asUser, PB_URL, type TestUser } from './pb.ts'
 
-export const PNG_1PX: Uint8Array = new Uint8Array(
+export const PNG_1PX: Uint8Array<ArrayBuffer> = new Uint8Array(
   Buffer.from(
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAAAAAA6fptVAAAACklEQVR4nGNgAAAAAgABSK+kcQAAAABJRU5ErkJggg==',
     'base64',
@@ -10,7 +10,7 @@ export const PNG_1PX: Uint8Array = new Uint8Array(
 export function sampleBytes(
   type: 'wav' | 'mp3' | 'mov' | 'mp4' | 'jpeg' | 'png' | 'html' | 'zeros',
   size: number,
-): Uint8Array {
+): Uint8Array<ArrayBuffer> {
   const out = new Uint8Array(size)
   let head: number[] = []
   if (type === 'png') {
@@ -37,7 +37,7 @@ export function sampleBytes(
 export async function uploadMedia(
   user: TestUser | null,
   fields: { project: string; node: string; uploader?: string; [key: string]: unknown },
-  file: { name: string; bytes: Uint8Array },
+  file: { name: string; bytes: Uint8Array<ArrayBuffer> },
 ): Promise<Response> {
   const formData = new FormData()
   formData.append('project', fields.project)

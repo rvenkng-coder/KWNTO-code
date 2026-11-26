@@ -35,7 +35,34 @@ jobs:
       - run: npm run test:container
       - run: npm run test:rules
 
+  # A private repository's runner gives Playwright one worker, so the browser suites are split over four
+  # runners instead (one browser and half of its tests each). Each runner has its own PocketBase.
   e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      # One failing part must not cancel the others: their results are still wanted.
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox]
+        shard: [1, 2]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - run: npm ci
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: npm run test:e2e -- --project ${{ matrix.browser }} --shard ${{ matrix.shard }}/2
+      - uses: actions/upload-artifact@v5
+        if: failure()
+        with:
+          name: playwright-report-${{ matrix.browser }}-${{ matrix.shard }}
+          path: playwright-report/
+          retention-days: 30
+
+  # The timing tests run alone on their own runner. `--no-deps` keeps their projects from pulling in the
+  # browser suites that `e2e` runs; one worker keeps the two browsers from timing each other.
+  e2e-performance:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -44,11 +71,11 @@ jobs:
           node-version-file: .nvmrc
       - run: npm ci
       - run: npx playwright install --with-deps firefox chromium
-      - run: npm run test:e2e
+      - run: npm run test:e2e -- --project perf-chromium --project perf-firefox --no-deps --workers 1
       - uses: actions/upload-artifact@v5
         if: failure()
         with:
-          name: playwright-report
+          name: playwright-report-performance
           path: playwright-report/
           retention-days: 30
 

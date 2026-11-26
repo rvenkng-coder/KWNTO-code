@@ -208,6 +208,7 @@ The CI workflow runs on pushes to `main` and on every pull request (so a branch 
 |---|---|---|
 | `checks` | `npm run lint`, `npm run typecheck`, `npm run test:unit`, `npm audit --omit=dev --audit-level=high` (shipped dependencies only; build and test tools are not audited in CI, developer decision 2026-11-18) | Runs on every run |
 | `backend` | `npm run test:container`, `npm run test:rules` | Uses the runner's Docker; `with-pocketbase.ts` starts and stops PocketBase itself |
-| `e2e` | Playwright install (firefox + chromium), `npm run test:e2e` | Uses the runner's Docker via `with-pocketbase.ts`; uploads `playwright-report/` on failure |
+| `e2e` (4 runners) | `npm run test:e2e -- --project <browser> --shard <n>/2` for chromium and firefox, shards 1 and 2 | Each runner has its own PocketBase via `with-pocketbase.ts` and runs one test at a time; a failing part does not cancel the others; uploads `playwright-report/` on failure |
+| `e2e-performance` | `npm run test:e2e -- --project perf-chromium --project perf-firefox --no-deps --workers 1` | The timing tests, alone on their runner; `--no-deps` keeps them from running the browser suites again |
 | `secrets` | gitleaks over full history (`fetch-depth: 0`) | Runs on every run |
 

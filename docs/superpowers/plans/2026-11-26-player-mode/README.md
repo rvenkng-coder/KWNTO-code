@@ -55,10 +55,10 @@
 
 | Task | What | Tier | Status |
 |---|---|---|---|
-| [1](task-1-story-session.md) | The pure `Story` and `Session` | local | planned |
-| [2](task-2-player-editor.md) | The `Player`, its transitions and the editor's `Play` button | mid | planned |
-| [3](task-3-player-share.md) | `Play` in the read-only viewer (view and comment links) | mid | planned |
-| [4](task-4-docs-closeout.md) | Docs, test plan, roadmap, manual item M3, closeout | mid | planned |
+| [1](task-1-story-session.md) | The pure `Story` and `Session` | local | done |
+| [2](task-2-player-editor.md) | The `Player`, its transitions and the editor's `Play` button | mid | done |
+| [3](task-3-player-share.md) | `Play` in the read-only viewer (view and comment links) | mid | done |
+| [4](task-4-docs-closeout.md) | Docs, test plan, roadmap, manual item M3, closeout | mid | done |
 
 ## Review Focus
 

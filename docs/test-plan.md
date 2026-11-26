@@ -30,7 +30,7 @@ Which test layers must cover each feature, and how far each feature is. The laye
 | Properties panel: script lines, cues, lighting notes; the Choices section and link mode: `e2e/editor-choices-panel.spec.ts` | 6.2 | unit, rules, e2e | covered | 3 |
 | Properties panel: media upload, quota, strict file checks | 6.2 | unit, rules, e2e | covered | 5 |
 | Chapters | 6.3 | unit, rules, e2e | covered | 3 |
-| Player Mode | 6.4 | unit, e2e, manual | not started | 9 |
+| Player Mode (plan 2026-11-26-player-mode): `frontend/src/features/player/story.test.ts`, `session.test.ts`, `shareStory.test.ts`, `tests/hooks/project-file.unit.test.ts`, `e2e/player.spec.ts`, `e2e/player-share.spec.ts`, `e2e/player-flow.spec.ts` | 6.4 | unit, e2e, manual M3 | covered (M3 open) | 9 |
 | Path analytics (anonymous per-choice counts) | 6.4 | unit, rules, e2e | not started | 10 |
 | Export (PDF, Word, JPG, PNG): `exportPlan.test.ts`, `documents.test.ts`, `e2e/editor-export.spec.ts`, `e2e/editor-export-project.spec.ts`; manual M4 to M7 `done` 2026-11-21 | 6.5 | unit, e2e, manual | covered | 8 |
 | Look and feel (light and dark, theme toggle, layout) | 6.6 | e2e, manual M1 and M2 (signed 2026-11-18) | covered | 3 |

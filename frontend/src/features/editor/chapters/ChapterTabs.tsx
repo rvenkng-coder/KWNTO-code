@@ -4,6 +4,7 @@ import { navigate } from '../../shell/useRoute'
 import { TrashPanel } from '../../trash/TrashPanel'
 import { AllChaptersMenu } from './AllChaptersMenu'
 import { addChapter, renameChapter } from './chapterActions'
+import { createFollowGate } from './followGate'
 import { InlineText } from './InlineText'
 import { TabMenu } from './TabMenu'
 import { activeAfterClose, TAB_DEFAULT, visibleTabs } from './tabsView'
@@ -44,10 +45,20 @@ export function ChapterTabs({ projectId, chapters, activeId }: ChapterTabsProps)
   const [renaming, setRenaming] = useState<string | null>(null)
   const [trashOpen, setTrashOpen] = useState(false)
   const tabs = visibleTabs(chapters, view)
-  const go = (id: string | null) => navigate({ name: 'project', projectId, chapterId: id })
+  const [follow] = useState(() => createFollowGate(() => window.location.hash))
+  const go = (id: string | null) => {
+    follow.moved()
+    navigate({ name: 'project', projectId, chapterId: id })
+  }
   const show = (id: string) => {
     open(id)
     go(id)
+  }
+  // The new chapter opens once its save is done, unless the person has gone elsewhere since.
+  const add = async () => {
+    const stillWanted = follow.claim()
+    const id = await addChapter(projectId, chapters)
+    if (stillWanted()) show(id)
   }
   // The open chapter's tab is leaving (closed or trashed): show its neighbour.
   const leave = (id: string) => {
@@ -94,12 +105,7 @@ export function ChapterTabs({ projectId, chapters, activeId }: ChapterTabsProps)
           )
         })}
       </div>
-      <button
-        type="button"
-        className="shrink-0 px-2"
-        aria-label="Add chapter"
-        onClick={() => void addChapter(projectId, chapters).then(show)}
-      >
+      <button type="button" className="shrink-0 px-2" aria-label="Add chapter" onClick={() => void add()}>
         +
       </button>
       {trashOpen && <TrashPanel onClose={() => setTrashOpen(false)} />}

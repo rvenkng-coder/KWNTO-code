@@ -50,7 +50,7 @@ Try every kind that fits the code under test. `kind` is the slug used in probe t
 | `wrong-actor` | The forbidden actor tries the allowed action: member, owner of another team, outsider, signed-out, blocked user | Plan 2 regenerate and invite routes |
 | `open-rule-unnoticed` | Open the rule by mistake; a test must fail | every Plan 2 rule test (checked once by opening the rule) |
 | `oracle-leak` | Unknown and wrong answers look the same: status, message and whole body | Plan 2 join code and invite |
-| `race-and-parallel` | Two requests at once, or a UI step taken before the request ends | Plan 2 parallel wrong passwords beat the lockout; sign-up then verify raced in e2e |
+| `race-and-parallel` | Two requests at once, or a UI step taken before the request ends | Plan 2 parallel wrong passwords beat the lockout; sign-up then verify raced in e2e; Add chapter switched back after another tab was opened (issue 37) |
 | `vacuous-absence` | "X is not shown" passes before the data has loaded; wait for a positive signal first | Plan 2 e2e after reload |
 | `visible-not-enabled` | `toBeVisible` passes on a disabled control; use `toBeEnabled` for a gate | Plan 2 verification gate |
 | `success-on-failure` | A success note or state shown after a failed call | Plan 2 "Joined successfully!" and the sign-up confirmation |

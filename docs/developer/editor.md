@@ -128,6 +128,8 @@ From Task 12 screens change content only through `edits` (`store/edits.ts`), nev
 
 Plan: [editor tabs](../superpowers/plans/2026-11-18-editor-tabs/README.md). All chapter actions live in the tab bar (`chapters/ChapterTabs.tsx`): `≡` (`AllChaptersMenu`), the tabs (title as an `InlineText` with `role="tab"`, `TabMenu`'s `▾`, `×`, the resize handle) and `+`. The left panel only has Back to teams, the project name and Add node.
 
+**`+` follows only if nothing else happened.** The new chapter opens after its save, so `ChapterTabs` asks a `followGate` (`chapters/followGate.ts`) first: it stays put if a tab or All chapters item was picked, `+` was pressed again, or the route changed meanwhile. Picking the tab already open changes no route, so every `go()` reports `moved()`.
+
 **Menus are portals, placed by `menuPosition`.** `Popover` renders into `document.body` at `position: fixed` with `z-50`, measures itself after its first render and takes its place from `menuPosition(anchorBox, menuSize, windowSize)` (`chapters/menuPosition.ts`, pure and unit-tested): below the anchor, left edges aligned; above it when there is no room below; always `MENU_MARGIN` (8 px) inside the window.
 
 **Why a menu in a scrolling strip must not be absolutely positioned.** The tab strip is `overflow-x-auto`. Per CSS, when one overflow axis is not `visible` the other computes to `auto` too, so the strip also clips vertically and an absolutely positioned child is cut off inside its 30 px height (the first version of the tab menu opened hidden under the canvas). A portal moves the menu out of the strip, and `fixed` takes it out of every ancestor's clipping and stacking. The anchor's `getBoundingClientRect()` is the only link back to the tab.

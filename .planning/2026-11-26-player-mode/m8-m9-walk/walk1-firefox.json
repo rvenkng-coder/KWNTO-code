@@ -1,0 +1,168 @@
+{
+  "browser": "firefox",
+  "results": [
+    {
+      "ref": "5",
+      "name": "sign in with an account, see the team and its project list",
+      "ok": true
+    },
+    {
+      "ref": "5",
+      "name": "open the team and create a project",
+      "ok": true
+    },
+    {
+      "ref": "6.1",
+      "name": "add freeform nodes on the canvas (double-click)",
+      "ok": true
+    },
+    {
+      "ref": "6.1",
+      "name": "give each node a title (Gate, Door, Cellar)",
+      "ok": true
+    },
+    {
+      "ref": "6.1",
+      "name": "choose a node header colour",
+      "ok": true
+    },
+    {
+      "ref": "6.1",
+      "name": "pan the canvas by dragging empty space",
+      "ok": true
+    },
+    {
+      "ref": "6.1",
+      "name": "drag a node and it stays where it is dropped",
+      "ok": true
+    },
+    {
+      "ref": "6.1",
+      "name": "connect nodes with choices (Gate to Door, Door to Cellar)",
+      "ok": true
+    },
+    {
+      "ref": "6.1",
+      "name": "Start, End and Unreachable markers",
+      "ok": true
+    },
+    {
+      "ref": "6.1",
+      "name": "make another node the start node, then back",
+      "ok": true
+    },
+    {
+      "ref": "6.1",
+      "name": "undo and redo a change",
+      "ok": true
+    },
+    {
+      "ref": "6.1",
+      "name": "copy and paste a node",
+      "ok": true
+    },
+    {
+      "ref": "6.1",
+      "name": "select several nodes at once",
+      "ok": true
+    },
+    {
+      "ref": "6.1",
+      "name": "minimap shows and hides",
+      "ok": true
+    },
+    {
+      "ref": "6.1",
+      "name": "header search jumps to a node by title",
+      "ok": true
+    },
+    {
+      "ref": "6.2",
+      "name": "write script lines with a character name",
+      "ok": true
+    },
+    {
+      "ref": "6.2",
+      "name": "add an A/V cue and a lighting cue",
+      "ok": true
+    },
+    {
+      "ref": "6.2",
+      "name": "upload an image and audio file; both play or show in the panel",
+      "ok": true
+    },
+    {
+      "ref": "6.2",
+      "name": "a file that is not what its name says is refused",
+      "ok": true
+    },
+    {
+      "ref": "6.2",
+      "name": "add a link to a video (video upload is off)",
+      "ok": true
+    },
+    {
+      "ref": "6.3",
+      "name": "add chapters as tabs, rename one, switch between them",
+      "ok": true
+    },
+    {
+      "ref": "6.1",
+      "name": "link a node to a node in another chapter (cross-chapter tag)",
+      "ok": true
+    },
+    {
+      "ref": "6.3",
+      "name": "close a chapter tab and reopen it from the list",
+      "ok": true
+    },
+    {
+      "ref": "6.8",
+      "name": "move a node to the trash and restore it",
+      "ok": true
+    },
+    {
+      "ref": "6.4",
+      "name": "Player Mode: start, choose, chapter name, back, restart, history",
+      "ok": true
+    },
+    {
+      "ref": "6.5",
+      "name": "export the map as PDF, Word, JPG and PNG",
+      "ok": true
+    },
+    {
+      "ref": "6.6",
+      "name": "light and dark theme toggle",
+      "ok": true
+    },
+    {
+      "ref": "6.7",
+      "name": "offline: edit, see the waiting count, reconnect, change is saved",
+      "ok": true
+    },
+    {
+      "ref": "8b",
+      "name": "export and import the project file (JSON)",
+      "ok": true
+    },
+    {
+      "ref": "5",
+      "name": "share: make a view link and a comment link",
+      "ok": true
+    },
+    {
+      "ref": "5",
+      "name": "a view link opens without an account, read-only, and can be played",
+      "ok": true
+    }
+  ],
+  "consoleErrors": [
+    "HTTP 409 PATCH /api/collections/script_lines/records/pnx3mxoi2qqa3c6 during [6.2 add an A/V cue and a lighting cue]",
+    "HTTP 409 PATCH /api/collections/cues/records/mtv73enbyo6m190 during [6.2 upload an image and audio file; both play or show in the panel]",
+    "HTTP 400 POST /api/collections/media/records during [6.2 a file that is not what its name says is refused]",
+    "pageerror during [6.7 offline: edit, see the waiting count, reconnect, change is saved]: Something went wrong. | ClientResponseError 0: Something went wrong. / ",
+    "pageerror during [6.7 offline: edit, see the waiting count, reconnect, change is saved]: Something went wrong. | ClientResponseError 0: Something went wrong. / ",
+    "pageerror during [6.7 offline: edit, see the waiting count, reconnect, change is saved]: Something went wrong. | ClientResponseError 0: Something went wrong. / "
+  ]
+}

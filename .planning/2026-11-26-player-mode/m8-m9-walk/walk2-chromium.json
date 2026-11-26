@@ -1,0 +1,118 @@
+{
+  "browser": "chromium",
+  "results": [
+    {
+      "ref": "5",
+      "name": "create a team; the owner enables the join code",
+      "ok": true
+    },
+    {
+      "ref": "5",
+      "name": "a member joins with the code; the owner sees the name, not the email",
+      "ok": true
+    },
+    {
+      "ref": "5",
+      "name": "a wrong join code is refused",
+      "ok": true
+    },
+    {
+      "ref": "5",
+      "name": "invite by email: unknown address refused, real one accepted by the invitee",
+      "ok": true
+    },
+    {
+      "ref": "5",
+      "name": "the owner creates a project; the member sees it",
+      "ok": true
+    },
+    {
+      "ref": "5",
+      "name": "presence: a teammate editing a node shows \"Member is editing\"",
+      "ok": true
+    },
+    {
+      "ref": "5",
+      "name": "a change by one person appears live for the other",
+      "ok": true
+    },
+    {
+      "ref": "6.7",
+      "name": "conflict: offline edit vs a teammate's edit asks keep mine / keep theirs",
+      "ok": true
+    },
+    {
+      "ref": "5",
+      "name": "a member comments; the owner sees it live and a count on the card; the owner deletes it",
+      "ok": true
+    },
+    {
+      "ref": "6.8",
+      "name": "a member removes media; only the owner sees it in \"removed\" and restores it",
+      "ok": true
+    },
+    {
+      "ref": "6.2",
+      "name": "a file over the per-file limit is refused with a clear message",
+      "ok": true
+    },
+    {
+      "ref": "6.2",
+      "name": "over the owner's storage quota, uploads are refused and nothing is deleted",
+      "ok": true
+    },
+    {
+      "ref": "6.3",
+      "name": "a tab can be resized by dragging its edge",
+      "ok": true
+    },
+    {
+      "ref": "6.3",
+      "name": "a chapter goes to the trash and comes back with its nodes",
+      "ok": true
+    },
+    {
+      "ref": "6.1",
+      "name": "zoom in and out with the canvas controls",
+      "ok": true
+    },
+    {
+      "ref": "6.5",
+      "name": "export the whole project as PDF and Word (one page per chapter with nodes)",
+      "ok": true
+    },
+    {
+      "ref": "5",
+      "name": "a snapshot link keeps the project as published; revoking it stops it",
+      "ok": true
+    },
+    {
+      "ref": "5",
+      "name": "a comment link asks for a sign-in, then the person can comment",
+      "ok": true
+    },
+    {
+      "ref": "5",
+      "name": "an edit link lets a non-member edit that one project; it is listed under Shared with me",
+      "ok": true
+    },
+    {
+      "ref": "6.8",
+      "name": "the owner trashes and restores a project; a member does not see the trash",
+      "ok": true
+    },
+    {
+      "ref": "6.9",
+      "name": "the admin reads the security log in the PocketBase dashboard",
+      "ok": true
+    }
+  ],
+  "notes": [
+    "pageerror [owner] during [6.7 conflict: offline edit vs a teammate's edit asks keep mine / keep theirs]: Something went wrong.",
+    "pageerror [owner] during [6.7 conflict: offline edit vs a teammate's edit asks keep mine / keep theirs]: Something went wrong.",
+    "pageerror [owner] during [6.7 conflict: offline edit vs a teammate's edit asks keep mine / keep theirs]: Something went wrong.",
+    "size refusal text: This image file is larger than the 50 MB limit.",
+    "quota refusal text: Not enough storage: this file is 1 KB and you have 0 KB of 1 KB left. Nothing was deleted.",
+    "security_events rows visible: 41"
+  ]
+}

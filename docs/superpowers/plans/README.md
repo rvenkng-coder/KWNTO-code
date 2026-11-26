@@ -24,6 +24,8 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 
 **Tooling plan (not a product plan):** [Local-AI quality tooling](2026-11-13-local-ai-quality/README.md) (test strategy, project test plan, `check:task`), status `done`; built before Plan 3 so Plan 3's tasks can carry the Test plan block.
 
+**Maintenance plan (not a product plan):** [Maintainability](2026-11-26-maintainability/README.md) (formatter, static checks, comments, docs for working by hand), status `awaiting developer review`.
+
 If time runs out, cut from the bottom (design section 11). Plans 8 to 10 are the first to go.
 
 ## Carried over from Plan 2
@@ -144,7 +146,7 @@ Found by the whole-branch review of the tooling plan (2026-11-13) and left out o
 
 Each outline lists the goal, what must be decided before the detailed plan, and the constraints already fixed elsewhere. They are not tasks.
 
-### 2. Accounts and teams (planned)
+### 2. Accounts and teams (done)
 Sign-up with verification and password rules, sign-in protection (lockout, block, lockdown), the security log, incident controls, teams with join code and invites, and the sign-in and team screens. Settings tables for system, user and team scope. [Detailed plan](2026-11-12-accounts-teams/README.md).
 
 ### 3. Editor core (done; [detailed plan](2026-11-14-editor-core/README.md))
@@ -161,7 +163,7 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 **Decide first:** queue storage layout and replay order; what counts as "same attribute" for the dialog.
 **Risks:** highest-risk part of the editor (design 6.7); needs its own unit and Playwright tests (offline, reconnect, forced conflict). Strong model.
 
-### 5. Media upload, quota and strict file checks (planned; [detailed plan](2026-11-16-media-upload/README.md))
+### 5. Media upload, quota and strict file checks (done; [detailed plan](2026-11-16-media-upload/README.md))
 **Goal:** upload WAV, MP3, MOV, MP4, JPEG, PNG with magic-byte checks, generated file names, `nosniff` headers, the per-user quota (`user_limits` override, else `system_storage` default) and per-file limits from `system_storage`.
 **Fixed already:** `system_storage` and `user_limits` tables exist from Plan 2; trashed media counts toward quota until purged; snapshots reference media and never count.
 **Decide first:** where the byte check runs (hook on upload request) and how a refused upload reports which limit it hit.
@@ -176,7 +178,7 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 **Decide first:** backup destination and default schedule; the SMTP setup guide (Gmail app password).
 **Risks:** Funnel bandwidth for video and large media uploads (fallback: Cloudflare Tunnel).
 
-### 7. Trash, share links, comments, presence, JSON import and export (planned; [detailed plan](2026-11-20-sharing/README.md))
+### 7. Trash, share links, comments, presence, JSON import and export (done; [detailed plan](2026-11-20-sharing/README.md))
 **Carried in from Plan 3:** live creates of teams and projects (see [Carried over from Plan 3](#carried-over-from-plan-3)).
 **Goal:** the second build step in design section 11: trash and restore (30 days, scheduled purge), share links (view, comment, edit; live, snapshot; revocable), comments, presence with heartbeat, project JSON import and export.
 **Fixed already:** "revoke all share links" is an incident control (security.md section 9) added to the Plan 2 runbook when `share_links` exists; view links work without an account and include media; comment and edit links need sign-in and the verified flag; JSON import is untrusted input, validated by schema with size limits (a `zod` dependency needs a decision record first).

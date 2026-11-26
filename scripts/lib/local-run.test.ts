@@ -2,8 +2,17 @@
 // picked, when a checkpoint is refused for the local model, and what the prompt and the printed block say.
 import { describe, expect, test } from 'vitest'
 import {
-  buildPrompt, checkpointTier, defaultSandboxName, listCheckpoints, localRunProblems, parseArgs, readLocalBlock,
-  readyBlock, selectCheckpoint, selectTaskFile, shellQuote,
+  buildPrompt,
+  checkpointTier,
+  defaultSandboxName,
+  listCheckpoints,
+  localRunProblems,
+  parseArgs,
+  readLocalBlock,
+  readyBlock,
+  selectCheckpoint,
+  selectTaskFile,
+  shellQuote,
 } from './local-run.ts'
 
 const BLOCK = [
@@ -15,10 +24,21 @@ const BLOCK = [
   '**Checkpoint given:** Checkpoint 1A only',
 ].join('\n')
 const PLAN = [
-  '## Test plan', '### Cases', '| ID | Behaviour | Layer | Input | Expected | Test |', '|---|---|---|---|---|---|',
-  '| C1 | b | unit | `a()` | `1` | scripts/a.test.ts :: b |', '### Probes', '**Probe folder:** `tests/probes/p/1/`',
-  '### Breaks', '| ID | File | Find | Replace | Tests |', '|---|---|---|---|---|', '| B1 | scripts/a.ts | `a < b` | `a <= b` | scripts/a.test.ts |',
-  '### Flow', 'none', '### Evidence', 'the output',
+  '## Test plan',
+  '### Cases',
+  '| ID | Behaviour | Layer | Input | Expected | Test |',
+  '|---|---|---|---|---|---|',
+  '| C1 | b | unit | `a()` | `1` | scripts/a.test.ts :: b |',
+  '### Probes',
+  '**Probe folder:** `tests/probes/p/1/`',
+  '### Breaks',
+  '| ID | File | Find | Replace | Tests |',
+  '|---|---|---|---|---|',
+  '| B1 | scripts/a.ts | `a < b` | `a <= b` | scripts/a.test.ts |',
+  '### Flow',
+  'none',
+  '### Evidence',
+  'the output',
 ].join('\n')
 const task = (tier: string, extra = '', block = BLOCK): string =>
   `# Task 1\n**Model tier:** ${tier}\n${extra}**Interfaces:** none\n${block}\n## Checkpoint 1A: first\n- [ ] step\n${PLAN}\n`
@@ -26,20 +46,39 @@ const task = (tier: string, extra = '', block = BLOCK): string =>
 describe('parseArgs', () => {
   // Protects: a plain call is read into plan folder, task number, no checkpoint, the default server.
   test('two positionals and defaults', () => {
-    expect(parseArgs(['docs/p', '3'], '/w')).toEqual({ planDir: 'docs/p', task: 3, checkpoint: null, modelUrl: 'http://localhost:9092', out: null, noPing: false, cwd: '/w' })
+    expect(parseArgs(['docs/p', '3'], '/w')).toEqual({
+      planDir: 'docs/p',
+      task: 3,
+      checkpoint: null,
+      modelUrl: 'http://localhost:9092',
+      out: null,
+      noPing: false,
+      cwd: '/w',
+    })
   })
 
   // Protects: every option and the optional checkpoint are read.
   test('a checkpoint and all options', () => {
-    expect(parseArgs(['p', '12', '12B', '--out', 'o', '--no-ping', '--model-url', 'http://h:1', '--cwd', 'c'], '/w'))
-      .toMatchObject({ task: 12, checkpoint: '12B', out: 'o', noPing: true, modelUrl: 'http://h:1', cwd: 'c' })
+    expect(
+      parseArgs(['p', '12', '12B', '--out', 'o', '--no-ping', '--model-url', 'http://h:1', '--cwd', 'c'], '/w'),
+    ).toMatchObject({ task: 12, checkpoint: '12B', out: 'o', noPing: true, modelUrl: 'http://h:1', cwd: 'c' })
   })
 
   // Protects: bad arguments are errors, not guesses: wrong count, a non-number task, an unknown option, a missing value, a duplicate.
   test.each([
-    [[]], [['p']], [['p', '1', 'A', 'B']], [['p', 'x']], [['p', '0']], [['p', '1.5']], [['p', '1', '../x']],
-    [['p', '1', '--bogus']], [['p', '1', '--out']], [['p', '1', '--out', '--no-ping']], [['p', '1', '--no-ping', '--no-ping']],
-    [['p', '1', '--out', 'a', '--out', 'b']], [['p', '1', '--model-url', 'ftp://h']],
+    [[]],
+    [['p']],
+    [['p', '1', 'A', 'B']],
+    [['p', 'x']],
+    [['p', '0']],
+    [['p', '1.5']],
+    [['p', '1', '../x']],
+    [['p', '1', '--bogus']],
+    [['p', '1', '--out']],
+    [['p', '1', '--out', '--no-ping']],
+    [['p', '1', '--no-ping', '--no-ping']],
+    [['p', '1', '--out', 'a', '--out', 'b']],
+    [['p', '1', '--model-url', 'ftp://h']],
   ])('%j is an error', (argv) => {
     expect(parseArgs(argv)).toHaveProperty('error')
   })
@@ -72,14 +111,17 @@ describe('selectTaskFile', () => {
 
   // Protects: two matches are an error that names both, never the first one.
   test('several matches name them', () => {
-    expect(selectTaskFile(['task-1-b.md', 'task-1-a.md'], 1)).toEqual({ error: expect.stringContaining('task-1-a.md, task-1-b.md') })
+    expect(selectTaskFile(['task-1-b.md', 'task-1-a.md'], 1)).toEqual({
+      error: expect.stringContaining('task-1-a.md, task-1-b.md'),
+    })
   })
 })
 
 describe('checkpoints', () => {
   // Protects: checkpoint ids are read from headings, not from examples in code fences or comments.
   test('listCheckpoints skips fences and comments', () => {
-    const text = '## Checkpoint 1A: x\n```\n## Checkpoint 9Z: example\n```\n<!-- ## Checkpoint 8Y: note -->\n## Checkpoint 1B: y\n'
+    const text =
+      '## Checkpoint 1A: x\n```\n## Checkpoint 9Z: example\n```\n<!-- ## Checkpoint 8Y: note -->\n## Checkpoint 1B: y\n'
     expect(listCheckpoints(text)).toEqual(['1A', '1B'])
   })
 
@@ -106,7 +148,9 @@ describe('readLocalBlock and localRunProblems', () => {
   // Protects: the May touch and Must not change values are copied without their labels.
   test('reads the parts', () => {
     expect(readLocalBlock(task('local'))).toEqual({
-      mayTouch: '`scripts/a.ts`, `scripts/a.test.ts` (exhaustive)', mustNotChange: 'the signature of `a`', checkpointGiven: 'Checkpoint 1A only',
+      mayTouch: '`scripts/a.ts`, `scripts/a.test.ts` (exhaustive)',
+      mustNotChange: 'the signature of `a`',
+      checkpointGiven: 'Checkpoint 1A only',
     })
     expect(readLocalBlock(task('mid', '', ''))).toBeNull()
   })
@@ -123,7 +167,9 @@ describe('readLocalBlock and localRunProblems', () => {
 
   // Protects: a checkpoint can be strong inside a local task, and is refused on its own.
   test('a strong checkpoint of a local task is refused', () => {
-    expect(localRunProblems('t.md', task('local', '**Checkpoint 1A tier:** strong\n'), '1A')[0]).toContain('not for the local model')
+    expect(localRunProblems('t.md', task('local', '**Checkpoint 1A tier:** strong\n'), '1A')[0]).toContain(
+      'not for the local model',
+    )
   })
 
   // Protects: every missing part of the block is listed, not only the first.
@@ -140,7 +186,14 @@ describe('readLocalBlock and localRunProblems', () => {
 })
 
 describe('prompt and printed block', () => {
-  const input = { sandbox: '/tmp/s x', checkpoint: '1A', taskFile: 'docs/p/task-1-a.md', mayTouch: 'M', mustNotChange: 'N', baseSha: 'abc123' }
+  const input = {
+    sandbox: '/tmp/s x',
+    checkpoint: '1A',
+    taskFile: 'docs/p/task-1-a.md',
+    mayTouch: 'M',
+    mustNotChange: 'N',
+    baseSha: 'abc123',
+  }
 
   // Protects: the prompt starts with the skill line, carries the values and the exact check command, and never names a probe folder.
   test('buildPrompt', () => {
@@ -158,7 +211,9 @@ describe('prompt and printed block', () => {
   test('a task path with a space is quoted', () => {
     const spaced = { ...input, taskFile: 'docs/my plan/task-1-a.md' }
     expect(buildPrompt(spaced)).toContain("--task 'docs/my plan/task-1-a.md' --base abc123")
-    expect(readyBlock('/s', '/s-run', 'abc123', spaced.taskFile).join('\n')).toContain("--task 'docs/my plan/task-1-a.md' --base")
+    expect(readyBlock('/s', '/s-run', 'abc123', spaced.taskFile).join('\n')).toContain(
+      "--task 'docs/my plan/task-1-a.md' --base",
+    )
   })
 
   // Protects: paths with spaces or quotes survive being pasted into a shell.
@@ -178,7 +233,9 @@ describe('prompt and printed block', () => {
   // Protects: the final block names the sandbox, the sha, the prompt file and the start command, and both cleanup directories.
   test('readyBlock', () => {
     const text = readyBlock('/tmp/s x', '/tmp/s x-run', 'abc123', 'docs/p/task-1-a.md').join('\n')
-    expect(text).toContain("cd '/tmp/s x' && little-coder -p --session-dir '/tmp/s x-run/session' --skill .pi/skills/local-task \"$(cat '/tmp/s x-run/PROMPT.md')\"")
+    expect(text).toContain(
+      "cd '/tmp/s x' && little-coder -p --session-dir '/tmp/s x-run/session' --skill .pi/skills/local-task \"$(cat '/tmp/s x-run/PROMPT.md')\"",
+    )
     expect(text).toContain('baseline sha: abc123')
     expect(text).toContain('npm run check:task -- --task docs/p/task-1-a.md --base abc123')
     expect(text).toContain("rm -rf '/tmp/s x' '/tmp/s x-run'")

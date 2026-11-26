@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-// A request to select a node and centre the canvas on it (search and cross-chapter tags, plan Task 13). The
+// A request to select a node and centre the canvas on it (search and cross-chapter tags). The
 // nonce makes a second request for the same node a new request. The canvas of the node's
 // chapter takes the request once its nodes are measured, then clears it.
 

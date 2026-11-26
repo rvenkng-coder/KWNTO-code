@@ -6,7 +6,7 @@ import { makeLink, projectIdOf, seedStory } from './helpers/share'
 const TITLE = '<img src=x onerror="window.__xss=1">'
 const TEXT = '<script>window.__xss=1</script><b>bold</b>'
 
-// Protects security.md 5 (XSS) and Review Focus 5 for the read-only viewer: a node title, a script line,
+// Protects security.md 5 (XSS) for the read-only viewer: a node title, a script line,
 // a character name and a choice label with HTML show as typed text on a share link's page; no script
 // runs and no element is made from them.
 test('titles, lines and choices with HTML show as text in the read-only viewer', async ({ page, browser }) => {
@@ -34,7 +34,11 @@ test('titles, lines and choices with HTML show as text in the read-only viewer',
   const panel = guest.getByTestId('readonly-panel')
   await expect(panel).toContainText(TITLE)
   await expect(panel).toContainText(TEXT)
-  await expect(guest.locator('[data-testid="readonly-panel"] b, [data-testid="readonly-panel"] script, [data-testid="readonly-panel"] img[src="x"]')).toHaveCount(0)
+  await expect(
+    guest.locator(
+      '[data-testid="readonly-panel"] b, [data-testid="readonly-panel"] script, [data-testid="readonly-panel"] img[src="x"]',
+    ),
+  ).toHaveCount(0)
   await expect(guest.locator('img[src="x"]')).toHaveCount(0)
   expect(await guest.evaluate(() => (window as unknown as { __xss?: number }).__xss)).toBeUndefined()
 })

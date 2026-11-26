@@ -8,7 +8,7 @@ onRecordAfterCreateSuccess((e) => {
   const { ensureUserRecords } = require(`${__hooks}/lib/user-records.js`)
 
   // The account is already saved at this point. A failure here must not turn a
-  // successful sign-up into an error; the rows are repaired at the next sign-in (Task 4).
+  // successful sign-up into an error; the rows are repaired at the next sign-in (users-signin.pb.js).
   try {
     ensureUserRecords(e.app, e.record.id)
   } catch (error) {

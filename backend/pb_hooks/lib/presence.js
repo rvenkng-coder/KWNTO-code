@@ -1,4 +1,4 @@
-// The presence clean-up cut-off (design 5, plan 7 D14). CommonJS so hooks can load it with
+// The presence clean-up cut-off (design 5). CommonJS so hooks can load it with
 // require(`${__hooks}/lib/presence.js`) and Vitest can load it too.
 
 // The moment twice `timeoutSeconds` before `nowMs`, as PocketBase datetime text

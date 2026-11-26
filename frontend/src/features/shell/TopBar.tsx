@@ -10,7 +10,9 @@ export function TopBar({ project }: { project?: ReactNode }) {
   return (
     <header className="flex flex-wrap items-center gap-3 border-b border-border bg-panel px-4 py-2">
       {!project && <h1 className="text-lg font-semibold">KWNTO</h1>}
-      <div data-slot="project" className="flex flex-1 flex-wrap items-center gap-3">{project}</div>
+      <div data-slot="project" className="flex flex-1 flex-wrap items-center gap-3">
+        {project}
+      </div>
       <SyncStatus />
       <ThemeToggle />
       {user && <UserMenu name={user.name} onSignOut={signOut} />}

@@ -17,4 +17,5 @@ See [docs/developer/getting-started.md](docs/developer/getting-started.md) for s
 - [Testing guide](docs/developer/testing.md)
 - [Deploying](docs/admin/deployment.md)
 - [How it fits together](docs/developer/architecture.md), [maintaining it by hand](docs/developer/maintaining.md) and [the development workflow](docs/developer/workflow.md)
-- [Agent quick reference](AGENTS.md)
+- [All documentation](docs/README.md)
+- [Rules and layout, for people and agents](AGENTS.md)

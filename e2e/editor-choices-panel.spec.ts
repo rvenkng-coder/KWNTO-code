@@ -1,7 +1,6 @@
-// Protects: the Choices section and link mode (editor cards plan, Task 3; design goal 1): a
-// choice is written first and linked later, Unlink empties it and removes its line, link mode
-// is cancelled by Escape or the canvas, a node with only empty choices is an End, a deleted
-// choice returns in its place, and a second choice to one target is refused.
+// Protects: the Choices section and link mode (editor cards design, goal 1): a choice is written first and linked
+// later, Unlink empties it and removes its line, link mode is cancelled by Escape or the canvas, a node with only empty
+// choices is an End, a deleted choice returns in its place, and a second choice to one target is refused.
 import { expect, test, type Page } from '@playwright/test'
 import { addNodeAt, card, connectNodes, ownerWithProject, readyCanvas, waitForSave } from './helpers/editor'
 
@@ -101,8 +100,8 @@ test('a node with only empty choices is marked End', async ({ page }) => {
   await expect(card(page, a).getByTestId('node-badge').filter({ hasText: 'End' })).toHaveCount(1)
 })
 
-// Protects: D5: a deleted choice comes back with undo, in its place in this browser (the server gives it a new
-// `created`, so after a reload it joins the end; see the ledger ruling).
+// Protects: a deleted choice comes back with undo, in its place in this browser. The server sets `created` itself, so
+// after a reload the choice joins the end.
 test('a deleted choice comes back in its place with undo', async ({ page }) => {
   const { a } = await twoNodes(page)
   for (const text of ['One', 'Two', 'Three']) await addChoice(page, text)
@@ -114,10 +113,11 @@ test('a deleted choice comes back in its place with undo', async ({ page }) => {
   await page.keyboard.press(`${mod}+z`)
   await restored
   await expect(rows(page, a)).toHaveText(['One', 'Two', 'Three'])
-  for (const [i, text] of ['One', 'Two', 'Three'].entries()) await expect(choices(page).nth(i).getByLabel('Choice text')).toHaveValue(text)
+  for (const [i, text] of ['One', 'Two', 'Three'].entries())
+    await expect(choices(page).nth(i).getByLabel('Choice text')).toHaveValue(text)
 })
 
-// Protects: design goal 1 and plan Review Focus 4: link mode refuses a target the node already has a choice to.
+// Protects: editor cards design, goal 1: link mode refuses a target the node already has a choice to.
 test('linking to a node that already has the choice shows the message', async ({ page }) => {
   const { a, b } = await twoNodes(page)
   await connectNodes(page, a, b)

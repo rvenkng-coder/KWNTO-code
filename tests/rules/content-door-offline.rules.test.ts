@@ -1,4 +1,4 @@
-// Protects the door's offline-sync additions (offline sync plan Task 2) against a live PocketBase:
+// Protects what the door offers to offline sync, against a live PocketBase:
 // `get` reads one record or null; an update with `shouldRetry` stops on a real conflict and still
 // merges a change to another field; creating an id that exists is refused on the id field.
 import { expect, test } from 'vitest'
@@ -24,7 +24,19 @@ async function setup() {
   const chapter = (await b.content.load(project.id)).chapters[0]
   if (!chapter) throw new Error('the project has no chapter')
   const node = await b.content.create('nodes', {
-    id: clientId(), projectId: project.id, chapterId: chapter.id, title: 'base title', color: 'slate', x: 0, y: 0, deleted: false, version: 0,
+    id: clientId(),
+    projectId: project.id,
+    chapterId: chapter.id,
+    title: 'base title',
+    color: 'slate',
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    coverMediaId: '',
+    deleted: false,
+    deletedAt: null,
+    version: 0,
   })
   return { a, b, out, project, chapterId: chapter.id, node }
 }
@@ -32,7 +44,11 @@ async function setup() {
 // Protects: the sync engine can check whether a record still exists; an outsider sees the same as a missing id.
 test('get returns a record or null', async () => {
   const { a, out, project, node } = await setup()
-  expect(await a.content.get('nodes', node.id)).toMatchObject({ id: node.id, title: 'base title', projectId: project.id })
+  expect(await a.content.get('nodes', node.id)).toMatchObject({
+    id: node.id,
+    title: 'base title',
+    projectId: project.id,
+  })
   expect(await a.content.get('nodes', clientId())).toBeNull()
   expect(await out.content.get('nodes', node.id)).toBeNull()
 })
@@ -41,9 +57,11 @@ test('get returns a record or null', async () => {
 test('an offline edit that meets a change to the same field is stopped', async () => {
   const { a, b, node } = await setup()
   await b.content.update('nodes', node.id, { title: 'theirs' }, node.version)
-  const error = await a.content.update('nodes', node.id, { title: 'mine' }, node.version, {
-    shouldRetry: (cur) => cur.title === 'base title',
-  }).catch((e: unknown) => e)
+  const error = await a.content
+    .update('nodes', node.id, { title: 'mine' }, node.version, {
+      shouldRetry: (cur) => cur.title === 'base title',
+    })
+    .catch((e: unknown) => e)
   expect(error).toBeInstanceOf(EditConflict)
   expect((error as EditConflict<{ title: string }>).server.title).toBe('theirs')
   expect((await readAsAdmin('nodes', node.id)).title).toBe('theirs')
@@ -65,7 +83,15 @@ test('an offline edit of another field is merged without a conflict', async () =
 // Protects: the engine's "lost answer" rule: sending a create again is told apart by the id field.
 test('creating an id that exists is refused on the id field', async () => {
   const { b, project, node } = await setup()
-  const line = { id: clientId(), projectId: project.id, nodeId: node.id, character: '', text: 'x', sortOrder: 1, version: 0 }
+  const line = {
+    id: clientId(),
+    projectId: project.id,
+    nodeId: node.id,
+    character: '',
+    text: 'x',
+    sortOrder: 1,
+    version: 0,
+  }
   await b.content.create('script_lines', line)
   const error = await b.content.create('script_lines', line).catch((e: unknown) => e)
   expect(error).toMatchObject({ kind: 'invalid' })

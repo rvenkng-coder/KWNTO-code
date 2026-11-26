@@ -4,7 +4,7 @@ import type { OutboxStorage } from './outboxStorage'
 import type { PendingConflict, SyncDeps } from './syncEngine'
 
 // Two helpers of the sync engine (kept out of syncEngine.ts for its size): writing one new entry, and what the tab
-// that sends tells the tabs that do not (offline sync plan, whole-branch review I4).
+// that sends tells the tabs that do not.
 
 /**
  * Plans and writes one new entry, in the tab that sends. It is planned on the cached `queue` and written without a
@@ -12,7 +12,12 @@ import type { PendingConflict, SyncDeps } from './syncEngine'
  * goes. The new entry is written before the cancelled ones are removed, so a stop in between loses nothing.
  * `dropped` are the seqs of waiting edits the new one cancelled.
  */
-export async function writeEntry(storage: OutboxStorage, queue: OutboxEntry[], locked: number | null, entry: NewEntry): Promise<{ seq: number; dropped: number[] }> {
+export async function writeEntry(
+  storage: OutboxStorage,
+  queue: OutboxEntry[],
+  locked: number | null,
+  entry: NewEntry,
+): Promise<{ seq: number; dropped: number[] }> {
   const plan = planAdd(queue, entry, locked)
   let seq = 0
   if (plan.replace !== null) {

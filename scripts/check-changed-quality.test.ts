@@ -6,7 +6,8 @@ import { checkChanged, filesToCheck, formatReport, parseEslintJson, QUALITY_PATH
 import { git, makeRepo, writeIn } from './lib/temp-repo.ts'
 
 const SCRIPT = join(import.meta.dirname, 'check-changed-quality.ts')
-const change = (path: string, status: Change['status'], oldPath?: string): Change => (oldPath === undefined ? { path, status } : { path, status, oldPath })
+const change = (path: string, status: Change['status'], oldPath?: string): Change =>
+  oldPath === undefined ? { path, status } : { path, status, oldPath }
 const LONG = `export function long() {\n${'  doIt()\n'.repeat(60)}}\n`
 const SHORT = 'export const ok = 1\n'
 
@@ -18,19 +19,37 @@ function run(cwd: string, ...args: string[]): { code: number | null; out: string
 describe('filesToCheck', () => {
   // Protects: added, modified and renamed source files all reach the linter.
   test('filesToCheck keeps added, modified and renamed source files', () => {
-    const changes = [change('frontend/src/a.ts', 'added'), change('scripts/b.ts', 'modified'), change('backend/pb_hooks/c.pb.js', 'added'), change('frontend/src/d.tsx', 'renamed', 'frontend/src/old.tsx')]
-    expect(filesToCheck(changes)).toEqual(['frontend/src/a.ts', 'scripts/b.ts', 'backend/pb_hooks/c.pb.js', 'frontend/src/d.tsx'])
+    const changes = [
+      change('frontend/src/a.ts', 'added'),
+      change('scripts/b.ts', 'modified'),
+      change('backend/pb_hooks/c.pb.js', 'added'),
+      change('frontend/src/d.tsx', 'renamed', 'frontend/src/old.tsx'),
+    ]
+    expect(filesToCheck(changes)).toEqual([
+      'frontend/src/a.ts',
+      'scripts/b.ts',
+      'backend/pb_hooks/c.pb.js',
+      'frontend/src/d.tsx',
+    ])
   })
 
   // Protects: nothing is linted that is gone, is a test or is not code.
   test('deleted files and test files and docs are skipped', () => {
-    const changes = [change('frontend/src/a.ts', 'deleted'), change('frontend/src/a.test.ts', 'added'), change('frontend/src/b.spec.tsx', 'modified'), change('docs/x.md', 'added'), change('scripts/c.test.ts', 'modified')]
+    const changes = [
+      change('frontend/src/a.ts', 'deleted'),
+      change('frontend/src/a.test.ts', 'added'),
+      change('frontend/src/b.spec.tsx', 'modified'),
+      change('docs/x.md', 'added'),
+      change('scripts/c.test.ts', 'modified'),
+    ]
     expect(filesToCheck(changes)).toEqual([])
   })
 
   // Protects: a rename is checked where the file lives now, never under the old name.
   test('a renamed file is checked under its new path', () => {
-    expect(filesToCheck([change('frontend/src/new.ts', 'renamed', 'frontend/src/old.ts')])).toEqual(['frontend/src/new.ts'])
+    expect(filesToCheck([change('frontend/src/new.ts', 'renamed', 'frontend/src/old.ts')])).toEqual([
+      'frontend/src/new.ts',
+    ])
   })
 
   // Protects: a rename out of the quality folders, or into them, is judged by the new path only.
@@ -41,7 +60,17 @@ describe('filesToCheck', () => {
 
   // Protects: tests, e2e, vendored code and other languages never get the limits.
   test('files outside QUALITY_PATHS are skipped', () => {
-    for (const path of ['tests/lint/a.ts', 'e2e/a.ts', 'spike/a.ts', 'frontend/src/a.css', 'frontend/src/a.json', 'backend/pb_migrations/a.js', 'backend/pb_hooks/node_modules/x/a.js', 'a.ts', 'srcx/a.ts']) {
+    for (const path of [
+      'tests/lint/a.ts',
+      'e2e/a.ts',
+      'spike/a.ts',
+      'frontend/src/a.css',
+      'frontend/src/a.json',
+      'backend/pb_migrations/a.js',
+      'backend/pb_hooks/node_modules/x/a.js',
+      'a.ts',
+      'srcx/a.ts',
+    ]) {
       expect(QUALITY_PATHS.test(path), path).toBe(false)
     }
   })
@@ -53,7 +82,9 @@ describe('filesToCheck', () => {
 
   // Protects: a path listed twice is linted once.
   test('a path listed twice is returned once', () => {
-    expect(filesToCheck([change('frontend/src/a.ts', 'modified'), change('frontend/src/a.ts', 'added')])).toEqual(['frontend/src/a.ts'])
+    expect(filesToCheck([change('frontend/src/a.ts', 'modified'), change('frontend/src/a.ts', 'added')])).toEqual([
+      'frontend/src/a.ts',
+    ])
   })
 })
 
@@ -70,8 +101,20 @@ describe('parseEslintJson and formatReport', () => {
   // Protects: counts per rule and per file add up to the findings.
   test('the report counts findings per rule and per file', () => {
     const json = JSON.stringify([
-      { filePath: '/r/frontend/src/a.ts', messages: [{ ruleId: 'complexity', line: 1 }, { ruleId: 'max-depth', line: 2 }] },
-      { filePath: '/r/frontend/src/b.ts', messages: [{ ruleId: 'complexity', line: 1 }, { ruleId: null, line: 1 }] },
+      {
+        filePath: '/r/frontend/src/a.ts',
+        messages: [
+          { ruleId: 'complexity', line: 1 },
+          { ruleId: 'max-depth', line: 2 },
+        ],
+      },
+      {
+        filePath: '/r/frontend/src/b.ts',
+        messages: [
+          { ruleId: 'complexity', line: 1 },
+          { ruleId: null, line: 1 },
+        ],
+      },
       { filePath: '/r/frontend/src/c.ts', messages: [] },
     ])
     const report = formatReport(parseEslintJson(json), '/r')

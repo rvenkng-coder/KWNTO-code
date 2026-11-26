@@ -1,0 +1,3 @@
+# Format-only commits, hidden from git blame (see docs/developer/getting-started.md).
+# Every .ts, .tsx and .js file formatted with Prettier 3.10.1 (decision 0006).
+ca82eb7d810bb611121756bcad45730486bf3620

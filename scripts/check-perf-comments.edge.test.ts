@@ -37,9 +37,7 @@ test('comments without PERF: are ignored', () => {
 // Protects: an unrelated // line after a complete note joins that comment, and cannot
 // make it fail.
 test('a complete note followed by an unrelated // line passes', () => {
-  expect(
-    findBadPerfComments('// PERF: What: a.\n// Why: b.\n// Trade-off: c.\n// unrelated'),
-  ).toEqual([])
+  expect(findBadPerfComments('// PERF: What: a.\n// Why: b.\n// Trade-off: c.\n// unrelated')).toEqual([])
 })
 
 // Protects: empty input does not crash or report anything.

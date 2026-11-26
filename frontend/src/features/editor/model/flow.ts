@@ -5,15 +5,35 @@ import type { NodeMarker } from './markers'
 import { byOrder } from './sortOrder'
 import { isLiveNode, liveConnections, liveNodes, type ContentState, type LinkedConnection } from './state'
 
-// What React Flow draws for one chapter (design 6.1, plan decision D9): node cards with a
+// What React Flow draws for one chapter (design 6.1): node cards with a
 // preview of their lines, edges inside the chapter, and tags for links into other chapters.
 
-export interface CrossLink { connectionId: string; targetNodeId: string; targetChapterId: string; text: string }
-export interface CardChoice { id: string; text: string; untitled: boolean; linked: boolean; crossLink: CrossLink | null }
-export interface CardCue { tag: 'Audio' | 'Light' | 'Other'; text: string }
+export interface CrossLink {
+  connectionId: string
+  targetNodeId: string
+  targetChapterId: string
+  text: string
+}
+export interface CardChoice {
+  id: string
+  text: string
+  untitled: boolean
+  linked: boolean
+  crossLink: CrossLink | null
+}
+export interface CardCue {
+  tag: 'Audio' | 'Light' | 'Other'
+  text: string
+}
 export interface NodeCardData extends Record<string, unknown> {
-  title: string; color: NodeColor; preview: string[]; more: number; marker: NodeMarker
-  choices: CardChoice[]; cues: CardCue[]; moreCues: number
+  title: string
+  color: NodeColor
+  preview: string[]
+  more: number
+  marker: NodeMarker
+  choices: CardChoice[]
+  cues: CardCue[]
+  moreCues: number
   /** The node's cover image (a media id), '' for none. */
   coverMediaId: string
 }
@@ -61,7 +81,8 @@ function ends(s: ContentState, c: LinkedConnection): { from: StoryNode; to: Stor
   return from === undefined || to === undefined ? null : { from, to }
 }
 
-const crossLinkText = (s: ContentState, to: StoryNode): string => `→ ${s.chapters[to.chapterId]?.title ?? ''}: ${to.title || 'Untitled'}`
+const crossLinkText = (s: ContentState, to: StoryNode): string =>
+  `→ ${s.chapters[to.chapterId]?.title ?? ''}: ${to.title || 'Untitled'}`
 
 function crossLinksByNode(s: ContentState, chapterId: string): Map<string, CrossLink[]> {
   const byNode = new Map<string, CrossLink[]>()
@@ -85,8 +106,15 @@ export function crossLinksOf(s: ContentState, nodeId: string): CrossLink[] {
 function cardChoice(s: ContentState, c: Connection, chapterId: string): CardChoice | null {
   const target = c.toNodeId === null ? undefined : s.nodes[c.toNodeId]
   if (c.toNodeId !== null && (target === undefined || !isLiveNode(s, target.id))) return null
-  const crossLink = target === undefined || target.chapterId === chapterId ? null
-    : { connectionId: c.id, targetNodeId: target.id, targetChapterId: target.chapterId, text: crossLinkText(s, target) }
+  const crossLink =
+    target === undefined || target.chapterId === chapterId
+      ? null
+      : {
+          connectionId: c.id,
+          targetNodeId: target.id,
+          targetChapterId: target.chapterId,
+          text: crossLinkText(s, target),
+        }
   return { id: c.id, text: c.label || 'Untitled', untitled: c.label === '', linked: c.toNodeId !== null, crossLink }
 }
 
@@ -105,14 +133,25 @@ export function toFlowNodes(s: ContentState, chapterId: string, markers: Map<str
     const own = (lines.get(n.id) ?? []).sort(byOrder)
     const ownCues = (cues.get(n.id) ?? []).sort(byOrder)
     const data: NodeCardData = {
-      title: n.title, color: n.color, preview: own.slice(0, PREVIEW_LINES).map(previewOf),
-      more: Math.max(0, own.length - PREVIEW_LINES), marker: markers.get(n.id) ?? NO_MARKER,
+      title: n.title,
+      color: n.color,
+      preview: own.slice(0, PREVIEW_LINES).map(previewOf),
+      more: Math.max(0, own.length - PREVIEW_LINES),
+      marker: markers.get(n.id) ?? NO_MARKER,
       choices: cardChoices(s, choices.get(n.id) ?? [], chapterId),
       cues: ownCues.slice(0, CUE_LINES).map((q) => ({ tag: CUE_TAG[q.type], text: q.text })),
-      moreCues: Math.max(0, ownCues.length - CUE_LINES), coverMediaId: n.coverMediaId,
+      moreCues: Math.max(0, ownCues.length - CUE_LINES),
+      coverMediaId: n.coverMediaId,
     }
     // A size of 0 is the default: the default width, and a height that follows the content.
-    return { id: n.id, type: 'card', position: { x: n.x, y: n.y }, width: n.width > 0 ? n.width : DEFAULT_CARD_WIDTH, height: n.height > 0 ? n.height : undefined, data }
+    return {
+      id: n.id,
+      type: 'card',
+      position: { x: n.x, y: n.y },
+      width: n.width > 0 ? n.width : DEFAULT_CARD_WIDTH,
+      height: n.height > 0 ? n.height : undefined,
+      data,
+    }
   })
 }
 
@@ -125,5 +164,11 @@ export function toFlowEdges(s: ContentState, chapterId: string): Edge[] {
       const { from, to } = e
       return from.chapterId === chapterId && to.chapterId === chapterId
     })
-    .map((c) => ({ id: c.id, source: c.fromNodeId, target: c.toNodeId, label: c.label, sourceHandle: choiceHandleId(c.id) }))
+    .map((c) => ({
+      id: c.id,
+      source: c.fromNodeId,
+      target: c.toNodeId,
+      label: c.label,
+      sourceHandle: choiceHandleId(c.id),
+    }))
 }

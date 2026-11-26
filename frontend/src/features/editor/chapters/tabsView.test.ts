@@ -25,7 +25,11 @@ test('tab widths stay between the limits', () => {
 
 // Protects: a trashed or closed chapter has no tab; reopening shows it in position order again.
 test('trashed and closed chapters have no tab', () => {
-  const all = [chapter('a', { position: 1 }), chapter('b', { position: 2, deleted: true }), chapter('c', { position: 3 })]
+  const all = [
+    chapter('a', { position: 1 }),
+    chapter('b', { position: 2, deleted: true }),
+    chapter('c', { position: 3 }),
+  ]
   const closed = closeTab(EMPTY_TABS, 'c')
   expect(visibleTabs(all, closed).map((c) => c.id)).toEqual(['a'])
   expect(visibleTabs(all, openTab(closed, 'c')).map((c) => c.id)).toEqual(['a', 'c'])

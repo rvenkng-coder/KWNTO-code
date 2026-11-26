@@ -4,12 +4,10 @@
 // CommonJS so hooks can load it with require(`${__hooks}/lib/team-invites.js`).
 // Uses the PocketBase app and the global Record, so it is checked by the rule tests.
 
-// The users account `typed` (trimmed, case as typed; lib/invite-email.js) names, or
-// null. PocketBase 0.40.6 stores an address as it was typed at sign-up and
-// app.findAuthRecordByEmail compares case-sensitively (it missed an account stored as
-// "Mixed-...@Example.TEST"; findings.md, Task 8), so the lookup ignores case on both
-// sides. Accounts can no longer differ only in case (1794360700 migration), so at most one
-// matches; chooseAccountIndex stays as a safeguard that never picks the first of several. The email is a bound parameter.
+// The users account `typed` (trimmed, case as typed; lib/invite-email.js) names, or null. The lookup ignores
+// case on both sides, so it does not depend on how the address was typed or stored. Accounts cannot differ only
+// in case (the users email index ignores case), so at most one matches; chooseAccountIndex stays as a safeguard
+// that never picks the first of several. The email is a bound parameter.
 function findUserByEmail(app, typed) {
   const { chooseAccountIndex } = require(`${__hooks}/lib/invite-email.js`)
 
@@ -17,7 +15,10 @@ function findUserByEmail(app, typed) {
     return null
   }
   const rows = app.findRecordsByFilter("users", "email:lower = {:email}", "", 2, 0, { email: typed.toLowerCase() })
-  const index = chooseAccountIndex(rows.map((row) => row.getString("email")), typed)
+  const index = chooseAccountIndex(
+    rows.map((row) => row.getString("email")),
+    typed,
+  )
   return index === -1 ? null : rows[index]
 }
 
@@ -30,7 +31,10 @@ function findRecordOrNull(app, collection, id) {
 }
 
 function isMember(app, teamId, userId) {
-  const rows = app.findRecordsByFilter("team_members", "team = {:team} && user = {:user}", "", 1, 0, { team: teamId, user: userId })
+  const rows = app.findRecordsByFilter("team_members", "team = {:team} && user = {:user}", "", 1, 0, {
+    team: teamId,
+    user: userId,
+  })
   return rows.length > 0
 }
 
@@ -65,7 +69,10 @@ function createInvite(app, teamId, inviteeId, inviterId) {
 // The invite with this id if it was sent to this user, else null: someone else's
 // invite and an id that does not exist look the same.
 function findOwnInvite(app, inviteId, userId) {
-  const rows = app.findRecordsByFilter("team_invites", "id = {:id} && invited_user = {:user}", "", 1, 0, { id: inviteId, user: userId })
+  const rows = app.findRecordsByFilter("team_invites", "id = {:id} && invited_user = {:user}", "", 1, 0, {
+    id: inviteId,
+    user: userId,
+  })
   return rows.length > 0 ? rows[0] : null
 }
 
@@ -74,7 +81,7 @@ function findOwnInvite(app, inviteId, userId) {
 // code). Returns false if the invite was already answered. The status change and the
 // member row are one transaction: neither exists without the other, and two accepts
 // sent at once cannot both see "pending". The member row is saved as a normal record,
-// so the team_members hook fills `user_name` (teams.pb.js, D6).
+// so the team_members hook fills `user_name` (teams.pb.js).
 function answerInvite(app, inviteId, status) {
   let answered = false
   app.runInTransaction((txApp) => {

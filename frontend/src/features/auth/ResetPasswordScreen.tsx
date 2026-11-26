@@ -49,14 +49,32 @@ export function ResetPasswordScreen({ token }: { token: string }) {
           <h2>Set a new password</h2>
           <div>
             <label htmlFor="reset-password">New password</label>
-            <input className="field" id="reset-password" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <input
+              className="field"
+              id="reset-password"
+              type="password"
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </div>
           <div>
             <label htmlFor="reset-repeat">Repeat new password</label>
-            <input className="field" id="reset-repeat" type="password" autoComplete="new-password" value={repeat} onChange={(e) => setRepeat(e.target.value)} required />
+            <input
+              className="field"
+              id="reset-repeat"
+              type="password"
+              autoComplete="new-password"
+              value={repeat}
+              onChange={(e) => setRepeat(e.target.value)}
+              required
+            />
           </div>
           {outcome.message !== null && <p role="alert">{outcome.message}</p>}
-          <button type="submit" className="btn-primary" disabled={busy}>Set password</button>
+          <button type="submit" className="btn-primary" disabled={busy}>
+            Set password
+          </button>
         </form>
       )}
       {outcome.kind === 'done' && <p role="status">{RESET_SUCCESS}</p>}

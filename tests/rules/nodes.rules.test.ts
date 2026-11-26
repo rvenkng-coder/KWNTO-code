@@ -1,6 +1,14 @@
 import { expect, test } from 'vitest'
 import { expectNoRows, expectRefused } from './helpers/admin-only.ts'
-import { createLine, createNode, createProject, guardedUpdate, memberProject, readAsAdmin, saveOwnFields } from './helpers/content.ts'
+import {
+  createLine,
+  createNode,
+  createProject,
+  guardedUpdate,
+  memberProject,
+  readAsAdmin,
+  saveOwnFields,
+} from './helpers/content.ts'
 import { asAdmin, asAnonymous, asUser, createTeam, createUser } from './helpers/pb.ts'
 import { addMember, expectCreateRefused } from './helpers/teams.ts'
 
@@ -8,26 +16,32 @@ import { addMember, expectCreateRefused } from './helpers/teams.ts'
 // nodes; saving per attribute, so two people's edits of one node both land) and
 // docs/security.md section 2 (deny by default: outsiders and signed-out callers get
 // nothing, and no record may point into a project the caller does not own a part of).
-// Also plan Review Focus 1 and 2, and design 6.8 (a node is trashed, never deleted by a
-// member; the server's purge removes it with everything that hangs off it).
+// Also design 6.8 (a node is trashed, never deleted by a member; the server's purge removes it with
+// everything that hangs off it).
 
 const TRASHED_AT = '2026-11-14 10:00:00.000Z'
-// The server stamps its own trash time (Plan 7 D11); the browser's value is ignored.
+// The server stamps its own trash time, so a wrong browser clock cannot expire work early; the sent value is ignored.
 const nearNow = (t: unknown) => Math.abs(Date.parse(String(t).replace(' ', 'T')) - Date.now()) < 10_000
 
-// Task 12 (undo) and Plan 4 (offline queue) need the browser to choose the id.
+// The offline queue and undo need the browser to choose a record's id: later edits can point at it before the server
+// has it, and undo can bring a record back under the same id.
 test('a member creates a node with the id the client chose', async () => {
   const { member, projectId, chapterId } = await memberProject()
 
   const id = await createNode(member, projectId, chapterId, { id: 'abcdefghijk0123', color: 'blue' })
 
   expect(id).toBe('abcdefghijk0123')
-  expect(await readAsAdmin('nodes', id)).toMatchObject({ project: projectId, chapter: chapterId, color: 'blue', version: 0 })
+  expect(await readAsAdmin('nodes', id)).toMatchObject({
+    project: projectId,
+    chapter: chapterId,
+    color: 'blue',
+    version: 0,
+  })
 })
 
-// Review Focus 2: a node in project A must not sit in a chapter of project B, whether or
+// Protects project isolation: a node in project A must not sit in a chapter of project B, whether or
 // not the caller can see B.
-test('a node cannot be placed in another project\'s chapter', async () => {
+test("a node cannot be placed in another project's chapter", async () => {
   const { owner, member, teamId, projectId } = await memberProject()
   const otherTeam = await createTeam(owner, 'Other team')
   const both = await createUser()
@@ -37,20 +51,28 @@ test('a node cannot be placed in another project\'s chapter', async () => {
 
   for (const user of [both, member]) {
     await expectCreateRefused(
-      (await asUser(user)).collection('nodes').create({ project: projectId, chapter: foreign.chapterId, color: 'slate' }),
+      (await asUser(user))
+        .collection('nodes')
+        .create({ project: projectId, chapter: foreign.chapterId, color: 'slate' }),
     )
   }
   const admin = await asAdmin()
-  expect(await admin.collection('nodes').getFullList({ filter: admin.filter('chapter = {:c}', { c: foreign.chapterId }) })).toEqual([])
+  expect(
+    await admin.collection('nodes').getFullList({ filter: admin.filter('chapter = {:c}', { c: foreign.chapterId }) }),
+  ).toEqual([])
 })
 
 // Records carry `project`, set on create and never changed; nodes do not move between
-// chapters (plan D9: cut and paste instead).
+// chapters (people cut and paste instead).
 test('a node keeps its project and chapter', async () => {
   const { member, teamId, projectId, chapterId } = await memberProject()
   const nodeId = await createNode(member, projectId, chapterId)
   const other = await createProject(member, teamId, 'Other')
-  const secondChapter = await (await asUser(member)).collection('chapters').create({ project: projectId, title: 'Two', position: 2 })
+  const secondChapter = await (
+    await asUser(member)
+  )
+    .collection('chapters')
+    .create({ project: projectId, title: 'Two', position: 2 })
 
   for (const body of [{ project: other.id }, { chapter: secondChapter.id }]) {
     const reply = await guardedUpdate(member, 'nodes', nodeId, { version: 0, ...body })
@@ -59,8 +81,8 @@ test('a node keeps its project and chapter', async () => {
   expect(await readAsAdmin('nodes', nodeId)).toMatchObject({ project: projectId, chapter: chapterId, version: 0 })
 })
 
-// Review Focus 1: one person renames a node while another drags it; both edits land.
-test('parallel edits of a node\'s title and position both survive', async () => {
+// Protects saving per attribute: one person renames a node while another drags it; both edits land.
+test("parallel edits of a node's title and position both survive", async () => {
   const { owner, member, projectId, chapterId } = await memberProject()
   const nodeId = await createNode(owner, projectId, chapterId)
   const [first, second] = [await asUser(owner), await asUser(member)]
@@ -133,7 +155,7 @@ test('nodes are trashed by members and purged only by the server', async () => {
   expect(await readAsAdmin('nodes', otherId)).toMatchObject({ version: 0 })
 })
 
-// Plan D13: deleting a team still removes its projects once they hold nodes, including
+// Deleting a team still removes its projects once they hold nodes, including
 // the start node (projects.start_node points back at nodes).
 test('deleting a team removes its projects with their nodes', async () => {
   const { owner, teamId, projectId, chapterId } = await memberProject()

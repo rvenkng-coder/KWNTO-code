@@ -38,7 +38,7 @@ describe('media door rules and integration', () => {
     }
   })
 
-  // Protects: the door uploads, lists and serves a file (C4)
+  // Protects: the door uploads, lists and serves a file
   test('the door uploads, lists and serves a file', async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -66,7 +66,7 @@ describe('media door rules and integration', () => {
     expect(bytes).toEqual(PNG_1PX)
   })
 
-  // Protects: a refused upload says which limit it hit (C5)
+  // Protects: a refused upload says which limit it hit
   test('a refused upload says which limit it hit', async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -98,7 +98,7 @@ describe('media door rules and integration', () => {
     expect(caught2?.fields.file).toContain('Not enough storage')
   })
 
-  // Protects: removing hides a file but only the lead's delete frees its space (C6)
+  // Protects: removing hides a file but only the lead's delete frees its space
   test('removing hides a file and only the lead deleting frees its space', async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -126,7 +126,7 @@ describe('media door rules and integration', () => {
     expect((await door.media.storage(projectId)).usedBytes).toBe(0)
   })
 
-  // Protects: teammates see uploads, removals and deletes live and outsiders do not (C7)
+  // Protects: teammates see uploads, removals and deletes live and outsiders do not
   test('teammates see uploads, removals and deletes live and outsiders do not', async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)

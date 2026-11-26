@@ -3,7 +3,7 @@ import { editorStore } from '../store/editorStore'
 import { edits } from '../store/edits'
 import { useSelection } from './useSelection'
 
-// What the Delete key, the panel and the shortcuts do with the selection (design 6.1, D12).
+// What the Delete key, the panel and the shortcuts do with the selection (design 6.1).
 
 export const plural = (n: number, what: string) => (n === 1 ? `1 ${what}` : `${n} ${what}s`)
 
@@ -31,5 +31,8 @@ export async function cutSelection(): Promise<void> {
 
 /** Selects every live node of the chapter. */
 export function selectAll(chapterId: string): void {
-  useSelection.getState().set(liveNodes(editorStore.getState().content, chapterId).map((n) => n.id), null)
+  useSelection.getState().set(
+    liveNodes(editorStore.getState().content, chapterId).map((n) => n.id),
+    null,
+  )
 }

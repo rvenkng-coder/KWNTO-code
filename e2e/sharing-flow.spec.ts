@@ -1,8 +1,7 @@
-// Protects plan 2026-11-20-sharing Task 8 (case C1, the Flow): the whole plan walked once, end to end,
-// in Chromium and Firefox. An owner, a member, an outsider and a visitor without an account share one
-// project: export and import, the four kinds of link, comments, presence, revoking every link, and the
-// trash. Each step uses the screens a person uses; only the seed story (two chapters, a cross-chapter
-// choice, an image) is made through the admin API.
+// Protects the sharing features walked once, end to end, in Chromium and Firefox. An owner, a member, an outsider and a
+// visitor without an account share one project: export and import, the four kinds of link, comments, presence, revoking
+// every link, and the trash. Each step uses the screens a person uses; only the seed story (two chapters, a
+// cross-chapter choice, an image) is made through the admin API.
 import { expect, test, type Page } from '@playwright/test'
 import { adminPB, uniqueEmail } from './helpers/admin'
 import { card, cards, readyCanvas, waitForSave } from './helpers/editor'
@@ -20,8 +19,12 @@ async function seedTwoChapters(projectId: string): Promise<{ gate: string; door:
   const pb = await adminPB()
   const opts = { requestKey: null }
   const chapter = await pb.collection('chapters').create({ project: projectId, title: 'Chapter 2', position: 2 }, opts)
-  const far = await pb.collection('nodes').create({ project: projectId, chapter: chapter.id, title: 'Far', color: 'red', x: 60, y: 80 }, opts)
-  await pb.collection('connections').create({ project: projectId, from_node: gate, to_node: far.id, label: 'Go far' }, opts)
+  const far = await pb
+    .collection('nodes')
+    .create({ project: projectId, chapter: chapter.id, title: 'Far', color: 'red', x: 60, y: 80 }, opts)
+  await pb
+    .collection('connections')
+    .create({ project: projectId, from_node: gate, to_node: far.id, label: 'Go far' }, opts)
   return { gate, door, far: far.id }
 }
 
@@ -33,8 +36,10 @@ async function revokeFirst(page: Page, alreadyRevoked: number): Promise<void> {
   await expect(rows.filter({ hasText: 'Revoked' })).toHaveCount(alreadyRevoked + 1)
 }
 
-// Protects: Task 8 case C2 (the Flow), see the file header; one test so the people and their links carry through every step.
-test('the sharing plan end to end: export, links, comments, presence, revoke and trash', async ({ browser }, testInfo) => {
+// Protects: the walk in the file header; one test so the people and their links carry through every step.
+test('the sharing plan end to end: export, links, comments, presence, revoke and trash', async ({
+  browser,
+}, testInfo) => {
   testInfo.setTimeout(300_000)
   const { a: owner, b: member } = await ownerAndMember(browser, 0)
   const projectId = projectIdOf(owner)
@@ -80,7 +85,14 @@ test('the sharing plan end to end: export, links, comments, presence, revoke and
     await expect(cards(visitor)).toHaveCount(2)
     await card(visitor, gate).click()
     await expect(visitor.getByTestId('readonly-panel')).toContainText('Who goes there?')
-    await expect.poll(() => visitor.getByTestId('share-media').first().evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(1)
+    await expect
+      .poll(() =>
+        visitor
+          .getByTestId('share-media')
+          .first()
+          .evaluate((img: HTMLImageElement) => img.naturalWidth),
+      )
+      .toBe(1)
     await visitor.close()
   }
   const visitorView = await visitorContext.newPage()

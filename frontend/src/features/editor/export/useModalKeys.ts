@@ -23,11 +23,14 @@ function trapTab(e: KeyboardEvent<HTMLElement>, box: HTMLElement): void {
  * the editor's window-level shortcuts behind it (a key pressed in the dialog stops here).
  */
 export function useModalKeys(box: RefObject<HTMLElement | null>, locked: boolean, onClose: () => void) {
-  return useCallback((e: KeyboardEvent<HTMLElement>) => {
-    e.stopPropagation()
-    if (e.key === 'Escape' && !locked) onClose()
-    if (e.key === 'Tab' && box.current !== null) trapTab(e, box.current)
-  }, [box, locked, onClose])
+  return useCallback(
+    (e: KeyboardEvent<HTMLElement>) => {
+      e.stopPropagation()
+      if (e.key === 'Escape' && !locked) onClose()
+      if (e.key === 'Tab' && box.current !== null) trapTab(e, box.current)
+    },
+    [box, locked, onClose],
+  )
 }
 
 /** Keeps focus inside a modal box: focus on the checked radio when it opens, and back in the box whenever something outside takes it. */

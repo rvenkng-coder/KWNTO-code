@@ -1,5 +1,5 @@
 // Keeps the media live subscription open only while the app is online, like the editor's own
-// (editorSession.ts, D6): going offline closes it, coming back opens it again and reloads.
+// (editorSession.ts): going offline closes it, coming back opens it again and reloads.
 // This matters beyond tidiness: the PocketBase SDK drops its event stream only when the last
 // subscription is closed. A media subscription left open would keep the stream in its retry loop,
 // and the editor's reopen after reconnecting would then not wait for the connection.

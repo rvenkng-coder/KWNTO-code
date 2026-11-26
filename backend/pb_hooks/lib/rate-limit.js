@@ -1,5 +1,5 @@
-// The per-user limit on join-code and invite attempts (design 5, docs/security.md
-// section 3; setting `team_attempts_per_hour`, decision D3).
+// The per-user attempt limit: join-code and invite attempts (design 5, docs/security.md
+// section 3; setting `team_attempts_per_hour`) and project imports.
 // CommonJS so hooks can load it with require(`${__hooks}/lib/rate-limit.js`).
 // Pure: the hook chooses which attempts count and passes their times.
 

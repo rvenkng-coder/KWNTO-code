@@ -1,15 +1,20 @@
 import type PocketBase from 'pocketbase'
 import { expect, test } from 'vitest'
-import { createNode, createProject, guardedUpdate, readAsAdmin, saveOwnFields as saveFields } from './helpers/content.ts'
+import {
+  createNode,
+  createProject,
+  guardedUpdate,
+  readAsAdmin,
+  saveOwnFields as saveFields,
+} from './helpers/content.ts'
 import { asUser, createTeam, createUser } from './helpers/pb.ts'
 import { addMember } from './helpers/teams.ts'
 
-// Protects decision 0002 (option 2) and Review Focus 1 of the editor core plan: two
-// people editing different fields of the same record at the same moment both keep their
-// edit. The spike measured plain PocketBase updates losing up to 13 of 20 such edits;
-// the version guard (backend/pb_hooks/content-guard.pb.js) must lose none, and a refused
-// write must change nothing (design 5: saving per attribute; security.md section 2 for
-// the members-only access the guard runs behind).
+// Protects decision 0002 (option 2): two people editing different fields of the same record at the
+// same moment both keep their edit. The spike measured plain PocketBase updates losing up to 13 of
+// 20 such edits; the version guard (backend/pb_hooks/content-guard.pb.js) must lose none, and a
+// refused write must change nothing (design 5: saving per attribute; security.md section 2 for the
+// members-only access the guard runs behind).
 
 const ROUNDS = 20
 const MAX_TRIES = 20
@@ -76,8 +81,8 @@ test('a refused update changes nothing', async () => {
   expect(await readAsAdmin('chapters', chapterId)).toMatchObject({ title: 'Saved first', position: 1, version: 1 })
 })
 
-// Protects decision 0002's open question "more than two simultaneous writers" (editor core
-// plan, Task 14, C1): four members each change a different field of one node at the same
+// Protects decision 0002 with more than two simultaneous writers on one record, which the
+// spike did not measure: four members each change a different field of one node at the same
 // moment, retrying on 409 as the door does (frontend/src/backend/guarded.ts); every round
 // keeps all four values and the version rises by exactly 4 (one write per member).
 test('four people editing one node at once all keep their change', async () => {
@@ -92,7 +97,12 @@ test('four people editing one node at once all keep their change', async () => {
 
   for (let round = 1; round <= 10; round++) {
     const before = Number((await readAsAdmin('nodes', nodeId)).version)
-    const fields = [{ title: `Round ${round}` }, { color: colors[round % colors.length] }, { x: round * 10 }, { y: round * -7 }]
+    const fields = [
+      { title: `Round ${round}` },
+      { color: colors[round % colors.length] },
+      { x: round * 10 },
+      { y: round * -7 },
+    ]
     await Promise.all(fields.map((f, i) => saveFields(writers[i], 'nodes', nodeId, before, f)))
     const after = await readAsAdmin('nodes', nodeId)
     expect(after, `round ${round}`).toMatchObject({ ...Object.assign({}, ...fields), version: before + 4 })

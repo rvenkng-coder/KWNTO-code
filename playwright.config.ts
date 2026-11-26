@@ -39,7 +39,17 @@ export default defineConfig({
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] }, testIgnore: PERF },
     { name: 'firefox', use: { ...devices['Desktop Firefox'] }, testIgnore: PERF },
-    { name: 'perf-chromium', use: { ...devices['Desktop Chrome'], baseURL: PREVIEW }, testMatch: PERF, dependencies: ['chromium', 'firefox'] },
-    { name: 'perf-firefox', use: { ...devices['Desktop Firefox'], baseURL: PREVIEW }, testMatch: PERF, dependencies: ['perf-chromium'] },
+    {
+      name: 'perf-chromium',
+      use: { ...devices['Desktop Chrome'], baseURL: PREVIEW },
+      testMatch: PERF,
+      dependencies: ['chromium', 'firefox'],
+    },
+    {
+      name: 'perf-firefox',
+      use: { ...devices['Desktop Firefox'], baseURL: PREVIEW },
+      testMatch: PERF,
+      dependencies: ['perf-chromium'],
+    },
   ],
 })

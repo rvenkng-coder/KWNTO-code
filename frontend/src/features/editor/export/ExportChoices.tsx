@@ -1,13 +1,23 @@
 import { scopesFor, type ExportFormat, type ExportScope } from './exportPlan'
 
 const FORMATS: Array<{ value: ExportFormat; label: string }> = [
-  { value: 'pdf', label: 'PDF' }, { value: 'docx', label: 'Word' }, { value: 'jpg', label: 'JPG' }, { value: 'png', label: 'PNG' },
+  { value: 'pdf', label: 'PDF' },
+  { value: 'docx', label: 'Word' },
+  { value: 'jpg', label: 'JPG' },
+  { value: 'png', label: 'PNG' },
 ]
 const SCOPES: Array<{ value: ExportScope; label: string }> = [
-  { value: 'chapter', label: 'Current chapter' }, { value: 'project', label: 'Whole project' },
+  { value: 'chapter', label: 'Current chapter' },
+  { value: 'project', label: 'Whole project' },
 ]
 
-interface ChoicesProps { format: ExportFormat; scope: ExportScope; disabled: boolean; onFormat(f: ExportFormat): void; onScope(s: ExportScope): void }
+interface ChoicesProps {
+  format: ExportFormat
+  scope: ExportScope
+  disabled: boolean
+  onFormat(f: ExportFormat): void
+  onScope(s: ExportScope): void
+}
 
 /** The two radio groups of the Export map dialog: the format, and what to export (images allow the current chapter only). */
 export function ExportChoices({ format, scope, disabled, onFormat, onScope }: ChoicesProps) {
@@ -27,7 +37,13 @@ export function ExportChoices({ format, scope, disabled, onFormat, onScope }: Ch
         <legend className="mb-1 font-medium">What to export</legend>
         {SCOPES.map((s) => (
           <label key={s.value} className="flex items-center gap-2">
-            <input type="radio" name="export-scope" checked={scope === s.value} disabled={!allowed.includes(s.value)} onChange={() => onScope(s.value)} />
+            <input
+              type="radio"
+              name="export-scope"
+              checked={scope === s.value}
+              disabled={!allowed.includes(s.value)}
+              onChange={() => onScope(s.value)}
+            />
             {s.label}
           </label>
         ))}

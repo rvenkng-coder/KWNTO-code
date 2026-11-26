@@ -29,7 +29,9 @@ export function uniqueEmail(): string {
 /** True when an account with this email exists (read as the admin). */
 export async function userExists(email: string): Promise<boolean> {
   const pb = await adminPB()
-  const found = await pb.collection('users').getList(1, 1, { filter: pb.filter('email = {:email}', { email: email.toLowerCase() }) })
+  const found = await pb
+    .collection('users')
+    .getList(1, 1, { filter: pb.filter('email = {:email}', { email: email.toLowerCase() }) })
   return found.totalItems > 0
 }
 

@@ -22,7 +22,10 @@ export function makeBackupDir(): string {
 export function backupUp(dir: string): void {
   if (!existsSync('dist/index.html')) execFileSync('npm', ['run', 'build'], { stdio: 'inherit' })
   const env = { ...process.env, KWNTO_BACKUP_DIR: dir }
-  const up = spawnSync('docker', ['compose', ...COMPOSE_FILES, 'up', '-d', '--build', '--wait'], { encoding: 'utf8', env })
+  const up = spawnSync('docker', ['compose', ...COMPOSE_FILES, 'up', '-d', '--build', '--wait'], {
+    encoding: 'utf8',
+    env,
+  })
   if (up.status !== 0) {
     const logs = spawnSync('docker', ['compose', ...COMPOSE_FILES, 'logs', '--no-color'], { encoding: 'utf8', env })
     throw new Error(`backup stack did not start:\n${up.stderr}\n${logs.stdout}${logs.stderr}`)
@@ -37,9 +40,18 @@ export function backupDown(dir: string | undefined): void {
   if (dir !== undefined) rmSync(dir, { recursive: true, force: true })
 }
 
-export interface ScriptResult { status: number | null; stdout: string; stderr: string }
+export interface ScriptResult {
+  status: number | null
+  stdout: string
+  stderr: string
+}
 
-export function runScript(script: string, args: string[], input: string, extraEnv: Record<string, string> = {}): ScriptResult {
+export function runScript(
+  script: string,
+  args: string[],
+  input: string,
+  extraEnv: Record<string, string> = {},
+): ScriptResult {
   const env = { ...process.env, ...extraEnv }
   const res = spawnSync('sh', [script, ...args], { input, encoding: 'utf8', env })
   return { status: res.status, stdout: res.stdout, stderr: res.stderr }

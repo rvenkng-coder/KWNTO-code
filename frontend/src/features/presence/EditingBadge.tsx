@@ -9,7 +9,13 @@ export function EditingBadge({ nodeId, field }: { nodeId: string; field?: string
   const seenAt = usePresenceStore((s) => s.seenAt)
   const now = usePresenceStore((s) => s.now)
   const timeoutMs = usePresenceStore((s) => s.timeoutMs)
-  const label = editingLabel(editorsOf(activeEditors(Object.values(rows), seenAt, now, timeoutMs, user === null ? '' : user.id), nodeId, field))
+  const label = editingLabel(
+    editorsOf(activeEditors(Object.values(rows), seenAt, now, timeoutMs, user === null ? '' : user.id), nodeId, field),
+  )
   if (label === '') return null
-  return <span data-testid="editing-badge" className="text-xs text-accent">{label}</span>
+  return (
+    <span data-testid="editing-badge" className="text-xs text-accent">
+      {label}
+    </span>
+  )
 }

@@ -5,7 +5,8 @@ import { createTeam, enableJoinCode, joinWithCode, openTeam, signUpVerifyAndSign
 
 export const panel = (page: Page) => page.getByTestId('editor-panel')
 export const titleField = (page: Page) => panel(page).getByLabel('Title', { exact: true })
-export const colourButton = (page: Page, colour: string) => panel(page).getByRole('button', { name: `Colour ${colour}` })
+export const colourButton = (page: Page, colour: string) =>
+  panel(page).getByRole('button', { name: `Colour ${colour}` })
 
 // Selects a node and types a new title, leaving the field so the edit is made.
 export async function rename(page: Page, id: string, title: string): Promise<void> {
@@ -13,7 +14,6 @@ export async function rename(page: Page, id: string, title: string): Promise<voi
   await titleField(page).fill(title)
   await titleField(page).blur()
 }
-
 
 /** The owner (page `a`, own context) and a member (page `b`) with the project `Story` open and `count` nodes made by the owner. */
 export async function ownerAndMember(browser: Browser, count: number) {
@@ -39,7 +39,6 @@ export async function ownerAndMember(browser: Browser, count: number) {
   await readyCanvas(b, count)
   return { a, b, ctxA, ids }
 }
-
 
 /** Drags a card by (dx, dy) screen pixels with the mouse and releases it. */
 export async function dragBy(page: Page, id: string, dx: number, dy: number): Promise<void> {

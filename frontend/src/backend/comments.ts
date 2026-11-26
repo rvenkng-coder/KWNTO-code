@@ -6,8 +6,13 @@ import { closesQuietly } from './subscriptions'
 export function toComment(row: Record<string, unknown>): Comment {
   const author = String(row.author ?? '')
   return {
-    id: String(row.id), projectId: String(row.project), nodeId: String(row.node), authorId: author === '' ? null : author,
-    authorName: String(row.author_name ?? ''), body: String(row.body), created: String(row.created),
+    id: String(row.id),
+    projectId: String(row.project),
+    nodeId: String(row.node),
+    authorId: author === '' ? null : author,
+    authorName: String(row.author_name ?? ''),
+    body: String(row.body),
+    created: String(row.created),
   }
 }
 
@@ -25,18 +30,39 @@ export function createComments(pb: PocketBase) {
   return {
     /** Oldest first. */
     list: (projectId: string): Promise<Comment[]> =>
-      wrapped(async () => (await pb.collection('comments').getFullList({ filter: filterOf(projectId), sort: 'created,id' })).map(toComment)),
+      wrapped(async () =>
+        (await pb.collection('comments').getFullList({ filter: filterOf(projectId), sort: 'created,id' })).map(
+          toComment,
+        ),
+      ),
 
     create: (projectId: string, nodeId: string, body: string): Promise<Comment> =>
-      wrapped(async () => toComment(await pb.collection('comments').create({ project: projectId, node: nodeId, author: pb.authStore.record?.id, body }))),
+      wrapped(async () =>
+        toComment(
+          await pb
+            .collection('comments')
+            .create({ project: projectId, node: nodeId, author: pb.authStore.record?.id, body }),
+        ),
+      ),
 
-    remove: (id: string): Promise<void> => wrapped(async () => {
-      await pb.collection('comments').delete(id)
-    }),
+    remove: (id: string): Promise<void> =>
+      wrapped(async () => {
+        await pb.collection('comments').delete(id)
+      }),
 
     subscribe: (projectId: string, onEvent: (e: CommentEvent) => void): Promise<() => Promise<void>> =>
-      wrapped(() => pb.collection('comments').subscribe('*', (e) => {
-        if (e.action === 'create' || e.action === 'delete') onEvent({ action: e.action, record: toComment(e.record) })
-      }, { filter: filterOf(projectId) }).then(closesQuietly)),
+      wrapped(() =>
+        pb
+          .collection('comments')
+          .subscribe(
+            '*',
+            (e) => {
+              if (e.action === 'create' || e.action === 'delete')
+                onEvent({ action: e.action, record: toComment(e.record) })
+            },
+            { filter: filterOf(projectId) },
+          )
+          .then(closesQuietly),
+      ),
   }
 }

@@ -8,7 +8,7 @@ import { freeSpot, newNodeRecord } from './newNode'
 import { useSelection } from './useSelection'
 
 /**
- * Registers the "add node" command while the canvas is shown (decision E4): a node whose top-left
+ * Registers the "add node" command while the canvas is shown: a node whose top-left
  * corner is at the centre of the visible canvas, stepped past nodes already there, then selected.
  */
 export function useAddNode(projectId: string, chapterId: string, canvas: RefObject<HTMLDivElement | null>): void {

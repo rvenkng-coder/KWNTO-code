@@ -7,15 +7,22 @@ import { type Change, changedFiles, repoRoot, resolveBase } from './lib/changed-
 import { isMain } from './lib/is-main.ts'
 
 // Source folders that get the limits; tests (*.test.*, *.spec.*, tests/, e2e/) and dependencies never do.
-export const QUALITY_PATHS = /^(?:frontend\/src|scripts|backend\/pb_hooks)\/(?!.*\.(?:test|spec)\.)(?!(?:.*\/)?node_modules\/).*\.(?:ts|tsx|js)$/
+export const QUALITY_PATHS =
+  /^(?:frontend\/src|scripts|backend\/pb_hooks)\/(?!.*\.(?:test|spec)\.)(?!(?:.*\/)?node_modules\/).*\.(?:ts|tsx|js)$/
 
 // Added, modified and renamed (under the new path) source files. A deleted file has nothing left to check.
 export function filesToCheck(changes: Change[]): string[] {
-  const paths = changes.filter((change) => change.status !== 'deleted' && QUALITY_PATHS.test(change.path)).map((change) => change.path)
+  const paths = changes
+    .filter((change) => change.status !== 'deleted' && QUALITY_PATHS.test(change.path))
+    .map((change) => change.path)
   return [...new Set(paths)]
 }
 
-export interface Finding { file: string; rule: string; line: number }
+export interface Finding {
+  file: string
+  rule: string
+  line: number
+}
 
 // ESLint's `-f json` output. Anything that is not that shape is an error, never an empty report.
 export function parseEslintJson(output: string): Finding[] {
@@ -28,7 +35,8 @@ export function parseEslintJson(output: string): Finding[] {
   if (!Array.isArray(parsed)) throw new Error('ESLint JSON output is not a list')
   const findings: Finding[] = []
   for (const entry of parsed as { filePath?: unknown; messages?: unknown }[]) {
-    if (typeof entry?.filePath !== 'string' || !Array.isArray(entry.messages)) throw new Error('ESLint JSON output has an unexpected shape')
+    if (typeof entry?.filePath !== 'string' || !Array.isArray(entry.messages))
+      throw new Error('ESLint JSON output has an unexpected shape')
     for (const message of entry.messages as { ruleId?: string | null; line?: number }[]) {
       findings.push({ file: entry.filePath, rule: message.ruleId ?? 'parse error', line: message.line ?? 0 })
     }
@@ -62,13 +70,23 @@ function eslintCommand(): { bin: string; config: string } {
 // timeoutMs (optional, from check:task's budget): ESLint is killed when it runs out, and that is an error.
 function runEslint(extra: string[], files: string[], cwd: string, timeoutMs?: number) {
   const { bin, config } = eslintCommand()
-  const result = spawnSync(process.execPath, [bin, '--config', config, '--no-warn-ignored', ...extra, '--', ...files], { cwd, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024, timeout: timeoutMs })
-  if ((result.error as NodeJS.ErrnoException | undefined)?.code === 'ETIMEDOUT') throw new Error(`ESLint did not finish within the time budget (${String(timeoutMs)} ms)`)
+  const result = spawnSync(process.execPath, [bin, '--config', config, '--no-warn-ignored', ...extra, '--', ...files], {
+    cwd,
+    encoding: 'utf8',
+    maxBuffer: 256 * 1024 * 1024,
+    timeout: timeoutMs,
+  })
+  if ((result.error as NodeJS.ErrnoException | undefined)?.code === 'ETIMEDOUT')
+    throw new Error(`ESLint did not finish within the time budget (${String(timeoutMs)} ms)`)
   if (result.error) throw result.error
   return result
 }
 
-export function checkChanged(base: string, startDir: string = process.cwd(), timeoutMs?: number): { code: number; output: string } {
+export function checkChanged(
+  base: string,
+  startDir: string = process.cwd(),
+  timeoutMs?: number,
+): { code: number; output: string } {
   const cwd = repoRoot(startDir)
   const files = filesToCheck(changedFiles(resolveBase(base, cwd), cwd))
   if (files.length === 0) return { code: 0, output: 'check:quality: no changed source files' }
@@ -81,25 +99,32 @@ export function checkChanged(base: string, startDir: string = process.cwd(), tim
 // Every source file of the repository (tracked and untracked, not ignored), so old code is counted too.
 export function qualityReport(startDir: string = process.cwd()): string {
   const cwd = repoRoot(startDir)
-  const listed = spawnSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'], { cwd, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 })
+  const listed = spawnSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'], {
+    cwd,
+    encoding: 'utf8',
+    maxBuffer: 256 * 1024 * 1024,
+  })
   if (listed.status !== 0) throw new Error(`git ls-files failed: ${listed.stderr.trim()}`)
   const files = [...new Set(listed.stdout.split('\0').filter((path) => QUALITY_PATHS.test(path)))]
   if (files.length === 0) return 'quality report: no source files'
   const result = runEslint(['-f', 'json'], files, cwd)
-  if (result.status !== 0 && result.status !== 1) throw new Error(`ESLint failed (exit ${result.status}): ${result.stderr.trim()}`)
+  if (result.status !== 0 && result.status !== 1)
+    throw new Error(`ESLint failed (exit ${result.status}): ${result.stderr.trim()}`)
   return formatReport(parseEslintJson(result.stdout), cwd)
 }
 
 function mergeBaseWithMain(): string {
   const result = spawnSync('git', ['merge-base', 'HEAD', 'main'], { encoding: 'utf8' })
-  if (result.status !== 0) throw new Error(`cannot find the merge base with main (pass --base <sha>): ${result.stderr.trim()}`)
+  if (result.status !== 0)
+    throw new Error(`cannot find the merge base with main (pass --base <sha>): ${result.stderr.trim()}`)
   return result.stdout.trim()
 }
 
 function parseArgs(args: string[]): { mode: 'check' | 'report'; base?: string } | null {
   if (args.length === 0) return { mode: 'check' }
   if (args.length === 1 && args[0] === '--report') return { mode: 'report' }
-  if (args.length === 2 && args[0] === '--base' && args[1] !== '' && !args[1].startsWith('-')) return { mode: 'check', base: args[1] }
+  if (args.length === 2 && args[0] === '--base' && args[1] !== '' && !args[1].startsWith('-'))
+    return { mode: 'check', base: args[1] }
   return null
 }
 

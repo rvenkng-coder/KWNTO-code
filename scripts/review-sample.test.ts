@@ -8,7 +8,9 @@ function input(over: Partial<ReviewInput> = {}): ReviewInput {
 describe('needsReview', () => {
   // Protects the strong-model rule: a strong-built task relies on the plan's own per-task review, even on sensitive paths.
   test('a strong-built task is not sampled', () => {
-    const result = needsReview(input({ builtBy: 'strong', taskNumber: 3, changedFiles: ['backend/pb_hooks/x.js'], escapeRate: 1 }))
+    const result = needsReview(
+      input({ builtBy: 'strong', taskNumber: 3, changedFiles: ['backend/pb_hooks/x.js'], escapeRate: 1 }),
+    )
     expect(result.required).toBe(false)
     expect(result.reason).toBe("built by a strong model; the plan's own per-task review applies")
   })
@@ -22,14 +24,22 @@ describe('needsReview', () => {
 
   // Protects design 6.5: every always-review root is covered, not only hooks.
   test('a local task touching tests/rules/, backend/pb_migrations/, frontend/src/backend/ is always reviewed', () => {
-    for (const file of ['tests/rules/a.rules.test.ts', 'backend/pb_migrations/1_x.js', 'frontend/src/backend/client.ts']) {
+    for (const file of [
+      'tests/rules/a.rules.test.ts',
+      'backend/pb_migrations/1_x.js',
+      'frontend/src/backend/client.ts',
+    ]) {
       expect(needsReview(input({ changedFiles: [file] })).required, file).toBe(true)
     }
   })
 
   // Protects design 6.5: sync, conflict and queue logic is the riskiest code, wherever it lives.
   test('a path containing sync, conflict or queue is sensitive', () => {
-    for (const file of ['frontend/src/features/sync/a.ts', 'frontend/src/features/conflict-merge.ts', 'frontend/src/features/offlinequeue.ts']) {
+    for (const file of [
+      'frontend/src/features/sync/a.ts',
+      'frontend/src/features/conflict-merge.ts',
+      'frontend/src/features/offlinequeue.ts',
+    ]) {
       expect(needsReview(input({ changedFiles: [file] })).required, file).toBe(true)
     }
   })

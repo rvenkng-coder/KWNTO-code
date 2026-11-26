@@ -3,9 +3,9 @@ import { createNode, memberProject, type MemberProject } from './helpers/content
 import { asAdmin, asAnonymous, asUser, createUser, type TestUser } from './helpers/pb.ts'
 import { createLink, joinShare } from './helpers/share.ts'
 
-// Rules of `presence` (design 5; plan 2026-11-20-sharing Task 6, D14): one row per person and
-// project saying which node and field they are editing. Team members and edit-link holders
-// write their own row; nobody writes another person's; old rows are removed by a job.
+// Rules of `presence` (design 5): one row per person and project saying which node and field they
+// are editing. Team members and edit-link holders write their own row; nobody writes another
+// person's; old rows are removed by a job.
 
 async function failure(promise: Promise<unknown>): Promise<number> {
   try {
@@ -18,7 +18,9 @@ async function failure(promise: Promise<unknown>): Promise<number> {
 
 async function mark(user: TestUser | null, ctx: MemberProject, nodeId: string, extra: Record<string, unknown> = {}) {
   const pb = user === null ? asAnonymous() : await asUser(user)
-  return pb.collection('presence').create({ project: ctx.projectId, node: nodeId, user: user?.id ?? '', field: 'title', beat: 0, ...extra })
+  return pb
+    .collection('presence')
+    .create({ project: ctx.projectId, node: nodeId, user: user?.id ?? '', field: 'title', beat: 0, ...extra })
 }
 
 async function holder(ctx: MemberProject, permission: 'comment' | 'edit'): Promise<TestUser> {
@@ -28,7 +30,7 @@ async function holder(ctx: MemberProject, permission: 'comment' | 'edit'): Promi
   return user
 }
 
-// Protects D14: people mark only themselves, in a project they may edit (a team member or
+// Protects presence writes: people mark only themselves, in a project they may edit (a team member or
 // an edit-link holder; a comment-link holder may not); one row per person and project; the
 // name is the server's; nobody changes or removes another person's row.
 test('people mark only themselves as editing, in a project they may edit', async () => {
@@ -68,7 +70,7 @@ test('people mark only themselves as editing, in a project they may edit', async
   await pb.collection('presence').delete(row.id)
 })
 
-// Protects D14: a teammate's row reaches an open subscription with the name, an outsider sees
+// Protects presence reads and the purge: a teammate's row reaches an open subscription with the name, an outsider sees
 // none, and the job removes a row not refreshed for twice the timeout and nothing fresher.
 test('presence is seen by the team and old rows are removed', async () => {
   const ctx = await memberProject()
@@ -89,7 +91,14 @@ test('presence is seen by the team and old rows are removed', async () => {
     await new Promise((resolve) => setTimeout(resolve, 2500))
     const fresh = await mark(ctx.owner, ctx, nodeId)
     await admin.crons.run('purge_presence')
-    await expect.poll(async () => (await admin.collection('presence').getFullList({ filter: admin.filter('id = {:id}', { id: old.id }) })).length, { timeout: 6000 }).toBe(0)
+    await expect
+      .poll(
+        async () =>
+          (await admin.collection('presence').getFullList({ filter: admin.filter('id = {:id}', { id: old.id }) }))
+            .length,
+        { timeout: 6000 },
+      )
+      .toBe(0)
     expect((await admin.collection('presence').getOne(fresh.id)).id).toBe(fresh.id)
   } finally {
     await admin.collection('system_behavior').update(settings.id, { presence_timeout_seconds: timeout })

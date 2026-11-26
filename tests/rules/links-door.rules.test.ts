@@ -37,21 +37,27 @@ describe('links door rules and integration', () => {
     }
   })
 
-  // Protects: a member adds, lists and removes a link through the door (C4)
+  // Protects: a member adds, lists and removes a link through the door
   test('a member adds, lists and removes a link through the door', async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
     const door = await doorFor(owner)
 
     const link = await door.links.add(projectId, nodeId, 'Trailer', 'https://example.com/v')
-    expect(link).toMatchObject({ projectId, nodeId, creatorId: owner.id, title: 'Trailer', url: 'https://example.com/v' })
+    expect(link).toMatchObject({
+      projectId,
+      nodeId,
+      creatorId: owner.id,
+      title: 'Trailer',
+      url: 'https://example.com/v',
+    })
     expect((await door.links.list(projectId)).map((l) => l.id)).toEqual([link.id])
 
     await door.links.remove(link.id)
     expect(await door.links.list(projectId)).toEqual([])
   })
 
-  // Protects: the server's refusal reaches the caller with its message (C5)
+  // Protects: the server's refusal reaches the caller with its message
   test('a refused address reaches the caller with its message', async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -62,7 +68,7 @@ describe('links door rules and integration', () => {
     expect((error as BackendError).fields.url).toBe('Only http:// and https:// addresses are allowed.')
   })
 
-  // Protects: teammates see links live, outsiders do not, and the client check agrees with the server (C6)
+  // Protects: teammates see links live, outsiders do not, and the client check agrees with the server
   test('teammates see links live, outsiders do not, and the client check agrees with the server', async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -84,12 +90,24 @@ describe('links door rules and integration', () => {
     expect(seenOut.events).toEqual([])
 
     const addresses = [
-      'https://example.com/a', 'HTTP://EXAMPLE.COM', 'http://localhost:8090/x', 'https://a.example?x=1#y',
-      'javascript:alert(1)', 'data:text/html,x', 'ftp://a.b', '//evil.example', 'https://a b',
-      'https://google.com@evil.example', 'example.com', 'https://',
+      'https://example.com/a',
+      'HTTP://EXAMPLE.COM',
+      'http://localhost:8090/x',
+      'https://a.example?x=1#y',
+      'javascript:alert(1)',
+      'data:text/html,x',
+      'ftp://a.b',
+      '//evil.example',
+      'https://a b',
+      'https://google.com@evil.example',
+      'example.com',
+      'https://',
     ]
     for (const address of addresses) {
-      const accepted = await doorA.links.add(projectId, nodeId, '', address).then(() => true, () => false)
+      const accepted = await doorA.links.add(projectId, nodeId, '', address).then(
+        () => true,
+        () => false,
+      )
       expect(accepted, address).toBe(checkLinkUrl(address).ok)
     }
   })

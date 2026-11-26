@@ -2,8 +2,7 @@ import type { Chapter } from '../../../backend'
 import { placeAt } from '../model/sortOrder'
 
 export type ChapterMove =
-  | { kind: 'one'; id: string; position: number }
-  | { kind: 'renumber'; positions: { id: string; position: number }[] }
+  { kind: 'one'; id: string; position: number } | { kind: 'renumber'; positions: { id: string; position: number }[] }
 
 /** Moves a chapter one place; `ordered` is the chapters in position order. Null when it cannot move. */
 export function moveChapter(ordered: Chapter[], id: string, direction: 'left' | 'right'): ChapterMove | null {

@@ -78,7 +78,7 @@ test('a project exported and imported again keeps its chapters, lines and links'
   await expect(cards(page).filter({ hasText: 'The Door' })).toHaveCount(1)
 })
 
-// Protects: security.md 5 "Bad imports" (C9): a .json that is not a KWNTO project shows the
+// Protects: security.md 5 "Bad imports": a .json that is not a KWNTO project shows the
 // server's reason in an alert and adds no project.
 test('a file that is not a project is refused with the reason', async ({ page }) => {
   await ownerWithProject(page, 'Story')

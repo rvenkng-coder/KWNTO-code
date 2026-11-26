@@ -8,7 +8,9 @@ import { makeRepo, writeIn } from './temp-repo.ts'
 
 const SCRIPTS = fileURLToPath(new URL('..', import.meta.url))
 const dirs: string[] = []
-afterEach(() => { for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true }) })
+afterEach(() => {
+  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true })
+})
 
 function linked(): string {
   const dir = mkdtempSync(join(tmpdir(), 'script link-'))
@@ -23,7 +25,10 @@ describe('running a script through a symlinked path', () => {
     const { cwd, base } = makeRepo({ 'a.txt': 'x\n' })
     dirs.push(cwd)
     writeIn(cwd, 'b.test.ts', "test('b', () => {})\n")
-    const result = spawnSync(process.execPath, [join(linked(), 'check-test-hygiene.ts'), '--base', base], { cwd, encoding: 'utf8' })
+    const result = spawnSync(process.execPath, [join(linked(), 'check-test-hygiene.ts'), '--base', base], {
+      cwd,
+      encoding: 'utf8',
+    })
     expect(result.status).toBe(1)
     expect(result.stdout).toMatch(/b\.test\.ts: header/)
   })

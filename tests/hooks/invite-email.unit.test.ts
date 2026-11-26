@@ -1,9 +1,9 @@
 import { createRequire } from 'node:module'
 import { describe, expect, test } from 'vitest'
 
-// Protects design 5 (invite by email) and the plan's privacy rule for the security
-// log: the invite route looks accounts up by the email as typed but trimmed and
-// lower-cased, and logs only the part after the "@", never the address itself.
+// Protects design 5 (invite by email) and the privacy of the security log: the invite route looks
+// accounts up by the email as typed but trimmed and lower-cased, and logs only the part after the
+// "@", never the address itself.
 
 const require = createRequire(import.meta.url)
 const { normalisedEmail, emailDomain } = require('../../backend/pb_hooks/lib/invite-email.js') as {
@@ -46,9 +46,9 @@ const { chooseAccountIndex } = require('../../backend/pb_hooks/lib/invite-email.
   chooseAccountIndex: (storedEmails: string[], typed: string) => number
 }
 
-// Review fix (Task 8): accounts may differ only in letter case, so the lookup can match
-// two. The exact address typed wins; one match is used whatever its case; two matches
-// and no exact one is refused (-1), never a guess.
+// Accounts may differ only in letter case, so the lookup can match two. The exact address typed
+// wins; one match is used whatever its case; two matches and no exact one is refused (-1), never a
+// guess.
 describe('chooseAccountIndex', () => {
   test('picks the stored address equal to the one typed, wherever it is', () => {
     expect(chooseAccountIndex(['Dup@Example.test', 'dup@example.test'], 'dup@example.test')).toBe(1)

@@ -18,7 +18,7 @@ function collectTsxFiles(dir: string): string[] {
 
 const featureFiles = collectTsxFiles('frontend/src/features')
 
-// C7: no feature screen uses a link as a button
+// A control that acts on the screen must be a real button for keyboard users, not an empty `href="#"` link.
 test('no feature screen uses a link as a button', () => {
   const violations: string[] = []
   for (const file of featureFiles) {
@@ -30,7 +30,7 @@ test('no feature screen uses a link as a button', () => {
   expect(violations).toEqual([])
 })
 
-// C8: every form error is announced
+// role="alert" makes a screen reader announce a form error when it appears.
 test('every form error is announced', () => {
   const violations: string[] = []
   for (const file of featureFiles) {

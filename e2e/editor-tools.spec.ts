@@ -1,5 +1,5 @@
 // Protects: the tool strip, Cut, Area select, the collapsible left panel and the scrolling panels
-// (editor cards plan, Task 4; design goal 3): every tool shows its shortcut, Cut is one undo step,
+// (editor cards design, goal 3): every tool shows its shortcut, Cut is one undo step,
 // Area select draws a box, the left panel's state survives a reload, and the page never scrolls.
 import { expect, test, type Page } from '@playwright/test'
 import { addNodeAt, card, cards, nodePosition, ownerWithProject, readyCanvas, waitForSave } from './helpers/editor'
@@ -30,7 +30,8 @@ test('each tool shows its shortcut in a tooltip', async ({ page }) => {
   expect(strip.y).toBeLessThan(canvas.y)
 })
 
-// Protects: design goal 3 and D11: Cut copies and trashes as one step, Paste is disabled until something is copied, and undo takes both back.
+// Protects: editor cards design, goal 3: Cut copies and trashes as one step, Paste is disabled until something is
+// copied, and undo takes both back.
 test('cut moves a node to the clipboard and the trash in one undo step', async ({ page }) => {
   await ownerWithProject(page, 'Story')
   await readyCanvas(page, 0)
@@ -57,7 +58,7 @@ test('cut moves a node to the clipboard and the trash in one undo step', async (
   await expect(card(page, a)).toHaveCount(1)
 })
 
-// Protects: design goal 3 and F5: Area select on draws a selection box; off, a drag pans.
+// Protects: editor cards design, goal 3: Area select on draws a selection box; off, a drag pans.
 test('area select draws a box that selects the nodes inside', async ({ page }) => {
   await ownerWithProject(page, 'Story')
   await readyCanvas(page, 0)

@@ -1,7 +1,6 @@
-// Protects design 5, security.md 5 (XSS) and plan 2026-11-20-sharing D8 and D13: team members
-// comment on a node and see each other's comments live, the owner deletes any, titles and
-// comments with HTML show as plain text, and a comment-link holder comments until the link
-// is revoked.
+// Protects design 5 and security.md 5 (XSS): team members comment on a node and see each other's comments live, the
+// owner deletes any, titles and comments with HTML show as plain text, and a comment-link holder comments until the
+// link is revoked.
 import { expect, test, type Page } from '@playwright/test'
 import { uniqueEmail } from './helpers/admin'
 import { addNodeAt, card, cards, ownerWithProject, readyCanvas } from './helpers/editor'
@@ -23,7 +22,9 @@ async function comment(page: Page, text: string): Promise<void> {
 test('a comment appears for the team live and the owner can delete it', async ({ browser }) => {
   const { a, b, ids } = await ownerAndMember(browser, 1)
   const [id] = ids as [string]
-  a.on('dialog', () => { throw new Error('a browser dialog opened') })
+  a.on('dialog', () => {
+    throw new Error('a browser dialog opened')
+  })
   await card(a, id).click()
   await card(b, id).click()
   await comment(b, 'Line 3 needs a pause')
@@ -46,8 +47,8 @@ test('a comment appears for the team live and the owner can delete it', async ({
   await expect(badge(b, id)).toHaveCount(0)
 })
 
-// Protects security.md 5 and Review Focus 5: HTML in a title or a comment is text, before and
-// after a reload: nothing runs and no element is made.
+// Protects security.md 5: HTML in a title or a comment is text, before and after a reload: nothing runs and no element
+// is made.
 test('titles and comments with HTML show as text', async ({ page }) => {
   const title = '<img src=x onerror="window.__xss=1">'
   const text = '<script>window.__xss=1</script><b>bold</b>'
@@ -68,9 +69,8 @@ test('titles and comments with HTML show as text', async ({ page }) => {
   await expect(cards(page)).toHaveCount(1)
 })
 
-// Protects D8 and Review Focus 1: a person with a comment link comments from the viewer and the
-// team sees it; once the link is revoked the next comment is refused with a message and the
-// team never sees it.
+// Protects: a person with a comment link comments from the viewer and the team sees it; once the link is revoked the
+// next comment is refused with a message and the team never sees it.
 test('a comment link holder comments until the link is revoked', async ({ page, browser }) => {
   const { gate } = await (async () => {
     await ownerWithProject(page, 'Story')

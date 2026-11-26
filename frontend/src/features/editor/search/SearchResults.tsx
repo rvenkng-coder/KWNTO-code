@@ -1,6 +1,11 @@
 import type { SearchHit } from '../model/search'
 
-interface Props { testId: string; hits: SearchHit[]; active: number; onChoose(hit: SearchHit): void }
+interface Props {
+  testId: string
+  hits: SearchHit[]
+  active: number
+  onChoose(hit: SearchHit): void
+}
 
 /** Search hits as buttons, `Title · Chapter`; the active one is marked for the arrow keys. */
 export function SearchResults({ testId, hits, active, onChoose }: Props) {

@@ -22,8 +22,13 @@ export function ThemeToggle() {
       }}
     >
       <span aria-hidden="true">☀</span>
-      <span aria-hidden="true" className={`relative inline-block h-5 w-9 rounded-full border border-border ${dark ? 'bg-accent' : 'bg-bg'}`}>
-        <span className={`absolute top-0.5 h-3.5 w-3.5 rounded-full bg-text transition-all ${dark ? 'left-[1.1rem]' : 'left-0.5'}`} />
+      <span
+        aria-hidden="true"
+        className={`relative inline-block h-5 w-9 rounded-full border border-border ${dark ? 'bg-accent' : 'bg-bg'}`}
+      >
+        <span
+          className={`absolute top-0.5 h-3.5 w-3.5 rounded-full bg-text transition-all ${dark ? 'left-[1.1rem]' : 'left-0.5'}`}
+        />
       </span>
       <span aria-hidden="true">☾</span>
     </button>

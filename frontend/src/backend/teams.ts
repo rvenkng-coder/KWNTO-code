@@ -21,7 +21,11 @@ export function createTeams(pb: PocketBase) {
           .collection('team_members')
           .getFullList({ filter: pb.filter('user = {:user}', { user: userId }), expand: 'team', perPage: 100 })
         return members
-          .map((m) => ((m as Record<string, unknown>).expand as Record<string, unknown> | undefined)?.team as Record<string, unknown> | undefined)
+          .map(
+            (m) =>
+              ((m as Record<string, unknown>).expand as Record<string, unknown> | undefined)?.team as
+                Record<string, unknown> | undefined,
+          )
           .filter((team): team is Record<string, unknown> => team !== undefined)
           .map((team) => toTeam(team, userId))
       })
@@ -49,7 +53,7 @@ export function createTeams(pb: PocketBase) {
         const rows = await pb
           .collection('team_members')
           .getFullList({ filter: pb.filter('team = {:team}', { team: teamId }), perPage: 100 })
-        return rows.map(r => toTeamMember(r as Record<string, unknown>))
+        return rows.map((r) => toTeamMember(r as Record<string, unknown>))
       })
     },
 
@@ -93,10 +97,10 @@ export function createTeams(pb: PocketBase) {
 
     async join(code: string): Promise<Team> {
       return wrapped(async () => {
-        const resp = await pb.send<{ team: string; name: string }>(
-          '/api/kwnto/teams/join',
-          { method: 'POST', body: { code } },
-        )
+        const resp = await pb.send<{ team: string; name: string }>('/api/kwnto/teams/join', {
+          method: 'POST',
+          body: { code },
+        })
         const team = await pb.collection('teams').getOne(resp.team)
         return toTeam(team as Record<string, unknown>, pb.authStore.record?.id ?? '')
       })
@@ -113,10 +117,11 @@ export function createTeams(pb: PocketBase) {
 
     async invites(): Promise<Invite[]> {
       return wrapped(async () => {
-        const rows = await pb
-          .collection('team_invites')
-          .getFullList({ filter: pb.filter("invited_user = {:user} && status = 'pending'", { user: pb.authStore.record?.id ?? '' }), perPage: 100 })
-        return rows.map(r => toInvite(r as Record<string, unknown>))
+        const rows = await pb.collection('team_invites').getFullList({
+          filter: pb.filter("invited_user = {:user} && status = 'pending'", { user: pb.authStore.record?.id ?? '' }),
+          perPage: 100,
+        })
+        return rows.map((r) => toInvite(r as Record<string, unknown>))
       })
     },
 

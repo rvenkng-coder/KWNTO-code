@@ -12,12 +12,22 @@ vi.mock('../../../backend/index.ts', () => ({ backend: { links: door } }))
 import { useLinksStore } from './useProjectLinks.ts'
 
 function link(id: string): NodeLink {
-  return { id, projectId: 'A', nodeId: 'n1', creatorId: 'u', title: id, url: `https://${id}.example`, created: '2026-11-21 10:00:00Z' }
+  return {
+    id,
+    projectId: 'A',
+    nodeId: 'n1',
+    creatorId: 'u',
+    title: id,
+    url: `https://${id}.example`,
+    created: '2026-11-21 10:00:00Z',
+  }
 }
 
 function deferred<T>() {
   let resolve!: (v: T) => void
-  const promise = new Promise<T>((r) => { resolve = r })
+  const promise = new Promise<T>((r) => {
+    resolve = r
+  })
   return { promise, resolve }
 }
 
@@ -30,7 +40,7 @@ describe('links store', () => {
   })
 
   // Protects: a bad address is refused in the browser, before any request, and a late answer for an
-  // old project never lands in the new one (C3)
+  // old project never lands in the new one
   test('the store refuses bad addresses and drops late answers', async () => {
     await useLinksStore.getState().open('A')
     const refused = await useLinksStore.getState().add('n1', 't', 'javascript:alert(1)')
@@ -50,7 +60,7 @@ describe('links store', () => {
     expect(useLinksStore.getState().projectId).toBe('B')
   })
 
-  // Protects: a double click or a double Enter adds one link, not two (final review, Important 2)
+  // Protects: a double click or a double Enter adds one link, not two
   test('a second submit while the first is in flight adds nothing', async () => {
     await useLinksStore.getState().open('A')
     const slow = deferred<NodeLink>()

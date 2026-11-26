@@ -19,7 +19,10 @@ function newEmail(): string {
 
 // The PocketBase error of a refused request, or a test failure if it was allowed.
 async function failureOf(request: Promise<unknown>): Promise<Failure> {
-  const error: unknown = await request.then(() => null, (e: unknown) => e)
+  const error: unknown = await request.then(
+    () => null,
+    (e: unknown) => e,
+  )
   expect(error, 'the request was allowed').not.toBeNull()
   const { status, response } = error as { status: number; response: { message: string; data: Failure['data'] } }
   return { status, message: response.message, data: response.data }
@@ -32,9 +35,7 @@ async function setRegistrationOpen(open: boolean): Promise<void> {
 }
 
 async function signupEvents(admin: PocketBase, userId?: string): Promise<number> {
-  const filter = userId
-    ? admin.filter('type = "signup" && user = {:user}', { user: userId })
-    : 'type = "signup"'
+  const filter = userId ? admin.filter('type = "signup" && user = {:user}', { user: userId }) : 'type = "signup"'
   return (await admin.collection('security_events').getList(1, 1, { filter })).totalItems
 }
 
@@ -50,7 +51,7 @@ test('sign-up with a good password succeeds and the account is not verified', as
   expect(stored.verified).toBe(false)
 })
 
-// Protects Review Focus 1: a visitor who sends `verified: true` must not skip the email
+// Protects the email check: a visitor who sends `verified: true` must not skip the email
 // check. Refusing the request and storing `false` are both safe; the stored value is
 // what matters, read as the admin.
 test('a sign-up that sends verified: true does not get a verified account', async () => {
@@ -63,13 +64,11 @@ test('a sign-up that sends verified: true does not get a verified account', asyn
     expect(made.totalItems).toBe(0)
     return
   }
-  expect((await admin.collection('users').getOne(outcome.id)).verified).toBe(false)
+  expect((await admin.collection('users').getOne((outcome as { id: string }).id)).verified).toBe(false)
 })
 
-// Protects docs/security.md section 3 and the router's Global Constraints: emails are
-// private to everyone except the admin. A visitor who signs up with
-// `emailVisibility: true` must still get a private email, or teammates (who will see
-// each other's user records from Task 6) would read it.
+// Protects docs/security.md section 3: emails are private to everyone except the admin. A visitor who signs up with
+// `emailVisibility: true` must still get a private email.
 test('a sign-up that sends emailVisibility: true stores a private email', async () => {
   const { id } = await signUp(newEmail(), GOOD_PASSWORD, { emailVisibility: true })
   expect((await (await asAdmin()).collection('users').getOne(id)).emailVisibility).toBe(false)
@@ -97,16 +96,17 @@ test('sign-up with a short or common password is refused with the rule message',
   expect(common.message).toBe('That password is too common.')
 })
 
-// Protects Review Focus 2: the password rules hold when a signed-in user changes their
+// Protects every password path: the password rules hold when a signed-in user changes their
 // password, not only at sign-up.
 test('a password change must follow the password rules', async () => {
   const user = await createUser()
   const pb = await asUser(user)
-  const change = (password: string) => pb.collection('users').update(user.id, {
-    oldPassword: user.password,
-    password,
-    passwordConfirm: password,
-  })
+  const change = (password: string) =>
+    pb.collection('users').update(user.id, {
+      oldPassword: user.password,
+      password,
+      passwordConfirm: password,
+    })
 
   const short = await failureOf(change('short1'))
   expect(short.status).toBe(400)
@@ -166,8 +166,8 @@ test('sign-up stores the email lower-case and trimmed; a case variant is refused
 })
 
 // The index itself, not only the hook: PocketBase 0.40.6 looks accounts up ignoring
-// case only when the email unique index says COLLATE NOCASE (final review, I2). Without
-// it a password reset typed with a capital sends no mail.
+// case only when the email unique index says COLLATE NOCASE. Without it a password reset typed with
+// a capital sends no mail.
 test('the users email unique index is COLLATE NOCASE', async () => {
   const admin = await asAdmin()
   const users = await admin.collections.getOne('users')
@@ -180,7 +180,9 @@ test('the users email unique index is COLLATE NOCASE', async () => {
 test('an account made by the admin with capitals is stored lower-case, and the email cannot be changed to a case variant', async () => {
   const admin = await asAdmin()
   const email = newEmail()
-  const first = await admin.collection('users').create({ email: email.toUpperCase(), password: GOOD_PASSWORD, passwordConfirm: GOOD_PASSWORD })
+  const first = await admin
+    .collection('users')
+    .create({ email: email.toUpperCase(), password: GOOD_PASSWORD, passwordConfirm: GOOD_PASSWORD })
   expect(first.email).toBe(email)
   const other = await createUser()
   const clash = await failureOf(admin.collection('users').update(other.id, { email: email.toUpperCase() }))

@@ -5,7 +5,13 @@ export type ExportFormat = 'pdf' | 'docx' | 'jpg' | 'png'
 export type ExportScope = 'chapter' | 'project'
 
 /** One chapter's map as an image; width and height are image pixels. `small` when the ratio fell below 0.5. */
-export interface MapImage { chapterTitle: string; dataUrl: string; width: number; height: number; small: boolean }
+export interface MapImage {
+  chapterTitle: string
+  dataUrl: string
+  width: number
+  height: number
+  small: boolean
+}
 
 /** Space kept around the nodes' bounds, in map pixels. */
 export const MAP_PADDING = 40
@@ -20,13 +26,18 @@ const PART_BYTES = 120
 const RESERVED = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i
 const EDGES = /^[\s.]+|[\s.]+$/g
 
-/** Images hold one chapter, so only PDF and Word offer the whole project (D5). */
+/**
+ * Images hold one chapter, so only PDF and Word offer the whole project: browsers block several image downloads at
+ * once, and a zip would need another dependency.
+ */
 export function scopesFor(format: ExportFormat): ExportScope[] {
   return format === 'pdf' || format === 'docx' ? ['chapter', 'project'] : ['chapter']
 }
 
 export function exportChapters(
-  s: ContentState, scope: ExportScope, activeChapterId: string | null,
+  s: ContentState,
+  scope: ExportScope,
+  activeChapterId: string | null,
 ): { ok: true; chapters: Chapter[]; skipped: number } | { ok: false; message: string } {
   const wanted = liveChapters(s).filter((c) => scope === 'project' || c.id === activeChapterId)
   const chapters = wanted.filter((c) => liveNodes(s, c.id).length > 0)
@@ -50,7 +61,9 @@ function cutTo(text: string, limit: number, bytes: number): string {
 
 function cleanPart(text: string, fallback: string): string {
   const spaced = text.replace(/\s+/g, ' ')
-  const printable = Array.from(spaced).filter((ch) => (ch.codePointAt(0) ?? 0) >= 32).join('')
+  const printable = Array.from(spaced)
+    .filter((ch) => (ch.codePointAt(0) ?? 0) >= 32)
+    .join('')
   const cleaned = printable.replace(UNSAFE, '-').replace(EDGES, '')
   const cut = cutTo(cleaned, PART_LIMIT, PART_BYTES).replace(EDGES, '')
   return cut === '' ? fallback : cut
@@ -64,7 +77,10 @@ export function exportFileName(projectName: string, chapterTitle: string | null,
   return `${RESERVED.test(stem) ? '_' : ''}${stem}.${format}`
 }
 
-/** Up to 2, lowered so the longest side is at most 8192 px and the area at most 32,000,000 px (D3). */
+/**
+ * Up to 2, lowered so the longest side is at most 8192 px and the area at most 32,000,000 px: past the browser's
+ * canvas limits an image comes out blank.
+ */
 export function exportPixelRatio(width: number, height: number): number {
   if (width <= 0 || height <= 0) return MAX_RATIO
   return Math.min(MAX_RATIO, MAX_SIDE / Math.max(width, height), Math.sqrt(MAX_AREA / (width * height)))
@@ -76,7 +92,9 @@ export function isSmallText(ratio: number): boolean {
 
 /** The largest size with the same aspect that fits inside the box; may scale up. */
 export function fitInto(
-  width: number, height: number, box: { width: number; height: number },
+  width: number,
+  height: number,
+  box: { width: number; height: number },
 ): { width: number; height: number } {
   const scale = Math.min(box.width / width, box.height / height)
   return { width: width * scale, height: height * scale }

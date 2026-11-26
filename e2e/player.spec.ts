@@ -6,7 +6,8 @@ const NOTE = "This choice isn't linked to a node yet."
 const TITLE = '<img src=x onerror="window.__xss=1">'
 const TEXT = '<script>window.__xss=1</script><b>bold</b>'
 
-// Protects design 6.4 and decision D7: Play is in the title bar, the player is a modal dialog, and closing it returns focus to the button.
+// Protects design 6.4: Play is in the title bar, the player is a modal dialog, and closing it returns focus to the
+// button.
 test('Play opens the player and Escape closes it', async ({ page }) => {
   await playableProject(page)
   await playButton(page).click()
@@ -30,7 +31,7 @@ test('the player starts at the start node', async ({ page }) => {
   await expect(dialog.getByRole('button', { name: 'Back', exact: true })).toBeDisabled()
 })
 
-// Protects Review Focus 3 and design 6.4: lines are screenplay style, a blank line leaves no gap, and cues never reach a player.
+// Protects design 6.4: lines are screenplay style, a blank line leaves no gap, and cues never reach a player.
 test('lines are screenplay style and cues stay out', async ({ page }) => {
   await playableProject(page)
   const dialog = await openPlayer(page)
@@ -43,7 +44,7 @@ test('lines are screenplay style and cues stay out', async ({ page }) => {
   await expect(dialog).not.toContainText('lighting')
 })
 
-// Protects Review Focus 2 and D5: an unlinked choice is shown, does not move, and says why.
+// Protects: an unlinked choice is shown, does not move, and says why.
 test('an empty choice shows a note and stays', async ({ page }) => {
   await playableProject(page)
   const dialog = await openPlayer(page)
@@ -67,7 +68,7 @@ test('choices lead on, the chapter name shows when it changes and the path ends'
   await expect(dialog.getByTestId('player-end')).toHaveText('The End')
 })
 
-// Protects Review Focus 1 and D4: with no node there is no start, and the player says so instead of showing an empty screen.
+// Protects: with no node there is no start, and the player says so instead of showing an empty screen.
 test('a project with no start node says so', async ({ page }) => {
   await ownerWithProject(page, 'Empty')
   await readyCanvas(page, 0)
@@ -78,7 +79,7 @@ test('a project with no start node says so', async ({ page }) => {
   await expect(playerDialog(page)).toBeHidden()
 })
 
-// Protects D6: History lists the path with the choices taken, Back removes one step and Restart starts again.
+// Protects: History lists the path with the choices taken, Back removes one step and Restart starts again.
 test('back, restart and the history follow the path', async ({ page }) => {
   await playableProject(page)
   const dialog = await openPlayer(page)
@@ -96,7 +97,7 @@ test('back, restart and the history follow the path', async ({ page }) => {
   await expect(items).toHaveCount(1)
 })
 
-// Protects Review Focus 5 and security.md 5: HTML in a title, a name, a line and a choice shows as typed text.
+// Protects security.md 5: HTML in a title, a name, a line and a choice shows as typed text.
 test('titles, lines and choices with HTML show as text', async ({ page }) => {
   const story = await playableProject(page)
   await changeRecord('nodes', story.gate, { title: TITLE })
@@ -110,7 +111,7 @@ test('titles, lines and choices with HTML show as text', async ({ page }) => {
   expect(await page.evaluate(() => (window as unknown as { __xss?: number }).__xss)).toBeUndefined()
 })
 
-// Protects D9: each kind of move has its named transition, and reduced motion switches the animation off.
+// Protects: each kind of move has its named transition, and reduced motion switches the animation off.
 test('transitions are named and switch off for reduced motion', async ({ page }) => {
   await playableProject(page)
   const dialog = await openPlayer(page)
@@ -127,13 +128,15 @@ test('transitions are named and switch off for reduced motion', async ({ page })
   await expect(step).toHaveCSS('animation-name', 'none')
 })
 
-// Protects D1 and D3: the player keeps the story it opened with, a later edit shows only after reopening, and playing writes nothing.
+// Protects: the player keeps the story it opened with, a later edit shows only after reopening, and playing writes
+// nothing.
 test('the player keeps its story and writes nothing', async ({ page }) => {
   const story = await playableProject(page)
   const writes: string[] = []
   page.on('request', (r) => {
     // The live connection registers its subscriptions with a POST to /api/realtime; that is not a write of data.
-    if (r.method() !== 'GET' && r.url().includes('/api/') && !r.url().includes('/api/realtime')) writes.push(`${r.method()} ${r.url()}`)
+    if (r.method() !== 'GET' && r.url().includes('/api/') && !r.url().includes('/api/realtime'))
+      writes.push(`${r.method()} ${r.url()}`)
   })
   const dialog = await openPlayer(page)
   await changeRecord('nodes', story.gate, { title: 'Gate 2' })
@@ -147,7 +150,7 @@ test('the player keeps its story and writes nothing', async ({ page }) => {
   await expect(cards(page)).toHaveCount(2)
 })
 
-// Protects design 6.4 and D8: audio comes with its node and is gone when the player moves on.
+// Protects design 6.4: audio comes with its node and is gone when the player moves on.
 test('audio comes with its node and goes when the node does', async ({ page }) => {
   await playableProject(page)
   const dialog = await openPlayer(page)
@@ -160,17 +163,18 @@ test('audio comes with its node and goes when the node does', async ({ page }) =
   await expect(page.locator('audio')).toHaveCount(0)
 })
 
-// Protects D8: a playback failure on a loaded file (Firefox raises a decode error with no audio device) keeps the player.
+// Protects: a playback failure on a loaded file (Firefox raises a decode error with no audio device) keeps the player.
 test('a playback error keeps the audio player and a load error replaces it', async ({ page }) => {
   await playableProject(page)
   const dialog = await openPlayer(page)
   await pick(dialog, 'Open the door', 'Door')
   const audio = dialog.locator('audio')
   await expect.poll(() => audio.evaluate((el: HTMLAudioElement) => el.readyState)).toBeGreaterThan(0)
-  const raise = (code: number) => audio.evaluate((el, value) => {
-    Object.defineProperty(el, 'error', { configurable: true, value: { code: value } })
-    el.dispatchEvent(new Event('error'))
-  }, code)
+  const raise = (code: number) =>
+    audio.evaluate((el, value) => {
+      Object.defineProperty(el, 'error', { configurable: true, value: { code: value } })
+      el.dispatchEvent(new Event('error'))
+    }, code)
   await raise(3)
   await expect(audio).toHaveCount(1)
   await expect(dialog.getByText('Media removed')).toHaveCount(0)
@@ -179,7 +183,7 @@ test('a playback error keeps the audio player and a load error replaces it', asy
   await expect(audio).toHaveCount(0)
 })
 
-// Protects D10: Tab stays in the dialog and no key reaches the editor's shortcuts behind it.
+// Protects: Tab stays in the dialog and no key reaches the editor's shortcuts behind it.
 test('keys in the player do not reach the editor', async ({ page }) => {
   const story = await playableProject(page)
   await card(page, story.door).click()

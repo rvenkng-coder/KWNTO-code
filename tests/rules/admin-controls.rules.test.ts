@@ -65,9 +65,9 @@ afterEach(async () => {
   await updateOnly('system_storage', { max_image_mb: 50 })
 })
 
-// Protects design 7c incident controls and security.md section 9 (Review Focus 4):
-// signing one account out ends that account's existing sessions at once, and only its.
-test('sign-out of one user ends that user\'s sessions and no one else\'s', async () => {
+// Protects design 7c incident controls and security.md section 9: signing one account out ends that
+// account's existing sessions at once, and only its.
+test("sign-out of one user ends that user's sessions and no one else's", async () => {
   const a = await signIn(await createUser())
   const b = await signIn(await createUser())
 
@@ -81,7 +81,7 @@ test('sign-out of one user ends that user\'s sessions and no one else\'s', async
 
 // Protects design 7c incident controls and security.md section 9: signing everyone out
 // ends every user's session, people can sign in again, and the admin stays signed in.
-test('sign-out-all ends every user session but not the admin\'s', async () => {
+test("sign-out-all ends every user session but not the admin's", async () => {
   const a = await signIn(await createUser())
   const b = await signIn(await createUser())
   const adminToken = (await asAdmin()).authStore.token
@@ -97,7 +97,7 @@ test('sign-out-all ends every user session but not the admin\'s', async () => {
   expect(adminRefresh.status).toBe(200)
 })
 
-// Protects design 7c incident controls and security.md section 9 (decision D5): only the
+// Protects design 7c incident controls and security.md section 9: only the
 // admin may end sessions; a signed-out caller, another user and the user themself are
 // refused, and nobody's session ends.
 test('only the admin can call the sign-out routes', async () => {
@@ -114,12 +114,22 @@ test('only the admin can call the sign-out routes', async () => {
   ]
 
   for (const [token, path] of calls) {
-    expect([401, 403], `${token === undefined ? 'anonymous' : 'user'} ${path}`).toContain((await rawSend(token, path, { method: 'POST' })).status)
+    expect([401, 403], `${token === undefined ? 'anonymous' : 'user'} ${path}`).toContain(
+      (await rawSend(token, path, { method: 'POST' })).status,
+    )
   }
   for (const path of [signOutPath(a.user.id), '/api/kwnto/admin/sign-out-all']) {
-    const error: unknown = await signedIn.send(path, { method: 'POST' }).then(() => null, (e: unknown) => e)
+    const error: unknown = await signedIn.send(path, { method: 'POST' }).then(
+      () => null,
+      (e: unknown) => e,
+    )
     expect([401, 403]).toContain((error as { status?: number } | null)?.status)
-    const anonymous: unknown = await asAnonymous().send(path, { method: 'POST' }).then(() => null, (e: unknown) => e)
+    const anonymous: unknown = await asAnonymous()
+      .send(path, { method: 'POST' })
+      .then(
+        () => null,
+        (e: unknown) => e,
+      )
     expect([401, 403]).toContain((anonymous as { status?: number } | null)?.status)
   }
 
@@ -127,8 +137,8 @@ test('only the admin can call the sign-out routes', async () => {
   expect(await sessionWorks(b)).toBe(true)
 })
 
-// Protects design 7c incident controls and security.md section 9 (Review Focus 4):
-// blocking an account ends the sessions it already has, not only the next sign-in.
+// Protects design 7c incident controls and security.md section 9: blocking an account ends the
+// sessions it already has, not only the next sign-in.
 test('blocking a user ends their sessions; unblocking lets them sign in again', async () => {
   const a = await signIn(await createUser())
 
@@ -136,7 +146,10 @@ test('blocking a user ends their sessions; unblocking lets them sign in again', 
 
   expect([401, 403]).toContain(await refreshStatus(a.token))
   expect((await rawSend(a.token, `/api/collections/users/records/${a.user.id}`)).status).not.toBe(200)
-  const refused: unknown = await asUser(a.user).then(() => null, (e: unknown) => e)
+  const refused: unknown = await asUser(a.user).then(
+    () => null,
+    (e: unknown) => e,
+  )
   expect((refused as { status?: number } | null)?.status).toBe(403)
   expect((refused as { response: { message: string } }).response.message).toBe(BLOCKED_MESSAGE)
 
@@ -172,11 +185,18 @@ test('each sign-out and each block writes one admin event', async () => {
   expect(await adminEventCount('block', b.id)).toBe(1)
 })
 
-type SettingsDetail = { action: string; collection: string; record: string; changes: Record<string, { old: unknown; new: unknown }> }
+type SettingsDetail = {
+  action: string
+  collection: string
+  record: string
+  changes: Record<string, { old: unknown; new: unknown }>
+}
 
 async function settingsEvents(collection: string): Promise<SettingsDetail[]> {
   const admin = await asAdmin()
-  const filter = admin.filter("type = 'admin' && detail.action = 'settings' && detail.collection = {:c}", { c: collection })
+  const filter = admin.filter("type = 'admin' && detail.action = 'settings' && detail.collection = {:c}", {
+    c: collection,
+  })
   const rows = await admin.collection('security_events').getFullList({ filter, sort: '-created' })
   return rows.map((row) => row.detail as SettingsDetail)
 }
@@ -189,15 +209,35 @@ test('settings changes write one admin event with the changed fields', async () 
   const limits = await onlyRowOf('user_limits', user.id)
   const status = await onlyRowOf('user_status', user.id)
   const cases: [string, () => Promise<void>, Record<string, { old: unknown; new: unknown }>][] = [
-    ['system_behavior', () => updateOnly('system_behavior', { lockout_minutes: 7 }), { lockout_minutes: { old: 5, new: 7 } }],
-    ['system_access', () => updateOnly('system_access', { lockdown_message: 'Soon back' }), { lockdown_message: { old: '', new: 'Soon back' } }],
-    ['system_storage', () => updateOnly('system_storage', { max_image_mb: 51 }), { max_image_mb: { old: 50, new: 51 } }],
-    ['user_limits', async () => {
-      await (await asAdmin()).collection('user_limits').update(limits.id, { quota_override_bytes: 1000 })
-    }, { quota_override_bytes: { old: 0, new: 1000 } }],
-    ['user_status', async () => {
-      await (await asAdmin()).collection('user_status').update(status.id, { blocked_reason: 'Watch' })
-    }, { blocked_reason: { old: '', new: 'Watch' } }],
+    [
+      'system_behavior',
+      () => updateOnly('system_behavior', { lockout_minutes: 7 }),
+      { lockout_minutes: { old: 5, new: 7 } },
+    ],
+    [
+      'system_access',
+      () => updateOnly('system_access', { lockdown_message: 'Soon back' }),
+      { lockdown_message: { old: '', new: 'Soon back' } },
+    ],
+    [
+      'system_storage',
+      () => updateOnly('system_storage', { max_image_mb: 51 }),
+      { max_image_mb: { old: 50, new: 51 } },
+    ],
+    [
+      'user_limits',
+      async () => {
+        await (await asAdmin()).collection('user_limits').update(limits.id, { quota_override_bytes: 1000 })
+      },
+      { quota_override_bytes: { old: 0, new: 1000 } },
+    ],
+    [
+      'user_status',
+      async () => {
+        await (await asAdmin()).collection('user_status').update(status.id, { blocked_reason: 'Watch' })
+      },
+      { blocked_reason: { old: '', new: 'Watch' } },
+    ],
   ]
 
   for (const [collection, change, expected] of cases) {

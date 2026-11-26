@@ -4,7 +4,10 @@ import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 
 // Where a caller wants the run recorded: the child (so a signal handler can stop it) and its output.
-export interface VitestSink { child: ChildProcess | null; output: string }
+export interface VitestSink {
+  child: ChildProcess | null
+  output: string
+}
 
 export function vitestBin(): string {
   const toolRoot = join(import.meta.dirname, '..', '..')
@@ -20,8 +23,12 @@ export function spawnVitest(cwd: string, args: string[], sink?: VitestSink): Pro
     if (sink) {
       sink.child = child
       sink.output = ''
-      child.stdout.on('data', (chunk: Buffer) => { sink.output += chunk.toString() })
-      child.stderr.on('data', (chunk: Buffer) => { sink.output += chunk.toString() })
+      child.stdout.on('data', (chunk: Buffer) => {
+        sink.output += chunk.toString()
+      })
+      child.stderr.on('data', (chunk: Buffer) => {
+        sink.output += chunk.toString()
+      })
     } else {
       child.stdout.resume()
       child.stderr.resume()

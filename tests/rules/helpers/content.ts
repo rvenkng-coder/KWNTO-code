@@ -3,9 +3,9 @@ import { send, tokenOf, type Reply } from './invites.ts'
 import { asAdmin, asUser, createTeam, createUser, type TestUser } from './pb.ts'
 import { addMember } from './teams.ts'
 
-// Helpers for the content collections (projects, project_settings, chapters and, from
-// Task 6, nodes, script_lines, cues and connections), whose updates go through the
-// version guard (decision 0002; backend/pb_hooks/content-guard.pb.js).
+// Helpers for the content collections (projects, project_settings, chapters, nodes, script_lines,
+// cues and connections), whose updates go through the version guard (decision 0002;
+// backend/pb_hooks/content-guard.pb.js).
 
 // Creates a project through the member's own session (the create rule and the projects
 // hook apply), then finds the settings row and the first chapter the hook made, as the admin.

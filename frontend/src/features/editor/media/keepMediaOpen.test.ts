@@ -6,18 +6,31 @@ function fakePort(initial = true) {
   const listeners = new Set<() => void>()
   const port: OnlinePort = {
     online: () => online,
-    subscribe: (fn) => { listeners.add(fn); return () => { listeners.delete(fn) } },
+    subscribe: (fn) => {
+      listeners.add(fn)
+      return () => {
+        listeners.delete(fn)
+      }
+    },
   }
   return {
     port,
-    set(next: boolean) { online = next; [...listeners].forEach((fn) => fn()) },
+    set(next: boolean) {
+      online = next
+      ;[...listeners].forEach((fn) => fn())
+    },
     listeners: () => listeners.size,
   }
 }
 
 function fakeOpen() {
   const state = { opened: 0, closed: 0 }
-  const open = () => { state.opened++; return Promise.resolve(() => { state.closed++ }) }
+  const open = () => {
+    state.opened++
+    return Promise.resolve(() => {
+      state.closed++
+    })
+  }
   return { state, open }
 }
 
@@ -51,16 +64,23 @@ describe('keepMediaOpen', () => {
     const net = fakePort()
     const resolvers: Array<(c: () => void) => void> = []
     let closed = 0
-    const open = () => new Promise<() => void>((resolve) => { resolvers.push(resolve) })
+    const open = () =>
+      new Promise<() => void>((resolve) => {
+        resolvers.push(resolve)
+      })
     const stop = keepMediaOpen(open, net.port)
     net.set(false)
-    resolvers[0]!(() => { closed++ })
+    resolvers[0]!(() => {
+      closed++
+    })
     await flush()
     expect(closed).toBe(1)
 
     net.set(true)
     stop()
-    resolvers[1]!(() => { closed++ })
+    resolvers[1]!(() => {
+      closed++
+    })
     await flush()
     expect(closed).toBe(2)
   })

@@ -1,6 +1,6 @@
-// Protects: the draw.io-style chapter tab bar (editor tabs plan, Task 1): its menus show above the
-// canvas and close like menus, a chapter is renamed from its menu, the All chapters list reopens a
-// closed tab, trashing the open chapter shows its neighbour, and chapter actions live in the bar.
+// Protects: the draw.io-style chapter tab bar: its menus show above the canvas and close like menus, a chapter is
+// renamed from its menu, the All chapters list reopens a closed tab, trashing the open chapter shows its neighbour, and
+// chapter actions live in the bar.
 import { expect, test, type Page } from '@playwright/test'
 import { cards, ownerWithProject, tabTitles, waitForSave } from './helpers/editor'
 
@@ -10,7 +10,7 @@ async function addChapter(page: Page): Promise<void> {
   await created
 }
 
-// Protects: the tab menu is drawn on top of the canvas, so every item is seen and gets the click (Review Focus 2).
+// Protects: the tab menu is drawn on top of the canvas, so every item is seen and gets the click.
 test('the tab menu shows above the canvas and every item can be clicked', async ({ page }) => {
   await ownerWithProject(page, 'Story')
   await addChapter(page)
@@ -29,7 +29,7 @@ test('the tab menu shows above the canvas and every item can be clicked', async 
   }
 })
 
-// Protects: a menu closes on Escape and on a click outside it, and that click does not add a node (decision E1).
+// Protects: a menu closes on Escape and on a click outside it, and that click does not add a node.
 test('a menu closes with Escape and with a click outside', async ({ page }) => {
   await ownerWithProject(page, 'Story')
   const menuButton = page.getByRole('button', { name: 'Menu for Chapter 1' })
@@ -45,7 +45,7 @@ test('a menu closes with Escape and with a click outside', async ({ page }) => {
   await expect(cards(page)).toHaveCount(nodes)
 })
 
-// Protects: Rename in the tab menu opens the title box, and the new title is saved (decision E2).
+// Protects: Rename in the tab menu opens the title box, and the new title is saved.
 test('rename from the tab menu', async ({ page }) => {
   await ownerWithProject(page, 'Story')
   await page.getByRole('button', { name: 'Menu for Chapter 1' }).click()
@@ -61,7 +61,7 @@ test('rename from the tab menu', async ({ page }) => {
   expect(await tabTitles(page)).toEqual(['Prologue'])
 })
 
-// Protects: "≡" lists every chapter, marks the open one, and reopens a closed tab (decision E3).
+// Protects: "≡" lists every chapter, marks the open one, and reopens a closed tab.
 test('the All chapters list opens a closed tab', async ({ page }) => {
   await ownerWithProject(page, 'Story')
   await addChapter(page)
@@ -76,7 +76,7 @@ test('the All chapters list opens a closed tab', async ({ page }) => {
   await expect(page.getByRole('tab', { name: 'Chapter 2' })).toHaveAttribute('aria-selected', 'true')
 })
 
-// Protects: trashing the chapter that is open moves to its neighbour, not to an empty canvas (Review Focus 3).
+// Protects: trashing the chapter that is open moves to its neighbour, not to an empty canvas.
 test('trashing the open chapter shows its neighbour', async ({ page }) => {
   await ownerWithProject(page, 'Story')
   await addChapter(page)
@@ -100,12 +100,14 @@ test('chapter actions live in the tab bar, not the left panel', async ({ page })
 })
 
 // Protects: the menu of a tab scrolled partly out of the strip opens and stays open; the scroll
-// that brought its button into view is not the person scrolling away (decision E1, Task 1 Flow).
+// that brought its button into view is not the person scrolling away.
 test('the menu of a scrolled-off tab stays open and works', async ({ page }) => {
   await page.setViewportSize({ width: 1000, height: 700 })
   await ownerWithProject(page, 'Story')
   for (let i = 0; i < 4; i++) await addChapter(page)
-  await page.getByRole('tablist').evaluate((strip) => { strip.scrollLeft = 0 })
+  await page.getByRole('tablist').evaluate((strip) => {
+    strip.scrollLeft = 0
+  })
   const moved = waitForSave(page, 'chapters', 'PATCH')
   await page.getByRole('button', { name: 'Menu for Chapter 5' }).click()
   await page.getByRole('menuitem', { name: 'Move left' }).click()
@@ -113,14 +115,16 @@ test('the menu of a scrolled-off tab stays open and works', async ({ page }) => 
   await expect.poll(() => tabTitles(page)).toEqual(['Chapter 1', 'Chapter 2', 'Chapter 3', 'Chapter 5', 'Chapter 4'])
 })
 
-// Protects: scrolling the tab strip while a menu is open closes it, so it never floats away from its tab (decision E1).
+// Protects: scrolling the tab strip while a menu is open closes it, so it never floats away from its tab.
 test('scrolling the tab strip closes an open menu', async ({ page }) => {
   await page.setViewportSize({ width: 1000, height: 700 })
   await ownerWithProject(page, 'Story')
   for (let i = 0; i < 4; i++) await addChapter(page)
   await page.getByRole('button', { name: 'Menu for Chapter 1' }).click()
   await expect(page.getByRole('menu', { name: 'Chapter menu' })).toBeVisible()
-  await page.getByRole('tablist').evaluate((strip) => { strip.scrollLeft = strip.scrollWidth })
+  await page.getByRole('tablist').evaluate((strip) => {
+    strip.scrollLeft = strip.scrollWidth
+  })
   await expect(page.getByRole('menu')).toHaveCount(0)
 })
 

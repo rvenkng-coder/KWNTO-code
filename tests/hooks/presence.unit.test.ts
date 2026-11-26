@@ -9,7 +9,7 @@ const { staleCutoffIso } = require('../../backend/pb_hooks/lib/presence.js') as 
 
 const NOW = Date.parse('2026-11-20T12:00:00.000Z')
 
-// Protects plan D14: a presence row is kept for twice the admin's timeout (a heartbeat or two
+// Protects presence: a presence row is kept for twice the admin's timeout (a heartbeat or two
 // may be late) and then removed; the cut-off is in the stored datetime text, so it compares
 // correctly with `updated`; a timeout of 0 means "now".
 test('presence rows go stale after twice the timeout', () => {

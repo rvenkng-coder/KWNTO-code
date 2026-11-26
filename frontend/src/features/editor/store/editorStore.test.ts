@@ -5,35 +5,61 @@ import { content, node } from '../model/fixtures'
 import { settle } from '../sync/fakes'
 import { createEditorStore, type EditorDoor } from './editorStore'
 
-interface Deferred<T> { promise: Promise<T>; resolve(v: T): void; reject(e: unknown): void }
+interface Deferred<T> {
+  promise: Promise<T>
+  resolve(v: T): void
+  reject(e: unknown): void
+}
 function deferred<T>(): Deferred<T> {
   let resolve!: (v: T) => void
   let reject!: (e: unknown) => void
-  const promise = new Promise<T>((res, rej) => { resolve = res; reject = rej })
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res
+    reject = rej
+  })
   return { promise, resolve, reject }
 }
 
 // A door whose answers the test gives by hand. `loads` and `subscribes` hold one deferred per call.
 function fakeDoor() {
   const loads: Array<Deferred<ProjectContent>> = []
-  const subscribes: Array<{ projectId: string; emit: (e: RemoteEvent) => void; ready: Deferred<() => Promise<void>>; closed: boolean }> = []
+  const subscribes: Array<{
+    projectId: string
+    emit: (e: RemoteEvent) => void
+    ready: Deferred<() => Promise<void>>
+    closed: boolean
+  }> = []
   const updates: Array<{ args: unknown[]; answer: Deferred<StoryNode> }> = []
   const door: EditorDoor = {
-    load: () => { const d = deferred<ProjectContent>(); loads.push(d); return d.promise },
+    load: () => {
+      const d = deferred<ProjectContent>()
+      loads.push(d)
+      return d.promise
+    },
     get: () => Promise.resolve(null),
     subscribe: (projectId, emit) => {
       const sub = { projectId, emit, ready: deferred<() => Promise<void>>(), closed: false }
       subscribes.push(sub)
-      return sub.ready.promise.then((close) => async () => { sub.closed = true; await close() })
+      return sub.ready.promise.then((close) => async () => {
+        sub.closed = true
+        await close()
+      })
     },
     create: () => Promise.reject(new Error('unused')),
-    update: ((...args: unknown[]) => { const d = deferred<StoryNode>(); updates.push({ args, answer: d }); return d.promise }) as EditorDoor['update'],
+    update: ((...args: unknown[]) => {
+      const d = deferred<StoryNode>()
+      updates.push({ args, answer: d })
+      return d.promise
+    }) as EditorDoor['update'],
     remove: () => Promise.reject(new Error('unused')),
   }
   return { door, loads, subscribes, updates }
 }
 
-async function opened(fake: ReturnType<typeof fakeDoor>, c: ProjectContent = content({ nodes: [node('n1', { title: 'A', version: 3 })] })) {
+async function opened(
+  fake: ReturnType<typeof fakeDoor>,
+  c: ProjectContent = content({ nodes: [node('n1', { title: 'A', version: 3 })] }),
+) {
   const store = createEditorStore(fake.door)
   const opening = store.getState().open('p1')
   fake.loads[0]?.resolve(c)
@@ -99,7 +125,12 @@ test('a slow load of a project that was left is ignored', async () => {
   const openA = store.getState().open('A')
   const openB = store.getState().open('B')
   await Promise.resolve()
-  fake.loads[1]?.resolve(content({ project: { id: 'B', teamId: 't', name: 'B', startNodeId: null, deleted: false, deletedAt: null, version: 0 }, nodes: [] }))
+  fake.loads[1]?.resolve(
+    content({
+      project: { id: 'B', teamId: 't', name: 'B', startNodeId: null, deleted: false, deletedAt: null, version: 0 },
+      nodes: [],
+    }),
+  )
   fake.subscribes[1]?.ready.resolve(async () => {})
   await openB
   fake.loads[0]?.resolve(content({ nodes: [node('fromA')] }))

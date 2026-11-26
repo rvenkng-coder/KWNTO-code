@@ -33,11 +33,7 @@ export function MediaItem({ media, token, onRemove }: MediaItemProps) {
     >
       <div className="flex items-center gap-2">
         {media.kind === 'image' && (
-          <img
-            src={thumbUrl}
-            alt={media.title}
-            className="h-12 w-12 rounded object-cover border border-border"
-          />
+          <img src={thumbUrl} alt={media.title} className="h-12 w-12 rounded object-cover border border-border" />
         )}
         <div className="flex flex-1 flex-col overflow-hidden">
           <span className="truncate text-sm font-medium" title={media.title}>
@@ -46,19 +42,13 @@ export function MediaItem({ media, token, onRemove }: MediaItemProps) {
           <span className="text-xs text-muted">{formatSize(media.sizeBytes)}</span>
         </div>
         {!confirming && (
-          <button
-            type="button"
-            className="btn btn-sm self-center text-xs"
-            onClick={() => setConfirming(true)}
-          >
+          <button type="button" className="btn btn-sm self-center text-xs" onClick={() => setConfirming(true)}>
             Remove
           </button>
         )}
       </div>
 
-      {media.kind === 'audio' && fullUrl && (
-        <audio controls src={fullUrl} className="w-full h-8" />
-      )}
+      {media.kind === 'audio' && fullUrl && <audio controls src={fullUrl} className="w-full h-8" />}
 
       {media.kind === 'video' && fullUrl && (
         <video controls src={fullUrl} className="w-full max-h-40 rounded bg-black" />

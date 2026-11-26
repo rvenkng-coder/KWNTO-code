@@ -51,6 +51,7 @@ It is an internal tool, not a public product (yet). It is used by one school coh
 - **Comments** (dev decision) attach to a specific node, shown as a flat list (oldest first) in the properties panel, with a count badge on the node. Authors delete their own; the team owner can delete any. No replies or resolved state in the MVP.
 - **Concurrent edits (dev decision):** real-time multi-user editing, like Google Docs in spirit: edits are saved **per attribute**, so changes to different attributes or nodes never conflict and are merged automatically. Attributes are: node title, color, position, each script line, each A/V cue, each lighting note, each connection. Script is stored line by line so two people can edit different lines of the same node. Only two people editing the *same* attribute at once conflict; the later write wins, and the app shows a "someone else is editing this" indicator on that node/field (presence) so it rarely happens. No character-level merging.
 - **Share link recipients (dev):** classmates, teachers or the public. View links work without an account, including media.
+- **What a view shows (dev decision, 2026-11-26):** cards at their saved size with their cover images, and each node's links. Snapshots keep them. JSON export and import carry card sizes and links; covers need the media files, which the JSON file does not hold.
 
 ## 6. Product behavior
 

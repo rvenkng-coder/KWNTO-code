@@ -19,7 +19,15 @@ export function ScriptLines({ projectId, nodeId }: { projectId: string; nodeId: 
   const clearFocus = useCallback(() => setFocusId(null), [])
 
   const add = async (index: number) => {
-    const make = (id: string, sortOrder: number): ScriptLine => ({ id, projectId, nodeId, character: '', text: '', sortOrder, version: 0 })
+    const make = (id: string, sortOrder: number): ScriptLine => ({
+      id,
+      projectId,
+      nodeId,
+      character: '',
+      text: '',
+      sortOrder,
+      version: 0,
+    })
     setFocusId(await insertRow('script_lines', lines, index, make))
   }
   const remove = (index: number, focusAbove: boolean) => {
@@ -35,9 +43,16 @@ export function ScriptLines({ projectId, nodeId }: { projectId: string; nodeId: 
       <ol className="flex flex-col gap-2">
         {lines.map((line, i) => (
           <ScriptLineRow
-            key={line.id} line={line} allLines={allLines} focus={focusId === line.id} onFocused={clearFocus}
-            onEnter={() => void add(i + 1)} onBackspaceEmpty={() => remove(i, true)} onDelete={() => remove(i, false)}
-            index={i} onMove={(id, to) => void moveRow('script_lines', lines, id, to)}
+            key={line.id}
+            line={line}
+            allLines={allLines}
+            focus={focusId === line.id}
+            onFocused={clearFocus}
+            onEnter={() => void add(i + 1)}
+            onBackspaceEmpty={() => remove(i, true)}
+            onDelete={() => remove(i, false)}
+            index={i}
+            onMove={(id, to) => void moveRow('script_lines', lines, id, to)}
           />
         ))}
       </ol>

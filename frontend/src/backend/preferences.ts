@@ -7,7 +7,8 @@ function toPreferences(record: Record<string, unknown>): Preferences {
     theme: record.theme === 'light' ? 'light' : 'dark',
     minimapVisible: record.minimap_visible !== false,
     cardFontSize: typeof record.card_font_size === 'number' && record.card_font_size > 0 ? record.card_font_size : 0,
-    cardMediaSize: typeof record.card_media_size === 'number' && record.card_media_size > 0 ? record.card_media_size : 0,
+    cardMediaSize:
+      typeof record.card_media_size === 'number' && record.card_media_size > 0 ? record.card_media_size : 0,
   }
 }
 
@@ -15,9 +16,7 @@ function toPreferences(record: Record<string, unknown>): Preferences {
 export function createPreferences(pb: PocketBase) {
   async function row(): Promise<Record<string, unknown>> {
     const userId = pb.authStore.record?.id ?? ''
-    return pb
-      .collection('user_preferences')
-      .getFirstListItem(pb.filter('user = {:user}', { user: userId }))
+    return pb.collection('user_preferences').getFirstListItem(pb.filter('user = {:user}', { user: userId }))
   }
 
   return {

@@ -10,22 +10,60 @@ import { taskFiles } from './check-plan.ts'
 import { formatPing, pingModelServer, type PingResult } from './ping-local-model.ts'
 import { isMain } from './lib/is-main.ts'
 import {
-  buildPrompt, defaultSandboxName, listCheckpoints, localRunProblems, type Options, parseArgs, readLocalBlock,
-  readyBlock, selectCheckpoint, selectTaskFile, USAGE,
+  buildPrompt,
+  defaultSandboxName,
+  listCheckpoints,
+  localRunProblems,
+  type Options,
+  parseArgs,
+  readLocalBlock,
+  readyBlock,
+  selectCheckpoint,
+  selectTaskFile,
+  USAGE,
 } from './lib/local-run.ts'
 import {
-  checkoutState, confirmBaseline, createSandbox, inHead, pathTaken, realLocation, realRunCheck, type RunCheck, repoTop, SandboxError,
+  checkoutState,
+  confirmBaseline,
+  createSandbox,
+  inHead,
+  pathTaken,
+  realLocation,
+  realRunCheck,
+  type RunCheck,
+  repoTop,
+  SandboxError,
 } from './lib/sandbox.ts'
 
-export interface Deps { ping: (url: string) => Promise<PingResult>; runCheck: RunCheck; now: () => number; create?: (root: string, sandbox: string) => string }
-export interface Outcome { code: number; lines: string[] }
-interface Task { root: string; taskRel: string; markdown: string; checkpoint: string; mayTouch: string; mustNotChange: string }
-interface Fail { fail: string[] }
+export interface Deps {
+  ping: (url: string) => Promise<PingResult>
+  runCheck: RunCheck
+  now: () => number
+  create?: (root: string, sandbox: string) => string
+}
+export interface Outcome {
+  code: number
+  lines: string[]
+}
+interface Task {
+  root: string
+  taskRel: string
+  markdown: string
+  checkpoint: string
+  mayTouch: string
+  mustNotChange: string
+}
+interface Fail {
+  fail: string[]
+}
 
 const SKILL = '.pi/skills/local-task/SKILL.md'
 const failed = (...lines: string[]): Outcome => ({ code: 1, lines })
 const isFail = (value: object): value is Fail => 'fail' in value
-const inside = (root: string, path: string): boolean => { const rel = relative(root, path); return rel !== '' && !rel.startsWith('..') && !isAbsolute(rel) }
+const inside = (root: string, path: string): boolean => {
+  const rel = relative(root, path)
+  return rel !== '' && !rel.startsWith('..') && !isAbsolute(rel)
+}
 
 export const realDeps: Deps = { ping: (url) => pingModelServer(url), runCheck: realRunCheck, now: Date.now }
 
@@ -34,8 +72,14 @@ async function pingStep(options: Options, deps: Deps): Promise<{ lines: string[]
   if (options.noPing) return { lines: ['model server: ping skipped (--no-ping)'], stop: false }
   const result = await deps.ping(options.modelUrl)
   const line = formatPing(result)
-  if (!result.ok) return { lines: [line, 'Not started. Start or restart llama-swap first, then run this again.'], stop: true }
-  return { lines: result.loaded ? [line] : [line, 'warning: the model is idle, so the first request will be slow while it loads.'], stop: false }
+  if (!result.ok)
+    return { lines: [line, 'Not started. Start or restart llama-swap first, then run this again.'], stop: true }
+  return {
+    lines: result.loaded
+      ? [line]
+      : [line, 'warning: the model is idle, so the first request will be slow while it loads.'],
+    stop: false,
+  }
 }
 
 // The checkout root and the plan folder inside it, or what went wrong.
@@ -76,7 +120,14 @@ function resolveTask(options: Options): Task | Fail {
   const checkpoint = selectCheckpoint(listCheckpoints(markdown), options.checkpoint)
   if ('error' in checkpoint) return { fail: [`${taskRel}: ${checkpoint.error}`] }
   const block = readLocalBlock(markdown)
-  return { root, taskRel, markdown, checkpoint: checkpoint.id, mayTouch: block?.mayTouch ?? '', mustNotChange: block?.mustNotChange ?? '' }
+  return {
+    root,
+    taskRel,
+    markdown,
+    checkpoint: checkpoint.id,
+    mayTouch: block?.mayTouch ?? '',
+    mustNotChange: block?.mustNotChange ?? '',
+  }
 }
 
 // Step 3: the sandbox is built from HEAD, so HEAD must hold what the model needs.
@@ -85,32 +136,48 @@ function checkoutProblems(task: Task): { problems: string[]; warnings: string[] 
   try {
     state = checkoutState(task.root)
   } catch (error) {
-    return { problems: [`cannot read the state of the checkout: ${error instanceof Error ? error.message : 'unknown error'}`], warnings: [] }
+    return {
+      problems: [`cannot read the state of the checkout: ${error instanceof Error ? error.message : 'unknown error'}`],
+      warnings: [],
+    }
   }
   const problems: string[] = []
   if (state.tracked.length > 0) {
-    problems.push(`the checkout has uncommitted changes to tracked files, and the sandbox is built from HEAD, so the model would not see them. Commit or stash: ${state.tracked.slice(0, 10).join(', ')}`)
+    problems.push(
+      `the checkout has uncommitted changes to tracked files, and the sandbox is built from HEAD, so the model would not see them. Commit or stash: ${state.tracked.slice(0, 10).join(', ')}`,
+    )
   }
   if (!inHead(task.root, task.taskRel)) problems.push(`${task.taskRel} is not committed (HEAD does not have it)`)
-  if (!inHead(task.root, SKILL)) problems.push(`HEAD does not have ${SKILL}, so the sandbox would have no local-task skill`)
-  if (!existsSync(join(task.root, 'node_modules'))) problems.push(`${join(task.root, 'node_modules')} does not exist: run npm install in the checkout first`)
-  const warnings = state.untracked.length === 0 ? [] : [`warning: untracked files are not in the sandbox: ${state.untracked.slice(0, 10).join(', ')}${state.untracked.length > 10 ? ', ...' : ''}`]
+  if (!inHead(task.root, SKILL))
+    problems.push(`HEAD does not have ${SKILL}, so the sandbox would have no local-task skill`)
+  if (!existsSync(join(task.root, 'node_modules')))
+    problems.push(`${join(task.root, 'node_modules')} does not exist: run npm install in the checkout first`)
+  const warnings =
+    state.untracked.length === 0
+      ? []
+      : [
+          `warning: untracked files are not in the sandbox: ${state.untracked.slice(0, 10).join(', ')}${state.untracked.length > 10 ? ', ...' : ''}`,
+        ]
   return { problems, warnings }
 }
 
 // Where the sandbox and its run directory go. Neither may exist (a dangling symlink counts as existing), and
 // the sandbox must be outside the checkout by real path, so a symlinked --out cannot lead back into it.
 function placeFor(options: Options, task: Task, deps: Deps): { sandbox: string; runDir: string } | Fail {
-  const wanted = options.out === null
-    ? join(tmpdir(), defaultSandboxName(options.planDir, options.task, task.checkpoint, deps.now()))
-    : resolve(options.cwd, options.out)
+  const wanted =
+    options.out === null
+      ? join(tmpdir(), defaultSandboxName(options.planDir, options.task, task.checkpoint, deps.now()))
+      : resolve(options.cwd, options.out)
   const sandbox = realLocation(wanted)
   const runDir = `${sandbox}-run`
-  if (inside(task.root, sandbox) || sandbox === task.root) return { fail: [`${wanted} is inside the working checkout: pick a directory outside it with --out`] }
+  if (inside(task.root, sandbox) || sandbox === task.root)
+    return { fail: [`${wanted} is inside the working checkout: pick a directory outside it with --out`] }
   for (const path of [wanted, sandbox, runDir]) {
-    if (pathTaken(path)) return { fail: [`${path} already exists: nothing was created. Pick another --out, or remove it yourself.`] }
+    if (pathTaken(path))
+      return { fail: [`${path} already exists: nothing was created. Pick another --out, or remove it yourself.`] }
   }
-  if (!existsSync(dirname(sandbox))) return { fail: [`the folder ${dirname(sandbox)} does not exist: nothing was created`] }
+  if (!existsSync(dirname(sandbox)))
+    return { fail: [`the folder ${dirname(sandbox)} does not exist: nothing was created`] }
   return { sandbox, runDir }
 }
 
@@ -123,7 +190,12 @@ function makeSandbox(task: Task, sandbox: string, deps: Deps): { sha: string } |
   } catch (error) {
     const created = error instanceof SandboxError && error.created
     if (created) rmSync(sandbox, { recursive: true, force: true })
-    return { fail: [`cannot build the sandbox: ${reason(error)}`, created ? `removed the directory it created: ${sandbox}` : `it created nothing and removed nothing: ${sandbox}`] }
+    return {
+      fail: [
+        `cannot build the sandbox: ${reason(error)}`,
+        created ? `removed the directory it created: ${sandbox}` : `it created nothing and removed nothing: ${sandbox}`,
+      ],
+    }
   }
 }
 
@@ -134,13 +206,23 @@ function writePrompt(task: Task, place: { sandbox: string; runDir: string }, sha
     mkdirSync(place.runDir)
     runCreated = true
     mkdirSync(join(place.runDir, 'session'))
-    const prompt = buildPrompt({ sandbox: place.sandbox, checkpoint: task.checkpoint, taskFile: task.taskRel, mayTouch: task.mayTouch, mustNotChange: task.mustNotChange, baseSha: sha })
+    const prompt = buildPrompt({
+      sandbox: place.sandbox,
+      checkpoint: task.checkpoint,
+      taskFile: task.taskRel,
+      mayTouch: task.mayTouch,
+      mustNotChange: task.mustNotChange,
+      baseSha: sha,
+    })
     writeFileSync(join(place.runDir, 'PROMPT.md'), prompt)
     return null
   } catch (error) {
     if (runCreated) rmSync(place.runDir, { recursive: true, force: true })
     rmSync(place.sandbox, { recursive: true, force: true })
-    return [`cannot write the prompt: ${reason(error)}`, `removed what this run created: ${place.sandbox}${runCreated ? ` and ${place.runDir}` : ''}`]
+    return [
+      `cannot write the prompt: ${reason(error)}`,
+      `removed what this run created: ${place.sandbox}${runCreated ? ` and ${place.runDir}` : ''}`,
+    ]
   }
 }
 
@@ -155,7 +237,12 @@ function build(task: Task, place: { sandbox: string; runDir: string }, deps: Dep
   } catch {
     baseline = ['could not confirm the baseline (a check could not run)']
   }
-  if (baseline.length > 0) return failed(...baseline, `The sandbox was left in place for you to look at: ${place.sandbox}`, 'Nothing else was created.')
+  if (baseline.length > 0)
+    return failed(
+      ...baseline,
+      `The sandbox was left in place for you to look at: ${place.sandbox}`,
+      'Nothing else was created.',
+    )
   lines.push('baseline: npm run lint and npm run typecheck are clean in the sandbox')
   const problem = writePrompt(task, place, made.sha)
   return problem ? failed(...problem) : { code: 0, lines, sha: made.sha }
@@ -170,16 +257,23 @@ async function prepare(argv: string[], deps: Deps): Promise<Outcome> {
   const task = resolveTask(options)
   if (isFail(task)) return failed(...lines, ...task.fail)
   const problems = localRunProblems(task.taskRel, task.markdown, task.checkpoint)
-  if (problems.length > 0) return failed(...lines, ...problems, 'Not started: fix the task file, or give this checkpoint to a stronger model.')
-  lines.push(`task ${options.task}, checkpoint ${task.checkpoint}: tier local, "Sized for the local model" block complete`)
+  if (problems.length > 0)
+    return failed(...lines, ...problems, 'Not started: fix the task file, or give this checkpoint to a stronger model.')
+  lines.push(
+    `task ${options.task}, checkpoint ${task.checkpoint}: tier local, "Sized for the local model" block complete`,
+  )
   const checkout = checkoutProblems(task)
-  if (checkout.problems.length > 0) return failed(...lines, ...checkout.problems, ...checkout.warnings, 'Not started: nothing was created.')
+  if (checkout.problems.length > 0)
+    return failed(...lines, ...checkout.problems, ...checkout.warnings, 'Not started: nothing was created.')
   lines.push(...checkout.warnings)
   const place = placeFor(options, task, deps)
   if (isFail(place)) return failed(...lines, ...place.fail)
   const built = build(task, place, deps)
   if (built.code !== 0 || built.sha === undefined) return failed(...lines, ...built.lines)
-  return { code: 0, lines: [...lines, ...built.lines, '', ...readyBlock(place.sandbox, place.runDir, built.sha, task.taskRel)] }
+  return {
+    code: 0,
+    lines: [...lines, ...built.lines, '', ...readyBlock(place.sandbox, place.runDir, built.sha, task.taskRel)],
+  }
 }
 
 // Whatever goes wrong, the developer gets one fixed line and an exit code, never a stack or a URL.
@@ -187,7 +281,9 @@ export async function runPrepare(argv: string[], deps: Deps = realDeps): Promise
   try {
     return await prepare(argv, deps)
   } catch {
-    return failed('prepare-local-run: stopped by an unexpected error (details are not printed). Look for a sandbox or run directory it may have left, and remove it yourself if it is yours.')
+    return failed(
+      'prepare-local-run: stopped by an unexpected error (details are not printed). Look for a sandbox or run directory it may have left, and remove it yourself if it is yours.',
+    )
   }
 }
 

@@ -12,11 +12,14 @@ export interface ProjectFile {
   exportedAt: string
   project: { name: string; startNode: string | null }
   chapters: { id: string; title: string; position: number }[]
-  nodes: { id: string; chapter: string; title: string; color: string; x: number; y: number }[]
+  /** `width`, `height` and `cover` (a media id) are there only when the node has its own. */
+  nodes: { id: string; chapter: string; title: string; color: string; x: number; y: number; width?: number; height?: number; cover?: string }[]
   lines: { id: string; node: string; character: string; text: string; sortOrder: number }[]
   cues: { id: string; node: string; type: string; text: string; sortOrder: number }[]
   connections: { id: string; from: string; to: string | null; label: string }[]
   media: { id: string; node: string; title: string; kind: string }[]
+  /** Node links, oldest first; left out when there is none (and by older snapshots). */
+  links?: { id: string; node: string; title: string; url: string }[]
 }
 
 export type ShareOpen =

@@ -6,6 +6,7 @@ import { toFlowEdges, toFlowNodes, type CardNode } from '../editor/model/flow'
 import { nodeMarkers } from '../editor/model/markers'
 import { fromContent } from '../editor/model/state'
 import { SharePlay } from '../player/SharePlay'
+import { CoverSource } from './coverSource'
 import { ReadOnlyCard } from './ReadOnlyCard'
 import { ReadOnlyPanel } from './ReadOnlyPanel'
 import { contentFromFile } from './shareModel'
@@ -33,6 +34,7 @@ export function ReadOnlyViewer({ projectId, file, token, needsSignIn, renderComm
   const nodes = useMemo(() => toFlowNodes(state, chapterId, nodeMarkers(state)), [state, chapterId])
   const edges = useMemo(() => toFlowEdges(state, chapterId), [state, chapterId])
   const shown = nodes.map((n) => ({ ...n, selected: n.id === selected }))
+  const covers = useMemo(() => ({ token, needsSignIn, media: file.media }), [token, needsSignIn, file])
 
   return (
     <div data-testid="viewer" className="flex min-h-[70vh] flex-col gap-3">
@@ -51,14 +53,16 @@ export function ReadOnlyViewer({ projectId, file, token, needsSignIn, renderComm
       </div>
       <div className="grid min-h-0 flex-1 grid-cols-[1fr_18rem] gap-3">
         <div className="kwnto-canvas panel relative min-h-[60vh] p-0" data-testid="canvas">
-          <ReactFlowProvider>
-            <ReactFlow<CardNode> nodes={shown} edges={edges} nodeTypes={nodeTypes} fitView fitViewOptions={{ maxZoom: 1 }}
-              nodesDraggable={false} nodesConnectable={false} edgesFocusable={false} deleteKeyCode={null} zoomOnDoubleClick={false}
-              onNodeClick={(_e, node) => setSelected(node.id)} onPaneClick={() => setSelected(null)}>
-              <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} />
-              <Controls showInteractive={false} />
-            </ReactFlow>
-          </ReactFlowProvider>
+          <CoverSource.Provider value={covers}>
+            <ReactFlowProvider>
+              <ReactFlow<CardNode> nodes={shown} edges={edges} nodeTypes={nodeTypes} fitView fitViewOptions={{ maxZoom: 1 }}
+                nodesDraggable={false} nodesConnectable={false} edgesFocusable={false} deleteKeyCode={null} zoomOnDoubleClick={false}
+                onNodeClick={(_e, node) => setSelected(node.id)} onPaneClick={() => setSelected(null)}>
+                <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} />
+                <Controls showInteractive={false} />
+              </ReactFlow>
+            </ReactFlowProvider>
+          </CoverSource.Provider>
         </div>
         {selected !== null && (
           <ReadOnlyPanel file={file} nodeId={selected} token={token} needsSignIn={needsSignIn}>

@@ -5,7 +5,9 @@
 // project name from 1794370000_projects_chapters.js (projects.name 120, chapters.title 120);
 // node title 200, node colour, line character 80, line text 5000, cue type and cue text
 // 2000, connection label 200 from 1794370100_nodes_lines_connections.js; media title 120
-// and kind from 1794380000_media.js. The counts and the 5 MB size are plan D5. `id`
+// and kind from 1794380000_media.js; the largest node width and height (`side`) from
+// 1794400800_node_size_card_font.js; link title 120 and address 2000 from 1794400100_node_links.js.
+// The counts and the 5 MB size are plan D5, and 10000 links is this file's own limit. `id`
 // (an id in a file is only a key, so any short string will do) is this file's own limit.
 const FILE_LIMITS = {
   maxBytes: 5242880,
@@ -23,6 +25,10 @@ const FILE_LIMITS = {
   cueText: 2000,
   mediaTitle: 120,
   media: 2000,
+  links: 10000,
+  linkTitle: 120,
+  url: 2000,
+  side: 2000,
   id: 100,
 }
 const COLORS = ['slate', 'red', 'orange', 'amber', 'green', 'teal', 'blue', 'purple']

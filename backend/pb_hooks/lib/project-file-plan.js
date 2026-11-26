@@ -16,7 +16,11 @@ function importPlan(file, newId) {
     return id
   }
   const chapters = file.chapters.map((c) => ({ id: fresh(chapterIds, c.id), title: c.title, position: c.position }))
-  const nodes = file.nodes.map((n) => ({ id: fresh(nodeIds, n.id), chapter: chapterIds.get(n.chapter), title: n.title, color: n.color, x: n.x, y: n.y }))
+  // A node's cover is dropped: the image it names is not in the file.
+  const nodes = file.nodes.map((n) => ({
+    id: fresh(nodeIds, n.id), chapter: chapterIds.get(n.chapter), title: n.title, color: n.color, x: n.x, y: n.y,
+    width: n.width || 0, height: n.height || 0,
+  }))
   const lines = file.lines.map((l) => ({ id: newId(), node: nodeIds.get(l.node), character: l.character, text: l.text, sortOrder: l.sortOrder }))
   const cues = file.cues.map((q) => ({ id: newId(), node: nodeIds.get(q.node), type: q.type, text: q.text, sortOrder: q.sortOrder }))
   const connections = file.connections.map((k) => ({
@@ -25,8 +29,10 @@ function importPlan(file, newId) {
     to: k.to === null ? null : nodeIds.get(k.to),
     label: k.label,
   }))
+  const links = (file.links || []).map((l) => ({ id: newId(), node: nodeIds.get(l.node), title: l.title, url: l.url }))
   const start = file.project.startNode
-  return { name: file.project.name, startNode: start === null ? null : nodeIds.get(start), chapters, nodes, lines, cues, connections }
+  const startNode = start === null ? null : nodeIds.get(start)
+  return { name: file.project.name, startNode, chapters, nodes, lines, cues, connections, links }
 }
 
 const IMPORTED = ' (imported)'

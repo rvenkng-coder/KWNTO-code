@@ -2,6 +2,7 @@
 // through lib/project-file.js.
 
 const { FILE_LIMITS, COLORS, CUE_TYPES, MEDIA_KINDS, MAX_PROBLEMS } = require('./project-file-limits.js')
+const { checkLinkUrl } = require('./link-check.js')
 
 const STOP = { stop: true }
 
@@ -41,6 +42,10 @@ const FIELDS = {
     { key: 'color', kind: 'select', values: COLORS },
     { key: 'x', kind: 'number' },
     { key: 'y', kind: 'number' },
+    { key: 'width', kind: 'size', optional: true },
+    { key: 'height', kind: 'size', optional: true },
+    // Points into the media list, which is checked later: see checkCovers.
+    { key: 'cover', kind: 'string', limit: 'id', optional: true },
   ],
   lines: [
     idField,
@@ -62,12 +67,18 @@ const FIELDS = {
     { key: 'title', kind: 'string', limit: 'mediaTitle' },
     { key: 'kind', kind: 'select', values: MEDIA_KINDS, allowEmpty: true },
   ],
+  links: [
+    idField,
+    { key: 'node', kind: 'ref', list: 'nodes', noun: 'node' },
+    { key: 'title', kind: 'string', limit: 'linkTitle' },
+    { key: 'url', kind: 'url', limit: 'url', required: true },
+  ],
 }
 // A connection's `from` and `to` are checked by hand in checkLinks, so only these are here.
 const CONNECTION_FIELDS = [idField, { key: 'label', kind: 'string', limit: 'label' }]
 const CONNECTION_KEYS = ['id', 'from', 'to', 'label']
-const ROOT_KEYS = ['format', 'version', 'exportedAt', 'project', 'chapters', 'nodes', 'lines', 'cues', 'connections', 'media']
-const LISTS = ['chapters', 'nodes', 'lines', 'cues', 'connections', 'media']
+const ROOT_KEYS = ['format', 'version', 'exportedAt', 'project', 'chapters', 'nodes', 'lines', 'cues', 'connections', 'media', 'links']
+const LISTS = ['chapters', 'nodes', 'lines', 'cues', 'connections', 'media', 'links']
 const PROJECT_KEYS = ['name', 'startNode']
 
 function checkKeys(run, path, item, allowed) {
@@ -106,7 +117,23 @@ function checkRef(run, path, value, spec, ids) {
   return value
 }
 
+function checkSize(run, path, value) {
+  const number = checkNumber(run, path, value)
+  const max = run.limits.side
+  if (number !== undefined && (number < 0 || number > max)) return run.add(`${path} must be between 0 and ${max}`)
+  return number
+}
+
+function checkUrl(run, path, value, spec) {
+  const text = checkString(run, path, value, spec)
+  if (text === undefined) return undefined
+  const checked = checkLinkUrl(text)
+  return checked.ok ? checked.url : run.add(`${path} is not a web address`)
+}
+
 function checkField(run, path, value, spec, ids) {
+  if (spec.kind === 'size') return checkSize(run, path, value)
+  if (spec.kind === 'url') return checkUrl(run, path, value, spec)
   if (spec.kind === 'string') return checkString(run, path, value, spec)
   if (spec.kind === 'number') return checkNumber(run, path, value)
   if (spec.kind === 'select') return checkSelect(run, path, value, spec)
@@ -127,7 +154,9 @@ function checkItem(run, path, item, specs, ids) {
   checkKeys(run, path, item, specs.keys)
   const copy = {}
   for (const spec of specs.fields) {
-    copy[spec.key] = checkField(run, `${path}.${spec.key}`, own(item, spec.key), spec, ids)
+    const value = own(item, spec.key)
+    if (spec.optional && value === undefined) continue
+    copy[spec.key] = checkField(run, `${path}.${spec.key}`, value, spec, ids)
   }
   return copy
 }
@@ -188,6 +217,12 @@ function checkStartNode(run, start, nodeIds) {
   else if (start !== null && !nodeIds.has(start)) run.add('project.startNode is not a node in the file')
 }
 
+function checkCovers(run, nodes, mediaIds) {
+  nodes.forEach((n, index) => {
+    if (n && n.cover !== undefined && !mediaIds.has(n.cover)) run.add(`nodes[${index}].cover is not a media entry in the file`)
+  })
+}
+
 function checkExportedAt(run, file) {
   const at = own(file, 'exportedAt')
   if (at !== undefined && typeof at !== 'string') run.add('exportedAt must be a string')
@@ -202,13 +237,18 @@ function validateObject(run, file) {
   for (const name of LISTS) ids[name] = new Set()
   const out = { format: 'kwnto-project', version: 1, exportedAt, project }
   out.chapters = checkList(run, file, 'chapters', { fields: FIELDS.chapters, keys: ['id', 'title', 'position'] }, ids)
-  out.nodes = checkList(run, file, 'nodes', { fields: FIELDS.nodes, keys: ['id', 'chapter', 'title', 'color', 'x', 'y'] }, ids)
+  out.nodes = checkList(run, file, 'nodes', { fields: FIELDS.nodes, keys: ['id', 'chapter', 'title', 'color', 'x', 'y', 'width', 'height', 'cover'] }, ids)
   checkStartNode(run, project.startNode, ids.nodes)
   out.lines = checkList(run, file, 'lines', { fields: FIELDS.lines, keys: ['id', 'node', 'character', 'text', 'sortOrder'] }, ids)
   out.cues = checkList(run, file, 'cues', { fields: FIELDS.cues, keys: ['id', 'node', 'type', 'text', 'sortOrder'] }, ids)
   out.connections = checkList(run, file, 'connections', { fields: CONNECTION_FIELDS, keys: CONNECTION_KEYS }, ids)
   // The media list is metadata only and import ignores it, so a file without one is fine.
   out.media = own(file, 'media') === undefined ? [] : checkList(run, file, 'media', { fields: FIELDS.media, keys: ['id', 'node', 'title', 'kind'] }, ids)
+  checkCovers(run, out.nodes, ids.media)
+  // Left out by a project without links, and by files and snapshots made before links were carried.
+  if (own(file, 'links') !== undefined) {
+    out.links = checkList(run, file, 'links', { fields: FIELDS.links, keys: ['id', 'node', 'title', 'url'] }, ids)
+  }
   return out
 }
 

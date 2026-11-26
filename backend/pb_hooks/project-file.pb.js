@@ -95,7 +95,7 @@ routerAdd("POST", "/api/kwnto/teams/{id}/import", (e) => {
   let projectId = ""
   try {
     e.app.runInTransaction((tx) => {
-      projectId = createImportedProject(tx, teamId, importedName(plan.name), plan)
+      projectId = createImportedProject(tx, teamId, e.auth.id, importedName(plan.name), plan)
     })
   } catch (error) {
     // The file passed the checks but the database refused a record (for example two

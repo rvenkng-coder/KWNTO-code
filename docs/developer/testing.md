@@ -147,14 +147,14 @@ The pure helpers that PocketBase hooks load from `backend/pb_hooks/lib/` are tes
 
 ## End-to-End Testing (`e2e/`)
 
-End-to-end tests verify the full stack: browser → Vite dev server → PocketBase proxy. They run as the last layer of `npm test` and in the CI's `e2e` job.
+End-to-end tests verify the full stack: browser → Vite dev server → PocketBase proxy. They run as the last layer of `npm test` and in the CI's `e2e` and `e2e-performance` jobs.
 
 ### Configuration (`playwright.config.ts`)
 - **Browsers:** Chromium and Firefox (desktop, latest).
 - **Base URL:** `http://localhost:5174` (Vite dev server started by Playwright's `webServer`).
 - **WebServer:** Starts `npm run dev -- --port 5174 --strictPort` automatically before tests.
 - **Timeout:** 60 seconds per test.
-- **The performance spec runs alone.** `e2e/editor-performance.spec.ts` (500 nodes within 3 s, [decision 0003](../decisions/0003-canvas-performance.md)) is left out of the `chromium` and `firefox` projects and runs in `perf-chromium`, then `perf-firefox`, after every other test has finished, so no other worker shares the machine with it. It loads a **production build** served by `vite preview` on port 5175 (a second Playwright web server), not the dev server, so it times the app people will use. Next to three other workers it measured load, not the app (Firefox about 1.2 s alone, up to 3.4 s in the parallel suite). If any other test fails, Playwright skips the two perf projects. To run only the performance spec: `npm run test:e2e -- --project perf-firefox --project perf-chromium --no-deps`.
+- **The performance spec runs alone.** `e2e/editor-performance.spec.ts` (500 nodes within 3 s, [decision 0003](../decisions/0003-canvas-performance.md)) is left out of the `chromium` and `firefox` projects and runs in `perf-chromium`, then `perf-firefox`, after every other test has finished (in CI, on a runner of its own: the `e2e-performance` job), so no other worker shares the machine with it. It loads a **production build** served by `vite preview` on port 5175 (a second Playwright web server), not the dev server, so it times the app people will use. Next to three other workers it measured load, not the app (Firefox about 1.2 s alone, up to 3.4 s in the parallel suite). In a full local run, Playwright skips the two perf projects if any other test fails. To run only the performance spec: `npm run test:e2e -- --project perf-firefox --project perf-chromium --no-deps`.
 
 ### Running E2E Tests
 - **Standalone:** `npm run test:e2e` (starts PocketBase via `with-pocketbase.ts`, then Playwright).
@@ -202,12 +202,13 @@ A `.githooks/pre-commit` hook runs [gitleaks](https://github.com/gitleaks/gitlea
 
 ## CI Workflow (`.github/workflows/ci.yml`)
 
-The CI workflow runs on pushes to `main` and on every pull request (so a branch with an open PR runs once, not twice). It uses Node from `.nvmrc` and pins each GitHub Action to its current major version.
+The CI workflow runs on pushes to `main` and on every pull request (so a branch with an open PR runs once, not twice). A new push to a PR cancels that PR's older run; runs on `main` are never cancelled. It uses Node from `.nvmrc` and pins each GitHub Action to its current major version.
 
 | Job | What it runs | Notes |
 |---|---|---|
 | `checks` | `npm run lint`, `npm run format:check`, `npm run typecheck`, `npm run test:unit`, on a pull request `check:hygiene` against the target branch, `npm run report:quality`, `npm audit --omit=dev --audit-level=high` (shipped dependencies only; build and test tools are not audited in CI, developer decision 2026-11-18) | Runs on every run |
 | `backend` | `npm run test:container`, `npm run test:rules` | Uses the runner's Docker; `with-pocketbase.ts` starts and stops PocketBase itself |
-| `e2e` | Playwright install (firefox + chromium), `npm run test:e2e` | Uses the runner's Docker via `with-pocketbase.ts`; has an upload step for `playwright-report/`, which finds nothing (the CI run makes no HTML report) |
+| `e2e` (4 runners) | `npm run test:e2e -- --project <browser> --shard <n>/2` for chromium and firefox, shards 1 and 2 | Each runner has its own PocketBase via `with-pocketbase.ts` and runs one test at a time; a failing part does not cancel the others; has an upload step for `playwright-report/`, which finds nothing (the CI run makes no HTML report) |
+| `e2e-performance` | `npm run test:e2e -- --project perf-chromium --project perf-firefox --no-deps --workers 1` | The timing tests, alone on their runner; `--no-deps` keeps them from running the browser suites again |
 | `secrets` | gitleaks over full history (`fetch-depth: 0`) | Runs on every run |
 

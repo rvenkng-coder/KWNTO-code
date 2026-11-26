@@ -14,7 +14,7 @@ flowchart TB
   E -->|"yes"| F["Write the docs"]
   F --> G["Commit in small steps<br/>and push the branch"]
   G --> H["Open a pull request"]
-  H --> I{"CI green?<br/>checks, backend, e2e, secrets"}
+  H --> I{"CI green?<br/>checks, backend, e2e, e2e-performance, secrets"}
   I -->|"no"| D
   I -->|"yes"| J["Review it yourself<br/>against the checklist, then merge"]
   J --> K["Deploy: deploy/update.sh on the VM"]
@@ -232,13 +232,14 @@ Habits that keep e2e tests reliable:
 
 ## 5. What each CI job needs
 
-The workflow is `.github/workflows/ci.yml`. It runs on every pull request and on pushes to `main`. All four jobs use Node from `.nvmrc` and `npm ci`. It never deploys; deploying is `deploy/update.sh` by hand.
+The workflow is `.github/workflows/ci.yml`. It runs on every pull request and on pushes to `main`; a new push to a pull request cancels its older run. All jobs but `secrets` use Node from `.nvmrc` and `npm ci`. It never deploys; deploying is `deploy/update.sh` by hand.
 
 | Job | It runs | It needs | Reproduce locally | Usual reasons it fails |
 |---|---|---|---|---|
 | `checks` (about 3 min) | `npm run lint`, `npm run format:check`, `npm run typecheck`, `npm run test:unit`, on a pull request `check:hygiene` against the target branch, `npm run report:quality`, `npm audit --omit=dev --audit-level=high` | Nothing but Node | `npm run lint && npm run format:check && npm run typecheck && npm run test:unit && npm audit --omit=dev --audit-level=high` | A lint rule (file over 300 lines, `any`, a banned API, a comment citing a task); an unformatted file; a new test without its header or a lost assertion; a broken relative link in the docs; a type error; a failing unit test; a **high** advisory in a shipped dependency: update it, or record the decision |
 | `backend` (about 8 min) | `npm run test:container`, `npm run test:rules` | Docker on the runner (each starts its own throwaway PocketBase) | the two commands | A rule or hook change without a matching test update; a collection without a `<name>.rules.test.ts`; a rule set to `""` not listed in `PUBLIC_RULES`; a Docker or compose change that breaks the hardening tests |
-| `e2e` (about 30 min) | `npx playwright install --with-deps firefox chromium`, then `npm run test:e2e` | Docker, both browsers, ports 5174 and 5175 free | `npm run test:e2e` | A real regression; or a timing flake (see 8). On failure, read the job's log: the workflow's upload of `playwright-report/` finds nothing, because the CI run makes no HTML report |
+| `e2e` (about 11 min; 4 runners: `chromium` and `firefox`, each in 2 shards) | `npx playwright install --with-deps <browser>`, then `npm run test:e2e -- --project <browser> --shard <n>/2` | Docker, ports 5174 and 5175 free | `npm run test:e2e` (everything), or the job's command (one part) | A real regression; or a timing flake (see 8). On failure, read that runner's job log: the workflow's upload of `playwright-report/` finds nothing, because the CI run makes no HTML report |
+| `e2e-performance` (about 3 min) | both browsers, then `npm run test:e2e -- --project perf-chromium --project perf-firefox --no-deps --workers 1` | Docker, both browsers, ports 5174 and 5175 free | the job's command | A slower app (the 3 s canvas budget, decision 0003); or a slow runner |
 | `secrets` (seconds) | gitleaks over the full git history | Nothing | `gitleaks detect` (`gitleaks git` in newer releases) | A key, password or token anywhere in any commit of the branch |
 
 Dependabot also opens a monthly pull request for npm and GitHub Actions updates; treat it like your own: the CI must be green before you merge it. It skips the PocketBase JS client on purpose.

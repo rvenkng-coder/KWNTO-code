@@ -15,3 +15,6 @@
 - The task files are the briefs; the executor ledger is keyed on the plan README (the task scripts expect one file with task headings).
 - Tasks with manual cases got a Flow line: `check:task` refuses a manual case with Flow `none`.
 - Task 1 also has a unit test in `tests/lint` (the lint guide requires rule and test together); task 3 added one for the 500-line limit.
+- Full `npm test` after task 3: unit 779, container 49, rules 272 passed; e2e 345 passed, 1 failed (`share-links.spec.ts:127`, Firefox, stuck on `Loading project…`, the symptom of issue 26), 2 not run. The spec then passed 30 of 30 in Firefox.
+- Stopped before task 4: it waits for pull request A to merge and for the developer's answer on unmerged branches.
+

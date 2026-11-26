@@ -4,19 +4,27 @@ A map of the whole system in one place, for someone who has to read or change it
 
 ## The running system
 
-```
- browser (React app)                                   the VM (Docker Compose, compose.prod.yaml)
- ┌────────────────────┐   https, port 443   ┌────────────────────────────────────────────────────┐
- │ frontend/src       │ ──── Funnel ──────▶ │ tailscale ─▶ caddy :8080 ─▶ pocketbase :8090       │
- │  React + Zustand   │   (public)          │              │ blocks /_/, admin and schema paths  │
- │  React Flow canvas │                     │              │ size limits, security headers       │
- │  IndexedDB outbox  │ ◀── live events ─── │              ▼                                     │
- └────────────────────┘   (event stream)    │           PocketBase = SQLite + hooks + rules      │
-                                            │              │                  │                  │
-   admin (you), on the tailnet only:        │              ▼                  ▼                  │
-   https://<host>:8443/_/  ───────────────▶ │     volume kwnto-data     volume kwnto-web         │
-                                            │     (database, uploads)   (the built app, read-only)│
-                                            └────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+  subgraph Browser["Browser (React app)"]
+    UI["frontend/src<br/>React + Zustand<br/>React Flow canvas"]
+    OB[("IndexedDB<br/>outbox of waiting edits")]
+  end
+  Admin(["Admin (you)<br/>device on the tailnet"])
+  subgraph VM["The VM"]
+    TS["tailscale<br/>Funnel and serve"]
+    CD["caddy :8080<br/>hides admin and schema paths<br/>size limits, security headers"]
+    PB["pocketbase :8090<br/>SQLite + hooks + rules<br/>serves the built app"]
+    VOL[("volumes<br/>kwnto-data: database, uploads<br/>kwnto-web: the built app")]
+  end
+  UI -->|"edits go here first"| OB
+  UI -->|"public https :443"| TS
+  Admin -->|"tailnet-only https :8443"| TS
+  TS -->|"public path"| CD
+  CD --> PB
+  TS -->|"admin path, skips caddy"| PB
+  PB --- VOL
+  PB -.->|"live events"| UI
 ```
 
 - **One backend, no separate app server.** PocketBase stores data in SQLite, enforces access, runs our server code, serves the API and streams live changes. It also serves the built web app (from the `kwnto-web` volume).
@@ -53,6 +61,25 @@ Rules to keep in your head, enforced by lint: only the door imports PocketBase; 
 2. The edit goes into an **outbox** in the browser's IndexedDB, then is sent one at a time through the door with the **version** the record had when you started editing.
 3. The server's version guard accepts it only if that version is still current; otherwise it answers **409**. Online, the client retries quietly; for an edit made while offline, a real conflict asks you "keep mine / keep theirs".
 4. The server then streams the change to everyone watching the project over the live connection, and their screens update.
+
+```mermaid
+sequenceDiagram
+  actor A as You (browser A)
+  participant S as Store and outbox (IndexedDB)
+  participant PB as PocketBase (version guard)
+  actor B as Teammate (browser B)
+  A->>S: edit a field (your screen changes at once)
+  S->>S: write the edit to the outbox first
+  S->>PB: send the changed fields and the version you started from
+  alt that version is still current
+    PB-->>S: saved, here is the new version
+    PB-->>B: live event with the change
+    B->>B: the teammate's screen updates
+  else someone changed the same record first (409)
+    PB-->>S: 409 conflict
+    Note over S: online: re-read, re-apply your field, retry quietly<br/>made offline: ask "keep mine / keep theirs"
+  end
+```
 
 The full story, with every edge case, is in [the editor notes: How an edit travels](editor.md#how-an-edit-travels). The reasons for the design are in [decision 0002](../decisions/0002-realtime-spike.md) (measured: two people editing different fields of one record lost edits, so every write carries a version).
 

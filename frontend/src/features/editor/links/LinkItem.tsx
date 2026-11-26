@@ -7,7 +7,7 @@ interface LinkItemProps {
 }
 
 // One link: its title (or host), the host in muted text, and a delete button. The title is rendered as
-// text only. The address opens in a new tab and never gets the opener (plan node-links, security.md).
+// text only. The address opens in a new tab and never gets the opener (security.md).
 export function LinkItem({ link, onDelete }: LinkItemProps) {
   const label = linkLabel(link)
   const host = linkHost(link.url)
@@ -29,7 +29,9 @@ export function LinkItem({ link, onDelete }: LinkItemProps) {
             {label}
           </a>
         ) : (
-          <span className="truncate text-sm font-medium" title="Not a web address">{label}</span>
+          <span className="truncate text-sm font-medium" title="Not a web address">
+            {label}
+          </span>
         )}
         {label !== host && <span className="truncate text-xs text-muted">{host}</span>}
       </div>

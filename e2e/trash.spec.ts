@@ -1,6 +1,5 @@
-// Protects: design 6.8 and Plan 7 Task 1: trashed nodes, chapters and projects are listed with
-// the days left and come back by Restore; a node of a trashed chapter comes back with its
-// chapter; only the owner sees and restores trashed projects.
+// Protects: design 6.8: trashed nodes, chapters and projects are listed with the days left and come back by Restore; a
+// node of a trashed chapter comes back with its chapter; only the owner sees and restores trashed projects.
 import { expect, test, type Page } from '@playwright/test'
 import { uniqueEmail } from './helpers/admin'
 import { addNodeAt, card, ownerWithProject, readyCanvas, waitForSave } from './helpers/editor'
@@ -122,13 +121,22 @@ test('a failed project trash keeps its error message', async ({ page }) => {
   await expect(page.getByTestId('project-list')).toHaveAttribute('data-loaded', 'true')
   await page.route('**/api/collections/projects/records/*', (route) =>
     route.request().method() === 'PATCH'
-      ? route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ message: 'Boom', data: {} }) })
-      : route.continue())
+      ? route.fulfill({
+          status: 500,
+          contentType: 'application/json',
+          body: JSON.stringify({ message: 'Boom', data: {} }),
+        })
+      : route.continue(),
+  )
   await page.getByRole('button', { name: 'Move to trash' }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Move to trash' }).click()
   await expect(page.getByTestId('project-list').getByRole('alert')).toBeVisible()
   // A reload of the list would remount it; give that a moment to happen, then look again.
-  await page.waitForResponse((r) => r.url().includes('/api/collections/projects/records') && r.request().method() === 'GET', { timeout: 2000 }).catch(() => undefined)
+  await page
+    .waitForResponse((r) => r.url().includes('/api/collections/projects/records') && r.request().method() === 'GET', {
+      timeout: 2000,
+    })
+    .catch(() => undefined)
   await expect(page.getByTestId('project-list').getByRole('alert')).toBeVisible()
   await expect(page.getByTestId('project-list')).toContainText('Story')
 })

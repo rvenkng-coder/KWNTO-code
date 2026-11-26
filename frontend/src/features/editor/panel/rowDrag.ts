@@ -15,7 +15,13 @@ interface Drag {
   grip: HTMLAttributes<HTMLButtonElement>
 }
 
-export function useRowDrag(kind: string, id: string, index: number, onMove: (toIndex: number) => void, onDropFrom: (fromId: string) => void): Drag {
+export function useRowDrag(
+  kind: string,
+  id: string,
+  index: number,
+  onMove: (toIndex: number) => void,
+  onDropFrom: (fromId: string) => void,
+): Drag {
   const [over, setOver] = useState(false)
   const accepts = () => dragged !== null && dragged.kind === kind && dragged.id !== id
   return {

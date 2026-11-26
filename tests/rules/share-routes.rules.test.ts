@@ -9,17 +9,23 @@ import { addMember } from './helpers/teams.ts'
 // Media made here must not outlive the file: other rule files count the whole table.
 afterEach(deleteAllMedia)
 
-// The share routes of backend/pb_hooks/share.pb.js (design 5; plan 2026-11-20-sharing Task 3,
-// D2, D8 and D10): the view of a project through a token, media through a token, joining a
-// comment or edit link, republishing a snapshot and the admin's revoke-all. Every link
-// level is tried signed out, unverified and verified; a bad token gets one and the same 404.
+// The share routes of backend/pb_hooks/share.pb.js (design 5): the view of a project through a
+// token, media through a token, joining a comment or edit link, republishing a snapshot and the
+// admin's revoke-all. Every link level is tried signed out, unverified and verified; a bad token
+// gets one and the same 404.
 
 const BAD_LINK = 'This link is not valid or was revoked.'
 const SIGN_IN = 'Sign in to open this shared project.'
 const VERIFY = 'Verify your email to open this shared project.'
 const CSP = "default-src 'none'; img-src 'self'; media-src 'self'; sandbox"
 
-type Shared = { file: { nodes: { title: string }[] }; permission: string; kind: string; projectId: string; projectName: string }
+type Shared = {
+  file: { nodes: { title: string }[] }
+  permission: string
+  kind: string
+  projectId: string
+  projectName: string
+}
 
 async function titlesOf(token: string): Promise<string[]> {
   const reply = await openShare(token)
@@ -29,12 +35,16 @@ async function titlesOf(token: string): Promise<string[]> {
 
 async function trashProject(ctx: MemberProject): Promise<void> {
   const version = Number((await readAsAdmin('projects', ctx.projectId)).version)
-  expect((await guardedUpdate(ctx.owner, 'projects', ctx.projectId, { deleted_at: '2026-11-20 10:00:00.000Z', version })).status).toBe(200)
+  expect(
+    (await guardedUpdate(ctx.owner, 'projects', ctx.projectId, { deleted_at: '2026-11-20 10:00:00.000Z', version }))
+      .status,
+  ).toBe(200)
 }
 
 async function grantsOn(linkId: string): Promise<number> {
   const admin = await asAdmin()
-  return (await admin.collection('link_grants').getFullList({ filter: admin.filter('link = {:l}', { l: linkId }) })).length
+  return (await admin.collection('link_grants').getFullList({ filter: admin.filter('link = {:l}', { l: linkId }) }))
+    .length
 }
 
 // What a caller can see of a refusal: status, the type of the body and the body itself.
@@ -43,7 +53,7 @@ async function refusal(token: string): Promise<[number, string | null, string]> 
   return [response.status, response.headers.get('content-type'), await response.text()]
 }
 
-// Protects Review Focus 1: a view link shows a live project as it is now, a snapshot as it
+// Protects view links: a view link shows a live project as it is now, a snapshot as it
 // was until it is republished; an unknown, injected, revoked or trashed-project link is one
 // and the same 404, so nobody can tell which tokens exist.
 test('a view link shows the project to anyone until it is revoked', async () => {
@@ -76,17 +86,22 @@ test('a view link shows the project to anyone until it is revoked', async () => 
   for (const token of refusals) expect(await refusal(token)).toEqual(first)
 })
 
-// Protects D8 and Review Focus 1: media goes through the link's own project only, stops
+// Protects shared media: media goes through the link's own project only, stops
 // with the link, never serves removed or foreign media, and a snapshot lists its own.
-test('link holders get the project\'s media and nothing else', async () => {
+test("link holders get the project's media and nothing else", async () => {
   const { member, projectId, chapterId } = await memberProject()
   const nodeId = await createNode(member, projectId, chapterId)
   const pic = async (user: TestUser, project: string, node: string) =>
-    ((await (await uploadMedia(user, { project, node }, { name: 'pic.png', bytes: PNG_1PX })).json()) as { id: string }).id
+    ((await (await uploadMedia(user, { project, node }, { name: 'pic.png', bytes: PNG_1PX })).json()) as { id: string })
+      .id
   const mediaId = await pic(member, projectId, nodeId)
   const removedId = await pic(member, projectId, nodeId)
   const other = await memberProject()
-  const foreignId = await pic(other.owner, other.projectId, await createNode(other.owner, other.projectId, other.chapterId))
+  const foreignId = await pic(
+    other.owner,
+    other.projectId,
+    await createNode(other.owner, other.projectId, other.chapterId),
+  )
   const live = await createLink(member, projectId, 'view', 'live')
   const snap = await createLink(member, projectId, 'view', 'snapshot')
 
@@ -111,7 +126,7 @@ test('link holders get the project\'s media and nothing else', async () => {
   expect((await shareMedia(snap.token, mediaId)).status).toBe(404)
 })
 
-// Protects security.md 3 and D2: comment and edit links need a verified sign-in (with the
+// Protects security.md 3: comment and edit links need a verified sign-in (with the
 // exact copy), an edit link answers only with the project id, joining twice makes one
 // grant, a view link cannot be joined, a team member needs no grant, a live link has no
 // snapshot to republish.
@@ -162,7 +177,8 @@ test('comment and edit links need a verified sign-in and make one grant', async 
 // member cannot, and the action is logged with its count.
 test('the admin revokes every link at once', async () => {
   const admin = await asAdmin()
-  for (const row of await admin.collection('share_links').getFullList()) await admin.collection('share_links').delete(row.id)
+  for (const row of await admin.collection('share_links').getFullList())
+    await admin.collection('share_links').delete(row.id)
   const [a, b] = [await memberProject(), await memberProject()]
   const links = [
     await createLink(a.member, a.projectId, 'view', 'live'),
@@ -180,5 +196,7 @@ test('the admin revokes every link at once', async () => {
   for (const link of links) expect((await admin.collection('share_links').getOne(link.id)).revoked).toBe(true)
   expect((await openShare(links[0].token)).status).toBe(404)
   const events = await admin.collection('security_events').getFullList({ filter: "type = 'admin'", sort: '-created' })
-  expect(events.some((row) => (row.detail as { action?: string; count?: number }).action === 'revoke-all-links')).toBe(true)
+  expect(events.some((row) => (row.detail as { action?: string; count?: number }).action === 'revoke-all-links')).toBe(
+    true,
+  )
 })

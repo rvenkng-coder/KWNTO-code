@@ -10,9 +10,13 @@ import { TabMenu } from './TabMenu'
 import { activeAfterClose, TAB_DEFAULT, visibleTabs } from './tabsView'
 import { useTabsView } from './useTabsView'
 
-interface ChapterTabsProps { projectId: string; chapters: Chapter[]; activeId: string | null }
+interface ChapterTabsProps {
+  projectId: string
+  chapters: Chapter[]
+  activeId: string | null
+}
 
-// Drag the right edge of a tab to set its width (D10); the width is kept in memory only.
+// Drag the right edge of a tab to set its width; the width is kept in memory only.
 function ResizeHandle({ id, width }: { id: string; width: number }) {
   const setWidth = useTabsView((s) => s.setWidth)
   const [start, setStart] = useState<{ x: number; width: number } | null>(null)
@@ -101,12 +105,7 @@ export function ChapterTabs({ projectId, chapters, activeId }: ChapterTabsProps)
           )
         })}
       </div>
-      <button
-        type="button"
-        className="shrink-0 px-2"
-        aria-label="Add chapter"
-        onClick={() => void add()}
-      >
+      <button type="button" className="shrink-0 px-2" aria-label="Add chapter" onClick={() => void add()}>
         +
       </button>
       {trashOpen && <TrashPanel onClose={() => setTrashOpen(false)} />}

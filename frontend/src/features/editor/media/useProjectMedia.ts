@@ -154,10 +154,7 @@ async function uploadProjectMedia(
   try {
     const created = await backend.media.upload(projectId, nodeId, file)
     set((s) => ({ media: applyMediaEvent(s.media, { action: 'create', record: created }) }))
-    const [, token] = await Promise.all([
-      readStorage(projectId, set),
-      backend.media.fileToken(),
-    ])
+    const [, token] = await Promise.all([readStorage(projectId, set), backend.media.fileToken()])
     set(() => ({ fileToken: token }))
     return created
   } catch (err) {

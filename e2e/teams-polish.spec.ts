@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 import { uniqueEmail } from './helpers/admin'
 import { signUpVerifyAndSignIn, createTeam, openTeam, enableJoinCode, settled } from './helpers/ui'
 
-// C1: a deleted team leaves the list at once
+// A deleted team leaves the list at once
 test('a deleted team is gone from the list at once', async ({ page }) => {
   await page.goto('/')
   await signUpVerifyAndSignIn(page, uniqueEmail(), 'Owner')
@@ -20,7 +20,7 @@ test('a deleted team is gone from the list at once', async ({ page }) => {
   await expect(page.getByTestId('team-list').getByRole('button', { name: 'Crew 7' })).toHaveCount(0)
 })
 
-// C2: detail heading names the team
+// The detail heading names the team
 test('the team detail heading is the team name', async ({ page }) => {
   await page.goto('/')
   await signUpVerifyAndSignIn(page, uniqueEmail(), 'Owner')
@@ -31,7 +31,7 @@ test('the team detail heading is the team name', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Crew 7' })).toBeVisible()
 })
 
-// C3: join notice clears on the next action
+// The join notice clears on the next action
 test('the join notice clears on the next action', async ({ page, browser }) => {
   const ownerEmail = uniqueEmail()
   await page.goto('/')
@@ -66,7 +66,7 @@ test('the join notice clears on the next action', async ({ page, browser }) => {
   await page2.close()
 })
 
-// C4: sign-up shows a confirmation, not a filled form
+// Sign-up shows a confirmation, not a filled form
 test('sign-up replaces the form with a confirmation', async ({ page }) => {
   const email = uniqueEmail()
   await page.goto('/')
@@ -77,7 +77,9 @@ test('sign-up replaces the form with a confirmation', async ({ page }) => {
   await page.getByRole('button', { name: 'Sign up' }).click()
 
   // After sign-up, the confirmation text should be visible
-  await expect(page.getByText('Check your email to verify your account, then sign in.')).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByText('Check your email to verify your account, then sign in.')).toBeVisible({
+    timeout: 10_000,
+  })
 
   // The password field should NOT be on screen
   await expect(page.getByLabel('Password')).toHaveCount(0)
@@ -86,7 +88,7 @@ test('sign-up replaces the form with a confirmation', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Sign in' }).first()).toBeVisible()
 })
 
-// C9: keyboard reaches the account controls
+// The keyboard reaches the account controls
 test('forgot password works from the keyboard', async ({ page }) => {
   await page.goto('/')
   // The form is drawn after the page loads; Tab pressed before that lands on nothing (a flake under load).
@@ -131,5 +133,3 @@ test('toggle join code shows an error when the server fails', async ({ page }) =
   // The error alert should appear
   await expect(page.getByTestId('form-error')).toContainText('Failed to toggle join code')
 })
-
-

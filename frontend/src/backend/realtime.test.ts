@@ -9,14 +9,19 @@ function fakePb(isConnected = false) {
   const pb = {
     filter: (q: string) => q,
     collection: (name: string) => ({
-      subscribe: async () => async () => { closed.push(name) },
+      subscribe: async () => async () => {
+        closed.push(name)
+      },
     }),
     realtime: {
       isConnected,
       subscribe: async (topic: string, cb: () => void) => {
         expect(topic).toBe('PB_CONNECT')
         connectCallbacks.add(cb)
-        return async () => { connectCallbacks.delete(cb); closed.push('PB_CONNECT') }
+        return async () => {
+          connectCallbacks.delete(cb)
+          closed.push('PB_CONNECT')
+        }
       },
     },
   }
@@ -24,11 +29,19 @@ function fakePb(isConnected = false) {
   return { pb: pb as unknown as PocketBase, connect, closed, listeners: () => connectCallbacks.size }
 }
 
-// Protects: finding E / D6: a reconnect is reported, the first connect is not, nothing is reported after close, and close removes the listener.
+// Protects: events missed while disconnected are not replayed (decision 0002), so the editor must hear of a reconnect
+// and load again: the first connect is not one, nothing is reported after close, and close removes the listener.
 test('a reconnect is reported but the first connect is not', async () => {
   const { pb, connect, closed, listeners } = fakePb()
   let reconnects = 0
-  const close = await subscribeProject(pb, 'p1', () => {}, () => { reconnects++ })
+  const close = await subscribeProject(
+    pb,
+    'p1',
+    () => {},
+    () => {
+      reconnects++
+    },
+  )
   connect()
   expect(reconnects).toBe(0)
   connect()
@@ -43,32 +56,45 @@ test('a reconnect is reported but the first connect is not', async () => {
   expect(reconnects).toBe(2)
 })
 
-// Protects: finding E: when the socket is already connected before this subscription, the first PB_CONNECT seen is already a reconnect.
+// Protects: when the socket is already connected before this subscription, the first PB_CONNECT seen is already a
+// reconnect.
 test('a connect seen on an already open connection is a reconnect', async () => {
   const { pb, connect } = fakePb(true)
   let reconnects = 0
-  await subscribeProject(pb, 'p1', () => {}, () => { reconnects++ })
+  await subscribeProject(
+    pb,
+    'p1',
+    () => {},
+    () => {
+      reconnects++
+    },
+  )
   connect()
   expect(reconnects).toBe(1)
 })
 
-// Protects: Plan 3's behaviour: without onReconnect no PB_CONNECT subscription is opened.
+// Protects: without onReconnect no PB_CONNECT subscription is opened.
 test('no reconnect callback, no connect subscription', async () => {
   const { pb, listeners } = fakePb()
   await subscribeProject(pb, 'p1', () => {})
   expect(listeners()).toBe(0)
 })
 
-// Protects plan 7 D15: listeners hear `true` on every connect and `false` when the stream drops
-// while the project's subscriptions are open; a drop with nothing subscribed is ignored; several
-// listeners are allowed; and nothing arrives after the subscription is closed or a listener left.
+// Protects the offline status following the live stream: listeners hear `true` on every connect and `false` when the
+// stream drops while the project's subscriptions are open; a drop with nothing subscribed is ignored; several listeners
+// are allowed; and nothing arrives after the subscription is closed or a listener left.
 test('connection listeners hear connects and drops only while subscribed', async () => {
   const { pb, connect, closed } = fakePb()
   const realtime = createRealtime(pb)
   const heard: string[] = []
   const off = realtime.onConnectionChange((up) => heard.push(`a:${up}`))
   realtime.onConnectionChange((up) => heard.push(`b:${up}`))
-  const close = await subscribeProject(pb, 'p1', () => {}, () => {})
+  const close = await subscribeProject(
+    pb,
+    'p1',
+    () => {},
+    () => {},
+  )
   connect()
   const drop = (pb as unknown as { realtime: { onDisconnect?: (subs: string[]) => void } }).realtime.onDisconnect
   drop?.(['x'])
@@ -84,9 +110,9 @@ test('connection listeners hear connects and drops only while subscribed', async
   expect(heard).toHaveLength(5)
 })
 
-// Protects review finding M4 of plan 2026-11-20-sharing: the stream probe is built from the client's
-// own base URL (a backend on another origin is probed, not the page's host), answers true on the
-// server's connect event, and false on an error or when nothing answers within two seconds.
+// Protects the stream probe: it is built from the client's own base URL (a backend on another origin is probed, not the
+// page's host), answers true on the server's connect event, and false on an error or when nothing answers within two
+// seconds.
 test('the stream probe uses the client address and answers on connect, error or timeout', async () => {
   const opened: Array<{ url: string; fire(type: string): void; closed: boolean }> = []
   class FakeSource {
@@ -97,9 +123,15 @@ test('the stream probe uses the client address and answers on connect, error or 
       this.url = url
       opened.push(this)
     }
-    addEventListener(type: string, fn: () => void) { this.handlers.set(type, fn) }
-    fire(type: string) { this.handlers.get(type)?.() }
-    close() { this.closed = true }
+    addEventListener(type: string, fn: () => void) {
+      this.handlers.set(type, fn)
+    }
+    fire(type: string) {
+      this.handlers.get(type)?.()
+    }
+    close() {
+      this.closed = true
+    }
   }
   vi.stubGlobal('EventSource', FakeSource)
   vi.useFakeTimers()

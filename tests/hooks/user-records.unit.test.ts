@@ -3,7 +3,9 @@ import { afterEach, beforeEach, expect, test } from 'vitest'
 
 const require = createRequire(import.meta.url)
 type EnsureUserRecords = (app: FakeApp, userId: string) => void
-const { ensureUserRecords } = require('../../backend/pb_hooks/lib/user-records.js') as { ensureUserRecords: EnsureUserRecords }
+const { ensureUserRecords } = require('../../backend/pb_hooks/lib/user-records.js') as {
+  ensureUserRecords: EnsureUserRecords
+}
 
 // Stands in for PocketBase's global Record class, which the hook runtime provides.
 class FakeRecord {
@@ -23,7 +25,14 @@ class FakeApp {
   findCollectionByNameOrId(name: string) {
     return { name }
   }
-  findRecordsByFilter(collection: string, _filter: string, _sort: string, _limit: number, _offset: number, params: { user: string }) {
+  findRecordsByFilter(
+    collection: string,
+    _filter: string,
+    _sort: string,
+    _limit: number,
+    _offset: number,
+    params: { user: string },
+  ) {
     return this.rows.filter((row) => row.collection.name === collection && row.values.user === params.user)
   }
   save(record: FakeRecord) {
@@ -56,7 +65,7 @@ test('ensureUserRecords creates the three rows with their defaults', () => {
   expect(rowsFor(app, 'user_status', 'user1')).toEqual([{ user: 'user1', blocked: false }])
 })
 
-// Protects the helper's contract "idempotent": it also runs at sign-in (Task 4), so a
+// Protects the helper's contract "idempotent": it also runs at sign-in, so a
 // second call must not add rows, and must never undo a theme choice or an admin's block.
 test('ensureUserRecords never adds a second row or changes an existing one', () => {
   const app = new FakeApp()
@@ -104,7 +113,7 @@ class RacingApp extends FakeApp {
   }
 }
 
-// Protects sign-in (Task 4): two sign-ins of the same new account at once can both find
+// Protects sign-in: two sign-ins of the same new account at once can both find
 // a row missing and both create it; the second create hits the unique index. That is not
 // an error, because the row now exists, so the sign-in must not fail.
 test('ensureUserRecords accepts a row that another request created first', () => {

@@ -1,12 +1,22 @@
 import type { ContentState } from './state'
 import { liveChapters, liveNodes } from './state'
 
-export interface SearchHit { nodeId: string; chapterId: string; chapterTitle: string; title: string }
+export interface SearchHit {
+  nodeId: string
+  chapterId: string
+  chapterTitle: string
+  title: string
+}
 export const SEARCH_LIMIT = 20
 
 // NFD decompose, strip combining marks (U+0300–U+036F), lowercase, trim, collapse whitespace.
 export function normalizeTitle(text: string): string {
-  return text.normalize('NFD').replace(/[\u0300-\u036F]/g, '').toLowerCase().trim().replace(/\s+/g, ' ')
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036F]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, ' ')
 }
 
 function makeHit(nodeId: string, chapterId: string, chapterTitle: string, title: string): SearchHit {

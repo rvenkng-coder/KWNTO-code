@@ -5,21 +5,14 @@ import { verifyByEmail } from './admin'
  * Fills the sign-up form, submits, and waits for the result.
  * Waits for either "Check your email" confirmation or a form-error.
  */
-export async function signUp(
-  page: Page,
-  email: string,
-  name: string,
-  password: string,
-): Promise<void> {
+export async function signUp(page: Page, email: string, name: string, password: string): Promise<void> {
   await page.getByRole('button', { name: 'Sign up' }).click()
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Name').fill(name)
   await page.getByLabel('Password').fill(password)
   await page.getByRole('button', { name: 'Sign up' }).click()
   // Wait for sign-up to finish: either confirmation or error
-  await expect(
-    page.getByText('Check your email').or(page.getByTestId('form-error')),
-  ).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByText('Check your email').or(page.getByTestId('form-error'))).toBeVisible({ timeout: 10_000 })
 }
 
 /**
@@ -75,7 +68,7 @@ export async function openTeam(page: Page, name: string): Promise<void> {
 
 /**
  * Owner on the team detail screen: turns the join code on if it is off (a new
- * team starts with it off, decision D1) and returns the code.
+ * team starts with it off) and returns the code.
  */
 export async function enableJoinCode(page: Page): Promise<string> {
   // The code and its button appear together once the settings have loaded.

@@ -2,7 +2,15 @@
 // the verification gate blocks team creation until the account is verified.
 import { test, expect, type Page } from '@playwright/test'
 import { verifyByEmail, uniqueEmail } from './helpers/admin'
-import { signUp, signUpVerifyAndSignIn, createTeam, openTeam, enableJoinCode, joinWithCode, settled } from './helpers/ui'
+import {
+  signUp,
+  signUpVerifyAndSignIn,
+  createTeam,
+  openTeam,
+  enableJoinCode,
+  joinWithCode,
+  settled,
+} from './helpers/ui'
 
 // Protects: XSS as text (security.md section 5) — team names are rendered as text, not HTML.
 test('XSS as text', async ({ page }) => {
@@ -12,7 +20,7 @@ test('XSS as text', async ({ page }) => {
   const xssName = '<script>window.__xss=1</script>'
   await createTeam(page, xssName)
   await expect(page.getByText(xssName)).toBeVisible()
-  await expect(page.evaluate(() => window.__xss)).resolves.toBeUndefined()
+  await expect(page.evaluate(() => (window as unknown as { __xss?: number }).__xss)).resolves.toBeUndefined()
 })
 
 // Protects: join by code — owner turns the code on, member joins, names shown not emails.
@@ -62,8 +70,8 @@ test('wrong code and regenerate', async ({ page, browser }) => {
   await page2.close()
 })
 
-// Protects: race between the screen's first team list and a failed join (Plan 3 Task 4
-// flake): a list response that lands after the join error must not clear the error.
+// Protects: race between the screen's first team list and a failed join: a list response that lands after the join
+// error must not clear the error.
 test('wrong code error survives a slow response', async ({ page }) => {
   await page.route('**/api/collections/team_members/records**', async (route) => {
     await new Promise((resolve) => setTimeout(resolve, 1_000))
@@ -169,7 +177,7 @@ test('sign-up and verification gate', async ({ page }) => {
   await page.getByRole('button', { name: 'Sign in' }).click()
   await expect(page.getByText('Verify your email')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Create team' })).toBeDisabled()
-  // Verify, then reload: the stored session is refreshed, so the gate lifts (final review, I1)
+  // Verify, then reload: the stored session is refreshed, so the gate lifts
   await verifyByEmail(email)
   await page.reload()
   await expect(page.getByRole('button', { name: 'Create team' })).toBeEnabled()

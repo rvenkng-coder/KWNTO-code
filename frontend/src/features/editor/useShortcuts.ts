@@ -4,7 +4,7 @@ import { useSelection } from './canvas/useSelection'
 import { shortcutFor, type ShortcutAction } from './model/shortcuts'
 import { edits } from './store/edits'
 
-// The editor's keyboard shortcuts (plan D12), on the window while a project is open. Inside a
+// The editor's keyboard shortcuts, on the window while a project is open. Inside a
 // text field only Ctrl/⌘+K is taken; everything else stays with the browser (its own undo of typing).
 
 function isTextField(target: EventTarget | null): boolean {
@@ -21,7 +21,7 @@ function run(action: ShortcutAction, chapterId: string | null): void {
     cut: () => void cutSelection(),
     paste: () => void (chapterId !== null && edits.paste(chapterId)),
     delete: () => void trashSelection(),
-    // The search box of Task 13, when it is on the page.
+    // The search box, when it is on the page.
     search: () => document.querySelector<HTMLElement>('[data-testid="search-input"]')?.focus(),
     selectAll: () => chapterId !== null && selectAll(chapterId),
   }

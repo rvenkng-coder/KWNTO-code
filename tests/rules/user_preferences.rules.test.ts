@@ -42,7 +42,9 @@ test('user_preferences: a theme other than light or dark is rejected', async () 
   const row = await onlyRowOf('user_preferences', someone.id)
   const pb = await asUser(someone)
 
-  await expect(pb.collection('user_preferences').update(row.id, { theme: 'neon' })).rejects.toMatchObject({ status: 400 })
+  await expect(pb.collection('user_preferences').update(row.id, { theme: 'neon' })).rejects.toMatchObject({
+    status: 400,
+  })
   expect((await onlyRowOf('user_preferences', someone.id)).theme).toBe('dark')
 })
 
@@ -65,7 +67,9 @@ test('user_preferences: a user cannot create or delete a row', async () => {
   const row = await onlyRowOf('user_preferences', someone.id)
   const pb = await asUser(someone)
 
-  await expectRefused(pb.collection('user_preferences').create({ user: someone.id, theme: 'light', minimap_visible: true }))
+  await expectRefused(
+    pb.collection('user_preferences').create({ user: someone.id, theme: 'light', minimap_visible: true }),
+  )
   await expectRefused(pb.collection('user_preferences').delete(row.id))
   expect((await onlyRowOf('user_preferences', someone.id)).id).toBe(row.id)
 })

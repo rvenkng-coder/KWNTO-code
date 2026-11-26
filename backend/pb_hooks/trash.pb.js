@@ -1,5 +1,5 @@
 /// <reference path="../pb_data/types.d.ts" />
-// Enforces the trash retention (design 6.8, plan D11): every night at 03:30 UTC, projects,
+// Enforces the trash retention (design 6.8): every night at 03:30 UTC, projects,
 // then chapters, then nodes trashed longer ago than system_behavior.trash_retention_days
 // are deleted for good. PocketBase's cascades remove what hangs on them (lines, cues,
 // choices, media rows and their files); a choice pointing at a purged node becomes empty
@@ -25,7 +25,10 @@ cronAdd("purge_trash", "30 3 * * *", () => {
         return $app.findRecordsByFilter(name, withoutSkipped(filter, skipIds, params), "", 200, 0, params)
       },
       (record) => $app.delete(record),
-      (record, error) => $app.logger().error("purge_trash: could not delete a record", "collection", name, "id", record.id, "error", String(error)),
+      (record, error) =>
+        $app
+          .logger()
+          .error("purge_trash: could not delete a record", "collection", name, "id", record.id, "error", String(error)),
     )
   }
 })

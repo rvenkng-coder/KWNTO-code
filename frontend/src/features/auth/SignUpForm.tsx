@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { useSession } from './useSession'
 
-const PASSWORD_RULES =
-  'At least 10 characters, with a letter and a number. Very common passwords are rejected.'
+const PASSWORD_RULES = 'At least 10 characters, with a letter and a number. Very common passwords are rejected.'
 
 interface SignUpFormProps {
   onSignIn: () => void
@@ -70,8 +69,14 @@ export function SignUpForm({ onSignIn }: SignUpFormProps) {
         />
         <small>{PASSWORD_RULES}</small>
       </div>
-      {error && <p data-testid="form-error" role="alert">{error}</p>}
-      <button type="submit" className="btn-primary">Sign up</button>
+      {error && (
+        <p data-testid="form-error" role="alert">
+          {error}
+        </p>
+      )}
+      <button type="submit" className="btn-primary">
+        Sign up
+      </button>
     </form>
   )
 }

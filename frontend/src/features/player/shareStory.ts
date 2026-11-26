@@ -6,7 +6,7 @@ import { buildStory, type Story, type StoryMediaInput } from './story'
 
 const KINDS: readonly string[] = ['audio', 'video', 'image']
 
-/** The story a share link's project file holds: the same `Story` the editor's content gives (plan D2). */
+/** The story a share link's project file holds: the same `Story` the editor's content gives. */
 export function storyOfFile(file: ProjectFile, projectId: string): Story {
   const media: StoryMediaInput[] = file.media
     .filter((m) => KINDS.includes(m.kind))

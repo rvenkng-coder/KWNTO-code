@@ -1,6 +1,19 @@
 import {
-  applyEdgeChanges, applyNodeChanges, Background, BackgroundVariant, Controls, MiniMap, ReactFlow, ReactFlowProvider, useNodesInitialized, useReactFlow,
-  type Connection as FlowConnection, type Edge, type EdgeChange, type NodeChange, type OnNodeDrag,
+  applyEdgeChanges,
+  applyNodeChanges,
+  Background,
+  BackgroundVariant,
+  Controls,
+  MiniMap,
+  ReactFlow,
+  ReactFlowProvider,
+  useNodesInitialized,
+  useReactFlow,
+  type Connection as FlowConnection,
+  type Edge,
+  type EdgeChange,
+  type NodeChange,
+  type OnNodeDrag,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent } from 'react'
@@ -42,14 +55,41 @@ function mergeNodes(prev: CardNode[], next: CardNode[], selected: Set<string>): 
     const isSelected = selected.has(n.id)
     if (o === undefined) return { ...n, selected: isSelected }
     const position = o.dragging === true ? o.position : n.position
-    const unchanged = o.position.x === position.x && o.position.y === position.y && o.selected === isSelected && o.width === n.width && o.height === n.height && sameData(o.data, n.data)
-    return unchanged ? o : { ...o, position, selected: isSelected, width: n.width, height: n.height, data: sameData(o.data, n.data) ? o.data : n.data }
+    const unchanged =
+      o.position.x === position.x &&
+      o.position.y === position.y &&
+      o.selected === isSelected &&
+      o.width === n.width &&
+      o.height === n.height &&
+      sameData(o.data, n.data)
+    return unchanged
+      ? o
+      : {
+          ...o,
+          position,
+          selected: isSelected,
+          width: n.width,
+          height: n.height,
+          data: sameData(o.data, n.data) ? o.data : n.data,
+        }
   })
 }
 
 function mergeEdges(prev: Edge[], next: Edge[], selectedId: string | null): Edge[] {
-  return next.map((e) => ({ ...e, selected: e.id === selectedId }))
-    .map((e) => prev.find((p) => p.id === e.id && p.selected === e.selected && p.label === e.label && p.target === e.target && p.source === e.source && p.sourceHandle === e.sourceHandle) ?? e)
+  return next
+    .map((e) => ({ ...e, selected: e.id === selectedId }))
+    .map(
+      (e) =>
+        prev.find(
+          (p) =>
+            p.id === e.id &&
+            p.selected === e.selected &&
+            p.label === e.label &&
+            p.target === e.target &&
+            p.source === e.source &&
+            p.sourceHandle === e.sourceHandle,
+        ) ?? e,
+    )
 }
 
 // The person changed the selection on the canvas (see selectionChanges.ts for why only these changes count).
@@ -70,35 +110,66 @@ function useFlowState(chapterId: string) {
   const [flow, setFlow] = useState({ from: [] as unknown[], nodes: [] as CardNode[], edges: [] as Edge[] })
   const from = [nextNodes, nextEdges, selectedNodes, selectedEdge]
   if (from.some((x, i) => x !== flow.from[i])) {
-    setFlow({ from, nodes: mergeNodes(flow.nodes, nextNodes, new Set(selectedNodes)), edges: mergeEdges(flow.edges, nextEdges, selectedEdge) })
+    setFlow({
+      from,
+      nodes: mergeNodes(flow.nodes, nextNodes, new Set(selectedNodes)),
+      edges: mergeEdges(flow.edges, nextEdges, selectedEdge),
+    })
   }
-  const onNodesChange = useCallback((changes: NodeChange<CardNode>[]) => {
-    setFlow((f) => ({ ...f, nodes: applyNodeChanges(changes, f.nodes) }))
-    takeSelection(chapterId, changes, [])
-  }, [chapterId])
-  const onEdgesChange = useCallback((changes: EdgeChange[]) => {
-    setFlow((f) => ({ ...f, edges: applyEdgeChanges(changes, f.edges) }))
-    takeSelection(chapterId, [], changes)
-  }, [chapterId])
+  const onNodesChange = useCallback(
+    (changes: NodeChange<CardNode>[]) => {
+      setFlow((f) => ({ ...f, nodes: applyNodeChanges(changes, f.nodes) }))
+      takeSelection(chapterId, changes, [])
+    },
+    [chapterId],
+  )
+  const onEdgesChange = useCallback(
+    (changes: EdgeChange[]) => {
+      setFlow((f) => ({ ...f, edges: applyEdgeChanges(changes, f.edges) }))
+      takeSelection(chapterId, [], changes)
+    },
+    [chapterId],
+  )
   const synced = flow.from[0] === nextNodes
-  return { nodes: flow.nodes, edges: flow.edges, onNodesChange, onEdgesChange, synced, hasStart: effectiveStart(content) !== null }
+  return {
+    nodes: flow.nodes,
+    edges: flow.edges,
+    onNodesChange,
+    onEdgesChange,
+    synced,
+    hasStart: effectiveStart(content) !== null,
+  }
 }
 
 // The edits the canvas makes: create, connect, move, trash and remove, and the selection.
 function useCanvasActions(projectId: string, chapterId: string) {
   const { screenToFlowPosition } = useReactFlow()
-  const createAt = useCallback((e: MouseEvent) => {
-    if (!(e.target instanceof Element) || !e.target.classList.contains('react-flow__pane')) return
-    void edits.create('nodes', newNodeRecord(projectId, chapterId, screenToFlowPosition({ x: e.clientX, y: e.clientY })), 'Add node')
-  }, [screenToFlowPosition, projectId, chapterId])
-  const onConnect = useCallback((c: FlowConnection) => {
-    connectChoice(projectId, c.source, c.sourceHandle, c.target)
-  }, [projectId])
+  const createAt = useCallback(
+    (e: MouseEvent) => {
+      if (!(e.target instanceof Element) || !e.target.classList.contains('react-flow__pane')) return
+      void edits.create(
+        'nodes',
+        newNodeRecord(projectId, chapterId, screenToFlowPosition({ x: e.clientX, y: e.clientY })),
+        'Add node',
+      )
+    },
+    [screenToFlowPosition, projectId, chapterId],
+  )
+  const onConnect = useCallback(
+    (c: FlowConnection) => {
+      connectChoice(projectId, c.source, c.sourceHandle, c.target)
+    },
+    [projectId],
+  )
   const onNodeDragStop: OnNodeDrag<CardNode> = useCallback((_e, _node, moved) => {
     // A drag of several nodes is one undo step.
     const label = `Move ${plural(moved.length, 'node')}`
     void edits.group(label, async () => {
-      await Promise.all(moved.map((n) => edits.update('nodes', n.id, { x: Math.round(n.position.x), y: Math.round(n.position.y) }, label)))
+      await Promise.all(
+        moved.map((n) =>
+          edits.update('nodes', n.id, { x: Math.round(n.position.x), y: Math.round(n.position.y) }, label),
+        ),
+      )
     })
   }, [])
   // React Flow would also drop the edges of a deleted node; a trashed node keeps its connections
@@ -165,15 +236,40 @@ function CanvasView({ projectId, chapterId }: { projectId: string; chapterId: st
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2">
       <CanvasToolbar chapterId={chapterId} showNoStart={anyNode && !flow.hasStart} prefs={prefs} />
-      <div ref={canvasRef} data-testid="canvas" data-node-count={count} data-ready={inited && flow.synced ? 'true' : 'false'} className="kwnto-canvas relative min-h-0 flex-1" style={{ '--card-font-size': `${prefs.fontSize}px`, '--card-media-size': `${prefs.mediaSize}px` } as CSSProperties} onDoubleClick={actions.createAt}>
-        {link.linking && <div role="status" className="panel absolute left-1/2 top-2 z-10 -translate-x-1/2">{LINK_BANNER}</div>}
+      <div
+        ref={canvasRef}
+        data-testid="canvas"
+        data-node-count={count}
+        data-ready={inited && flow.synced ? 'true' : 'false'}
+        className="kwnto-canvas relative min-h-0 flex-1"
+        style={
+          { '--card-font-size': `${prefs.fontSize}px`, '--card-media-size': `${prefs.mediaSize}px` } as CSSProperties
+        }
+        onDoubleClick={actions.createAt}
+      >
+        {link.linking && (
+          <div role="status" className="panel absolute left-1/2 top-2 z-10 -translate-x-1/2">
+            {LINK_BANNER}
+          </div>
+        )}
         <ReactFlow<CardNode>
-          nodes={flow.nodes} edges={flow.edges} nodeTypes={nodeTypes}
-          onNodesChange={flow.onNodesChange} onEdgesChange={flow.onEdgesChange}
-          onConnect={actions.onConnect} onNodeDragStop={actions.onNodeDragStop}
-          onInit={() => setInited(true)} onNodeClick={link.onNodeClick} onPaneClick={link.onPaneClick} elementsSelectable={!link.linking}
-          selectionOnDrag={areaSelect} panOnDrag={!areaSelect}
-          deleteKeyCode={null} zoomOnDoubleClick={false} fitView fitViewOptions={{ maxZoom: 1 }}
+          nodes={flow.nodes}
+          edges={flow.edges}
+          nodeTypes={nodeTypes}
+          onNodesChange={flow.onNodesChange}
+          onEdgesChange={flow.onEdgesChange}
+          onConnect={actions.onConnect}
+          onNodeDragStop={actions.onNodeDragStop}
+          onInit={() => setInited(true)}
+          onNodeClick={link.onNodeClick}
+          onPaneClick={link.onPaneClick}
+          elementsSelectable={!link.linking}
+          selectionOnDrag={areaSelect}
+          panOnDrag={!areaSelect}
+          deleteKeyCode={null}
+          zoomOnDoubleClick={false}
+          fitView
+          fitViewOptions={{ maxZoom: 1 }}
           // PERF: What: draw only the nodes and edges in view. Why: a 500-node chapter would put
           // every card in the DOM. Trade-off: cards appear a frame late while panning fast.
           onlyRenderVisibleElements

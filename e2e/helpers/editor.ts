@@ -62,7 +62,8 @@ export async function addNodeAt(page: Page, x: number, y: number): Promise<strin
 /** Drags from one node's "+" (new choice) handle to another node's incoming handle, waits for the save and returns the new choice's connection id. */
 export async function connectNodes(page: Page, fromId: string, toId: string): Promise<string> {
   const saved = waitForSave(page, 'connections', 'POST')
-  await page.locator(`[data-node-id="${fromId}"] [data-testid="new-choice-handle"]`)
+  await page
+    .locator(`[data-node-id="${fromId}"] [data-testid="new-choice-handle"]`)
     .dragTo(page.locator(`[data-node-id="${toId}"] .react-flow__handle.target`))
   return ((await (await saved).json()) as { id: string }).id
 }
@@ -78,7 +79,9 @@ export async function readyCanvas(page: Page, count: number): Promise<void> {
 
 /** A node's position in canvas coordinates, read from React Flow's transform. */
 export async function nodePosition(page: Page, id: string): Promise<{ x: number; y: number }> {
-  const transform = await page.locator(`.react-flow__node[data-id="${id}"]`).evaluate((el) => (el as HTMLElement).style.transform)
+  const transform = await page
+    .locator(`.react-flow__node[data-id="${id}"]`)
+    .evaluate((el) => (el as HTMLElement).style.transform)
   const match = /translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(transform)
   if (match === null) throw new Error(`no position in "${transform}"`)
   return { x: Number(match[1]), y: Number(match[2]) }

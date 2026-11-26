@@ -7,8 +7,8 @@ import type { EditorSyncPort } from './editorSync'
 import type { EditorDoor, EditorStore } from './editorStore'
 
 // Opening and closing a project: load and subscribe together, drop whatever finishes late. Waiting
-// edits are laid over everything that arrives from the server (offline sync plan Task 4, D6), and
-// the project is loaded again after every reconnect.
+// edits are laid over everything that arrives from the server, so they stay on screen, and the
+// project is loaded again after every reconnect because events missed meanwhile are not replayed.
 
 export const OPEN_FAILED = 'This project does not exist or you are not a member of its team.'
 
@@ -64,14 +64,21 @@ class Session {
   }
 
   // Loads the project, and subscribes when asked.
-  private async fetchProject(projectId: string, token: number, subscribe: boolean, subscribeFirst = false): Promise<Fetched> {
+  private async fetchProject(
+    projectId: string,
+    token: number,
+    subscribe: boolean,
+    subscribeFirst = false,
+  ): Promise<Fetched> {
     this.buffered ??= []
     if (this.loading++ === 0) this.touched.clear()
-    const subscribed = subscribe ? this.door.subscribe(projectId, this.onEventOf(token), () => {
-      // The stream is back: anything waiting on the backoff goes now, and the project is read again.
-      this.sync.retryNow()
-      void this.reload(token)
-    }) : Promise.resolve(null)
+    const subscribed = subscribe
+      ? this.door.subscribe(projectId, this.onEventOf(token), () => {
+          // The stream is back: anything waiting on the backoff goes now, and the project is read again.
+          this.sync.retryNow()
+          void this.reload(token)
+        })
+      : Promise.resolve(null)
     // After a reconnect the subscription is open before the load is asked for, so a save cannot fall between the two.
     const load = () => this.door.load(projectId)
     const loading = subscribeFirst ? subscribed.then(load, load) : load()
@@ -112,7 +119,7 @@ class Session {
     if (entries.length > 0) this.set((st) => (st.status === 'ready' ? { content: overlay(st.content, entries) } : {}))
   }
 
-  // D6: offline closes the live subscriptions; coming back opens them again and reloads.
+  // Offline closes the live subscriptions; coming back opens them again and reloads.
   // Started by the first `open`, so building the store touches no browser API.
   private watchConnection(): void {
     if (this.watching) return

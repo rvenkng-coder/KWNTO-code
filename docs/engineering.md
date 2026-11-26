@@ -2,7 +2,7 @@
 
 How we write code here, and why. For what the product does, see the [design](superpowers/specs/2026-11-11-kwnto-design.md). For security rules, see [security.md](security.md). Where a rule is enforced by a tool, the tool is named. A rule with no tool is a promise, so please keep it.
 
-These principles were set by the developer on 2026-11-11. Items marked **(planned)** are to be set up in the first plan tasks and do not exist yet.
+These principles were set by the developer on 2026-11-11.
 
 ## 1. Readable beats clever
 
@@ -23,6 +23,8 @@ These principles were set by the developer on 2026-11-11. Items marked **(planne
 - **One door to the backend.** Only the backend module talks to PocketBase. Nothing else imports it. This also keeps the backend swappable (see design section 7). Enforced by ESLint `no-restricted-imports`.
 - **Strict TypeScript.** No `any` without a comment explaining why. Enforced by `tsc --strict` (`npm run typecheck`) and the ESLint rule `@typescript-eslint/no-explicit-any`.
 - Comments explain **why**, not what. If a comment explains what the code does, the code should be clearer instead (except for `PERF:` comments above).
+- Comments state the reason where they are. Never cite a plan, task, decision number, case id or finding. A design section or decision record may follow the reason. Checked by `npm run lint`.
+- **Layout is automatic.** Prettier formats every `.ts`, `.tsx` and `.js` file (`npm run format`; CI runs `npm run format:check`).
 
 ## 3. Change only what the task needs
 
@@ -41,7 +43,7 @@ These principles were set by the developer on 2026-11-11. Items marked **(planne
 
 - Never add a dependency on your own. Stop and give the developer the realistic options with pros, cons, licence, maintenance status and size, plus a recommendation. The developer decides.
 - Everything must be free to use and run (project rule: zero cost).
-- Record each decision, with its reason, in `docs/decisions/` **(planned)**.
+- Record each decision, with its reason, in `docs/decisions/`.
 
 ## 5. Ask first
 
@@ -68,10 +70,9 @@ Everything else stays inside the task you were given.
 
 ## 7. Git workflow
 
-- Work on a short-lived branch in small commits. **The developer reviews before anything lands on `main`. Agents never merge to `main` themselves.**
-- Today (deadline pressure): branch, review, then `main` in small steps, without a pull request.
-- Target: one branch per feature, merged through a pull request the developer reviews.
-- The GitHub workflow runs the tests and the documentation check on every push.
+- Work on a short-lived branch in small commits. One branch per feature or fix.
+- Push the branch and open a pull request. **The developer reviews and merges it. Agents never merge to `main` themselves.**
+- The GitHub workflow runs the tests and the documentation check on every pull request and on every push to `main`.
 
 ## 8. Documentation is part of done
 

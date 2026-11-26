@@ -3,10 +3,10 @@ import { memberProject } from './helpers/content.ts'
 import { tokenOf } from './helpers/invites.ts'
 import { PB_URL } from './helpers/pb.ts'
 
-// Protects review finding M2 of plan 2026-11-20-sharing: one import can hold the database's only
-// write connection for seconds, so a person may start 10 an hour; the 11th gets 429 with a
-// message and creates nothing, and another person is not affected. Route:
-// backend/pb_hooks/project-file.pb.js, limit: backend/pb_hooks/lib/import-limit.js.
+// Protects the import limit: one import can hold the database's only write connection for seconds,
+// so a person may start 10 an hour; the 11th gets 429 with a message and creates nothing, and
+// another person is not affected. Route: backend/pb_hooks/project-file.pb.js, limit:
+// backend/pb_hooks/lib/import-limit.js.
 
 const SMALL_FILE = JSON.stringify({
   format: 'kwnto-project',
@@ -29,7 +29,7 @@ function post(token: string, teamId: string): Promise<Response> {
   })
 }
 
-// Protects: M2, the limit of 10 imports an hour per person (429 on the 11th, nothing made, others unaffected).
+// Protects: the limit of 10 imports an hour per person (429 on the 11th, nothing made, others unaffected).
 test('the eleventh import in an hour is refused with 429', { timeout: 120_000 }, async () => {
   const ctx = await memberProject()
   const token = await tokenOf(ctx.member)

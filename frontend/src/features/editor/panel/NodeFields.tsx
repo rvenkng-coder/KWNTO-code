@@ -22,10 +22,15 @@ function ColorSwatches({ node }: { node: StoryNode }) {
     <div className="flex flex-wrap gap-1" role="group" aria-label="Colour">
       {COLOR_NAMES.map((c) => (
         // The swatch colour is node data from the palette (colors.ts), the one allowed inline colour.
-        <button key={c} type="button" aria-label={`Colour ${c}`} aria-pressed={node.color === c}
+        <button
+          key={c}
+          type="button"
+          aria-label={`Colour ${c}`}
+          aria-pressed={node.color === c}
           className={`h-6 w-6 rounded-base border-2 ${node.color === c ? 'border-text' : 'border-transparent'}`}
           style={{ background: NODE_COLORS[c][theme] }}
-          onClick={() => void edits.update('nodes', node.id, { color: c }, 'Recolour node')} />
+          onClick={() => void edits.update('nodes', node.id, { color: c }, 'Recolour node')}
+        />
       ))}
     </div>
   )
@@ -39,17 +44,28 @@ export function NodeFields({ node }: { node: StoryNode }) {
   return (
     <div className="flex flex-col gap-4 [&>section]:border-t [&>section]:border-border [&>section]:pt-4">
       <label className="flex flex-col gap-1">
-        <span className="flex items-baseline gap-2">Title <EditingBadge nodeId={node.id} field="title" /></span>
-        <input className="field" value={title} onChange={(e) => setTitle(e.target.value)} {...presenceFocus(node.id, 'title')}
+        <span className="flex items-baseline gap-2">
+          Title <EditingBadge nodeId={node.id} field="title" />
+        </span>
+        <input
+          className="field"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          {...presenceFocus(node.id, 'title')}
           onBlur={() => {
             presenceFocus(node.id, 'title').onBlur()
             flush()
-          }} />
+          }}
+        />
       </label>
       <ColorSwatches node={node} />
-      {isStart
-        ? <p className="text-muted">This is the start node.</p>
-        : <button type="button" className="btn self-start" onClick={makeStart}>Make start node</button>}
+      {isStart ? (
+        <p className="text-muted">This is the start node.</p>
+      ) : (
+        <button type="button" className="btn self-start" onClick={makeStart}>
+          Make start node
+        </button>
+      )}
       <ScriptLines projectId={node.projectId} nodeId={node.id} />
       <Cues projectId={node.projectId} nodeId={node.id} />
       <CoverSection node={node} />

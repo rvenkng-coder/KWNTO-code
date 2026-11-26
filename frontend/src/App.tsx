@@ -34,7 +34,11 @@ function App() {
   if (route.name === 'reset') return <ResetPasswordScreen key={route.token} token={route.token} />
 
   if (!user && route.name === 'share') {
-    return <AppShell><ShareScreen token={route.token} /></AppShell>
+    return (
+      <AppShell>
+        <ShareScreen token={route.token} />
+      </AppShell>
+    )
   }
 
   if (!user) {

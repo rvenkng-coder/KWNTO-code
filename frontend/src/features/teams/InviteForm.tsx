@@ -35,9 +35,15 @@ export function InviteForm({ teamId }: InviteFormProps) {
         placeholder="Email"
         aria-label="Invitee email"
       />
-      <button type="submit" className="btn">Send invite</button>
+      <button type="submit" className="btn">
+        Send invite
+      </button>
       {sent && <p>Invite sent!</p>}
-      {error && <p data-testid="form-error" role="alert">{error}</p>}
+      {error && (
+        <p data-testid="form-error" role="alert">
+          {error}
+        </p>
+      )}
     </form>
   )
 }

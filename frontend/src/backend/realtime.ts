@@ -3,24 +3,40 @@ import type { ContentKind, ContentRecords, RemoteEvent } from './content-types'
 import { fromRecord } from './content-mappers'
 import { toBackendError } from './errors'
 
-// Live changes of one project (plan D15, decision 0002 finding D): one subscription per
-// content collection, filtered by project; for `projects`, its one record. PocketBase
+// Live changes of one project: one subscription per content collection, filtered by project so
+// that no other project's events arrive (decision 0002); for `projects`, its one record. PocketBase
 // checks each collection's view rule before it sends an event, so an outsider receives
-// nothing. Events missed while disconnected are not replayed (finding E, Plan 4).
+// nothing. Events missed while disconnected are not replayed, so the caller loads the project
+// again after a reconnect (`onReconnect`).
 
 const KINDS: readonly ContentKind[] = [
-  'projects', 'project_settings', 'chapters', 'nodes', 'script_lines', 'cues', 'connections',
+  'projects',
+  'project_settings',
+  'chapters',
+  'nodes',
+  'script_lines',
+  'cues',
+  'connections',
 ]
 const ACTIONS: ReadonlyArray<RemoteEvent['action']> = ['create', 'update', 'delete']
 
 type Unsubscribe = () => Promise<void>
 
-function toEvent<K extends ContentKind>(kind: K, action: RemoteEvent['action'], record: ContentRecords[K]): RemoteEvent {
+function toEvent<K extends ContentKind>(
+  kind: K,
+  action: RemoteEvent['action'],
+  record: ContentRecords[K],
+): RemoteEvent {
   // The mapped union cannot be built from a generic K without a cast; kind and record match by construction.
   return { kind, action, record } as RemoteEvent
 }
 
-function subscribeKind(pb: PocketBase, kind: ContentKind, projectId: string, onEvent: (e: RemoteEvent) => void): Promise<Unsubscribe> {
+function subscribeKind(
+  pb: PocketBase,
+  kind: ContentKind,
+  projectId: string,
+  onEvent: (e: RemoteEvent) => void,
+): Promise<Unsubscribe> {
   const deliver = (e: { action: string; record: Record<string, unknown> }) => {
     const action = ACTIONS.find((a) => a === e.action)
     if (action) onEvent(toEvent(kind, action, fromRecord(kind, e.record)))
@@ -30,7 +46,7 @@ function subscribeKind(pb: PocketBase, kind: ContentKind, projectId: string, onE
   return pb.collection(kind).subscribe('*', deliver, { filter })
 }
 
-// Who wants to hear that the live stream connected or dropped (plan 7 Task 7). One list per client;
+// Who wants to hear that the live stream connected or dropped. One list per client;
 // it is fed only by an open project subscription, so a drop with nothing subscribed is never reported.
 type ConnectionListener = (connected: boolean) => void
 const listenersOf = new WeakMap<PocketBase, Set<ConnectionListener>>()
@@ -88,15 +104,17 @@ function subscribeConnect(pb: PocketBase, onReconnect?: () => void): Promise<Uns
     if (active.length > 0) announce(pb, false)
   }
   pb.realtime.onDisconnect = mine
-  return pb.realtime.subscribe('PB_CONNECT', () => {
-    connects++
-    announce(pb, true)
-    if (connects > 1) onReconnect?.()
-  }).then((close) => async () => {
-    // Another subscription may have opened meanwhile (React opens one twice in development): leave its callback.
-    if (pb.realtime.onDisconnect === mine) pb.realtime.onDisconnect = undefined
-    await close()
-  })
+  return pb.realtime
+    .subscribe('PB_CONNECT', () => {
+      connects++
+      announce(pb, true)
+      if (connects > 1) onReconnect?.()
+    })
+    .then((close) => async () => {
+      // Another subscription may have opened meanwhile (React opens one twice in development): leave its callback.
+      if (pb.realtime.onDisconnect === mine) pb.realtime.onDisconnect = undefined
+      await close()
+    })
 }
 
 /** Opens the seven subscriptions one after another; resolves to a function that closes them all. */

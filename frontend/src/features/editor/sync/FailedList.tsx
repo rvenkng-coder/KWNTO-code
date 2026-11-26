@@ -16,7 +16,9 @@ export function FailedList({ onEmpty }: { onEmpty: () => void }) {
             <span className="font-medium">{describeEntry(f.entry)}</span>
             <span className="text-muted">{f.message}</span>
           </span>
-          <button type="button" className="btn" onClick={() => void syncLifecycle.current()?.dismiss(f.entry.seq)}>Dismiss</button>
+          <button type="button" className="btn" onClick={() => void syncLifecycle.current()?.dismiss(f.entry.seq)}>
+            Dismiss
+          </button>
         </li>
       ))}
     </ul>

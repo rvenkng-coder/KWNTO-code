@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 
-// What is selected on the canvas: nodes, or one connection. The panel (Task 11), the
-// shortcuts (Task 12) and search (Task 13) read and set it; the canvas follows it.
+// What is selected on the canvas: nodes, or one connection. The panel, the shortcuts and search
+// read and set it; the canvas follows it.
 
 export interface Selection {
   nodeIds: string[]

@@ -1,5 +1,5 @@
 // Protects: exporting the whole project (one page per chapter with nodes), trashed content staying out,
-// an empty project being refused, and a very large map being scaled with a warning (export plan, Task 4).
+// an empty project being refused, and a very large map being scaled with a warning.
 import { expect, test, type Page } from '@playwright/test'
 import { zipEntryText } from '../tests/helpers/zip-entry.ts'
 import { adminPB } from './helpers/admin.ts'

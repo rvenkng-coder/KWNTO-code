@@ -1,6 +1,23 @@
 import { expect, test, type Page } from '@playwright/test'
-import { addNodeAt, cards, connectNodes, nodePosition, ownerWithProject, readyCanvas, waitForSave } from './helpers/editor.ts'
-import { cornerPixel, downloadBytes, exportButton, exportDialog, exportMap, openExport, paintCounts, pngSize } from './helpers/export.ts'
+import {
+  addNodeAt,
+  cards,
+  connectNodes,
+  nodePosition,
+  ownerWithProject,
+  readyCanvas,
+  waitForSave,
+} from './helpers/editor.ts'
+import {
+  cornerPixel,
+  downloadBytes,
+  exportButton,
+  exportDialog,
+  exportMap,
+  openExport,
+  paintCounts,
+  pngSize,
+} from './helpers/export.ts'
 
 async function storyWithTwoNodes(page: Page): Promise<[string, string]> {
   await ownerWithProject(page, 'Story')
@@ -82,7 +99,7 @@ test('PDF and Word files of the current chapter download', async ({ page }) => {
 // Protects: a dark-theme account never gets a dark, unprintable export.
 test('a dark account still gets a light map on white', async ({ page }) => {
   await storyWithTwoNodes(page)
-  // A new account starts dark (shell.spec.ts C11), so the page is dark here.
+  // A new account starts dark (see the theme test in shell.spec.ts), so the page is dark here.
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
   const download = await exportMap(page, 'PNG', 'Current chapter')
   expect(await cornerPixel(page, await downloadBytes(download), 'image/png')).toEqual([255, 255, 255])
@@ -188,6 +205,8 @@ test('an export that never finishes fails with a message', async ({ page }) => {
   await exportDialog(page).getByRole('button', { name: 'Export', exact: true }).click()
   await expect(exportDialog(page).getByRole('status')).toHaveText('Exporting…')
   await page.clock.fastForward(31_000)
-  await expect(exportDialog(page).getByRole('alert')).toHaveText('The export failed. Try again, or export one chapter at a time.')
+  await expect(exportDialog(page).getByRole('alert')).toHaveText(
+    'The export failed. Try again, or export one chapter at a time.',
+  )
   await expect(exportDialog(page).getByRole('button', { name: 'Export', exact: true })).toBeEnabled()
 })

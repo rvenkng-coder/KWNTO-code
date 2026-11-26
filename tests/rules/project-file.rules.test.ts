@@ -4,11 +4,11 @@ import { tokenOf } from './helpers/invites.ts'
 import { asAdmin, asUser, createUser, PB_URL, type TestUser } from './helpers/pb.ts'
 import { addMember } from './helpers/teams.ts'
 
-// Protects design 10, security.md 5 "Bad imports" and plan 7 D4 and D5 (Review Focus 3):
-// the project file is built and checked on the server. Only members export; only verified
-// members import, into their own team; an import is all or nothing, and a refused file
-// leaves nothing behind. The routes are GET /api/kwnto/projects/{id}/export and
-// POST /api/kwnto/teams/{id}/import (backend/pb_hooks/project-file.pb.js).
+// Protects design 10 and security.md 5 "Bad imports": the project file is built and checked on the
+// server. Only members export; only verified members import, into their own team; an import is all
+// or nothing, and a refused file leaves nothing behind. The routes are GET
+// /api/kwnto/projects/{id}/export and POST /api/kwnto/teams/{id}/import
+// (backend/pb_hooks/project-file.pb.js).
 
 const TOO_LARGE = 'This file is larger than the 5 MB import limit.'
 const MAX_BYTES = 5242880
@@ -25,7 +25,11 @@ type File = {
   connections: { id: string; from: string; to: string | null; label: string }[]
 }
 
-async function call(token: string | undefined, path: string, init?: { method?: string; text?: string }): Promise<Response> {
+async function call(
+  token: string | undefined,
+  path: string,
+  init?: { method?: string; text?: string },
+): Promise<Response> {
   const headers: Record<string, string> = {}
   if (token !== undefined) headers.Authorization = token
   if (init?.text !== undefined) headers['Content-Type'] = 'application/json'
@@ -50,8 +54,12 @@ async function storyProject(): Promise<MemberProject & { nodeIds: string[] }> {
   const second = await createNode(ctx.member, ctx.projectId, chapter2, { title: 'Later' })
   const third = await createNode(ctx.member, ctx.projectId, ctx.chapterId, { title: 'Side' })
   await createLine(ctx.member, ctx.projectId, first, { character: 'Mara', text: 'Hello there.' })
-  await pb.collection('connections').create({ project: ctx.projectId, from_node: first, to_node: second, label: 'Go on' })
-  await pb.collection('connections').create({ project: ctx.projectId, from_node: second, to_node: '', label: 'Open end' })
+  await pb
+    .collection('connections')
+    .create({ project: ctx.projectId, from_node: first, to_node: second, label: 'Go on' })
+  await pb
+    .collection('connections')
+    .create({ project: ctx.projectId, from_node: second, to_node: '', label: 'Open end' })
   return { ...ctx, nodeIds: [first, second, third] }
 }
 
@@ -85,7 +93,18 @@ test('only members export a project', async () => {
   expect(reply.headers.get('content-disposition')).toBe('attachment; filename="Test-project.kwnto.json"')
   const file = (await reply.json()) as File
   // Readable in a text editor: the keys come in the documented order, and a node's keys too.
-  expect(Object.keys(file)).toEqual(['format', 'version', 'exportedAt', 'project', 'chapters', 'nodes', 'lines', 'cues', 'connections', 'media'])
+  expect(Object.keys(file)).toEqual([
+    'format',
+    'version',
+    'exportedAt',
+    'project',
+    'chapters',
+    'nodes',
+    'lines',
+    'cues',
+    'connections',
+    'media',
+  ])
   expect(Object.keys(file.nodes[0])).toEqual(['id', 'chapter', 'title', 'color', 'x', 'y'])
   expect(file.format).toBe('kwnto-project')
   expect(file.version).toBe(1)
@@ -111,7 +130,7 @@ test('only members export a project', async () => {
   expect(await injected.json()).toMatchObject({ message: 'No project with this id.' })
 })
 
-// Protects plan D4 to D6: a member's import makes a new project (named "<name> (imported)")
+// Protects the import: a member's import makes a new project (named "<name> (imported)")
 // with new ids and the same structure, reusing Chapter 1 for the first chapter; importing
 // twice makes two; the original is untouched; outsider, unverified member and signed-out
 // callers are refused.
@@ -162,9 +181,9 @@ test('a member imports a file as a new project', async () => {
   expect(await teamCounts(ctx.teamId)).toEqual(after)
 })
 
-// Protects security.md 5 "Bad imports" and Review Focus 3: a file that is too big, not
-// JSON, points at an unknown node or has too many nodes is refused with the reason, and the
-// team has exactly what it had before (no project, chapter or node left half made).
+// Protects security.md 5 "Bad imports": a file that is too big, not JSON, points at an unknown node
+// or has too many nodes is refused with the reason, and the team has exactly what it had before (no
+// project, chapter or node left half made).
 test('a refused import creates nothing', async () => {
   const ctx = await storyProject()
   const base = await exportFile(ctx.member, ctx.projectId)
@@ -181,7 +200,11 @@ test('a refused import creates nothing', async () => {
   const cases: [string, number, string][] = [
     ['a'.repeat(MAX_BYTES + 1), 413, TOO_LARGE],
     ['not json', 400, `${NOT_A_PROJECT}it is not JSON.`],
-    [JSON.stringify(badLink), 400, `${NOT_A_PROJECT}connections[${base.connections.length - 1}].to is not a node in the file.`],
+    [
+      JSON.stringify(badLink),
+      400,
+      `${NOT_A_PROJECT}connections[${base.connections.length - 1}].to is not a node in the file.`,
+    ],
     [JSON.stringify(crowded), 400, `${NOT_A_PROJECT}too many nodes (2001, at most 2000).`],
   ]
   for (const [text, status, message] of cases) {
@@ -192,7 +215,7 @@ test('a refused import creates nothing', async () => {
   }
 })
 
-// Protects the all-or-nothing import (plan D4): a file that passes every check but that the
+// Protects the all-or-nothing import: a file that passes every check but that the
 // database refuses halfway (two connections between the same two nodes break the pair
 // index, after the project, chapters and nodes were already saved) is rolled back whole.
 test('an import the database refuses halfway is rolled back', async () => {

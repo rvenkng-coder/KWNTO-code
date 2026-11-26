@@ -4,10 +4,7 @@ import type { AuthUser } from './types'
 import { toAuthUser } from './mappers'
 import { toBackendError } from './errors'
 
-function notifyAll(
-  listeners: Set<(user: AuthUser | null) => void>,
-  user: AuthUser | null,
-): void {
+function notifyAll(listeners: Set<(user: AuthUser | null) => void>, user: AuthUser | null): void {
   for (const fn of listeners) {
     try {
       fn(user)
@@ -17,10 +14,7 @@ function notifyAll(
   }
 }
 
-function resolveCurrent(
-  pb: PocketBase,
-  cached: { value: AuthUser | null },
-): AuthUser | null {
+function resolveCurrent(pb: PocketBase, cached: { value: AuthUser | null }): AuthUser | null {
   const rec = pb.authStore.record
   if (!rec) {
     cached.value = null
@@ -32,12 +26,7 @@ function resolveCurrent(
   return cached.value
 }
 
-async function signUp(
-  pb: PocketBase,
-  email: string,
-  password: string,
-  name: string,
-): Promise<void> {
+async function signUp(pb: PocketBase, email: string, password: string, name: string): Promise<void> {
   try {
     await pb.collection('users').create({
       email,
@@ -50,10 +39,7 @@ async function signUp(
   }
 }
 
-async function requestVerification(
-  pb: PocketBase,
-  email: string,
-): Promise<void> {
+async function requestVerification(pb: PocketBase, email: string): Promise<void> {
   try {
     await pb.collection('users').requestVerification(email)
   } catch (err) {
@@ -61,10 +47,7 @@ async function requestVerification(
   }
 }
 
-async function requestPasswordReset(
-  pb: PocketBase,
-  email: string,
-): Promise<void> {
+async function requestPasswordReset(pb: PocketBase, email: string): Promise<void> {
   try {
     await pb.collection('users').requestPasswordReset(email)
   } catch (err) {
@@ -100,10 +83,7 @@ async function doSignIn(
   password: string,
 ): Promise<AuthUser> {
   try {
-    const auth = await pb.collection('users').authWithPassword(
-      email,
-      password,
-    )
+    const auth = await pb.collection('users').authWithPassword(email, password)
     cached.value = toAuthUser(auth.record as Record<string, unknown>)
     return cached.value
   } catch (err) {
@@ -130,9 +110,7 @@ async function doRefresh(
   } catch (err) {
     // Only a refusal ends the session. An unreachable server (status 0) or a
     // server error must not sign everyone out: keep the session we have.
-    const refused =
-      err instanceof ClientResponseError &&
-      [401, 403, 404].includes(err.status)
+    const refused = err instanceof ClientResponseError && [401, 403, 404].includes(err.status)
     if (!refused) return currentFn()
     pb.authStore.clear()
     return null
@@ -156,18 +134,14 @@ export function createAuth(pb: PocketBase) {
     }
   })
 
-  const currentRef = (): AuthUser | null =>
-    resolveCurrent(pb, cache)
+  const currentRef = (): AuthUser | null => resolveCurrent(pb, cache)
 
   return {
     async signUp(email: string, password: string, name: string): Promise<void> {
       await signUp(pb, email, password, name)
     },
 
-    async signIn(
-      email: string,
-      password: string,
-    ): Promise<AuthUser> {
+    async signIn(email: string, password: string): Promise<AuthUser> {
       return doSignIn(pb, cache, email, password)
     },
 
@@ -192,9 +166,7 @@ export function createAuth(pb: PocketBase) {
     confirmPasswordReset: (token: string, password: string, passwordConfirm: string): Promise<void> =>
       confirmPasswordReset(pb, token, password, passwordConfirm),
 
-    onChange(
-      listener: (user: AuthUser | null) => void,
-    ): () => void {
+    onChange(listener: (user: AuthUser | null) => void): () => void {
       listeners.add(listener)
       return () => {
         listeners.delete(listener)

@@ -52,8 +52,15 @@ export function TabMenu({ chapter, ordered, onRename, onTrash }: TabMenuProps) {
       {anchor !== null && (
         <Popover anchor={anchor} label="Chapter menu" onClose={close}>
           <Item onClick={choose(onRename)}>Rename</Item>
-          <Item disabled={at <= 0} onClick={choose(() => void shiftChapter(ordered, chapter.id, 'left'))}>Move left</Item>
-          <Item disabled={at === ordered.length - 1} onClick={choose(() => void shiftChapter(ordered, chapter.id, 'right'))}>Move right</Item>
+          <Item disabled={at <= 0} onClick={choose(() => void shiftChapter(ordered, chapter.id, 'left'))}>
+            Move left
+          </Item>
+          <Item
+            disabled={at === ordered.length - 1}
+            onClick={choose(() => void shiftChapter(ordered, chapter.id, 'right'))}
+          >
+            Move right
+          </Item>
           <Item onClick={choose(trash)}>Move to trash</Item>
         </Popover>
       )}

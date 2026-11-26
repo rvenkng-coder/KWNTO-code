@@ -30,18 +30,32 @@ export function CommentsSection({ nodeId }: { nodeId: string }) {
       <h4 className="font-semibold">Comments</h4>
       <ul className="flex flex-col gap-2">
         {list.map((c) => (
-          <CommentRow key={c.id} comment={c} deletable={user !== null && canDelete(c, user.id, isOwner)} onDelete={(id) => useCommentStore.getState().remove(id)} />
+          <CommentRow
+            key={c.id}
+            comment={c}
+            deletable={user !== null && canDelete(c, user.id, isOwner)}
+            onDelete={(id) => useCommentStore.getState().remove(id)}
+          />
         ))}
       </ul>
-      <label className="flex flex-col gap-1 text-sm">Add a comment
+      <label className="flex flex-col gap-1 text-sm">
+        Add a comment
         <textarea className="field" rows={3} value={text} onChange={(e) => setText(e.target.value)} />
       </label>
       <div className="flex flex-wrap items-center gap-2">
-        <button type="button" className="btn" disabled={disabled} onClick={() => void submit()}>Comment</button>
-        <span className={`text-xs ${tooLong ? 'text-accent' : 'text-muted'}`}>{length}/{MAX_COMMENT_LENGTH}</span>
+        <button type="button" className="btn" disabled={disabled} onClick={() => void submit()}>
+          Comment
+        </button>
+        <span className={`text-xs ${tooLong ? 'text-accent' : 'text-muted'}`}>
+          {length}/{MAX_COMMENT_LENGTH}
+        </span>
         {!online && <span className="text-xs">{OFFLINE_COMMENTS}</span>}
       </div>
-      {error !== null && <p role="alert" className="text-sm">{error}</p>}
+      {error !== null && (
+        <p role="alert" className="text-sm">
+          {error}
+        </p>
+      )}
     </section>
   )
 }

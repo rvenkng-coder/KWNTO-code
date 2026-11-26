@@ -5,13 +5,33 @@ import { parseArgs as parseModelUrl, DEFAULT_URL } from '../ping-local-model.ts'
 import { checkTaskFile } from '../check-plan.ts'
 import { parseTaskMeta } from './test-plan.ts'
 
-export const USAGE = 'usage: node scripts/prepare-local-run.ts <plan folder> <task number> [<checkpoint>] [--model-url <url>] [--out <dir>] [--no-ping] [--cwd <dir>]'
+export const USAGE =
+  'usage: node scripts/prepare-local-run.ts <plan folder> <task number> [<checkpoint>] [--model-url <url>] [--out <dir>] [--no-ping] [--cwd <dir>]'
 const VALUE_OPTIONS = ['--model-url', '--out', '--cwd']
 const LOCAL_HEADING = '## Sized for the local model'
 
-export interface Options { planDir: string; task: number; checkpoint: string | null; modelUrl: string; out: string | null; noPing: boolean; cwd: string }
-export interface LocalBlock { mayTouch: string; mustNotChange: string; checkpointGiven: string }
-export interface PromptInput { sandbox: string; checkpoint: string; taskFile: string; mayTouch: string; mustNotChange: string; baseSha: string }
+export interface Options {
+  planDir: string
+  task: number
+  checkpoint: string | null
+  modelUrl: string
+  out: string | null
+  noPing: boolean
+  cwd: string
+}
+export interface LocalBlock {
+  mayTouch: string
+  mustNotChange: string
+  checkpointGiven: string
+}
+export interface PromptInput {
+  sandbox: string
+  checkpoint: string
+  taskFile: string
+  mayTouch: string
+  mustNotChange: string
+  baseSha: string
+}
 
 // Messages are fixed text: an argument is never echoed, because it can carry a password.
 export function parseArgs(argv: string[], defaultCwd: string = process.cwd()): Options | { error: string } {
@@ -40,32 +60,55 @@ export function parseArgs(argv: string[], defaultCwd: string = process.cwd()): O
 
 const isCheckpointId = (text: string | null): boolean => text === null || /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(text)
 
-function buildOptions(positionals: string[], values: Map<string, string>, noPing: boolean, defaultCwd: string): Options | { error: string } {
-  if (positionals.length < 2 || positionals.length > 3) return { error: 'expected a plan folder, a task number and at most one checkpoint' }
+function buildOptions(
+  positionals: string[],
+  values: Map<string, string>,
+  noPing: boolean,
+  defaultCwd: string,
+): Options | { error: string } {
+  if (positionals.length < 2 || positionals.length > 3)
+    return { error: 'expected a plan folder, a task number and at most one checkpoint' }
   const [planDir, task, checkpoint = null] = positionals
   if (!/^[1-9]\d*$/.test(task)) return { error: 'the task must be a number such as 3' }
   if (!isCheckpointId(checkpoint)) return { error: 'the checkpoint must be an id such as 3A' }
   const url = values.get('--model-url') ?? DEFAULT_URL
   const parsedUrl = parseModelUrl([url])
   if ('error' in parsedUrl) return { error: `--model-url: ${parsedUrl.error}` }
-  return { planDir, task: Number(task), checkpoint, modelUrl: parsedUrl.url, out: values.get('--out') ?? null, noPing, cwd: values.get('--cwd') ?? defaultCwd }
+  return {
+    planDir,
+    task: Number(task),
+    checkpoint,
+    modelUrl: parsedUrl.url,
+    out: values.get('--out') ?? null,
+    noPing,
+    cwd: values.get('--cwd') ?? defaultCwd,
+  }
 }
 
 // The task file `task-<n>-*.md`: exactly one, or an error that names what was found.
 export function selectTaskFile(files: string[], task: number): { file: string } | { error: string } {
   const matches = files.filter((name) => name.startsWith(`task-${task}-`) && name.endsWith('.md')).sort()
   if (matches.length === 1) return { file: matches[0] }
-  if (matches.length === 0) return { error: `no task file task-${task}-*.md in the plan folder (task files there: ${files.join(', ') || 'none'})` }
+  if (matches.length === 0)
+    return {
+      error: `no task file task-${task}-*.md in the plan folder (task files there: ${files.join(', ') || 'none'})`,
+    }
   return { error: `task ${task} matches ${matches.length} files, expected one: ${matches.join(', ')}` }
 }
 
 // Lines of the task file without code fences and whole-line HTML comments (the template's notes and examples).
 export function noteFreeLines(markdown: string): string[] {
   let fenced = false
-  return markdown.replaceAll('\r\n', '\n').split('\n').filter((line) => {
-    if (/^\s*(```|~~~)/.test(line)) { fenced = !fenced; return false }
-    return !fenced && !/^\s*<!--.*-->\s*$/.test(line)
-  })
+  return markdown
+    .replaceAll('\r\n', '\n')
+    .split('\n')
+    .filter((line) => {
+      if (/^\s*(```|~~~)/.test(line)) {
+        fenced = !fenced
+        return false
+      }
+      return !fenced && !/^\s*<!--.*-->\s*$/.test(line)
+    })
 }
 
 export function listCheckpoints(markdown: string): string[] {
@@ -79,7 +122,11 @@ export function listCheckpoints(markdown: string): string[] {
 export function selectCheckpoint(ids: string[], requested: string | null): { id: string } | { error: string } {
   if (ids.length === 0) return { error: 'the task file has no "## Checkpoint <id>: ..." heading' }
   if (requested === null) {
-    return ids.length === 1 ? { id: ids[0] } : { error: `the task has several checkpoints (${ids.join(', ')}); name the one to give, because the local model gets one per run` }
+    return ids.length === 1
+      ? { id: ids[0] }
+      : {
+          error: `the task has several checkpoints (${ids.join(', ')}); name the one to give, because the local model gets one per run`,
+        }
   }
   const count = ids.filter((id) => id === requested).length
   if (count === 0) return { error: `the task has no checkpoint "${requested}" (it has: ${ids.join(', ')})` }
@@ -107,15 +154,23 @@ export function readLocalBlock(markdown: string): LocalBlock | null {
   const rest = lines.slice(start + 1)
   const end = rest.findIndex((line) => /^##\s/.test(line))
   const body = (end === -1 ? rest : rest.slice(0, end)).join('\n')
-  const part = (label: string): string => new RegExp(`^\\*\\*${label}:\\*\\*[ \\t]*(.*\\S)`, 'm').exec(body)?.[1].trim() ?? ''
-  return { mayTouch: part('May touch'), mustNotChange: part('Must not change'), checkpointGiven: part('Checkpoint given') }
+  const part = (label: string): string =>
+    new RegExp(`^\\*\\*${label}:\\*\\*[ \\t]*(.*\\S)`, 'm').exec(body)?.[1].trim() ?? ''
+  return {
+    mayTouch: part('May touch'),
+    mustNotChange: part('Must not change'),
+    checkpointGiven: part('Checkpoint given'),
+  }
 }
 
 // Everything that makes a checkpoint not fit for the local model. An empty list means go ahead.
 export function localRunProblems(path: string, markdown: string, checkpoint: string): string[] {
   const problems = checkTaskFile(path, markdown)
   const tier = checkpointTier(markdown, checkpoint)
-  if (tier !== 'local') problems.unshift(`${path}: checkpoint ${checkpoint} has tier ${tier ?? 'unknown'}: this task is not for the local model`)
+  if (tier !== 'local')
+    problems.unshift(
+      `${path}: checkpoint ${checkpoint} has tier ${tier ?? 'unknown'}: this task is not for the local model`,
+    )
   const given = readLocalBlock(markdown)?.checkpointGiven
   if (given && !new RegExp(`\\b${escapeRegExp(checkpoint)}\\b`).test(given)) {
     problems.push(`${path}: "Checkpoint given" says "${given}", which does not name checkpoint ${checkpoint}`)
@@ -139,7 +194,8 @@ export function buildPrompt(input: PromptInput): string {
   ].join('\n')
 }
 
-export const checkTaskCommand = (taskFile: string, baseSha: string): string => `npm run check:task -- --task ${shellQuote(taskFile)} --base ${baseSha}`
+export const checkTaskCommand = (taskFile: string, baseSha: string): string =>
+  `npm run check:task -- --task ${shellQuote(taskFile)} --base ${baseSha}`
 
 // A path as one shell word: left bare when it is plain, otherwise single-quoted.
 export function shellQuote(text: string): string {
@@ -148,8 +204,15 @@ export function shellQuote(text: string): string {
 
 export function defaultSandboxName(planDir: string, task: number, checkpoint: string, now: number): string {
   const safe = (text: string): string => text.replace(/[^A-Za-z0-9._-]/g, '_')
-  const plan = planDir.replace(/[\\/]+$/, '').split(/[\\/]/).at(-1) ?? 'plan'
-  const stamp = new Date(now).toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z')
+  const plan =
+    planDir
+      .replace(/[\\/]+$/, '')
+      .split(/[\\/]/)
+      .at(-1) ?? 'plan'
+  const stamp = new Date(now)
+    .toISOString()
+    .replace(/[-:]/g, '')
+    .replace(/\.\d+Z$/, 'Z')
   return `kwnto-local-${safe(plan)}-task${task}-${safe(checkpoint)}-${stamp}`
 }
 

@@ -1,6 +1,14 @@
 import { expect, test, type Browser, type Page } from '@playwright/test'
 import { uniqueEmail } from './helpers/admin.ts'
-import { addNodeAt, card, createProject, openProject, ownerWithProject, readyCanvas, waitForSave } from './helpers/editor.ts'
+import {
+  addNodeAt,
+  card,
+  createProject,
+  openProject,
+  ownerWithProject,
+  readyCanvas,
+  waitForSave,
+} from './helpers/editor.ts'
 import { PNG_1PX, sampleBytes, setQuotaOverride } from './helpers/media.ts'
 import { goOffline } from './helpers/offline.ts'
 import { createTeam, enableJoinCode, joinWithCode, openTeam, signUpVerifyAndSignIn } from './helpers/ui.ts'
@@ -61,8 +69,8 @@ test('an uploaded image shows on its node and stays after reload', async ({ page
   await expect(mediaItems(page).first()).toContainText('a.png')
 })
 
-// Protects: design 6.2: audio plays in place with file URL and fresh token; video is off by decision
-// (plan 2026-11-21-node-links D1), so the picker does not offer it and a chosen mp4 is refused clearly.
+// Protects: design 6.2: audio plays in place with file URL and fresh token; video is off by default (large uploads did
+// not finish through Tailscale Funnel), so the picker does not offer it and a chosen mp4 is refused clearly.
 test('audio files get players and video is refused', async ({ page }) => {
   await setupNode(page)
   const input = panel(page).getByLabel('Add media')
@@ -76,7 +84,9 @@ test('audio files get players and video is refused', async ({ page }) => {
   await savedMp3
 
   await input.setInputFiles({ name: 'clip.mp4', mimeType: 'video/mp4', buffer: sampleBytes('mp4', 200) })
-  await expect(alertBox(page)).toHaveText('This file type is not allowed. Allowed: WAV, MP3, OGG, M4A, OPUS, JPEG, PNG.')
+  await expect(alertBox(page)).toHaveText(
+    'This file type is not allowed. Allowed: WAV, MP3, OGG, M4A, OPUS, JPEG, PNG.',
+  )
 
   await expect(mediaItems(page)).toHaveCount(1)
   const audio = panel(page).locator('audio[controls]')
@@ -85,7 +95,7 @@ test('audio files get players and video is refused', async ({ page }) => {
   expect(await audio.getAttribute('src')).toMatch(/token=/)
 })
 
-// Protects: Review Focus 2: server magic bytes check refuses forged extensions with clear message.
+// Protects: server magic bytes check refuses forged extensions with clear message.
 test('a file whose contents do not match is refused with a clear message', async ({ page }) => {
   await setupNode(page)
   const input = panel(page).getByLabel('Add media')
@@ -97,7 +107,7 @@ test('a file whose contents do not match is refused with a clear message', async
   await expect(storageMeter(page)).toHaveText(meterBefore ?? '')
 })
 
-// Protects: Review Focus 2 and D2: browser early check refuses disallowed extensions before sending.
+// Protects: browser early check refuses disallowed extensions before sending.
 test('a file the browser can already refuse is never sent', async ({ page }) => {
   await setupNode(page)
   const input = panel(page).getByLabel('Add media')
@@ -110,11 +120,13 @@ test('a file the browser can already refuse is never sent', async ({ page }) => 
   })
 
   await input.setInputFiles({ name: 'test.gif', mimeType: 'image/gif', buffer: Buffer.from('GIF89a') })
-  await expect(alertBox(page)).toHaveText('This file type is not allowed. Allowed: WAV, MP3, OGG, M4A, OPUS, JPEG, PNG.')
+  await expect(alertBox(page)).toHaveText(
+    'This file type is not allowed. Allowed: WAV, MP3, OGG, M4A, OPUS, JPEG, PNG.',
+  )
   expect(requestSent).toBe(false)
 })
 
-// Protects: Review Focus 5: quota enforcement stops upload and frees/deletes nothing.
+// Protects: quota enforcement stops upload and frees/deletes nothing.
 test('over the quota an upload is refused and nothing is deleted', async ({ page }) => {
   const { email } = await ownerWithProject(page, 'Story')
   await setQuotaOverride(email, 100)
@@ -142,8 +154,8 @@ test('over the quota an upload is refused and nothing is deleted', async ({ page
 
 const removedItems = (page: Page) => panel(page).getByTestId('removed-media-item')
 
-// Protects: D8 and the lead's storage rule: removing asks first (inline), hides the file, keeps
-// its space used; the lead then restores it or deletes it for good, which frees the space.
+// Protects: design 6.8 (removing media): removing asks first (inline, never a browser pop-up), hides the file and keeps
+// its space used; the team owner (the lead) then restores it or deletes it for good, which frees the space.
 test('removing a file hides it and only deleting for good frees its space', async ({ page }) => {
   await setupNode(page)
   page.on('dialog', () => {
@@ -200,10 +212,13 @@ test('removing a file hides it and only deleting for good frees its space', asyn
   await expect(storageMeter(page)).toHaveText(meterBefore ?? '')
 })
 
-// Protects: Review Focus live updates and the lead's storage rule: a member's upload shows live,
+// Protects: live updates and design 6.8 (removing media): a member's upload shows live,
 // the member's removal hides it live, only the lead sees it as removed, and the member never
 // gets a delete or restore control.
-test("a teammate's upload and removal appear without a reload, and only the lead can delete", async ({ page, browser }) => {
+test("a teammate's upload and removal appear without a reload, and only the lead can delete", async ({
+  page,
+  browser,
+}) => {
   const { a, b } = await ownerAndMember(page, browser)
   const nodeId = await addNodeAt(a, 40, 60)
   await expect(card(b, nodeId)).toBeVisible()
@@ -221,7 +236,7 @@ test("a teammate's upload and removal appear without a reload, and only the lead
   // Owner a sees it live, on the lead's meter too
   await expect(mediaItems(a)).toHaveCount(1)
   await expect(mediaItems(a).first()).toContainText('b.png')
-  await expect(storageMeter(b)).toHaveText(await storageMeter(a).textContent() ?? '')
+  await expect(storageMeter(b)).toHaveText((await storageMeter(a).textContent()) ?? '')
 
   // Member b removes it
   const removed = waitForSave(b, 'media', 'PATCH')
@@ -238,8 +253,8 @@ test("a teammate's upload and removal appear without a reload, and only the lead
   await expect(panel(b).getByRole('button', { name: /Delete|Restore/ })).toHaveCount(0)
 })
 
-// Protects: offline sync plan D6 applied to media: a file a teammate uploads while I am offline shows up
-// when I am back, without a reload (the media list is loaded again on reconnect).
+// Protects: a file a teammate uploads while I am offline shows up when I am back, without a reload (the media list is
+// loaded again on reconnect).
 test('media uploaded while I was offline appears when I am back', async ({ page, browser }) => {
   const { a, b } = await ownerAndMember(page, browser)
   const nodeId = await addNodeAt(a, 40, 60)
@@ -258,7 +273,7 @@ test('media uploaded while I was offline appears when I am back', async ({ page,
   await expect(mediaItems(a).first()).toContainText('later.png')
 })
 
-// Protects: D9: uploads wait for connection; disabled and offline copy shown.
+// Protects: design 6.7: uploads wait for the connection; the button is disabled and the offline message shown.
 test('uploads wait for the connection', async ({ page, context }) => {
   await setupNode(page)
   const input = panel(page).getByLabel('Add media')
@@ -270,5 +285,7 @@ test('uploads wait for the connection', async ({ page, context }) => {
 
   await context.setOffline(false)
   await expect(input).toBeEnabled()
-  await expect(panel(page).getByText('Uploads need a connection. Try again when you are back online.')).not.toBeVisible()
+  await expect(
+    panel(page).getByText('Uploads need a connection. Try again when you are back online.'),
+  ).not.toBeVisible()
 })

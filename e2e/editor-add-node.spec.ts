@@ -1,6 +1,5 @@
-// Protects: the Add node button (editor tabs plan, Task 2): it puts a selected node in the middle
-// of the visible canvas, a second click does not hide a node under the first, and the button is
-// disabled when no chapter is open.
+// Protects: the Add node button: it puts a selected node in the middle of the visible canvas, a second click does not
+// hide a node under the first, and the button is disabled when no chapter is open.
 import { expect, test, type Page } from '@playwright/test'
 import { cards, nodePosition, ownerWithProject, readyCanvas, waitForSave } from './helpers/editor'
 
@@ -10,7 +9,7 @@ async function addNode(page: Page): Promise<string> {
   return ((await (await saved).json()) as { id: string }).id
 }
 
-// Protects: one click makes one saved, selected node near the centre of what the person sees (decision E4).
+// Protects: one click makes one saved, selected node near the centre of what the person sees.
 test('the Add node button puts a selected node in the middle of the canvas', async ({ page }) => {
   await ownerWithProject(page, 'Story')
   await page.getByRole('button', { name: 'Add node' }).focus()
@@ -26,7 +25,7 @@ test('the Add node button puts a selected node in the middle of the canvas', asy
   await readyCanvas(page, 1)
 })
 
-// Protects: a second click without moving the view steps 40 px right and down, so two nodes never look like one (Review Focus 4).
+// Protects: a second click without moving the view steps 40 px right and down, so two nodes never look like one.
 test('adding twice places the second node 40 px right and down', async ({ page }) => {
   await ownerWithProject(page, 'Story')
   const first = await addNode(page)
@@ -37,7 +36,7 @@ test('adding twice places the second node 40 px right and down', async ({ page }
   expect({ x: b.x - a.x, y: b.y - a.y }).toEqual({ x: 40, y: 40 })
 })
 
-// Protects: with every tab closed the button is disabled, not silently doing nothing (Review Focus 5).
+// Protects: with every tab closed the button is disabled, not silently doing nothing.
 test('Add node is disabled when no chapter is open', async ({ page }) => {
   await ownerWithProject(page, 'Story')
   await page.getByRole('button', { name: 'Close Chapter 1' }).click()

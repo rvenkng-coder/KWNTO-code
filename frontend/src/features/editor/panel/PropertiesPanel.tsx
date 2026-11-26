@@ -15,7 +15,9 @@ function ManyNodes({ ids }: { ids: string[] }) {
   return (
     <div className="flex flex-col gap-2">
       <p>{ids.length} nodes selected</p>
-      <button type="button" className="btn-danger self-start" onClick={trash}>Move to trash</button>
+      <button type="button" className="btn-danger self-start" onClick={trash}>
+        Move to trash
+      </button>
     </div>
   )
 }

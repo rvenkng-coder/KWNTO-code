@@ -7,11 +7,13 @@ import type { TestPlan } from './test-plan.ts'
 import { makeRepo } from './temp-repo.ts'
 import { defaultSteps, escapeRateFor, reviewStep } from './check-steps.ts'
 
-// The in-process steps of check:task. The spawned ones (lint, unit, breaks, probes) are proven by the
-// end-to-end runs recorded in the Task 8 report, not here, to keep the unit layer fast.
+// The in-process steps of check:task. The steps that spawn a command (lint, unit, breaks, probes) are not
+// run for real here, to keep the unit layer fast.
 const PLAN: TestPlan = { cases: [], probeFolder: null, breaks: [], flow: 'none', evidence: 'e' }
 const dirs: string[] = []
-afterEach(() => { for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true }) })
+afterEach(() => {
+  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true })
+})
 
 function root(progress?: string): string {
   const dir = mkdtempSync(join(tmpdir(), 'check steps-'))
@@ -24,12 +26,22 @@ function root(progress?: string): string {
   return dir
 }
 function context(dir: string, extra: Partial<CheckContext> = {}): CheckContext {
-  return { base: 'x', taskFile: join(dir, 'docs', 'plans', 'p', 'task-4-x.md'), taskNumber: 4, builtBy: 'local', plan: PLAN, changed: ['scripts/a.ts'], deadlineMs: Date.now() + 60_000, ...extra }
+  return {
+    base: 'x',
+    taskFile: join(dir, 'docs', 'plans', 'p', 'task-4-x.md'),
+    taskNumber: 4,
+    builtBy: 'local',
+    plan: PLAN,
+    changed: ['scripts/a.ts'],
+    deadlineMs: Date.now() + 60_000,
+    ...extra,
+  }
 }
-const TRACKED = '| Task | Built by | Review | Escaped |\n|---|---|---|---|\n| Task 1 | local | yes | 1 |\n| Task 2 | local | no | 0 |\n'
+const TRACKED =
+  '| Task | Built by | Review | Escaped |\n|---|---|---|---|\n| Task 1 | local | yes | 1 |\n| Task 2 | local | no | 0 |\n'
 
 describe('escapeRateFor', () => {
-  // Protects ruling 4: a plan with no progress file, or one that does not track escapes, reads as rate 0 and says so.
+  // Protects: a plan with no progress file, or one that does not track escapes, reads as rate 0 and says so.
   test('a missing file or a file without the tracking table is rate 0, stated', () => {
     expect(escapeRateFor(null, 'p.md')).toEqual({ rate: 0, note: 'no p.md; escape rate 0' })
     const untracked = escapeRateFor('| Date | Task |\n|---|---|\n| d | t |\n', 'p.md')
@@ -39,11 +51,17 @@ describe('escapeRateFor', () => {
 
   // Protects fail closed: a malformed table or an unreadable file is shown and counts as rate 1 (review everything).
   test('a malformed Escaped cell or an unreadable file is shown and counts as rate 1', () => {
-    const bad = escapeRateFor('| Task | Built by | Review | Escaped |\n|---|---|---|---|\n| T1 | local | no | 1x |\n', 'p.md')
+    const bad = escapeRateFor(
+      '| Task | Built by | Review | Escaped |\n|---|---|---|---|\n| T1 | local | no | 1x |\n',
+      'p.md',
+    )
     expect(bad.rate).toBe(1)
     expect(bad.note).toContain('"Escaped" must be a whole number')
     expect(escapeRateFor('', 'p.md').rate).toBe(1)
-    expect(escapeRateFor(new Error('EISDIR'), 'p.md')).toEqual({ rate: 1, note: 'cannot read p.md (EISDIR); escape rate taken as 1' })
+    expect(escapeRateFor(new Error('EISDIR'), 'p.md')).toEqual({
+      rate: 1,
+      note: 'cannot read p.md (EISDIR); escape rate taken as 1',
+    })
   })
 
   // Protects: a valid table gives the measured rate.
@@ -67,7 +85,10 @@ describe('review step', () => {
   test('with no progress file the rate is 0 and the line says so', async () => {
     const dir = root()
     const result = await reviewStep(dir).run(context(dir))
-    expect(result.lines).toEqual(['Review required: no (not in the sample (1 in 3))', `no ${join('.planning', 'p', 'progress.md')}; escape rate 0`])
+    expect(result.lines).toEqual([
+      'Review required: no (not in the sample (1 in 3))',
+      `no ${join('.planning', 'p', 'progress.md')}; escape rate 0`,
+    ])
   })
 })
 
@@ -92,7 +113,16 @@ describe('plan and probes steps', () => {
   test('the coverage step fails on a missing test and names the row', async () => {
     const dir = root()
     const coverage = defaultSteps(dir).find((step) => step.name === 'coverage')
-    const cases = [{ id: 'C9', behaviour: 'b', layer: 'unit' as const, input: 'i', expected: 'e', test: 'scripts/none.test.ts :: t' }]
+    const cases = [
+      {
+        id: 'C9',
+        behaviour: 'b',
+        layer: 'unit' as const,
+        input: 'i',
+        expected: 'e',
+        test: 'scripts/none.test.ts :: t',
+      },
+    ]
     const result = await coverage?.run(context(dir, { plan: { ...PLAN, cases } }))
     expect(result?.ok).toBe(false)
     expect(result?.lines).toEqual(['C9: test file scripts/none.test.ts does not exist or cannot be read'])
@@ -107,7 +137,11 @@ describe('fix round 1', () => {
     expect(steps).toHaveLength(4)
     for (const step of steps) {
       const result = await step.run(context(dir, { plan: null }))
-      expect(result).toEqual({ name: step.name, ok: false, lines: ['not run: the Test plan could not be read (see the plan step)'] })
+      expect(result).toEqual({
+        name: step.name,
+        ok: false,
+        lines: ['not run: the Test plan could not be read (see the plan step)'],
+      })
     }
   })
 
@@ -117,7 +151,9 @@ describe('fix round 1', () => {
     dirs.push(cwd)
     writeFileSync(join(cwd, 'scripts', 'b.ts'), 'export const b = 2\n')
     const quality = defaultSteps(cwd).find((step) => step.name === 'quality')
-    await expect(quality?.run(context(cwd, { base, deadlineMs: Date.now() + 1 }))).rejects.toThrow('ESLint did not finish within the time budget')
+    await expect(quality?.run(context(cwd, { base, deadlineMs: Date.now() + 1 }))).rejects.toThrow(
+      'ESLint did not finish within the time budget',
+    )
   })
 
   // Protects: an in-process step that ends after the deadline is a failure, not a pass.
@@ -138,7 +174,9 @@ describe('fix round 1', () => {
       const step = defaultSteps(cwd).find((candidate) => candidate.name === name)
       const result = await step?.run(context(cwd, { base, changed: [] }))
       expect(result?.ok).toBe(false)
-      expect(result?.lines[0]).toContain(`nothing changed since ${base}; pass --base <the commit the task started from>`)
+      expect(result?.lines[0]).toContain(
+        `nothing changed since ${base}; pass --base <the commit the task started from>`,
+      )
     }
   })
 })

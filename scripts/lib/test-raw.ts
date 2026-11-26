@@ -1,7 +1,7 @@
 // Raw-text views of a test file (no parser). They over-count comments and strings, so they can only
 // add false positives; they are the backstop for anything the parser-based view misjudges.
 const DECLARATION = /(^|[^\w$.])(?:test|it)(?:\.[A-Za-z]+)*\s*[(<`]/gm
-const EXPECT = /\bexpect(?:\.(?:soft|poll))?\s*\(/g
+const EXPECT = /\bexpect(?:\s*\.\s*(?:soft|poll))?\s*\(/g
 // A declaration at the start of a row or after `{ ; = => await return` (possibly after a short block comment).
 const RAW_DECLARATION = /(?:^|[{;=]|=>|\b(?:await|return))\s*(?:\/\*.*?\*\/\s*)?(?:test|it)(?:\.[A-Za-z]+)*\s*[(<`]/
 

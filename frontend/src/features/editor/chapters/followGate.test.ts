@@ -13,7 +13,7 @@ describe('createFollowGate', () => {
     expect(gate.claim()()).toBe(true)
   })
 
-  // Protects: issue 37: clicking the tab already open changes no route, and still must keep the person there.
+  // Protects: clicking the tab already open changes no route, and still must keep the person there.
   it('is not wanted after the person chose a place, even the same one', () => {
     const { gate } = gateAt('#/a')
     const wanted = gate.claim()

@@ -6,8 +6,8 @@ import { adminOnlyTests, readOnlyRecord, singleRecordTest } from './helpers/admi
 adminOnlyTests('system_behavior', { max_failed_logins: 1000 })
 singleRecordTest('system_behavior')
 
-// Defaults from the ERD and the plan's Global Constraints (decision D3 adds
-// team_attempts_per_hour). A user able to raise max_failed_logins could brute-force.
+// Defaults from the ERD, `team_attempts_per_hour` (the join-code and invite limit) included.
+// A user able to raise max_failed_logins could brute-force.
 test('system_behavior starts with the spec defaults', async () => {
   const record = await readOnlyRecord('system_behavior')
   expect(record.presence_timeout_seconds).toBe(30)

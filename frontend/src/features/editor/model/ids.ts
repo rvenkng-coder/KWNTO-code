@@ -1,5 +1,5 @@
-// Client-made ids (plan decision: the browser makes every new content record's id, so undo
-// can re-create a record with its id). PocketBase ids are 15 characters of a-z0-9.
+// Client-made ids: the browser makes every new content record's id, so undo can re-create a record
+// with its id. PocketBase ids are 15 characters of a-z0-9.
 
 const ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyz'
 const ID_LENGTH = 15

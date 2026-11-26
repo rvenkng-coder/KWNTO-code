@@ -35,7 +35,9 @@ export function sampleBytes(
 
 export async function setQuotaOverride(email: string, bytes: number): Promise<void> {
   const pb = await adminPB()
-  const user = await pb.collection('users').getFirstListItem(pb.filter('email = {:email}', { email: email.toLowerCase() }))
+  const user = await pb
+    .collection('users')
+    .getFirstListItem(pb.filter('email = {:email}', { email: email.toLowerCase() }))
   const row = await pb.collection('user_limits').getFirstListItem(pb.filter('user = {:user}', { user: user.id }))
   await pb.collection('user_limits').update(row.id, { quota_override_bytes: bytes })
 }

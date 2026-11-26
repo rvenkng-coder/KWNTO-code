@@ -27,14 +27,24 @@ export function parseArgs(argv: string[]): { cwd: string; folder: string } | nul
 // a folder given as a filter would also match siblings such as task-10 for task-1 (substring match).
 function probeFiles(cwd: string, folder: string): string[] {
   const names = readdirSync(join(cwd, folder), { recursive: true }) as string[]
-  return names.filter((name) => name.endsWith('.probe.test.ts')).map((name) => join(folder, name)).sort()
+  return names
+    .filter((name) => name.endsWith('.probe.test.ts'))
+    .map((name) => join(folder, name))
+    .sort()
 }
 
 async function runVitest(cwd: string, files: string[]): Promise<{ code: number | null; report: unknown }> {
   const reportDir = mkdtempSync(join(tmpdir(), 'run-probes-'))
   const reportPath = join(reportDir, 'report.json')
   try {
-    const code = await spawnVitest(cwd, ['run', '--project', 'probes', '--reporter=json', `--outputFile.json=${reportPath}`, ...files])
+    const code = await spawnVitest(cwd, [
+      'run',
+      '--project',
+      'probes',
+      '--reporter=json',
+      `--outputFile.json=${reportPath}`,
+      ...files,
+    ])
     let report: unknown
     try {
       report = JSON.parse(readFileSync(reportPath, 'utf8'))
@@ -66,13 +76,19 @@ async function runFolder(cwd: string, folder: string): Promise<number> {
 
 export async function main(argv: string[]): Promise<number> {
   const args = parseArgs(argv)
-  if (args === null) { console.log(USAGE); return 1 }
+  if (args === null) {
+    console.log(USAGE)
+    return 1
+  }
   try {
     return await runFolder(args.cwd, args.folder)
   } catch (error) {
     // Our own messages, or a bare filesystem error code: nothing Vitest printed is carried into an Error.
     const code = (error as { code?: unknown }).code
-    const reason = error instanceof Error && !(typeof code === 'string') ? error.message : `cannot read the probe folder (${String(code ?? 'unknown')})`
+    const reason =
+      error instanceof Error && !(typeof code === 'string')
+        ? error.message
+        : `cannot read the probe folder (${String(code ?? 'unknown')})`
     console.log(`run-probes: ${reason}`)
     return 1
   }

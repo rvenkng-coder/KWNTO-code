@@ -22,7 +22,9 @@ export function Choices({ node }: { node: StoryNode }) {
     <section className="flex flex-col gap-2">
       <SectionLabel>Choices</SectionLabel>
       <ul className="flex flex-col gap-2">
-        {list.map((c) => <ChoiceRow key={c.id} choice={c} autoFocus={c.id === focusId} />)}
+        {list.map((c) => (
+          <ChoiceRow key={c.id} choice={c} autoFocus={c.id === focusId} />
+        ))}
       </ul>
       <AddButton name="Add choice" onClick={add} />
       <NodePicker key={node.id} node={node} />

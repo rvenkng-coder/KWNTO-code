@@ -1,4 +1,4 @@
-// A link on a node: a title and a web address (plan 2026-11-21-node-links).
+// A link on a node: a title and a web address.
 export interface NodeLink {
   id: string
   projectId: string

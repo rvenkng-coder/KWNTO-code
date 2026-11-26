@@ -17,7 +17,7 @@ KWNTO uses distinct test projects managed by Vitest and custom test harnesses:
 | **Full suite** | `npm test` | Runs `lint && typecheck && test:unit && test:container && test:rules && test:e2e` | All |
 
 ### Supporting Verification Commands
-- `npm run typecheck`: Runs `tsc -b --noEmit` to verify strict TypeScript compiles for `frontend/src/` only (`scripts/`, `tests/` and `e2e/` are not typechecked).
+- `npm run typecheck`: Runs `tsc -b --noEmit`: strict TypeScript for the app, and for `scripts/`, `tests/` and `e2e/` through `tsconfig.tooling.json` (probes are left out; unchecked index access is allowed there).
 - `npm run lint`: Runs linter guardrails.
 - `npm run check:plan`: Checks the Test plan block of every task file in plans that opt in with `**Standard:** test-plan-v1`; format in [test-plan-format.md](test-plan-format.md). Part of `lint`.
 - `npm run check:hygiene [-- --base <sha>]`: Test hygiene against the merge base with `main`, on changed test files only (shared changed-files helper: `scripts/lib/changed-files.ts`). Prints `file: rule: detail`, exit 1 on any problem. Reads test files with the TypeScript parser (`scripts/lib/test-ast.ts`, no new dependency): a declaration is a call whose chain starts at `test` or `it`, found in any expression position (conditional, `export default`, comma, template, JSX) and never in strings, comments, regex literals or JSX text. It is backed by raw-text checks (`scripts/lib/test-raw.ts`), so a parser misjudgement can only add false positives; skip and focus words are matched on raw text and a word inside a string or comment is flagged on purpose. Rules, and what each protects:
@@ -206,8 +206,8 @@ The CI workflow runs on pushes to `main` and on every pull request (so a branch 
 
 | Job | What it runs | Notes |
 |---|---|---|
-| `checks` | `npm run lint`, `npm run typecheck`, `npm run test:unit`, `npm audit --omit=dev --audit-level=high` (shipped dependencies only; build and test tools are not audited in CI, developer decision 2026-11-18) | Runs on every run |
+| `checks` | `npm run lint`, `npm run format:check`, `npm run typecheck`, `npm run test:unit`, on a pull request `check:hygiene` against the target branch, `npm run report:quality`, `npm audit --omit=dev --audit-level=high` (shipped dependencies only; build and test tools are not audited in CI, developer decision 2026-11-18) | Runs on every run |
 | `backend` | `npm run test:container`, `npm run test:rules` | Uses the runner's Docker; `with-pocketbase.ts` starts and stops PocketBase itself |
-| `e2e` | Playwright install (firefox + chromium), `npm run test:e2e` | Uses the runner's Docker via `with-pocketbase.ts`; uploads `playwright-report/` on failure |
+| `e2e` | Playwright install (firefox + chromium), `npm run test:e2e` | Uses the runner's Docker via `with-pocketbase.ts`; has an upload step for `playwright-report/`, which finds nothing (the CI run makes no HTML report) |
 | `secrets` | gitleaks over full history (`fetch-depth: 0`) | Runs on every run |
 

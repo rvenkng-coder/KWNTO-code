@@ -70,9 +70,7 @@ if (isMain(import.meta.filename)) {
   for (const file of markdownFiles()) {
     const abs = resolve(file)
     const content = readFileSync(abs, 'utf8')
-    const broken = findBrokenLinks(content, dirname(abs), (p) =>
-      existsSync(p) && statSync(p).isFile(),
-    )
+    const broken = findBrokenLinks(content, dirname(abs), (p) => existsSync(p) && statSync(p).isFile())
     for (const target of broken) {
       console.log(`${file}: broken link ${target}`)
       problems++

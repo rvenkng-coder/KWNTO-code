@@ -1,7 +1,7 @@
 import { PB_URL, asAdmin, asUser, rawSend, type TestUser } from './pb.ts'
 import { send, tokenOf, type Reply } from './invites.ts'
 
-// Helpers for the share link tests (plan 2026-11-20-sharing Task 3).
+// Helpers for the share link tests.
 
 // A link made through the member's own session (the create rule and the create hook apply).
 export async function createLink(
@@ -37,7 +37,10 @@ export async function joinShare(token: string, user: TestUser): Promise<Reply> {
 
 // GET /api/kwnto/share/{token}/media/{mediaId}
 export async function shareMedia(token: string, mediaId: string, user?: TestUser): Promise<Response> {
-  return rawSend(await tokenFor(user), `/api/kwnto/share/${encodeURIComponent(token)}/media/${encodeURIComponent(mediaId)}`)
+  return rawSend(
+    await tokenFor(user),
+    `/api/kwnto/share/${encodeURIComponent(token)}/media/${encodeURIComponent(mediaId)}`,
+  )
 }
 
 export { PB_URL }

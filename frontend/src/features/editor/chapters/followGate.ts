@@ -1,4 +1,4 @@
-// Whether a screen change that waits for a save is still wanted when the save ends (issue 37).
+// Whether a screen change that waits for a save is still wanted when the save ends.
 
 export interface FollowGate {
   /** The person chose where to be, even if it is where they already are. */

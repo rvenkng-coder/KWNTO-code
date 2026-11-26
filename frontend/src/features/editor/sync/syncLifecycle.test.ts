@@ -2,7 +2,8 @@ import { expect, test } from 'vitest'
 import type { SyncEngine } from './syncEngine'
 import { createSyncLifecycle } from './syncLifecycle'
 
-// Protects: D9, D10: each account gets its own sync engine, the old one stops before the new one starts, a repeated user does nothing, and signing out stops it.
+// Protects: each account gets its own sync engine, the old one stops before the new one starts, a repeated user does
+// nothing, and signing out stops it.
 test('each account gets its own sync engine', () => {
   const log: string[] = []
   let push: (userId: string | null) => void = () => {}
@@ -10,10 +11,16 @@ test('each account gets its own sync engine', () => {
     push = listener
     return () => {}
   }
-  const makeEngine = (userId: string): SyncEngine => ({
-    start: () => { log.push(`start ${userId}`) },
-    stop: () => { log.push(`stop ${userId}`); return Promise.resolve() },
-  }) as unknown as SyncEngine
+  const makeEngine = (userId: string): SyncEngine =>
+    ({
+      start: () => {
+        log.push(`start ${userId}`)
+      },
+      stop: () => {
+        log.push(`stop ${userId}`)
+        return Promise.resolve()
+      },
+    }) as unknown as SyncEngine
   const lifecycle = createSyncLifecycle(onUser, makeEngine)
   const seen: Array<SyncEngine | null> = []
   lifecycle.subscribe((e) => seen.push(e))

@@ -29,6 +29,7 @@ describe('task 3 probes: mapping, tokens, early problem checks', () => {
       sizeBytes: 500,
       fileName: 'random15chars.png',
       created: '2026-11-19 09:00:00.000Z',
+      removedAt: '',
     })
 
     expect(() => fromMediaRecord({ ...row, kind: 'unknown' })).toThrow(/unknown kind/i)

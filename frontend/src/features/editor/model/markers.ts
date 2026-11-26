@@ -1,8 +1,12 @@
 import { isLiveNode, liveConnections, liveNodes, type ContentState } from './state'
 
-// Start, end and unreachable markers (design 6.1, plan decisions D7 and D8), over all chapters.
+// Start, end and unreachable markers (design 6.1), over all chapters.
 
-export interface NodeMarker { isStart: boolean; isEnd: boolean; isUnreachable: boolean }
+export interface NodeMarker {
+  isStart: boolean
+  isEnd: boolean
+  isUnreachable: boolean
+}
 
 /** The project's start node when that node is live; a trashed or missing start node means no start. */
 export function effectiveStart(s: ContentState): string | null {
@@ -27,7 +31,11 @@ export function nodeMarkers(s: ContentState): Map<string, NodeMarker> {
   const markers = new Map<string, NodeMarker>()
   for (const { id } of liveNodes(s)) {
     const hasIncoming = withIncoming.has(id)
-    markers.set(id, { isStart: id === start, isEnd: !withOutgoing.has(id), isUnreachable: !hasIncoming && id !== start })
+    markers.set(id, {
+      isStart: id === start,
+      isEnd: !withOutgoing.has(id),
+      isUnreachable: !hasIncoming && id !== start,
+    })
   }
   return markers
 }

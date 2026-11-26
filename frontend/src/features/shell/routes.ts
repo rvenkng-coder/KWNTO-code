@@ -1,5 +1,5 @@
 const ID = /^[a-z0-9]{15}$/
-// A share link's token: 40 letters or digits (plan 2026-11-20-sharing).
+// A share link's token: 40 letters or digits.
 const SHARE_TOKEN = /^[A-Za-z0-9]{40}$/
 // A mail link carries a JWT: three URL-safe parts joined by dots.
 const TOKEN = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/

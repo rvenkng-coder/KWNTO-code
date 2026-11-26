@@ -1,6 +1,7 @@
 // The address rule for node links, as the browser checks it before asking the server. A copy of
-// backend/pb_hooks/lib/link-check.js (plan 2026-11-21-node-links, D4): only http and https addresses with
-// a host; no spaces, no user name in front of the host, no other scheme. A rules test keeps the two in step.
+// backend/pb_hooks/lib/link-check.js, written twice because PocketBase's JS runtime has no `URL` class and the
+// client must not call the server just to validate: only http and https addresses with a host; no spaces, no user
+// name in front of the host, no other scheme. A rules test keeps the two in step.
 const MAX_LENGTH = 2000
 const WEB_ADDRESS = /^(https?):\/\/([^\s/?#@\\]+)([/?#]\S*)?$/i
 

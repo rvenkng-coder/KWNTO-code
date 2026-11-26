@@ -9,7 +9,7 @@ import { acceptFor } from './uploadCheck.ts'
 import { useOnline } from './useOnline.ts'
 import { useMediaStore } from './useProjectMedia.ts'
 
-// Uploads are never queued (media plan D9, design 6.7), so they need the browser online AND the editor's
+// Uploads are never queued (design 6.7), so they need the browser online AND the editor's
 // own connection: with the live stream down or the server unreachable the editor says Offline, and the
 // upload button follows it instead of failing with a banner.
 function useConnected(): boolean {
@@ -63,7 +63,9 @@ export function MediaSection({ node }: { node: StoryNode }) {
         <StorageMeter info={storage} />
       </div>
 
-      <label className={`btn self-start flex items-center gap-1 text-sm ${!isOnline ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+      <label
+        className={`btn self-start flex items-center gap-1 text-sm ${!isOnline ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+      >
         <span>Add media</span>
         <input
           type="file"
@@ -76,9 +78,7 @@ export function MediaSection({ node }: { node: StoryNode }) {
       </label>
 
       {!isOnline && (
-        <p className="text-xs text-muted">
-          Uploads need a connection. Try again when you are back online.
-        </p>
+        <p className="text-xs text-muted">Uploads need a connection. Try again when you are back online.</p>
       )}
 
       {error && isOnline && (

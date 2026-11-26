@@ -154,9 +154,9 @@ Projects, chapters and nodes you move to the trash stay there for 30 days (the a
 
 A project can be saved to a file and made again from it, in this team or another one (for a backup, to move a project, or to keep a copy before a big change).
 
-- **Export:** in the editor, choose **Export project file** under the project name in the left panel. The browser saves `<project name>.kwnto.json`. It is plain text you can open in any editor: the project name, its chapters, nodes (title, colour, place), script lines, cues and choices. It holds nothing internal (no team, accounts or versions). Things in the trash are left out, and so are the media files: only their names and kinds are listed, so an imported project has no media.
+- **Export:** in the editor, choose **Export project file** under the project name in the left panel. The browser saves `<project name>.kwnto.json`. It is plain text you can open in any editor: the project name, its chapters, nodes (title, colour, place and size), script lines, cues, choices and node links. It holds nothing internal (no team, accounts or versions). Things in the trash are left out, and so are the media files: only their names and kinds are listed, so an imported project has no media and no cover images.
 - **Import:** on the team's page, under the projects list, choose **Import project** and pick a `.json` file. Any verified member of the team can do this. A new project named `<name> (imported)` is made and opens. The original is not changed, and you can import the same file again for another copy.
-- **If the file is refused:** the page says why, for example `This file is not a KWNTO project: format must be "kwnto-project".` or `This file is larger than the 5 MB import limit.` Nothing is created. Files must be 5 MB or smaller, with at most 200 chapters, 2,000 nodes, 20,000 lines, 10,000 cues and 10,000 choices.
+- **If the file is refused:** the page says why, for example `This file is not a KWNTO project: format must be "kwnto-project".` or `This file is larger than the 5 MB import limit.` Nothing is created. Files must be 5 MB or smaller, with at most 200 chapters, 2,000 nodes, 20,000 lines, 10,000 cues, 10,000 choices and 10,000 links.
 
 ## Search and links between chapters
 

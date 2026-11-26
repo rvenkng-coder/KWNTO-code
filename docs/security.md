@@ -1,6 +1,6 @@
 # KWNTO Security Requirements
 
-What the app must do to keep people's work safe, and how we check it. The product design is in [the design](superpowers/specs/2026-11-11-kwnto-design.md); engineering rules are in [engineering.md](engineering.md). These requirements were set by the developer on 2026-11-11. Items marked **(planned)** are to be built in the plan and do not exist yet. Items marked **(confirm)** are my understanding of how PocketBase behaves and must be checked against the version in use.
+What the app must do to keep people's work safe, and how we check it. The product design is in [the design](superpowers/specs/2026-11-11-kwnto-design.md); engineering rules are in [engineering.md](engineering.md). These requirements were set by the developer on 2026-11-11. Items marked **(confirm)** are my understanding of how PocketBase behaves and must be checked against the version in use.
 
 KWNTO is an **internal tool** for now. Some risks are knowingly accepted for that reason and are listed at the end, to be revisited before any public release.
 
@@ -63,14 +63,14 @@ KWNTO is an **internal tool** for now. Some risks are knowingly accepted for tha
 
 | Risk | Defense | Check |
 |---|---|---|
-| **XSS** | React escapes text by default; the app shows plain text only | ESLint bans `dangerouslySetInnerHTML` **(planned)**; an end-to-end test (`e2e/comments.spec.ts`) saves HTML as a node title and a comment, reloads, and confirms both show as text, nothing runs and no element is made |
-| **SQL injection** | PocketBase builds queries safely; the app never writes SQL | Rule tests send injection strings in filters; filters use bound parameters, never string concatenation **(planned)** |
+| **XSS** | React escapes text by default; the app shows plain text only | ESLint bans `dangerouslySetInnerHTML`; an end-to-end test (`e2e/comments.spec.ts`) saves HTML as a node title and a comment, reloads, and confirms both show as text, nothing runs and no element is made |
+| **SQL injection** | PocketBase builds queries safely; the app never writes SQL | Rule tests send injection strings in filters; filters use bound parameters, never string concatenation (`tests/rules/users.rules.test.ts`, `tests/rules/team_settings.rules.test.ts`; no tool checks for concatenation, so a reviewer does) |
 | **Broken access control** | Section 2 | The rule tests above |
 | **Malicious upload** | Section 4 | Byte detection, extension checks, quota race tests, and safe headers (`tests/rules/media.rules.test.ts`, `tests/rules/media.limits.rules.test.ts`, `tests/hooks/media-check.unit.test.ts`, `e2e/editor-media.spec.ts`) |
 | **Bad imports** | A JSON project import is untrusted input: the server checks the size before parsing (5 MB), validates the whole file with a hand-written schema (`validateProjectFile`: fixed keys only, limits per list and text, every reference must point into the file, link addresses must pass the same web-address rule as in the editor, `__proto__` refused), gives every record a new id, and creates the project in one transaction, so a refused file leaves nothing behind; a person may start 10 imports an hour (429 after that; attempts are logged as `import`) ([project-file.md](developer/project-file.md)) | `tests/hooks/project-file.unit.test.ts` (malformed, oversized, `__proto__`), `tests/hooks/project-file.import.unit.test.ts`, `tests/hooks/project-file.fields.unit.test.ts` (sizes, covers, links), `tests/rules/project-file.rules.test.ts` (too large, not JSON, unknown reference, too many nodes, a record the database refuses: nothing created), `tests/rules/project-file.edge.rules.test.ts` (JSON nested 5 million levels deep, a streamed body over 5 MB, a file at every limit imports in about 12 s; reads and `/api/health` stay fast, but the database has one write connection, so other people's saves wait for those seconds: accepted, with a limit of 10 imports an hour per person, `tests/rules/project-file.limit.rules.test.ts`), `frontend/src/backend/projectFiles.test.ts` (the door refuses over 5 MB before sending), `e2e/project-file.spec.ts` (a bad file shows the reason) |
-| **Leaked secrets** | Secrets stay out of git | gitleaks before each commit and in the workflow **(planned)** |
-| **Vulnerable libraries** | Dependency audit | `npm audit` in the workflow **(planned)** |
-| **Missing browser protections** | The proxy adds Content-Security-Policy and other headers | One test that the headers are present **(planned)** |
+| **Leaked secrets** | Secrets stay out of git | gitleaks before each commit (`.githooks/pre-commit`) and in the workflow (the `secrets` job) |
+| **Vulnerable libraries** | Dependency audit | `npm audit` in the workflow (the `checks` job, shipped dependencies, high and above) |
+| **Missing browser protections** | The proxy adds Content-Security-Policy and other headers | `tests/container/edge.test.ts` checks the headers |
 | **CSRF** | PocketBase uses tokens in headers, not cookies, so it mostly does not apply | **(confirm)** |
 
 ## 6. Secrets and the server

@@ -56,11 +56,15 @@ Prettier sets the layout of every `.ts`, `.tsx` and `.js` file (line width 120, 
 | `npm run test:container` | Run container hardening tests (Docker) |
 | `npm run test:rules` | Run PocketBase access rule tests (live PocketBase instance) |
 | `npm run test:e2e` | Run end-to-end tests (Playwright, Firefox + Chromium) |
-| `npm run test` | Run the full suite: `lint && typecheck && test:unit && test:container && test:rules` |
-| `npm run lint` | Run ESLint, PERF comment check, and docs link check |
+| `npm run test` | Run the full suite: `lint && typecheck && test:unit && test:container && test:rules && test:e2e` |
+| `npm run lint` | Run ESLint, the PERF comment check, the docs link check, the plan check and the history-reference check |
 | `npm run format` | Rewrite the layout of every code file with Prettier |
 | `npm run format:check` | Fail if a code file is not formatted |
 | `npm run check:docs` | Check that all relative markdown links resolve |
+| `npm run check:comments` | Fail if a code comment cites a plan, task or case id |
+| `npm run check:plan` | Check the task files of the plans |
+| `npm run check:hygiene` | Check new tests have a header and no test was skipped or lost |
+| `npm run check:quality` | Function length and complexity limits on changed files |
 | `npm run spike:realtime` | Run the real-time spike (seed data, Playwright test, teardown) |
 | `npm run prepare` | Set up the gitleaks pre-commit hook (`git config core.hooksPath .githooks`) |
 

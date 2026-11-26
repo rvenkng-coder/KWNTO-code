@@ -62,13 +62,13 @@ Already fixed before this plan: card size and node links lost by export and shar
 | [1](task-1-lint-hooks.md) | Lint the backend hooks | mid | done |
 | [2](task-2-typecheck-tooling.md) | Typecheck tests, end-to-end tests and scripts | mid | done |
 | [3](task-3-before-formatting.md) | Prepare for formatting: assertion counter, sync engine, backend index | strong | done |
-| [4](task-4-prettier.md) | Prettier and the format-only commit | mid | planned |
-| [5](task-5-comment-checker.md) | A checker for history references and comment-only changes | mid | planned |
-| [6](task-6-comments-hooks.md) | Rewrite comments: backend hooks | strong | planned |
-| [7](task-7-comments-frontend.md) | Rewrite comments: frontend | strong | planned |
-| [8](task-8-comments-tests-scripts.md) | Rewrite comments: tests and scripts; turn the check on | strong | planned |
-| [9](task-9-docs.md) | Docs for people, agent material separated, recipes | strong | planned |
-| [10](task-10-ci-closeout.md) | CI checks and closeout | mid | planned |
+| [4](task-4-prettier.md) | Prettier and the format-only commit | mid | awaiting developer review |
+| [5](task-5-comment-checker.md) | A checker for history references and comment-only changes | mid | awaiting developer review |
+| [6](task-6-comments-hooks.md) | Rewrite comments: backend hooks | strong | awaiting developer review |
+| [7](task-7-comments-frontend.md) | Rewrite comments: frontend | strong | awaiting developer review |
+| [8](task-8-comments-tests-scripts.md) | Rewrite comments: tests and scripts; turn the check on | strong | awaiting developer review |
+| [9](task-9-docs.md) | Docs for people, agent material separated, recipes | strong | awaiting developer review |
+| [10](task-10-ci-closeout.md) | CI checks and closeout | mid | awaiting developer review |
 
 ## Review Focus
 

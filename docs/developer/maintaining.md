@@ -18,7 +18,8 @@ For the day you are on your own, with no AI agent: how to get oriented, the comm
 | Set up a fresh checkout | `npm install` (also sets the git hook that scans commits for secrets), copy `.env.example` to `.env` and fill the admin login ([getting-started](getting-started.md)) |
 | Start the app for development | `npm run dev:backend` in one terminal, `npm run dev` in another; open `http://localhost:5173` |
 | Run everything the CI runs | `npm test` (lint, typecheck, unit, container, rules, e2e; the last two start their own throwaway PocketBase in Docker) |
-| Run only the fast checks | `npm run lint`, `npm run typecheck`, `npm run test:unit` |
+| Run only the fast checks | `npm run lint`, `npm run format:check`, `npm run typecheck`, `npm run test:unit` |
+| Format the code | `npm run format` (or format on save, [getting-started](getting-started.md#formatting)) |
 | Run one unit test file | `npx vitest run frontend/src/features/player/session.test.ts` |
 | Run one end-to-end spec | `npm run test:e2e -- e2e/player.spec.ts --project chromium` (drop `--project` for both browsers) |
 | Run the access-rule tests | `npm run test:rules` |
@@ -28,13 +29,13 @@ The tests use their own ports and containers (`kwnto-test`, ports 8091, 5174 and
 
 ## Making a change by hand
 
-The full procedure, with a worked example of each kind of test, what each CI job needs and where the documentation goes, is in [workflow.md](workflow.md). In short:
+The full procedure, with a worked example of each kind of test, what each CI job needs and where the documentation goes, is in [workflow.md](workflow.md). Which files to touch for a new field, collection or backend service is in [recipes.md](recipes.md). In short:
 
 1. Work on a branch; never commit to `main`. The CI (`backend`, `checks`, `e2e`, `secrets`) runs on every pull request and on pushes to `main`; the full e2e job takes about half an hour.
 2. Write the failing test first (a unit test for logic, a rule test for access, an e2e spec for a screen), watch it fail for the right reason, then make it pass. Never edit a test just to make it pass.
-3. Keep the rules: only the door imports PocketBase; 300 lines per file; no `any`; no new dependency without a decision record in `docs/decisions/`.
+3. Keep the rules: only the door imports PocketBase; 300 lines per file; no `any`; comments give the reason and never cite a plan or task; code formatted with `npm run format`; no new dependency without a decision record in `docs/decisions/`.
 4. Update the docs for anything a person or the next maintainer would see: the user guides in `docs/user/`, the developer notes, the test plan row in `docs/test-plan.md` (which file for what: [workflow.md section 6](workflow.md#6-where-the-documentation-goes)).
-5. Run `npm test`. Fix what it finds. Then open the pull request; the template in `.github/` has the checklist.
+5. Run `npm run format:check` and `npm test`. Fix what they find. Then open the pull request; the template in `.github/` has the checklist.
 6. After it merges, deploy (below), then look at the site.
 
 ## Production, in short
@@ -71,7 +72,7 @@ After a deploy, check three things: `docker compose ... ps` shows `pocketbase` a
 Most of this repository's size is the scaffolding built for AI agents. You do not need it to work by hand:
 
 - `docs/superpowers/plans/` and `.planning/`: the plans and progress logs of past work. Read one only to learn why something was built a certain way.
-- `tests/probes/`, and the `check:task`, `check:breaks`, `check:probes`, `check:plan`, `prepare-local-run` and `report:*` scripts, plus `.pi/skills/`, `.claude/skills/` and the local-model docs. They exist for the agent workflow. (`npm run lint` still runs `check:plan` over the existing plan files; that is harmless.)
+- `tests/probes/`, and everything under "Agent workflow only" in `AGENTS.md` and "Agent workflow" in the [documentation index](../README.md): the `check:task`, `check:breaks`, `check:probes`, `prepare-local-run`, `ping:model` and `report:escape-rate` scripts, `.pi/skills/`, `.claude/skills/` and the local-model docs. (`npm run lint` still runs `check:plan` over the existing plan files; that is harmless.)
 - `AGENTS.md` is a good one-page summary of the rules and layout even if you never use an agent.
 
 Keep: `npm test`, `npm run lint`, the pre-commit secret scan, the CI, and the test suite itself, which is the best description of what must keep working.

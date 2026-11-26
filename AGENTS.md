@@ -53,7 +53,7 @@ See the [design](docs/superpowers/specs/2026-11-11-kwnto-design.md) and [ERD](do
 
 - **One door to the backend.** Only `frontend/src/backend/` imports `pocketbase`.
 - **300 lines max per file.** ESLint `max-lines` enforces it in `frontend/src` (test files 500) and `backend/pb_hooks`.
-- **Comments state the reason.** Never cite a plan, task, decision number, case id or finding.
+- **Comments state the reason.** Never cite a plan, task, decision number, case id or finding. A design section or a decision record may follow the reason.
 - **No `any`.** Justified exception needs a comment.
 - **Deny by default.** PocketBase rules default to `null` (superusers only).
 - **No new dependencies** without a decision record and developer approval.

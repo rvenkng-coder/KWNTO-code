@@ -78,7 +78,7 @@ test('a node of a trashed chapter cannot be restored before its chapter', async 
   expect(await trash(member, 'nodes', nodeId, '')).toBe(200)
 })
 
-// Protects L11 (snapshot size): a project whose file would not fit the 6 MB snapshot field gets a clear
+// Protects: a project whose file would not fit the 6 MB snapshot field gets a clear
 // message instead of a bare 400, and a live link of the same project still works.
 test('a snapshot of a project over 6 MB says so, and a live link still works', { timeout: 120_000 }, async () => {
   const { member, projectId, chapterId } = await memberProject()

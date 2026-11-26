@@ -39,10 +39,10 @@ Two `PERF:` notes in one run of `//` lines are checked separately. The check wor
 
 ## Comments that point at history
 
-A comment states its reason where it is. A reference to a plan, task, case, finding or decision number sends the reader to old project history. `scripts/check-comment-refs.ts` reads the comments (not strings or text on screen) of the code under `frontend/src`, `backend/pb_hooks`, `e2e`, `tests` and `scripts`; probe files and migrations are left out. A design section or a decision record may be cited after the reason. `npm run lint` runs it, so CI refuses such a comment.
+A comment states its reason where it is. A reference to a plan, task, case, finding or decision number sends the reader to old project history. `scripts/check-comment-refs.ts` reads the comments (not strings or text on screen) of the code under `frontend/src`, `backend/pb_hooks`, `e2e`, `tests` and `scripts`; probe files and migrations are left out. A design section or a decision record may be cited after the reason. `npm run lint` runs it, so CI refuses what it recognises: `Task <n>`, `D<n>`, `C<n>`, `M<n>`, `finding <x>`, a plan named by number, date or subject, and `Review Focus`. Other ids (`E1`, `F2`, `L4`, `I1`, "checkpoint 3") pass it, so a reviewer watches for those.
 
 - `npm run check:comments` prints `file:line: reference` for each one and exits with 1. Add paths to check less: `npm run check:comments -- backend/pb_hooks`.
-- `npm run check:comments -- --same-code <base>` lists each code file that differs from `<base>` in more than its comments, and each added, deleted or renamed one. Use it to prove that a comment rewrite changed no code. It cannot see a removed directive such as `eslint-disable` or `// Protects:`; lint and `check:hygiene` do.
+- `npm run check:comments -- --same-code <base>` lists each code file that differs from `<base>` in more than its comments, and each added, deleted or renamed one. Use it to prove that a comment rewrite changed no code. It cannot see an added or removed directive comment (`eslint-disable`, `@ts-expect-error`, `@vitest-environment`, `@vite-ignore`) or a removed `// Protects:` header, so read the diff for those. Lint and typecheck catch some of them; `check:hygiene` asks for a header only on new tests.
 
 ## Commands
 

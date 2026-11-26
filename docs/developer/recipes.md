@@ -1,6 +1,6 @@
 # Recipes
 
-Which files to change, in order, for three common changes. Each step names what fails if you miss it. "Nothing fails" means you must check that step yourself. Write the failing test first, as in [workflow.md](workflow.md).
+Which files to change, in order, for three common changes. Each step names what fails if you miss it. "Nothing fails" means you must check that step yourself. A `typecheck` failure needs the new field to be required: an optional (`?`) field passes it everywhere. Write the failing test first, as in [workflow.md](workflow.md).
 
 ## 1. Add a field to a node
 
@@ -24,7 +24,7 @@ Copy and paste takes the whole node, so a new field travels with it.
 1. Write the migration in `backend/pb_migrations/`. Rules are `null` (admins only) unless you open them.
 2. Write `tests/rules/<name>.rules.test.ts` for list, view, create, update and delete: signed out, another user, the owner, and an injection string. `npm run test:rules` fails without a file of that exact name.
 3. If a rule is public (`""`), add it to `PUBLIC_RULES` in `tests/rules/helpers/coverage.ts` with a comment citing the design section. The rules tests fail otherwise.
-4. If the collection belongs to a project, list it in `tests/rules/helpers/file-contract.ts`: its fields as carried or never carried, or the whole collection as not imported. The rules tests fail otherwise.
+4. If the collection belongs to a project (it has a `project` relation), list it in `tests/rules/helpers/file-contract.ts`: its fields as carried or never carried, or the whole collection as not imported. The rules tests fail otherwise.
 5. Add it to the [ERD](../superpowers/specs/2026-11-11-kwnto-erd.md), and to [security.md](../security.md) if it changes who can see what.
 
 ## 3. Add a backend service

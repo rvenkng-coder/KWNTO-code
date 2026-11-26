@@ -206,7 +206,7 @@ The CI workflow runs on pushes to `main` and on every pull request (so a branch 
 
 | Job | What it runs | Notes |
 |---|---|---|
-| `checks` | `npm run lint`, `npm run typecheck`, `npm run test:unit`, `npm audit --omit=dev --audit-level=high` (shipped dependencies only; build and test tools are not audited in CI, developer decision 2026-11-18) | Runs on every run |
+| `checks` | `npm run lint`, `npm run format:check`, `npm run typecheck`, `npm run test:unit`, on a pull request `check:hygiene` against the target branch, `npm run report:quality`, `npm audit --omit=dev --audit-level=high` (shipped dependencies only; build and test tools are not audited in CI, developer decision 2026-11-18) | Runs on every run |
 | `backend` | `npm run test:container`, `npm run test:rules` | Uses the runner's Docker; `with-pocketbase.ts` starts and stops PocketBase itself |
 | `e2e` | Playwright install (firefox + chromium), `npm run test:e2e` | Uses the runner's Docker via `with-pocketbase.ts`; has an upload step for `playwright-report/`, which finds nothing (the CI run makes no HTML report) |
 | `secrets` | gitleaks over full history (`fetch-depth: 0`) | Runs on every run |

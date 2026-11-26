@@ -1,5 +1,6 @@
 import type PocketBase from 'pocketbase'
 import { toBackendError } from './errors.ts'
+import { closesQuietly } from './subscriptions.ts'
 import type { LinkEvent, NodeLink } from './link-types.ts'
 
 function str(v: unknown): string {
@@ -65,7 +66,7 @@ export function createLinks(pb: PocketBase) {
             }
           },
           { filter: pb.filter('project = {:project}', { project: projectId }) },
-        ),
+        ).then(closesQuietly),
       ),
   }
 }

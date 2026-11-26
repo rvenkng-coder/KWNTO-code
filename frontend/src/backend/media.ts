@@ -1,6 +1,7 @@
 import type PocketBase from 'pocketbase'
 import { toBackendError } from './errors.ts'
 import { createFileTokens } from './file-tokens.ts'
+import { closesQuietly } from './subscriptions.ts'
 import type { Media, MediaEvent, MediaKind, StorageInfo } from './media-types.ts'
 
 const VALID_KINDS: readonly MediaKind[] = ['audio', 'video', 'image']
@@ -60,7 +61,7 @@ function subscribeMedia(pb: PocketBase, projectId: string, onEvent: (e: MediaEve
       }
     },
     { filter },
-  )
+  ).then(closesQuietly)
 }
 
 export function createMedia(pb: PocketBase) {

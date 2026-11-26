@@ -1,5 +1,6 @@
 import type PocketBase from 'pocketbase'
 import { toBackendError } from './errors'
+import { closesQuietly } from './subscriptions'
 import type { PresenceEvent, PresenceRow } from './presence-types'
 
 export function toPresence(row: Record<string, unknown>): PresenceRow {
@@ -42,7 +43,7 @@ export function createPresence(pb: PocketBase) {
     subscribe(projectId: string, onEvent: (e: PresenceEvent) => void): Promise<() => Promise<void>> {
       return pb.collection('presence').subscribe('*', (e) => {
         if (e.action === 'create' || e.action === 'update' || e.action === 'delete') onEvent({ action: e.action, record: toPresence(e.record) })
-      }, { filter: filterOf(projectId) }).catch((err) => {
+      }, { filter: filterOf(projectId) }).then(closesQuietly).catch((err) => {
         throw toBackendError(err)
       })
     },

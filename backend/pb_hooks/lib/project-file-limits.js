@@ -1,4 +1,4 @@
-// The limits of the project file (plan 7 D5) and its fixed value lists, in one place so the
+// The limits of the project file and its fixed value lists, in one place so the
 // validator, the importer and the tests read the same numbers. CommonJS (see project-file.js).
 
 // The text lengths and the colour and cue-type lists are the collections' own limits:
@@ -7,8 +7,8 @@
 // 2000, connection label 200 from 1794370100_nodes_lines_connections.js; media title 120
 // and kind from 1794380000_media.js; the largest node width and height (`side`) from
 // 1794400800_node_size_card_font.js; link title 120 and address 2000 from 1794400100_node_links.js.
-// The counts and the 5 MB size are plan D5, and 10000 links is this file's own limit. `id`
-// (an id in a file is only a key, so any short string will do) is this file's own limit.
+// The counts, the 5 MB size and the `id` length (an id in a file is only a key, so any short
+// string will do) are this file's own limits (docs/developer/project-file.md).
 const FILE_LIMITS = {
   maxBytes: 5242880,
   chapters: 200,

@@ -1,4 +1,4 @@
-// What the share routes do (plan 7 Task 3). Needs a PocketBase app, so it is covered by the
+// What the share routes do. Needs a PocketBase app, so it is covered by the
 // rules tests (tests/rules/share-routes.rules.test.ts), not by a unit test; the decisions
 // themselves are in lib/share.js. Every token is a bound parameter, never part of a filter.
 

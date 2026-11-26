@@ -1,4 +1,4 @@
-// Who may open a project through a share link (design 5, plan 7 D2 and D8). CommonJS so
+// Who may open a project through a share link (design 5). CommonJS so
 // hooks can load it with require(`${__hooks}/lib/share.js`) and Vitest can load it too.
 
 const NOT_FOUND = { status: 404, mode: null }

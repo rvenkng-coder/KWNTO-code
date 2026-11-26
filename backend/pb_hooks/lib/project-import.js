@@ -13,7 +13,7 @@ function add(app, collection, fields) {
   return record
 }
 
-// The project hook makes `Chapter 1` (plan D6): it is reused for the file's first chapter and
+// The project hook makes `Chapter 1`: it is reused for the file's first chapter and
 // the other chapters are made. Returns a map from a planned chapter id to the stored one.
 function createChapters(app, projectId, chapters) {
   const chapterIds = {}

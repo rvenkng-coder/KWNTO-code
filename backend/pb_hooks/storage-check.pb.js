@@ -1,5 +1,5 @@
 /// <reference path="../pb_data/types.d.ts" />
-// The disk-usage warning (design 7c, plan 6 D12): every hour, add up every stored file;
+// The disk-usage warning (design 7c): every hour, add up every stored file;
 // over system_storage.total_warning_bytes, and if no warning went out in the last 24
 // hours, write a `storage` security log entry and mail every admin (when mail is set up).
 

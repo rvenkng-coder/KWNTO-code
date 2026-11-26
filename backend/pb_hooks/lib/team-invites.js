@@ -83,7 +83,7 @@ function findOwnInvite(app, inviteId, userId) {
 // code). Returns false if the invite was already answered. The status change and the
 // member row are one transaction: neither exists without the other, and two accepts
 // sent at once cannot both see "pending". The member row is saved as a normal record,
-// so the team_members hook fills `user_name` (teams.pb.js, D6).
+// so the team_members hook fills `user_name` (teams.pb.js).
 function answerInvite(app, inviteId, status) {
   let answered = false
   app.runInTransaction((txApp) => {

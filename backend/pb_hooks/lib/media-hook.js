@@ -151,7 +151,7 @@ function handleMediaCreate(e) {
   verifyRaceQuota(e, deps, prep)
 }
 
-// The headers every served media file carries (Plan 5 D6): the right type from the file's
+// The headers every served media file carries: the right type from the file's
 // extension, no sniffing, and a policy that lets a file show nothing but itself. Also used by
 // the share routes, which serve media without going through the file download request.
 function applyDownloadHeaders(response, name) {

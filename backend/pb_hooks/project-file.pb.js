@@ -1,5 +1,5 @@
 /// <reference path="../pb_data/types.d.ts" />
-// Project files (design 10, plan 7 D4 to D6, docs/developer/project-file.md). The file is
+// Project files (design 10, docs/developer/project-file.md). The file is
 // built and checked only here, with lib/project-file.js; the browser downloads and uploads it.
 //
 //   GET  /api/kwnto/projects/{id}/export   a member gets the file; anyone else the same 404

@@ -1,6 +1,6 @@
 // Reads every record of one project as plain objects with the stored field names, the shape
-// buildProjectFile (lib/project-file.js) takes. Shared by the export route, and later by
-// snapshots and the shared view (plan 7 D4), so there is one reader. Not pure (it needs a
+// buildProjectFile (lib/project-file.js) takes. Shared by the export route, snapshots and
+// the shared view, so there is one reader. Not pure (it needs a
 // PocketBase app), so it is covered by the rules tests, not by a unit test.
 
 function plain(record, fields) {

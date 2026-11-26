@@ -1,5 +1,5 @@
 /// <reference path="../pb_data/types.d.ts" />
-// The two settings the browser needs (plan D12): `system_behavior` itself stays admin only,
+// The two settings the browser needs: `system_behavior` itself stays admin only,
 // so this route copies out just the trash retention (for "<n> days left") and the presence
 // timeout. Any signed-in person may read it, verified or not.
 

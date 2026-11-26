@@ -4,7 +4,7 @@
 
 ## What ESLint enforces
 
-Rules apply to `frontend/src/**/*.{ts,tsx}`. The config is `eslint.config.js`; the rule tests are `tests/lint/guardrails.test.ts`.
+The rules in this table apply to `frontend/src/**/*.{ts,tsx}`. The config is `eslint.config.js`; the rule tests are `tests/lint/guardrails.test.ts`.
 
 | Rule | What it catches | What to do |
 |---|---|---|
@@ -12,6 +12,10 @@ Rules apply to `frontend/src/**/*.{ts,tsx}`. The config is `eslint.config.js`; t
 | `no-restricted-imports` | `import ... from 'pocketbase'` anywhere except `frontend/src/backend/`, `tests/rules/` and `e2e/` | Call the backend through a function in `frontend/src/backend/` |
 | `@typescript-eslint/no-explicit-any` | The `any` type | Use a real type or `unknown`. If `any` is truly needed: `// eslint-disable-next-line @typescript-eslint/no-explicit-any -- <reason>` |
 | `no-restricted-syntax` | The React prop `dangerouslySetInnerHTML` | Render text as text (security.md section 5) |
+
+## Backend hooks
+
+`backend/pb_hooks/**/*.js` is run by PocketBase and is not typechecked, so lint is its only static check: the recommended ESLint rules (an undefined name, an unused variable) and `max-lines` (300). The names PocketBase provides are listed in `POCKETBASE_GLOBALS` in `eslint.config.js`; add a name there only when PocketBase really provides it (`backend/pb_data/types.d.ts` in a running container lists them). A `catch (error)` whose `error` is unused is allowed.
 
 ESLint skips `dist/`, `spike/`, `.agents/`, `.claude/` and the prototype `branching_narrative_tool.tsx`.
 

@@ -3,7 +3,7 @@
 // only the owner trashes a project, deleting a team names its projects, and an outsider sees nothing.
 import { expect, test } from '@playwright/test'
 import { uniqueEmail } from './helpers/admin'
-import { createProject, ownerWithProject, tabTitles, waitForSave } from './helpers/editor'
+import { addNodeAt, cards, createProject, ownerWithProject, readyCanvas, tabTitles, waitForSave } from './helpers/editor'
 import { enableJoinCode, joinWithCode, openTeam, signUpVerifyAndSignIn } from './helpers/ui'
 
 const allChapters = (page: import('@playwright/test').Page) => page.getByRole('menu', { name: 'All chapters' })
@@ -38,6 +38,29 @@ test('chapter names and order survive a reload', async ({ page }) => {
   await page.reload()
   await expect(page.getByRole('tab', { name: 'Chapter 1' })).toBeVisible()
   expect(await tabTitles(page)).toEqual(['The Door', 'Chapter 1'])
+})
+
+// Protects: issue 37: a chapter picked while a new one is still being saved stays open.
+test('a tab opened while a chapter is being added stays open', async ({ page }) => {
+  await ownerWithProject(page, 'Story')
+  await addNodeAt(page, 60, 60)
+  let release = () => {}
+  const held = new Promise<void>((resolve) => (release = resolve))
+  await page.route('**/api/collections/chapters/records', async (route) => {
+    await held
+    await route.continue()
+  })
+  const created = waitForSave(page, 'chapters', 'POST')
+  await page.getByRole('button', { name: 'Add chapter' }).click()
+  await expect(page.getByRole('tab', { name: 'Chapter 2' })).toBeVisible()
+  await page.getByRole('tab', { name: 'Chapter 1' }).click()
+  release()
+  await created
+  // Saves go out one at a time, so once this node is saved the app has finished adding the chapter.
+  await addNodeAt(page, 320, 60)
+  await expect(page.getByRole('tab', { name: 'Chapter 1', selected: true })).toBeVisible()
+  await readyCanvas(page, 2)
+  await expect(cards(page)).toHaveCount(2)
 })
 
 // Protects: closing a tab only hides it here (the All chapters list reopens it); trashing removes the chapter for good.

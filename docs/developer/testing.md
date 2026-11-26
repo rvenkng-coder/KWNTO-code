@@ -14,7 +14,7 @@ KWNTO uses distinct test projects managed by Vitest and custom test harnesses:
 | **Container** | `npm run test:container` | Container hardening, non-root user verification, bootstrap & volume recovery | Docker |
 | **Rules** | `npm run test:rules` | PocketBase access rule verification for each collection | PocketBase container via `with-pocketbase.ts` |
 | **End-to-end** | `npm run test:e2e` | Full browser flows (Playwright across Chromium & Firefox) | Web app + PocketBase |
-| **Full suite** | `npm test` | Runs `lint && typecheck && test:unit && test:container && test:rules` | All |
+| **Full suite** | `npm test` | Runs `lint && typecheck && test:unit && test:container && test:rules && test:e2e` | All |
 
 ### Supporting Verification Commands
 - `npm run typecheck`: Runs `tsc -b --noEmit` to verify strict TypeScript compiles for `frontend/src/` only (`scripts/`, `tests/` and `e2e/` are not typechecked).
@@ -147,7 +147,7 @@ The pure helpers that PocketBase hooks load from `backend/pb_hooks/lib/` are tes
 
 ## End-to-End Testing (`e2e/`)
 
-End-to-end tests verify the full stack: browser → Vite dev server → PocketBase proxy. They run on every commit via `npm test`.
+End-to-end tests verify the full stack: browser → Vite dev server → PocketBase proxy. They run as the last layer of `npm test` and in the CI's `e2e` job.
 
 ### Configuration (`playwright.config.ts`)
 - **Browsers:** Chromium and Firefox (desktop, latest).
@@ -169,7 +169,7 @@ End-to-end tests verify the full stack: browser → Vite dev server → PocketBa
 
 ### Helpers (`e2e/helpers/`)
 - `admin.ts`: `verifyByEmail(email)` (marks an account verified, standing in for the email link), `uniqueEmail()`, `userExists(email)`; they sign in as the test admin.
-- `ui.ts`: `signUp`, `signUpVerifyAndSignIn`, `createTeam` (answers the browser `prompt()`), `openTeam` (waits for `data-loaded="true"` on the member list), `enableJoinCode`, `joinWithCode`, `settled` (network idle).
+- `ui.ts`: `signUp`, `signUpVerifyAndSignIn`, `createTeam` (fills the Create team dialog), `openTeam` (waits for `data-loaded="true"` on the member list), `enableJoinCode`, `joinWithCode`, `settled` (network idle).
 - **Never `waitForTimeout`.** Wait for something on the page. For "X is absent" first wait for a positive signal that the screen has loaded (`openTeam` does; for a list use `settled`), or the check passes before the data arrives. Use `toBeEnabled()` for a gate, not `toBeVisible()`: a disabled button is visible. Wait for each sign-in response when counting attempts (`clickAndWaitForSignIn` in `accounts.spec.ts`).
 
 ### If interrupted
@@ -211,4 +211,3 @@ The CI workflow runs on pushes to `main` and on every pull request (so a branch 
 | `e2e` | Playwright install (firefox + chromium), `npm run test:e2e` | Uses the runner's Docker via `with-pocketbase.ts`; uploads `playwright-report/` on failure |
 | `secrets` | gitleaks over full history (`fetch-depth: 0`) | Runs on every run |
 
-The first real CI run happens when the developer pushes the branch to GitHub.

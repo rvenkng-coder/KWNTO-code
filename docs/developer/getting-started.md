@@ -60,3 +60,9 @@ The app is now running at <http://localhost:5173>.
 - See [engineering.md](../engineering.md) for coding principles.
 - See [testing.md](./testing.md) for test layer details.
 - See [AGENTS.md](../../AGENTS.md) for repo layout and hard rules.
+
+## Next
+
+- [How it fits together](architecture.md): the running system and the code layers.
+- [Maintaining it by hand](maintaining.md): commands, production, where to look when something breaks.
+- [The development workflow](workflow.md): branch to production, how to write each kind of test, what each CI job needs, where the docs go.

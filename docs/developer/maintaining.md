@@ -28,10 +28,12 @@ The tests use their own ports and containers (`kwnto-test`, ports 8091, 5174 and
 
 ## Making a change by hand
 
+The full procedure, with a worked example of each kind of test, what each CI job needs and where the documentation goes, is in [workflow.md](workflow.md). In short:
+
 1. Work on a branch; never commit to `main`. The CI (`backend`, `checks`, `e2e`, `secrets`) runs on every pull request and on pushes to `main`; the full e2e job takes about half an hour.
 2. Write the failing test first (a unit test for logic, a rule test for access, an e2e spec for a screen), watch it fail for the right reason, then make it pass. Never edit a test just to make it pass.
 3. Keep the rules: only the door imports PocketBase; 300 lines per file; no `any`; no new dependency without a decision record in `docs/decisions/`.
-4. Update the docs for anything a person or the next maintainer would see: the user guides in `docs/user/`, the developer notes, the test plan row in `docs/test-plan.md`.
+4. Update the docs for anything a person or the next maintainer would see: the user guides in `docs/user/`, the developer notes, the test plan row in `docs/test-plan.md` (which file for what: [workflow.md section 6](workflow.md#6-where-the-documentation-goes)).
 5. Run `npm test`. Fix what it finds. Then open the pull request; the template in `.github/` has the checklist.
 6. After it merges, deploy (below), then look at the site.
 

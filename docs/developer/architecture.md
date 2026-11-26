@@ -122,4 +122,4 @@ The full story, with every edge case, is in [the editor notes: How an edit trave
 - The editor's model, store and sync: [editor.md](editor.md).
 - Collections, hooks, guarded writes, the door's methods: [backend.md](backend.md).
 - Styling tokens: [styling.md](styling.md). Tests: [testing.md](testing.md).
-- Running it and fixing it: [maintaining.md](maintaining.md).
+- Running it and fixing it: [maintaining.md](maintaining.md). Building a feature by hand, writing its tests and what the CI needs: [workflow.md](workflow.md).

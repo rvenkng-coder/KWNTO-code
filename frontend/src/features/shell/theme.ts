@@ -17,7 +17,10 @@ export function systemTheme(): Theme {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
-/** Makes `useTheme()` answer this theme inside a subtree (the export stage is always light, plan 8 D4). */
+/**
+ * Makes `useTheme()` answer this theme inside a subtree (the export stage is always light, because exports are printed
+ * and shared).
+ */
 export const ThemeOverride = createContext<Theme | null>(null)
 
 /** The theme now in effect (the override of the nearest `ThemeOverride`, if any); re-renders when `applyTheme` changes it. */

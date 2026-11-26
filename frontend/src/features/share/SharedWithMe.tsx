@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { backend, type Grant } from '../../backend'
 import { navigate } from '../shell/useRoute'
 
-/** Projects the person was given an edit link to (design 5, D8). Comment links are reopened through the link itself. */
+/** Projects the person was given an edit link to (design 5). Comment links are reopened through the link itself. */
 export function SharedWithMe() {
   const [grants, setGrants] = useState<Grant[]>([])
   useEffect(() => {

@@ -1,6 +1,6 @@
 // Protects: a refresh that fails because the server is unreachable must keep the
 // session; only a refusal (401, 403, 404) ends it. Otherwise refreshing on load would
-// sign everyone out whenever the server is briefly down (final review, I1).
+// sign everyone out whenever the server is briefly down.
 import { expect, test, vi } from 'vitest'
 import type PocketBase from 'pocketbase'
 import { ClientResponseError } from 'pocketbase'
@@ -216,7 +216,7 @@ test('signIn result and current() are the same object', async () => {
   expect(auth.current()).toBe(result)
 })
 
-// Protects Plan 6 D9 / C2: the mail-link screens finish verification and reset through the SDK with
+// Protects the mail links: their screens finish verification and reset through the SDK with
 // exactly the token and passwords given, and a refusal (the password rules) reaches the screen as a
 // BackendError of kind invalid carrying the server's message.
 test('the door confirms verification and resets through the SDK', async () => {

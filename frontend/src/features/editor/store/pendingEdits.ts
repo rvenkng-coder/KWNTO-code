@@ -1,6 +1,6 @@
-// Text typed in the panel waits here before it is saved (plan Global Constraints, "Saving per
-// attribute"): a save runs 800 ms after the last keystroke, on blur, or when the person moves on
-// (another node, chapter or project, or leaving the page). Keys are `${kind}:${id}:${field}`.
+// Text typed in the panel waits here before it is saved: a save runs 800 ms after the last
+// keystroke, on blur, or when the person moves on (another node, chapter or project, or leaving the
+// page). Keys are `${kind}:${id}:${field}`, so each attribute is saved on its own.
 
 export const TEXT_SAVE_DELAY_MS = 800
 

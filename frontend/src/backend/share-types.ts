@@ -1,5 +1,5 @@
-// Share links as the screens see them (plan 2026-11-20-sharing Task 4; ERD `share_links`,
-// `link_grants`). `ProjectFile` is the project file of docs/developer/project-file.md.
+// Share links as the screens see them (ERD `share_links`, `link_grants`). `ProjectFile` is the project file of
+// docs/developer/project-file.md.
 
 export type SharePermission = 'view' | 'comment' | 'edit'
 export type ShareKind = 'live' | 'snapshot'

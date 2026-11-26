@@ -33,7 +33,7 @@ export interface PlayerApi {
   restart(): void
 }
 
-/** The player's state. It keeps the story it was first given and never reads a later one (plan D3). */
+/** The player's state. It keeps the story it was first given: a later edit cannot change a screen or break a path. */
 export function usePlayer(story: Story): PlayerApi {
   const [frozen] = useState(story)
   const [state, setState] = useState<State>(() => ({

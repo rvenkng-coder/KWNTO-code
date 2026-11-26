@@ -1,6 +1,6 @@
 import type { HistoryEntry } from './session'
 
-/** The path so far, oldest first (plan D6): read-only. */
+/** The path so far, oldest first. Read-only: there is no jumping back to a step. */
 export function PlayerHistory({ entries }: { entries: HistoryEntry[] }) {
   return (
     <section className="flex flex-col gap-1">

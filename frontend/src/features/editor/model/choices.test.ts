@@ -21,12 +21,12 @@ const state = () =>
     }),
   )
 
-// Protects: editor cards design 1 (choices in the order they were made, empty ones included; F1 and F2).
+// Protects: editor cards design 1 (choices in the order they were made, empty ones included).
 test("choicesOf lists a node's choices by when they were made, empty ones included", () => {
   expect(choicesOf(state(), 'a').map((c) => c.id)).toEqual(['x1', 'y2', 'late'])
 })
 
-// Protects: plan Review Focus 3: a re-link must not reorder the list.
+// Protects: a re-link must not reorder the list.
 test('choicesOf keeps the order when a choice is re-linked', () => {
   const s = state()
   const before = choicesOf(s, 'a').map((c) => c.id)
@@ -36,7 +36,7 @@ test('choicesOf keeps the order when a choice is re-linked', () => {
   expect(choicesOf(unlinked, 'a').map((c) => c.id)).toEqual(before)
 })
 
-// Protects: plan Review Focus 4: one choice per target, but a choice never clashes with itself.
+// Protects: one choice per target, but a choice never clashes with itself.
 test('hasChoiceTo finds a duplicate target but not the choice itself', () => {
   const s = state()
   expect(hasChoiceTo(s, 'a', 'b')).toBe(true)

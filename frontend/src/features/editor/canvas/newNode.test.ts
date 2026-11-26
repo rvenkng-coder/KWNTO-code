@@ -7,7 +7,7 @@ describe('freeSpot', () => {
     expect(freeSpot({ x: 10.6, y: 20.4 }, [])).toEqual({ x: 11, y: 20 })
   })
 
-  // Protects: a second node never lands exactly on a first, so it cannot hide under it (Review Focus 4).
+  // Protects: a second node never lands exactly on a first, so it cannot hide under it.
   test('freeSpot steps 40 px right and down past taken spots', () => {
     expect(
       freeSpot({ x: 100, y: 100 }, [

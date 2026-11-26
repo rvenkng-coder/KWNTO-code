@@ -1,6 +1,6 @@
-// The editor's view of a project and its content (ERD; editor core plan Task 7). Screens
-// and the editor store use only these types, never a PocketBase record. `version` is the
-// counter of the version guard (decision 0002): an update sends the version it last saw.
+// The editor's view of a project and its content (ERD). Screens and the editor store use only these types, never a
+// PocketBase record. `version` is the counter of the version guard (decision 0002): an update sends the version it last
+// saw.
 
 export type NodeColor = 'slate' | 'red' | 'orange' | 'amber' | 'green' | 'teal' | 'blue' | 'purple'
 export type CueType = 'audio' | 'lighting' | 'other'

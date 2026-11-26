@@ -117,7 +117,10 @@ const EDITABLE: { [K in ContentKind]: ReadonlyArray<keyof EditableFields[K]> } =
 
 const storedName = (key: string): string => STORED_NAME[key] ?? key
 
-/** Only the keys given are sent; `deleted` becomes `deleted_at` (D14), a null relation ''. */
+/**
+ * Only the keys given are sent; `deleted` becomes `deleted_at` (the server stamps its own time over it), a null
+ * relation ''.
+ */
 export function toUpdateBody<K extends ContentKind>(kind: K, edits: Partial<EditableFields[K]>): Raw {
   const changes = edits as Raw & { deleted?: boolean }
   const body: Raw = {}

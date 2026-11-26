@@ -5,13 +5,13 @@ const NOT_WEB = 'That is not a web address.'
 const ONLY_WEB = 'Only http:// and https:// addresses are allowed.'
 
 describe('checkLinkUrl', () => {
-  // Protects: good addresses pass and are only trimmed (C1)
+  // Protects: good addresses pass and are only trimmed
   test('web addresses pass and are trimmed', () => {
     expect(checkLinkUrl('  https://example.com/a ')).toEqual({ ok: true, url: 'https://example.com/a' })
     expect(checkLinkUrl('HTTP://EXAMPLE.COM')).toEqual({ ok: true, url: 'HTTP://EXAMPLE.COM' })
   })
 
-  // Protects: nothing unsafe passes, with the same words as the server (C2)
+  // Protects: nothing unsafe passes, with the same words as the server
   test('unsafe addresses are refused', () => {
     for (const text of [
       'javascript:alert(1)',
@@ -45,7 +45,7 @@ describe('checkLinkUrl', () => {
 })
 
 describe('linkHost and linkLabel', () => {
-  // Protects: the host shown beside a link, and the label when there is no title (C3)
+  // Protects: the host shown beside a link, and the label when there is no title
   test('the host and the label', () => {
     expect(linkHost('https://Example.COM:8080/a?b#c')).toBe('example.com:8080')
     expect(linkLabel({ title: '  ', url: 'https://x.example/p' })).toBe('x.example')
@@ -54,7 +54,7 @@ describe('linkHost and linkLabel', () => {
 })
 
 describe('safeHref', () => {
-  // Protects: whatever is stored (an admin edit, a restored backup), only a web address becomes a clickable href (final review, Important 1)
+  // Protects: whatever is stored (an admin edit, a restored backup), only a web address becomes a clickable href
   test('only a web address becomes a link target', () => {
     expect(safeHref('https://example.com/a')).toBe('https://example.com/a')
     for (const stored of ['javascript:alert(1)', 'data:text/html,x', 'vbscript:x', 'ftp://a.b', '', 'not a link']) {

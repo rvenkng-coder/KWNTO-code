@@ -33,7 +33,10 @@ async function buildFile(projectName: string, format: ExportFormat, images: MapI
   return new Blob([dataUrlBytes(first.dataUrl)], { type: format === 'jpg' ? 'image/jpeg' : 'image/png' })
 }
 
-/** One export: draws the chapters one at a time on the stage, then builds and downloads the file. It only reads the store (D8). */
+/**
+ * One export: draws the chapters one at a time on the stage, then builds and downloads the file. It only reads the
+ * store.
+ */
 export function useExportRun(projectName: string, activeChapterId: string | null) {
   const [status, setStatus] = useState<RunStatus>('idle')
   const [message, setMessage] = useState<string | null>(null)

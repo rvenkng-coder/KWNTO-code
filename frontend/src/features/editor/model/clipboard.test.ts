@@ -13,7 +13,7 @@ const state = () =>
     }),
   )
 
-// Protects: D11: copy takes the live selected nodes, their lines and cues, and only the connections between them.
+// Protects: copy takes the live selected nodes, their lines and cues, and only the connections between them.
 test('copy takes the nodes, their content and the connections between them', () => {
   const clip = copySelection(state(), ['a', 'b', 't'])
   expect(clip?.nodes.map((n) => n.id).sort()).toEqual(['a', 'b'])
@@ -24,7 +24,7 @@ test('copy takes the nodes, their content and the connections between them', () 
   expect(copySelection(state(), [])).toBeNull()
 })
 
-// Protects: D11: a paste makes new records in the target chapter, every reference remapped, offset per paste.
+// Protects: a paste makes new records in the target chapter, every reference remapped, offset per paste.
 test('paste makes new records in the target chapter', () => {
   const clip = copySelection(state(), ['a', 'b'])
   if (clip === null) throw new Error('nothing copied')

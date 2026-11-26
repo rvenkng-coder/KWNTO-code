@@ -3,7 +3,7 @@ import type { StorageInfo } from '../../../backend/media-types.ts'
 import { acceptFor, earlyProblem, formatSize } from './uploadCheck.ts'
 
 describe('early upload check and formatSize', () => {
-  // Protects: the browser refuses early with the server's words (C3)
+  // Protects: the browser refuses early with the server's words
   test("the browser refuses early with the server's words", () => {
     const info: StorageInfo = {
       usedBytes: 50 * 1048576,
@@ -43,17 +43,17 @@ describe('early upload check and formatSize', () => {
 })
 
 describe('acceptFor', () => {
-  // Protects: the picker offers exactly the allowed types (plan node-links, Task 1 C1)
+  // Protects: the picker offers exactly the allowed types
   test('acceptFor lists every allowed extension', () => {
     expect(acceptFor(['wav', 'mp3', 'mov', 'mp4', 'jpeg', 'png'])).toBe('.wav,.mp3,.mov,.mp4,.jpg,.jpeg,.png')
   })
 
-  // Protects: video off means the picker no longer offers video (C2)
+  // Protects: video off means the picker no longer offers video
   test('acceptFor leaves out a type that is off', () => {
     expect(acceptFor(['wav', 'mp3', 'jpeg', 'png'])).toBe('.wav,.mp3,.jpg,.jpeg,.png')
   })
 
-  // Protects: before the list is known the picker does not filter; the server still refuses (C3)
+  // Protects: before the list is known the picker does not filter; the server still refuses
   test('acceptFor gives no filter without a list', () => {
     expect(acceptFor(null)).toBe('')
     expect(acceptFor([])).toBe('')

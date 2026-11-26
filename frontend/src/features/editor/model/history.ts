@@ -1,7 +1,7 @@
 import type { ContentKind, ContentRecords, RemovableKind } from '../../../backend'
 import { getRecord, type ContentState } from './state'
 
-// Undo history (design 6.1 and 8b, plan D5): this person's own edits only, 100 steps per open
+// Undo history (design 6.1 and 8b): this person's own edits only, 100 steps per open
 // project. A step is undone by applying its inverse; a change someone else has touched since
 // is never forced (`canApply`).
 

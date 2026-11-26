@@ -7,9 +7,11 @@ import { createSender, type Outcome } from './syncSend'
 import { TabLink, writeEntry } from './syncTabs'
 import type { EngineEntry, PendingConflict, SyncDeps, SyncEngine, SyncSnapshot } from './syncTypes'
 
-// The one loop that sends outbox entries (offline sync plan Task 3, D2, D7 to D9, D12): in seq
-// order, one request at a time, only in the tab holding the Web Lock, backing off while the
-// server cannot be reached. Everything it touches is injected.
+// The one loop that sends outbox entries: in seq order, one request at a time, so a record's create
+// arrives before its update and a later edit wins over an earlier one. Only the tab holding the Web
+// Lock sends. It backs off while the server cannot be reached, moves a refused entry to the failed
+// list so the entries after it still go, and stops while a conflict waits for the person.
+// Everything it touches is injected.
 
 export type { Answer, TabMessage }
 export type { EngineEntry, PendingConflict, SyncDeps, SyncDoor, SyncEngine, SyncHooks, SyncSnapshot } from './syncTypes'
@@ -200,7 +202,7 @@ class Engine implements SyncEngine {
     })
   }
 
-  // The tab that sends merges waiting edits (D5); another tab only appends, because it cannot know what is on the wire.
+  // Only the sending tab merges waiting edits: another tab cannot know what is on the wire, so it only appends.
   private async store(entry: NewEntry): Promise<number> {
     const { storage } = this.deps
     if (!this.owner) return storage.add(entry)

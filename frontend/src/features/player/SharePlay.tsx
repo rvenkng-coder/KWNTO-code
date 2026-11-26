@@ -12,7 +12,10 @@ interface Props {
   needsSignIn: boolean
 }
 
-/** `Play` in the read-only viewer. The story is read at the click and kept while the player is open (plan D3), even when a live view re-reads the file. */
+/**
+ * `Play` in the read-only viewer. The story is read at the click and kept while the player is open, even when a live
+ * view re-reads the file, so the screen never changes under a reader.
+ */
 export function SharePlay({ file, projectId, token, needsSignIn }: Props) {
   const [story, setStory] = useState<Story | null>(null)
   const useMediaSrc = useMemo(() => shareMediaSrc(token, needsSignIn), [token, needsSignIn])

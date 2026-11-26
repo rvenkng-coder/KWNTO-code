@@ -3,7 +3,7 @@ import type { ContentKind, ContentRecords, EditableFields, RemovableKind } from 
 import { classifyConflict, type OutboxEntry } from './outbox'
 import type { SyncDoor } from './syncEngine'
 
-// Sending one outbox entry and sorting the answer (offline sync plan Task 3). Pure of timers and
+// Sending one outbox entry and sorting the answer. Pure of timers and
 // storage: the engine decides what each outcome means for the queue.
 
 export type Outcome =
@@ -69,13 +69,13 @@ export function createSender(door: SyncDoor): (entry: OutboxEntry) => Promise<Ou
   }
 
   async function sendUpdate(entry: Extract<OutboxEntry, { op: 'update' }>): Promise<Outcome> {
-    // Only an edit made offline can raise the dialog; online edits retry silently (D3).
+    // Only an edit made offline can raise the dialog; online edits retry silently.
     const shouldRetry = entry.offline
       ? (cur: ContentRecords[ContentKind]) => classifyConflict(entry, cur).type === 'none'
       : undefined
     try {
       const changes = entry.changes as Partial<EditableFields[ContentKind]>
-      // An online edit is sent as Plan 3 sent it: no options.
+      // An online edit is sent without options, so the door retries it silently.
       const saved =
         shouldRetry === undefined
           ? await door.update(entry.kind, entry.id, changes, entry.baseVersion)

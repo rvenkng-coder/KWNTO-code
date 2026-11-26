@@ -82,7 +82,8 @@ test('create bodies keep the client id and drop the version', () => {
   expect('version' in body).toBe(false)
 })
 
-// Protects: editor cards design 1: an empty choice reads as no target, and the stored time sorts as text with a browser-made one (F2).
+// Protects: an empty choice reads as no target (editor cards design, goal 1), and the stored time is turned into ISO
+// text, so it sorts as text next to a time made in the browser.
 test('an empty to_node reads as null and created is ISO', () => {
   const choice = fromRecord('connections', {
     id: 'k1',

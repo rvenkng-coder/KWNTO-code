@@ -1,7 +1,7 @@
 import type { Chapter, StoryNode } from '../../backend'
 import type { ContentState } from '../editor/model/state'
 
-// The pure parts of the trash screens (design 6.8, plan 7 Task 1).
+// The pure parts of the trash screens (design 6.8).
 
 const DAY_MS = 24 * 60 * 60 * 1000
 

@@ -20,7 +20,7 @@ interface ReadOnlyViewerProps {
   token: string
   /** Comment links load their media with the person's token. */
   needsSignIn: boolean
-  /** Task 5 renders a node's comments here. */
+  /** Draws a node's comments in its panel; only a comment link's viewer passes it. */
   renderComments?: (nodeId: string) => ReactNode
 }
 

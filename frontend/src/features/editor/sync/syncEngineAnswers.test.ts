@@ -4,7 +4,7 @@ import { line, node } from '../model/fixtures'
 import { settle, sharedParts, tab } from './fakes'
 import type { SyncEngine } from './syncEngine'
 
-// More engine behaviour (offline sync plan, whole-branch review): answers for cancelled edits, and answers in a tab that does not send.
+// More engine behaviour: answers for cancelled edits, and answers in a tab that does not send.
 type Add = Parameters<SyncEngine['add']>[0]
 const upd = (
   id: string,
@@ -22,7 +22,8 @@ async function started() {
 
 const seqOf = (a: unknown[]) => (a[0] as { seq: number }).seq
 
-// Protects: engineering 9 and D11: a remove that cancels waiting work still answers the edits it cancelled (the record never reached the server, which is what the person asked for), so nothing stays pending.
+// Protects: a remove that cancels waiting work still answers the edits it cancelled (the record never reached the
+// server, which is what the person asked for), so nothing stays pending.
 test('a remove that cancels waiting edits still answers them', async () => {
   const t = await started()
   t.engine.setOnline(false)
@@ -50,7 +51,8 @@ test('a remove that cancels waiting edits still answers them', async () => {
   expect(t.log.saved.every((a) => a[1] === null)).toBe(true)
 })
 
-// Protects: D9, review focus 4: in a tab that does not hold the lock the edits made there are still answered: saved, and refused (taken back), as in the tab that sends.
+// Protects: in a tab that does not hold the lock the edits made there are still answered: saved, and refused (taken
+// back), as in the tab that sends.
 test('a tab that does not send still hears what happened to its own edits', async () => {
   const shared = sharedParts()
   const a = tab(shared)

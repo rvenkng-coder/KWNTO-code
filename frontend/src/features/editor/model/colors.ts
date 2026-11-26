@@ -1,6 +1,6 @@
 import type { NodeColor } from '../../../backend'
 
-// The node header palette (plan decision D9). This is the one place a hex colour is allowed
+// The node header palette. This is the one place a hex colour is allowed
 // (plan Global Constraints, "Styling"): the eight colours are data a node carries, not theme.
 // Each header holds white text, so every colour is dark enough for it in both themes.
 

@@ -1,4 +1,4 @@
-// A comment on a node (design 5, plan 7 D13). `authorId` is null when the author's account is gone.
+// A comment on a node (design 5). `authorId` is null when the author's account is gone.
 export interface Comment {
   id: string
   projectId: string

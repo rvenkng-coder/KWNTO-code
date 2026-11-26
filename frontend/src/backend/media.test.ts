@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest'
 import { fromMediaRecord } from './media.ts'
 
 describe('media mapping', () => {
-  // Protects: a media record maps to the editor's type (C1)
+  // Protects: a media record maps to the editor's type
   test("a media record maps to the editor's type", () => {
     const raw = {
       id: 'med123456789012',

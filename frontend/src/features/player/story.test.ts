@@ -26,7 +26,7 @@ function project(startNodeId: string) {
   })
 }
 
-// Protects Review Focus 1 and design 9b: only live nodes are in the story, titles are cleaned, lines
+// Protects design 9b: only live nodes are in the story, titles are cleaned, lines
 // come in order, a choice to a trashed node is hidden, and a choice's label falls back to the target's
 // title and then `Untitled`; a trashed start node means there is no start.
 test('the story holds live nodes, ordered lines and labelled choices', () => {
@@ -46,7 +46,7 @@ test('the story holds live nodes, ordered lines and labelled choices', () => {
   expect(buildStory(fromContent(project('n3')), []).startId).toBeNull()
 })
 
-// Protects Review Focus 3 and design 6.4: a script line with no name and no text leaves no gap, cues and
+// Protects design 6.4: a script line with no name and no text leaves no gap, cues and
 // lighting notes never reach a player, and media follows its own node in the given order.
 test('blank lines and cues stay out and media follows its node', () => {
   const state = fromContent(

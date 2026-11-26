@@ -3,7 +3,7 @@ import { isOffline, STREAM_GRACE_MS } from './connectionStatus'
 
 const T = 100_000
 
-// Protects plan 7 D15: the engine is told "offline" when the browser says so, or when the live
+// Protects: the engine is told "offline" when the browser says so, or when the live
 // connection has been down for three seconds (a brief reconnect is not offline); a stream that
 // never dropped, or whose drop time is unknown, never counts.
 test('a dropped live connection counts as offline after three seconds', () => {

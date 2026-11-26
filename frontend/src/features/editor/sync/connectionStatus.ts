@@ -1,6 +1,6 @@
-// When the sync engine counts as offline (plan 2026-11-20-sharing Task 7, D15). The browser's own
-// online flag only changes when the network card does; a stopped server or a dropped live
-// connection never flips it, so the top bar kept saying nothing until an edit failed.
+// When the sync engine counts as offline. The browser's own online flag only changes when the
+// network card does; a stopped server or a dropped live connection never flips it, so on that flag
+// alone the top bar would say nothing until an edit failed.
 
 export const STREAM_GRACE_MS = 3000
 

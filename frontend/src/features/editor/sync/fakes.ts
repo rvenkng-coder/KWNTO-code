@@ -1,8 +1,8 @@
 import { createMemoryOutbox, type OutboxStorage } from './outboxStorage'
 import { createSyncEngine, type TabMessage, type SyncDeps, type SyncDoor, type SyncEngine } from './syncEngine'
 
-// Test doubles for the sync engine (offline sync plan Task 3): a scripted door, a clock that
-// runs timers when the test says, a lock that grants one holder per name, a channel between tabs.
+// Test doubles for the sync engine: a scripted door, a clock that runs timers when the test says,
+// a lock that grants one holder per name, a channel between tabs.
 
 type Method = 'get' | 'create' | 'update' | 'remove'
 export interface DoorCall {

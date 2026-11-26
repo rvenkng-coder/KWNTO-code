@@ -4,7 +4,7 @@ import type { OutboxStorage } from './outboxStorage'
 import type { Answer } from './syncAnswers'
 import type { PendingConflict } from './syncEngine'
 
-// What `Keep mine` turns the conflicting entry into (offline sync plan Task 3, D4, D12).
+// What the person's answer to a conflict (`Keep mine` or `Keep theirs`) turns the conflicting entry into.
 
 const valueOf = (record: object, field: string): unknown => (record as Record<string, unknown>)[field]
 
@@ -34,8 +34,9 @@ export function mineEntry(conflict: PendingConflict): OutboxEntry | null {
 }
 
 /**
- * What is left to send after `Keep theirs` (D12): the fields of an update that did not conflict, on the
- * server's version. Null when nothing is left (a remove, a deleted record, or every field conflicted).
+ * What is left to send after `Keep theirs`: the person answered only for the conflicting fields, so the other
+ * fields of an update are still sent, on the server's version. Null when nothing is left (a remove, a deleted
+ * record, or every field conflicted).
  */
 export function theirsEntry(conflict: PendingConflict): OutboxEntry | null {
   const { entry, server } = conflict

@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { closeTab, EMPTY_TABS, openTab, setTabWidth, type TabsView } from './tabsView'
 
-// The tab view of this browser as a store, so other features (Task 13's jump) can reopen a tab.
+// The tab view of this browser as a store, so other features (the search jump) can reopen a tab.
 interface TabsViewStore {
   view: TabsView
   close(id: string): void

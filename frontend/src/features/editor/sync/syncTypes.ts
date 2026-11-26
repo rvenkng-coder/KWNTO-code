@@ -4,7 +4,7 @@ import type { NewEntry, OutboxEntry } from './outbox'
 import type { FailedEntry, OutboxStorage } from './outboxStorage'
 import type { TabMessage } from './syncAnswers'
 
-// The types of the sync engine (offline sync plan Task 3); syncEngine.ts re-exports them.
+// The types of the sync engine; syncEngine.ts re-exports them.
 
 export type SyncDoor = Pick<Backend['content'], 'get' | 'create' | 'update' | 'remove'>
 export interface PendingConflict {

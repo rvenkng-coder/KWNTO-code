@@ -1,8 +1,9 @@
 import type { RemoteEvent } from '../../../backend'
 import { dropRecord, getRecord, putRecord, type ContentState } from './state'
 
-// A teammate's live change applied to the state (plan D15). Returns `s` itself when the
-// event is ignored, so a store can skip the update.
+// A teammate's live change applied to the state. A created or updated record whose version is not newer
+// than the local copy is ignored (our own echo, or out of order). Returns `s` itself when the event is
+// ignored, so a store can skip the update.
 
 function belongsToOpenProject(s: ContentState, event: RemoteEvent): boolean {
   if (s.project === null) return false

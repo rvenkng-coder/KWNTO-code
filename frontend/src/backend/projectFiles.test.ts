@@ -16,8 +16,8 @@ afterEach(() => {
 })
 
 describe('project files door', () => {
-  // Protects security.md 5 "Bad imports" (C7): a file over 5 MB is refused with the router's
-  // copy before any request is sent; a small one is sent as the raw body to the team's import
+  // Protects security.md 5 "Bad imports": a file over 5 MB is refused with the same message
+  // the server gives, before any request is sent; a small one is sent as the raw body to the team's import
   // route and the new project's id is returned.
   test('the door refuses large files and returns the new project', async () => {
     const fetchMock = vi.fn(async () => jsonReply({ projectId: 'p' }))

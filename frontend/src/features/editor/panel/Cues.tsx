@@ -12,7 +12,7 @@ import { useRowDrag } from './rowDrag'
 import { AddButton, CARD, Grip } from './RowControls'
 import { SectionLabel } from './SectionLabel'
 
-// The cues of one node (design 6.2): audio, lighting or other, each with a note. Media files are Plan 5.
+// The cues of one node (design 6.2): audio, lighting or other, each with a note. Uploaded media has its own section.
 
 const CUE_TYPES: CueType[] = ['audio', 'lighting', 'other']
 

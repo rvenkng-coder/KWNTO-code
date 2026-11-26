@@ -11,14 +11,14 @@ import type {
   StoryNode,
 } from '../../backend'
 
-// Pure helpers of the share screens (plan 2026-11-20-sharing Task 4, D8 and D9).
+// Pure helpers of the share screens.
 
 /** The address a person pastes to open a link. */
 export function shareUrl(origin: string, token: string): string {
   return `${origin}/#/s/${token}`
 }
 
-/** A live view re-reads every 30 s while its tab is visible (D9). */
+/** A live view re-reads every 30 s while its tab is visible. */
 export function shouldRefresh(kind: ShareKind, visible: boolean, lastMs: number, nowMs: number): boolean {
   return kind === 'live' && visible && nowMs - lastMs >= 30000
 }

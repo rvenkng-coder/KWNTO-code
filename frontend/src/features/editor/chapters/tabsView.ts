@@ -1,6 +1,6 @@
 import type { Chapter } from '../../../backend'
 
-// What this browser shows of the chapter tabs (decision D10): closed tabs and widths. Never saved.
+// What this browser shows of the chapter tabs: closed tabs and widths. Never saved.
 
 export interface TabsView {
   closed: ReadonlySet<string>

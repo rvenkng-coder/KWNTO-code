@@ -5,7 +5,7 @@ import type { NodeMarker } from './markers'
 import { byOrder } from './sortOrder'
 import { isLiveNode, liveConnections, liveNodes, type ContentState, type LinkedConnection } from './state'
 
-// What React Flow draws for one chapter (design 6.1, plan decision D9): node cards with a
+// What React Flow draws for one chapter (design 6.1): node cards with a
 // preview of their lines, edges inside the chapter, and tags for links into other chapters.
 
 export interface CrossLink {

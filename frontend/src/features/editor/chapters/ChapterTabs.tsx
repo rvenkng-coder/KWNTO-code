@@ -15,7 +15,7 @@ interface ChapterTabsProps {
   activeId: string | null
 }
 
-// Drag the right edge of a tab to set its width (D10); the width is kept in memory only.
+// Drag the right edge of a tab to set its width; the width is kept in memory only.
 function ResizeHandle({ id, width }: { id: string; width: number }) {
   const setWidth = useTabsView((s) => s.setWidth)
   const [start, setStart] = useState<{ x: number; width: number } | null>(null)

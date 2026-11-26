@@ -4,7 +4,7 @@ import { line, node } from '../model/fixtures'
 import { settle, tab } from './fakes'
 import type { SyncEngine } from './syncEngine'
 
-// Retry behaviour of the engine (offline sync plan, whole-branch review I3, I5, I6).
+// Retry behaviour of the engine.
 type Add = Parameters<SyncEngine['add']>[0]
 const upd = (id: string): Add => ({
   projectId: 'p1',
@@ -104,9 +104,8 @@ test('an ended session is not used to send waiting edits', async () => {
   expect(checks).toBeGreaterThanOrEqual(2)
 })
 
-// Protects plan 7 D15 (offline sync plan's carried-over item): a waiting edit whose retry is
-// on the backoff is sent at once when the connection is known to be back (`retryNow`), and the
-// backoff then starts again from its first step.
+// Protects: a waiting edit whose retry is on the backoff is sent at once when the connection is
+// known to be back (`retryNow`), and the backoff then starts again from its first step.
 test('retryNow sends a waiting edit at once', async () => {
   const t = await started()
   t.door.on('update', () => {

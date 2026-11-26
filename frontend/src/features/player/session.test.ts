@@ -21,14 +21,14 @@ function play(st: Story, ...choiceIds: string[]): Session {
 }
 const THREE = story([pnode('n1', 'c1', [go('k1', 'n2')]), pnode('n2', 'c1', [go('k2', 'n3')]), pnode('n3', 'c2')])
 
-// Protects Review Focus 1: a story with no start, or a start that is not in the story, has nothing to play.
+// Protects: a story with no start, or a start that is not in the story, has nothing to play.
 test('a session starts only at a real start node', () => {
   expect(startSession(story([pnode('n1', 'c1')], null))).toBeNull()
   expect(startSession(story([pnode('n1', 'c1')], 'x'))).toBeNull()
   expect(startSession(story([pnode('n1', 'c1')], 'n1'))).toEqual({ steps: [{ nodeId: 'n1', viaChoiceId: null }] })
 })
 
-// Protects Review Focus 2: an empty choice, one to a node not in the story and an unknown id do not move
+// Protects: an empty choice, one to a node not in the story and an unknown id do not move
 // anything, and a session is never changed in place.
 test('an empty or unknown choice returns null and changes nothing', () => {
   const st = story([pnode('n1', 'c1', [go('k1', 'n2'), go('k2', null), go('k3', 'ghost')]), pnode('n2', 'c1')])
@@ -55,7 +55,7 @@ test('the chapter name shows when it changes', () => {
   expect(earlier.showChapter).toBe(false)
 })
 
-// Protects Review Focus 4: a choice to the same node and a loop between two nodes are just more steps.
+// Protects: a choice to the same node and a loop between two nodes are just more steps.
 test('a loop is just more steps', () => {
   const self = story([pnode('n1', 'c1', [go('k1', 'n1')])])
   const selfPath = play(self, 'k1', 'k1', 'k1')
@@ -70,7 +70,7 @@ test('a loop is just more steps', () => {
   )
 })
 
-// Protects Review Focus 4: Back removes exactly one step, never goes below the start, leaves the old session as it was.
+// Protects: Back removes exactly one step, never goes below the start, leaves the old session as it was.
 test('back removes one step and never goes below the start', () => {
   const full = play(THREE, 'k1', 'k2')
   const one = back(full)
@@ -84,7 +84,7 @@ test('back removes one step and never goes below the start', () => {
   expect(startSession(THREE)?.steps).toHaveLength(1)
 })
 
-// Protects D5: a node is an end when no choice has a target, even if it has written, unlinked choices.
+// Protects: a node is an end when no choice has a target, even if it has written, unlinked choices.
 test('the end is a node with no linked choice', () => {
   const st = story([
     pnode('a', 'c1'),
@@ -95,7 +95,7 @@ test('the end is a node with no linked choice', () => {
   expect([end('a'), end('b'), end('c')]).toEqual([true, true, false])
 })
 
-// Protects D6: the history reads as the path, with the choice taken to reach each node.
+// Protects: the history reads as the path, with the choice taken to reach each node.
 test('the history lists the path with the choices taken', () => {
   const st = story([
     pnode('n1', 'c1', [go('k1', 'n2', 'Open it')], 'Gate'),

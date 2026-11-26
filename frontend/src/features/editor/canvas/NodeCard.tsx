@@ -156,7 +156,10 @@ function Cues({ cues, more }: { cues: CardCue[]; more: number }) {
   )
 }
 
-/** One node on the canvas (design 6.1, D9): coloured header with the title, three lines, cues, media, links and a row per choice. */
+/**
+ * One node on the canvas (design 6.1): coloured header with the title, three lines, cues, media, links and a row per
+ * choice.
+ */
 function NodeCardView({ id, data, selected }: NodeProps<CardNode>) {
   const theme = useTheme()
   const ring = selected ? 'border-accent ring-1 ring-accent' : 'border-border'

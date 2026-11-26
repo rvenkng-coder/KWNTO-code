@@ -13,7 +13,10 @@ function storyNow(): Story {
   return buildStory(editorStore.getState().content, media)
 }
 
-/** The editor's `Play` button. The story is read when it is clicked and does not change while the player is open (plan D3). */
+/**
+ * The editor's `Play` button. The story is read when it is clicked and does not change while the player is open, so a
+ * teammate's edit cannot move the screen under a reader.
+ */
 export function EditorPlay() {
   const [story, setStory] = useState<Story | null>(null)
   const button = useRef<HTMLButtonElement | null>(null)

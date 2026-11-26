@@ -4,8 +4,8 @@ import { createSyncEngine, type SyncEngine, type SyncHooks, type SyncSnapshot } 
 import { currentSnapshot, registerHooks, subscribeSnapshot, syncLifecycle } from '../sync/syncStore'
 import type { EditorDoor } from './editorStore'
 
-// The store's port to the sync engine (offline sync plan Task 4). The app's port follows the
-// signed-in account's engine; tests and Plan 3's store tests use an engine of their own.
+// The store's port to the sync engine. The app's port follows the signed-in account's engine; a
+// store created without one (as in tests) gets an engine of its own on a memory outbox.
 
 export interface EditorSyncPort {
   add: SyncEngine['add']
@@ -63,7 +63,10 @@ export function appSync(): EditorSyncPort {
   }
 }
 
-/** D11: the message while offline with changes waiting (Plan 3's undo would wait for a save that cannot happen), else null. */
+/**
+ * The message while offline with changes waiting, else null. Undo first waits for every write on its way, and one
+ * sent before the connection dropped is only answered once the connection is back.
+ */
 export function undoPausedBy(port: EditorSyncPort): () => string | null {
   return () => {
     const s = port.snapshot()

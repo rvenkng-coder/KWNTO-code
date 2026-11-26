@@ -27,7 +27,7 @@ async function started() {
 }
 
 describe('order, success, offline, lost answers', () => {
-  // Protects: D2: strict seq order, one request at a time; an entry leaves storage only after the server answered.
+  // Protects: strict seq order, one request at a time; an entry leaves storage only after the server answered.
   test('entries are sent in order one at a time', async () => {
     const t = await started()
     t.door.gate(true)
@@ -60,7 +60,7 @@ describe('order, success, offline, lost answers', () => {
     expect(t.engine.snapshot().waiting).toBe(0)
   })
 
-  // Protects: D7: backoff 1, 2, 4 s, reset by a success, and an immediate try when the browser says it is online again.
+  // Protects: backoff 1, 2, 4 s, reset by a success, and an immediate try when the browser says it is online again.
   test('an unreachable server is retried with backoff and at once when back online', async () => {
     const t = await started()
     let failures = 3
@@ -102,7 +102,7 @@ describe('order, success, offline, lost answers', () => {
     expect(t.door.calls).toHaveLength(7)
   })
 
-  // Protects: review focus 2: a save whose answer was lost is not mistaken for a conflict or a duplicate.
+  // Protects: a save whose answer was lost is not mistaken for a conflict or a duplicate.
   test('a save whose answer was lost counts as done', async () => {
     const t = await started()
     t.door.on('create', () => {
@@ -135,7 +135,8 @@ describe('order, success, offline, lost answers', () => {
 })
 
 describe('refusals, conflicts, two tabs', () => {
-  // Protects: review focus 5: one refused entry does not block the queue and is not dropped: it waits in the failed list until dismissed.
+  // Protects: one refused entry does not block the queue and is not dropped: it waits in the failed list until
+  // dismissed.
   test('a refused entry goes to the failed list and the queue goes on', async () => {
     const t = await started()
     t.door.gate(true)
@@ -177,7 +178,8 @@ describe('refusals, conflicts, two tabs', () => {
     await settle()
   }
 
-  // Protects: D4, D12: a real conflict stops the queue for the person; each choice is kept, and a deleted record can be re-created.
+  // Protects: a real conflict stops the queue for the person; each choice is kept, and a deleted record can be
+  // re-created.
   test('a real conflict waits for the person and then keeps their choice', async () => {
     const mine = await started()
     conflictOn(mine)
@@ -229,7 +231,7 @@ describe('refusals, conflicts, two tabs', () => {
     expect((created!.args[0] as { text: string }).text).toBe('B')
   })
 
-  // Protects: review focus 4: only the tab holding the lock sends, each entry once, and another tab takes over when the holder stops.
+  // Protects: only the tab holding the lock sends, each entry once, and another tab takes over when the holder stops.
   test('only the tab holding the lock sends and another takes over', async () => {
     const shared = sharedParts()
     const a = tab(shared)
@@ -290,7 +292,8 @@ test('keep mine without a copy to restore moves the entry to the failed list', a
   expect(t.log.refused).toHaveLength(1)
 })
 
-// Protects: D11 and the sign-out question: an edit still being stored already counts as waiting, so undo cannot slip in before it.
+// Protects: an edit still being stored already counts as waiting, so undo cannot slip in before it and the sign-out
+// question sees it.
 test('an edit that is still being stored already counts as waiting', async () => {
   const t = await started()
   t.engine.setOnline(false)
@@ -300,7 +303,8 @@ test('an edit that is still being stored already counts as waiting', async () =>
   expect(t.engine.snapshot().waiting).toBe(1)
 })
 
-// Protects: D12: Keep theirs drops only the conflicting fields; the other fields of the same waiting entry are still sent, on the server's version.
+// Protects: Keep theirs drops only the conflicting fields; the other fields of the same waiting entry are still sent,
+// on the server's version.
 test('keep theirs still sends the fields that did not conflict', async () => {
   const t = await started()
   t.engine.setOnline(false)

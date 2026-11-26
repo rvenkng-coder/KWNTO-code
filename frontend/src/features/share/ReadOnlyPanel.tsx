@@ -8,7 +8,7 @@ interface ReadOnlyPanelProps {
   nodeId: string
   token: string
   needsSignIn: boolean
-  /** Task 5 puts a node's comments here. */
+  /** Shown under the node's content: the comments, for a comment link. */
   children?: ReactNode
 }
 

@@ -28,7 +28,7 @@ const FILE: ProjectFile = {
   ],
 }
 
-// Protects plan D2: a share link's project file becomes the same story the editor's content does: the start
+// Protects: a share link's project file becomes the same story the editor's content does: the start
 // node, the choices in the file's order (an unlinked one stays), chapter names, no cues, and media of a known
 // kind only, each on its own node.
 test('a project file becomes the story a player sees', () => {

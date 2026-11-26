@@ -22,7 +22,7 @@ export class BackendError extends Error {
 
 export const EDIT_CONFLICT = 'Someone else changed this while you were offline.'
 
-/** An offline edit met a teammate's change to the same attribute: the sync engine asks the person (D4). */
+/** An offline edit met a teammate's change to the same attribute: the sync engine asks the person which to keep. */
 export class EditConflict<R = unknown> extends BackendError {
   server: R
 

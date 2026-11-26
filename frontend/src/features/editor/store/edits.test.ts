@@ -65,7 +65,7 @@ async function setup(start: ProjectContent = content({ nodes: [node('n1', { titl
   return { fake, store, edits, flushed: () => flushed }
 }
 
-// Protects: Review Focus 4 and D5: undo never overwrites a teammate's later change; the step is skipped.
+// Protects: undo never overwrites a teammate's later change; the step is skipped.
 test("undo never overwrites a teammate's later change", async () => {
   const { fake, store, edits } = await setup()
   await edits.update('nodes', 'n1', { color: 'red' }, 'Recolour node')
@@ -155,7 +155,8 @@ test('undo waits for an edit still on its way', async () => {
   expect(store.getState().content.nodes.n1?.color).toBe('red')
 })
 
-// Protects: D11: while offline with changes waiting, undo does nothing but say why, and the step stays; it works once the pause ends.
+// Protects: while offline with changes waiting, undo does nothing but say why, and the step stays; it works once the
+// pause ends.
 test('undo waits while offline changes are waiting', async () => {
   const fake = autoDoor(content({ nodes: [node('n1', { title: 'A' })] }))
   const store = createEditorStore(fake.door)
@@ -177,9 +178,8 @@ test('undo waits while offline changes are waiting', async () => {
   expect(store.getState().content.nodes.n1?.title).toBe('A')
 })
 
-// Protects plan 7 D15 (the offline undo group carried over from the offline sync plan): while
-// offline a group closes when its edits are STORED, not when the server answers, so an edit
-// made after it is a step of its own. Nothing here answers the door; one undo takes back only
+// Protects: while offline a group closes when its edits are STORED, not when the server answers,
+// so an edit made after it is a step of its own. Nothing here answers the door; one undo takes back only
 // the rename.
 test('an offline group closes when its edits are stored', async () => {
   const fake = autoDoor(content({ nodes: [node('n1', { title: 'A' })] }))
@@ -223,7 +223,7 @@ test('an offline group closes when its edits are stored', async () => {
   expect(store.getState().content.lines.L1).toBeDefined()
 })
 
-// Protects the whole-branch review finding M3 (plan 7 D15): an offline edit resolves when stored,
+// Protects: an offline edit resolves when stored,
 // so its undo step exists before the server has answered. When the server refuses it after the
 // reconnect, the screen is put back AND the step leaves the history; otherwise Ctrl+Z would meet
 // a step for a change that is not there and stay blocked in front of every earlier step.

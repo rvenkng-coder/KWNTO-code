@@ -3,8 +3,8 @@ import { choicesOf } from '../editor/model/choices'
 import { effectiveStart } from '../editor/model/markers'
 import { linesOf, liveNodes, type ContentState } from '../editor/model/state'
 
-// What a player sees of a project (plan 2026-11-26-player-mode, Task 1): live nodes with their
-// lines, media and choices. Cues, lighting notes, comments and links are left out on purpose.
+// What a player sees of a project: live nodes with their lines, media and choices. Cues, lighting notes, comments and
+// links are left out on purpose.
 
 export interface StoryMediaInput {
   id: string

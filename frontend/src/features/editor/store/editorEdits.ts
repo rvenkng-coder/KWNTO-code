@@ -7,8 +7,8 @@ import type { EngineEntry, SyncHooks } from '../sync/syncEngine'
 import type { EditorSyncPort } from './editorSync'
 import type { EditorDoor, EditorStore } from './editorStore'
 
-// The optimistic edits of the store (offline sync plan Task 4, D11): change the state, hand the
-// edit to the outbox, and settle when the server has answered. A refusal puts it back.
+// The optimistic edits of the store: change the state, hand the edit to the outbox, and settle when
+// the server has answered (offline: once the edit is stored, see createSubmit). A refusal puts it back.
 
 export const SAVE_FAILED = 'Could not save this change.'
 
@@ -113,9 +113,9 @@ function createHooks(c: Ctx): SyncHooks {
 }
 
 // Hands one edit to the outbox; resolves true when the server accepted it, false when it was refused.
-// While the engine is offline the edit resolves true as soon as it is STORED in the outbox (plan 7
-// Task 7, D15): nothing can answer it until the connection is back, and an undo group that waited for
-// an answer would stay open and swallow every later edit into one step. If the server refuses it after
+// While the engine is offline the edit resolves true as soon as it is STORED in the outbox: nothing
+// can answer it until the connection is back, and an undo group that waited for an answer would stay
+// open and swallow every later edit into one step. If the server refuses it after
 // the reconnect, the waiter still takes the change back from the screen and shows the error, and
 // calls `onLate` so the caller can take the step it recorded out of the undo history.
 function createSubmit(c: Ctx, sync: EditorSyncPort) {
@@ -182,7 +182,7 @@ export function createEdits(
       const projectId = get().content.project?.id
       if (before === undefined || projectId === undefined) return Promise.resolve(false)
       const keys = Object.keys(changes)
-      // The server stamps the trash time (plan 7 D11); until it answers, a record that just
+      // The server stamps the trash time; until it answers, a record that just
       // changed its trash state has no time here (the trash lists it as "just now").
       const stamp = 'deleted' in changes ? { deletedAt: null } : {}
       const after = { ...before, ...changes, ...stamp }

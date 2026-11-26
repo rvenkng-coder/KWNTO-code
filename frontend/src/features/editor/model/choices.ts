@@ -4,11 +4,14 @@ import { isLiveNode, type ContentState } from './state'
 
 // Choices (editor cards design, goal 1): a choice is a connection that may have no target.
 
-/** Choice order: when it was made, then id (F2). */
+/** Choice order: when it was made, then id, so a re-link or a teammate's edit does not reorder the list. */
 export const byCreated = (a: Connection, b: Connection): number =>
   a.created.localeCompare(b.created) || a.id.localeCompare(b.id)
 
-/** The choices of a node: target empty or a live node; by `created`, then id (F1, F2). */
+/**
+ * The choices of a node: target empty or a live node, by `created`, then id. A choice to a trashed node is hidden
+ * until the node is restored.
+ */
 export function choicesOf(s: ContentState, nodeId: string): Connection[] {
   return Object.values(s.connections)
     .filter((c) => c.fromNodeId === nodeId && (c.toNodeId === null || isLiveNode(s, c.toNodeId)))

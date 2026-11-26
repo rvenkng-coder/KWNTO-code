@@ -42,7 +42,7 @@ Part of the [plan](README.md). **Read the router first:** its Global Constraints
   - `accounts.spec.ts`: read `__xss` as `share-viewer-xss.spec.ts` does.
   - `verify-gate.spec.ts`, `edge.test.ts`, `users.signup.rules.test.ts`: narrow the reported value; no `any`.
 - [ ] **Step 4: Run** `npm run typecheck`, `npm run test:container`, `npm run test:rules`, `npm run test:e2e -- e2e/accounts.spec.ts e2e/verify-gate.spec.ts`. Expected: PASS.
-- [ ] **Step 5: Say in `docs/developer/testing.md` that `typecheck` covers tests and scripts**, and commit `chore: typecheck tests, end-to-end tests and scripts`.
+- [ ] **Step 5: Say in `docs/developer/testing.md` and the `typecheck` row of `check-task.md` that `typecheck` covers tests and scripts**, and commit `chore: typecheck tests, end-to-end tests and scripts`.
 
 ## Test plan
 ### Cases

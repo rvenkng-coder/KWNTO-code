@@ -15,7 +15,7 @@ One detailed plan per subsystem, written when the plan before it lands (the real
 | 6b | [Node links and video uploads off](2026-11-21-node-links/README.md) | 1 | 5, 6 | done |
 | 7 | [Trash, share links, comments, presence, JSON import and export](2026-11-20-sharing/README.md) | 2 | 3, 4 | done |
 | 8 | [Export (PDF, Word, JPG, PNG)](2026-11-21-export/README.md) | 3 | 3 | done |
-| 9 | Player Mode | 4 | 3 | outline |
+| 9 | [Player Mode](2026-11-26-player-mode/README.md) | 4 | 3, 7 (share links) | awaiting developer review |
 | 10 | Path analytics | 5 | 9 | outline |
 
 **Editor polish plan:** [Editor tabs and Add node](2026-11-18-editor-tabs/README.md), status `done` (the developer accepted the branch on 2026-11-18).
@@ -187,7 +187,7 @@ Sign-up with verification and password rules, sign-in protection (lockout, block
 ### 8. Export (done; [detailed plan](2026-11-21-export/README.md))
 PDF (`jsPDF`), Word (`docx`), JPG and PNG (`html-to-image`) of the branch map; current chapter by default, whole project optional. Decision record: [0005](../../decisions/0005-export-libraries.md).
 
-### 9. Player Mode
+### 9. Player Mode (awaiting developer review; [detailed plan](2026-11-26-player-mode/README.md))
 Node-by-node playback with transitions, media, screenplay-style lines, restart, back, history; works for viewers through share links. An empty choice (written but never linked) shows as a dead end (editor cards plan).
 
 ### 10. Path analytics

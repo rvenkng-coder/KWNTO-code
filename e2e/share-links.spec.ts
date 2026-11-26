@@ -9,7 +9,7 @@ import { card, cards, ownerWithProject } from './helpers/editor'
 import { rename } from './helpers/pair'
 import { syncStatus } from './helpers/offline'
 import { makeLink, projectIdOf, seedStory, setTabVisible, shareDialog, signInOnLinkScreen, verifiedAccount } from './helpers/share'
-import { signUpVerifyAndSignIn } from './helpers/ui'
+import { SETUP_TIMEOUT_MS, signUpVerifyAndSignIn } from './helpers/ui'
 
 const BAD_LINK = 'This link is not valid or was revoked.'
 const SIGN_IN = 'Sign in to open this shared project.'
@@ -117,7 +117,7 @@ test('a comment link asks for a sign-in and returns to the project', async ({ pa
   await expect(guest.getByText(SIGN_IN)).toBeVisible()
   await guest.getByRole('button', { name: 'Sign in', exact: true }).click()
   await signInOnLinkScreen(guest, account)
-  await expect(guest.getByRole('heading', { name: 'Story' })).toBeVisible()
+  await expect(guest.getByRole('heading', { name: 'Story' })).toBeVisible({ timeout: SETUP_TIMEOUT_MS })
   await expect(cards(guest)).toHaveCount(2)
 })
 

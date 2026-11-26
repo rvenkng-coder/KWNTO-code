@@ -58,12 +58,19 @@ export async function createTeam(page: Page, name: string): Promise<void> {
   })
 }
 
+/**
+ * How long a setup step waits for a screen to be ready. In a busy full run Firefox sometimes holds the project open on
+ * "Loading project…" for 5 s or more while the live connection is set up (issue 26), which is longer than the 5 s
+ * default; the steps that open a team or a project wait this long instead. A real failure still fails, only later.
+ */
+export const SETUP_TIMEOUT_MS = 15_000
+
 /** Opens a team from the Teams screen by its name. */
 export async function openTeam(page: Page, name: string): Promise<void> {
   await page.getByTestId('team-list').getByRole('button', { name, exact: true }).click()
   // Everything the screen loads (members, owner flag, settings) has arrived, so a
   // check that something is absent cannot pass just because it has not loaded yet.
-  await expect(page.getByTestId('member-list')).toHaveAttribute('data-loaded', 'true')
+  await expect(page.getByTestId('member-list')).toHaveAttribute('data-loaded', 'true', { timeout: SETUP_TIMEOUT_MS })
 }
 
 /**

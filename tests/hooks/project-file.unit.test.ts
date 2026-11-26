@@ -75,6 +75,26 @@ test('the file holds only what is live, in order', () => {
   expect(validateProjectFile(file, FILE_LIMITS).ok).toBe(true)
 })
 
+// Protects plan 2026-11-26-player-mode (Task 3): choices are listed in the order they were made (`created`, then id),
+// as the editor shows them, so a share link's player offers them in the author's order; with no creation time they
+// fall back to id order.
+test('choices are listed in the order they were created', () => {
+  const records = {
+    project: { id: 'p1', name: 'P', start_node: 'n1' },
+    chapters: [{ id: 'c1', title: 'One', position: 1, deleted_at: '' }],
+    nodes: [{ id: 'n1', chapter: 'c1', title: 'A', color: 'slate', x: 0, y: 0, deleted_at: '' }],
+    script_lines: [],
+    cues: [],
+    media: [],
+    connections: [
+      { id: 'a', from_node: 'n1', to_node: '', label: 'third', created: '2026-11-26 10:00:03.000Z' },
+      { id: 'z', from_node: 'n1', to_node: 'n1', label: 'first', created: '2026-11-26 10:00:01.000Z' },
+      { id: 'm', from_node: 'n1', to_node: '', label: 'second', created: '2026-11-26 10:00:02.000Z' },
+    ],
+  }
+  expect((buildProjectFile(records, NOW).connections as Json[]).map((k) => k.label)).toEqual(['first', 'second', 'third'])
+})
+
 // A small valid file as plain JSON, so each case below breaks exactly one thing.
 function goodFile(): Json {
   return {

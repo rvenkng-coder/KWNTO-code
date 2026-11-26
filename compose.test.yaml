@@ -1,3 +1,7 @@
+# Its own project name: `npm run test:rules` and `test:e2e` start with `down -v --remove-orphans`, which must never
+# reach the dev backend (compose.dev.yaml has no name, so it takes the folder's). See issue 25.
+name: kwnto-test
+
 services:
   pocketbase:
     build: ./backend

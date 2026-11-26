@@ -222,6 +222,10 @@ Choose **Export map** in the tool strip to save the branching diagram as a file:
 - **Large maps:** a very large map is scaled to fit one image. If it had to be made small, the dialog says `Some maps were large, so their labels may be small in the export.`, and you can export one chapter at a time instead.
 - **Offline:** export uses what is already in your browser, so it works offline. It changes nothing in the project.
 
+## Playing the story
+
+Choose **Play** in the title bar to playtest from the start node: the story plays one node at a time with choices, **Back**, **Restart** and a **History** of the path. See [Playing the story](player.md).
+
 ## Working offline
 
 You can keep writing when the connection drops. Every change is saved in your browser first and sent from there, so nothing is lost if the connection fails or you close the tab.

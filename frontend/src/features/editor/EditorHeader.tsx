@@ -1,4 +1,5 @@
 import { navigate } from '../shell/useRoute'
+import { EditorPlay } from '../player/EditorPlay'
 import { ExportButton } from '../projectFile/ExportButton'
 import { MemberOnly } from '../share/MemberOnly'
 import { ShareButton } from '../share/ShareButton'
@@ -19,6 +20,7 @@ export function EditorHeader() {
         onCommit={(name) => void edits.update('projects', project.id, { name }, 'Rename project')}
       />
       <button type="button" className="btn" onClick={() => navigate({ name: 'teams' })}>Back to teams</button>
+      <EditorPlay />
       <MemberOnly teamId={project.teamId}>
         <ExportButton projectId={project.id} />
         <ShareButton projectId={project.id} projectName={project.name} />

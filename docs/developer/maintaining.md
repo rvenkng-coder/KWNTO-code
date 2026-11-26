@@ -79,5 +79,17 @@ Keep: `npm test`, `npm run lint`, the pre-commit secret scan, the CI, and the te
 ## Known loose ends
 
 - **Issue 26:** in busy full e2e runs Firefox sometimes holds a project on "Loading project…" for 5 seconds or more while the live connection is set up. The shared test steps wait 15 seconds to tolerate it; the cause is not found. If an e2e test fails once in Firefox at a setup step, run that spec again before assuming a real bug.
-- **Keep dependencies current:** the Docker images are pinned by digest. Once a month check for newer ones, bump them as the deployment guide describes ("Updating"), and run `npm audit`. PocketBase's own bump procedure is in [backend.md](backend.md) ("Pinned version and how to bump it").
-- **Backups off the VM:** the nightly backups share the VM's disk. Copy them to another machine on a schedule, and restore one on a quiet day to prove it works.
+- **Keep dependencies current:** Dependabot (`.github/dependabot.yml`) opens a monthly pull request for npm and GitHub Actions updates; the CI tests each one, so review and merge them like your own. It deliberately skips the PocketBase JS client. Still manual, once a month: the Docker image digests pinned in `compose.prod.yaml` and `backend/Dockerfile` (bump them as the deployment guide describes, "Updating"), the PocketBase server version ([backend.md](backend.md), "Pinned version and how to bump it") and `npm audit`.
+- **Backups off the VM:** the nightly backups share the VM's disk. Copy them to another machine on a schedule, and restore one on a quiet day to prove it works (see the next section).
+
+## Set up once (things that live outside the repository)
+
+None of these can be done from the code. Do them once, on a quiet day, and tick them off:
+
+- [ ] **Keep an access list somewhere safe, not in the repository:** the VM login, the contents of the production `.env` (admin email and password, the mail app password, the Tailscale key), your GitHub access and your Tailscale admin login. Without them the system cannot be reached.
+- [ ] **Get an alert when it is down.** Nothing tells you if the site or the disk fails: the storage warning only goes to the security log, and by email only if outgoing mail is set up. Point a free uptime monitor at `<your public address>/api/health` (it answers `200` when healthy) and have it email you.
+- [ ] **Copy the backups off the VM on a schedule** (the deployment guide has an `rsync` example under "Copy backups off the VM"). A backup holds the admin password hash and every upload, so store the copies like a secret.
+- [ ] **Restore one backup to prove it works,** on a test VM or on a day with no users ("Restore on the same VM" in the deployment guide). A backup you have never restored is a guess.
+- [ ] **Rehearse the rollback once.** `deploy/update.sh` prints the commands that go back to the previous version (`git reset --keep <old commit>`, then a rebuild) and the `deploy/restore.sh` command for damaged data. Run them once on a quiet day so you know them before you need them.
+- [ ] **Make the public address match.** `KWNTO_PUBLIC_URL` in `.env` and Application URL in the PocketBase dashboard must be the address the site is really on. Tailscale can rename a device when names clash (a `-1` or `-2` appears), and a stale address makes links in emails point to the wrong place (deployment guide, Troubleshooting).
+- [ ] **Know which admin password is current.** `deploy/update.sh` asks for the admin email and password for its backup step. Give it the ones you use in the dashboard: `.env` holds the first-run values, and a password changed later is not written back. A wrong one fails the backup with `Failed to authenticate`, and the update stops before it changes anything. If you have lost the password, [backend.md](backend.md#how-the-admin-is-created) shows how to set a new one.

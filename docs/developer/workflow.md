@@ -239,6 +239,8 @@ The workflow is `.github/workflows/ci.yml`. It runs on every pull request and on
 | `e2e` (about 30 min) | `npx playwright install --with-deps firefox chromium`, then `npm run test:e2e` | Docker, both browsers, ports 5174 and 5175 free | `npm run test:e2e` | A real regression; or a timing flake (see 8). On failure the run uploads `playwright-report/` as an artifact for 30 days (open the run on GitHub, "Artifacts") |
 | `secrets` (seconds) | gitleaks over the full git history | Nothing | `gitleaks detect` (`gitleaks git` in newer releases) | A key, password or token anywhere in any commit of the branch |
 
+Dependabot also opens a monthly pull request for npm and GitHub Actions updates; treat it like your own: the CI must be green before you merge it. It skips the PocketBase JS client on purpose.
+
 What the CI does **not** check: `check:hygiene` and `check:quality` (run them yourself, section 2.5), anything on the manual sign-off list (look and feel, real mail), the live site, and whether your docs are *good* (only that their links resolve).
 
 ## 6. Where the documentation goes

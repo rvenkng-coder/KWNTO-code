@@ -35,6 +35,14 @@
 
 The app is now running at <http://localhost:5173>.
 
+## Formatting
+
+Prettier sets the layout of every `.ts`, `.tsx` and `.js` file (line width 120, [decision 0006](../decisions/0006-formatter.md)). CI refuses a file that is not formatted.
+
+- Turn on format on save with your editor's Prettier plugin; it reads `.prettierrc.json`.
+- Or run `npm run format` before a commit. `npm run format:check` says which files differ. If it still names a file after one run, run `npm run format` again: a long method chain sometimes needs a second pass.
+- Once per clone, hide the format-only commit from `git blame`: `git config blame.ignoreRevsFile .git-blame-ignore-revs`.
+
 ## npm Scripts
 
 | Script | What it does |
@@ -50,6 +58,8 @@ The app is now running at <http://localhost:5173>.
 | `npm run test:e2e` | Run end-to-end tests (Playwright, Firefox + Chromium) |
 | `npm run test` | Run the full suite: `lint && typecheck && test:unit && test:container && test:rules` |
 | `npm run lint` | Run ESLint, PERF comment check, and docs link check |
+| `npm run format` | Rewrite the layout of every code file with Prettier |
+| `npm run format:check` | Fail if a code file is not formatted |
 | `npm run check:docs` | Check that all relative markdown links resolve |
 | `npm run spike:realtime` | Run the real-time spike (seed data, Playwright test, teardown) |
 | `npm run prepare` | Set up the gitleaks pre-commit hook (`git config core.hooksPath .githooks`) |

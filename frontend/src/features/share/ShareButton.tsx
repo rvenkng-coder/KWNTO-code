@@ -6,7 +6,9 @@ export function ShareButton({ projectId, projectName }: { projectId: string; pro
   const [open, setOpen] = useState(false)
   return (
     <>
-      <button type="button" className="btn self-start" onClick={() => setOpen(true)}>Share</button>
+      <button type="button" className="btn self-start" onClick={() => setOpen(true)}>
+        Share
+      </button>
       {open && <ShareDialog projectId={projectId} projectName={projectName} onClose={() => setOpen(false)} />}
     </>
   )

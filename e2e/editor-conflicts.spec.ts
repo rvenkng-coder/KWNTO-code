@@ -12,7 +12,7 @@ import { openTeam } from './helpers/ui'
 const lineText = (page: Page) => panel(page).getByTestId('line-row').first().getByLabel('Line text')
 
 // Protects: D4, D12: a title changed offline and by a teammate asks; Keep mine wins on both pages, also after a reload.
-test('keep mine overwrites the teammate\'s change after asking', async ({ browser }) => {
+test("keep mine overwrites the teammate's change after asking", async ({ browser }) => {
   const { a, b, ctxA, ids } = await ownerAndMember(browser, 1)
   const [n1] = ids as [string]
   await goOffline(ctxA, a)
@@ -77,7 +77,8 @@ test('a line deleted by a teammate can be brought back', async ({ browser }) => 
   await lineText(b).click()
   await b.keyboard.press('Backspace')
   await expect(panel(b).getByTestId('line-row')).toHaveCount(0)
-  const lines = async () => (await (await adminPB()).collection('script_lines').getFullList({ filter: `node = "${n1}"` })).length
+  const lines = async () =>
+    (await (await adminPB()).collection('script_lines').getFullList({ filter: `node = "${n1}"` })).length
   await expect.poll(lines).toBe(0)
 
   await ctxA.setOffline(false)
@@ -161,7 +162,9 @@ test('a choice refused by the unique pair index lands in the failed list', async
   const { a, b, ctxA, ids } = await ownerAndMember(browser, 2)
   const [n1, n2] = ids as [string, string]
   await goOffline(ctxA, a)
-  await a.locator(`[data-node-id="${n1}"] [data-testid="new-choice-handle"]`).dragTo(a.locator(`[data-node-id="${n2}"] .react-flow__handle.target`))
+  await a
+    .locator(`[data-node-id="${n1}"] [data-testid="new-choice-handle"]`)
+    .dragTo(a.locator(`[data-node-id="${n2}"] .react-flow__handle.target`))
   await expect(syncStatus(a)).toContainText('waiting')
   await connectNodes(b, n1, n2)
 

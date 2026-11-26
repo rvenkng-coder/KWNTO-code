@@ -8,7 +8,15 @@ import { uniqueEmail, adminPB } from './helpers/admin'
 import { card, cards, ownerWithProject } from './helpers/editor'
 import { rename } from './helpers/pair'
 import { syncStatus } from './helpers/offline'
-import { makeLink, projectIdOf, seedStory, setTabVisible, shareDialog, signInOnLinkScreen, verifiedAccount } from './helpers/share'
+import {
+  makeLink,
+  projectIdOf,
+  seedStory,
+  setTabVisible,
+  shareDialog,
+  signInOnLinkScreen,
+  verifiedAccount,
+} from './helpers/share'
 import { SETUP_TIMEOUT_MS, signUpVerifyAndSignIn } from './helpers/ui'
 
 const BAD_LINK = 'This link is not valid or was revoked.'
@@ -30,7 +38,9 @@ async function ownerWithStory(page: Page): Promise<{ gate: string; door: string;
 async function addLateNode(projectId: string): Promise<void> {
   const pb = await adminPB()
   const chapter = await pb.collection('chapters').getFirstListItem(pb.filter('project = {:p}', { p: projectId }))
-  await pb.collection('nodes').create({ project: projectId, chapter: chapter.id, title: 'Late', color: 'red', x: 800, y: 40 })
+  await pb
+    .collection('nodes')
+    .create({ project: projectId, chapter: chapter.id, title: 'Late', color: 'red', x: 800, y: 40 })
 }
 
 // Protects design 8b: the page of a person with no account shows the project name, both nodes
@@ -74,7 +84,11 @@ test('a live link follows the project and a snapshot only when republished', asy
   await snapGuest.reload()
   await expect(cards(snapGuest)).toHaveCount(2)
 
-  await shareDialog(page).getByTestId('link-row').filter({ hasText: 'snapshot' }).getByRole('button', { name: 'Republish' }).click()
+  await shareDialog(page)
+    .getByTestId('link-row')
+    .filter({ hasText: 'snapshot' })
+    .getByRole('button', { name: 'Republish' })
+    .click()
   await expect(shareDialog(page).getByRole('status')).toContainText('Republished')
   await snapGuest.reload()
   await expect(cards(snapGuest)).toHaveCount(3)
@@ -84,7 +98,9 @@ test('a live link follows the project and a snapshot only when republished', asy
 // shows only the bad-link sentence.
 test('a revoked link stops working at once', async ({ page, browser }) => {
   await ownerWithStory(page)
-  page.on('dialog', () => { throw new Error('a browser dialog opened') })
+  page.on('dialog', () => {
+    throw new Error('a browser dialog opened')
+  })
   const address = await makeLink(page, 'view', 'live')
   const guest = await visitor(browser)
   await guest.goto(address)
@@ -151,7 +167,7 @@ test('an edit link lets a non-member edit that one project', async ({ page, brow
 // Protects Review Focus 1: when the owner revokes an edit link while the holder has the editor
 // open, the holder's next change is refused and reported, nothing reaches the owner, and the
 // project leaves Shared with me.
-test('revoking an edit link stops an open editor\'s saves', async ({ page, browser }) => {
+test("revoking an edit link stops an open editor's saves", async ({ page, browser }) => {
   const { gate } = await ownerWithStory(page)
   const address = await makeLink(page, 'edit', 'live')
   const holder = await visitor(browser)

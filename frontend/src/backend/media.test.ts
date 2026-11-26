@@ -3,7 +3,7 @@ import { fromMediaRecord } from './media.ts'
 
 describe('media mapping', () => {
   // Protects: a media record maps to the editor's type (C1)
-  test('a media record maps to the editor\'s type', () => {
+  test("a media record maps to the editor's type", () => {
     const raw = {
       id: 'med123456789012',
       project: 'proj12345678901',
@@ -32,7 +32,9 @@ describe('media mapping', () => {
     })
 
     // A removed file carries its removal time
-    expect(fromMediaRecord({ ...raw, removed_at: '2026-11-20 08:00:00.000Z' }).removedAt).toBe('2026-11-20 08:00:00.000Z')
+    expect(fromMediaRecord({ ...raw, removed_at: '2026-11-20 08:00:00.000Z' }).removedAt).toBe(
+      '2026-11-20 08:00:00.000Z',
+    )
 
     // Unknown kind throws
     expect(() => fromMediaRecord({ ...raw, kind: 'executable' })).toThrow(/unknown kind/i)

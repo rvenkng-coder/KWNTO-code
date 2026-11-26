@@ -129,4 +129,3 @@ test('media uploads are disabled while the editor is offline', async ({ page }) 
   await expect(syncStatus(page)).toHaveCount(0, { timeout: 10000 })
   await expect(add).toBeEnabled()
 })
-

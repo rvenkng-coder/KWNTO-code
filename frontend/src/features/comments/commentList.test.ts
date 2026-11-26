@@ -3,7 +3,13 @@ import type { Comment } from '../../backend'
 import { applyCommentEvent, canDelete, commentLength, commentsOf, countLabel } from './commentList'
 
 const make = (id: string, nodeId: string, created: string, authorId: string | null = 'u1'): Comment => ({
-  id, projectId: 'p', nodeId, authorId, authorName: 'Mara', body: id, created,
+  id,
+  projectId: 'p',
+  nodeId,
+  authorId,
+  authorName: 'Mara',
+  body: id,
+  created,
 })
 
 // Protects D13: a comment that arrives twice (the author's own save and its live echo) is
@@ -20,7 +26,11 @@ test('comments are listed once, in order, and deleted only by author or owner', 
   list = applyCommentEvent(list, { action: 'create', record: c })
   expect(commentsOf(list, 'n1').map((x) => x.id)).toEqual(['b', 'a'])
   const tie = make('0', 'n1', a.created)
-  expect(commentsOf(applyCommentEvent(list, { action: 'create', record: tie }), 'n1').map((x) => x.id)).toEqual(['b', '0', 'a'])
+  expect(commentsOf(applyCommentEvent(list, { action: 'create', record: tie }), 'n1').map((x) => x.id)).toEqual([
+    'b',
+    '0',
+    'a',
+  ])
   expect(applyCommentEvent(list, { action: 'delete', record: a }).map((x) => x.id)).toEqual(['c', 'b'])
 
   expect([countLabel(0), countLabel(1), countLabel(3)]).toEqual(['', '1 comment', '3 comments'])

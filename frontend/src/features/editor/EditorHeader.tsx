@@ -19,7 +19,9 @@ export function EditorHeader() {
         className="text-left text-lg font-semibold"
         onCommit={(name) => void edits.update('projects', project.id, { name }, 'Rename project')}
       />
-      <button type="button" className="btn" onClick={() => navigate({ name: 'teams' })}>Back to teams</button>
+      <button type="button" className="btn" onClick={() => navigate({ name: 'teams' })}>
+        Back to teams
+      </button>
       <EditorPlay />
       <MemberOnly teamId={project.teamId}>
         <ExportButton projectId={project.id} />

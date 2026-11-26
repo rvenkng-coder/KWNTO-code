@@ -25,7 +25,9 @@ function NotFound() {
   return (
     <div className="panel flex flex-col gap-3">
       <p>{NOT_FOUND}</p>
-      <button type="button" className="btn self-start" onClick={() => navigate({ name: 'teams' })}>Back to teams</button>
+      <button type="button" className="btn self-start" onClick={() => navigate({ name: 'teams' })}>
+        Back to teams
+      </button>
     </div>
   )
 }
@@ -79,7 +81,11 @@ function useFirstTabRedirect(projectId: string, chapters: Chapter[], active: Cha
   }, [status, active, first, projectId])
 }
 
-interface FrameProps { projectId: string; chapters: Chapter[]; active: Chapter | null }
+interface FrameProps {
+  projectId: string
+  chapters: Chapter[]
+  active: Chapter | null
+}
 
 function EditorFrame({ projectId, chapters, active }: FrameProps) {
   const projectName = useEditor((s) => s.content.project?.name ?? '')
@@ -89,17 +95,20 @@ function EditorFrame({ projectId, chapters, active }: FrameProps) {
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <ErrorBanner />
       <div className={`grid min-h-0 flex-1 gap-3 grid-cols-[1fr_16rem]`}>
-        <section data-testid="editor-canvas" className="panel flex min-h-0 min-w-0 flex-col gap-2 rounded-[var(--radius-lg)] p-0">
+        <section
+          data-testid="editor-canvas"
+          className="panel flex min-h-0 min-w-0 flex-col gap-2 rounded-[var(--radius-lg)] p-0"
+        >
           <ChapterTabs projectId={projectId} chapters={chapters} activeId={activeId} />
           <div className="flex min-h-0 flex-1">
-            {active === null
-              ? (
-                <div className="flex flex-col gap-2 p-3">
-                  <ToolStrip chapterId={null} projectName={projectName} />
-                  <p className="text-muted">Open a chapter from ≡ All chapters.</p>
-                </div>
-              )
-              : <Canvas projectId={projectId} chapterId={active.id} />}
+            {active === null ? (
+              <div className="flex flex-col gap-2 p-3">
+                <ToolStrip chapterId={null} projectName={projectName} />
+                <p className="text-muted">Open a chapter from ≡ All chapters.</p>
+              </div>
+            ) : (
+              <Canvas projectId={projectId} chapterId={active.id} />
+            )}
           </div>
         </section>
         <aside data-testid="editor-panel" className="panel min-h-0 min-w-0 overflow-y-auto rounded-[var(--radius-lg)]">

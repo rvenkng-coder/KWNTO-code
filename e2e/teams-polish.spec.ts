@@ -77,7 +77,9 @@ test('sign-up replaces the form with a confirmation', async ({ page }) => {
   await page.getByRole('button', { name: 'Sign up' }).click()
 
   // After sign-up, the confirmation text should be visible
-  await expect(page.getByText('Check your email to verify your account, then sign in.')).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByText('Check your email to verify your account, then sign in.')).toBeVisible({
+    timeout: 10_000,
+  })
 
   // The password field should NOT be on screen
   await expect(page.getByLabel('Password')).toHaveCount(0)
@@ -131,5 +133,3 @@ test('toggle join code shows an error when the server fails', async ({ page }) =
   // The error alert should appear
   await expect(page.getByTestId('form-error')).toContainText('Failed to toggle join code')
 })
-
-

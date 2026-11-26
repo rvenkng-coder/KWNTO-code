@@ -25,7 +25,11 @@ const read = (path: string): string | null => files[path] ?? null
 describe('coverageProblems', () => {
   // Protects: a case whose named test exists produces no problem (the passing path).
   test('a case whose test title exists in the named file is covered', () => {
-    const cases = [row('C1', 'unit', 'scripts/x.test.ts :: empty input'), row('C2', 'unit', 'scripts/x.test.ts :: two items'), row('C3', 'unit', 'scripts/x.test.ts :: each case %i')]
+    const cases = [
+      row('C1', 'unit', 'scripts/x.test.ts :: empty input'),
+      row('C2', 'unit', 'scripts/x.test.ts :: two items'),
+      row('C3', 'unit', 'scripts/x.test.ts :: each case %i'),
+    ]
     expect(coverageProblems(plan(cases), read)).toEqual([])
   })
 
@@ -47,7 +51,10 @@ describe('coverageProblems', () => {
 
   // Protects: a title that is only in a comment or a loose string is not a test, so it does not count.
   test('a title found only in a comment is reported (the check looks for it as a test name: after test(, it(, test.each( or in a string argument)', () => {
-    const cases = [row('C4', 'unit', 'scripts/x.test.ts :: only in a comment'), row('C5', 'unit', 'scripts/x.test.ts :: loose string')]
+    const cases = [
+      row('C4', 'unit', 'scripts/x.test.ts :: only in a comment'),
+      row('C5', 'unit', 'scripts/x.test.ts :: loose string'),
+    ]
     const problems = coverageProblems(plan(cases), read)
     expect(problems).toHaveLength(2)
     expect(problems[0]).toContain('C4')
@@ -56,7 +63,10 @@ describe('coverageProblems', () => {
 
   // Protects: one test may cover several rows; that is allowed, not a duplicate error.
   test('two cases may point at the same test', () => {
-    const cases = [row('C1', 'unit', 'scripts/x.test.ts :: empty input'), row('C2', 'unit', 'scripts/x.test.ts :: empty input')]
+    const cases = [
+      row('C1', 'unit', 'scripts/x.test.ts :: empty input'),
+      row('C2', 'unit', 'scripts/x.test.ts :: empty input'),
+    ]
     expect(coverageProblems(plan(cases), read)).toEqual([])
   })
 
@@ -80,7 +90,10 @@ describe('coverageProblems', () => {
   // Protects: a file that does not parse cannot be searched reliably, so it is a problem, not a match.
   test('a test file that does not parse is reported', () => {
     const broken: Record<string, string> = { 'scripts/b.test.ts': "test('empty input', () => {" }
-    const problems = coverageProblems(plan([row('C1', 'unit', 'scripts/b.test.ts :: empty input')]), (path) => broken[path] ?? null)
+    const problems = coverageProblems(
+      plan([row('C1', 'unit', 'scripts/b.test.ts :: empty input')]),
+      (path) => broken[path] ?? null,
+    )
     expect(problems).toHaveLength(1)
     expect(problems[0]).toContain('C1')
   })
@@ -88,8 +101,15 @@ describe('coverageProblems', () => {
   // Protects: a reference that leaves the repository (absolute, ..) or reads as an option is refused, not read.
   test('a test path outside the repository is reported without reading it', () => {
     const asked: string[] = []
-    const spy = (path: string): string | null => { asked.push(path); return FILE }
-    const cases = [row('C1', 'unit', '../x.test.ts :: empty input'), row('C2', 'unit', '/etc/x.test.ts :: empty input'), row('C3', 'unit', '-x.test.ts :: empty input')]
+    const spy = (path: string): string | null => {
+      asked.push(path)
+      return FILE
+    }
+    const cases = [
+      row('C1', 'unit', '../x.test.ts :: empty input'),
+      row('C2', 'unit', '/etc/x.test.ts :: empty input'),
+      row('C3', 'unit', '-x.test.ts :: empty input'),
+    ]
     expect(coverageProblems(plan(cases), spy)).toHaveLength(3)
     expect(asked).toEqual([])
   })
@@ -98,7 +118,12 @@ describe('coverageProblems', () => {
 describe('layersNeeded', () => {
   // Protects: the layers step runs exactly the layers the plan names; manual is never a test layer.
   test('layersNeeded ignores manual and returns the set', () => {
-    const cases = [row('C1', 'unit', 'a :: b'), row('C2', 'rules', 'a :: b'), row('C3', 'rules', 'a :: b'), row('M1', 'manual', '')]
+    const cases = [
+      row('C1', 'unit', 'a :: b'),
+      row('C2', 'rules', 'a :: b'),
+      row('C3', 'rules', 'a :: b'),
+      row('M1', 'manual', ''),
+    ]
     expect(layersNeeded(plan(cases))).toEqual(new Set(['unit', 'rules']))
     expect(layersNeeded(plan([]))).toEqual(new Set())
   })

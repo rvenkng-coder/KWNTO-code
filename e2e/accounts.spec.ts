@@ -2,7 +2,15 @@
 // the verification gate blocks team creation until the account is verified.
 import { test, expect, type Page } from '@playwright/test'
 import { verifyByEmail, uniqueEmail } from './helpers/admin'
-import { signUp, signUpVerifyAndSignIn, createTeam, openTeam, enableJoinCode, joinWithCode, settled } from './helpers/ui'
+import {
+  signUp,
+  signUpVerifyAndSignIn,
+  createTeam,
+  openTeam,
+  enableJoinCode,
+  joinWithCode,
+  settled,
+} from './helpers/ui'
 
 // Protects: XSS as text (security.md section 5) — team names are rendered as text, not HTML.
 test('XSS as text', async ({ page }) => {

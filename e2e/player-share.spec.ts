@@ -67,7 +67,7 @@ test('a snapshot plays the story as it was published', async ({ page, browser })
 
 // Protects design 5 and plan D8: a comment link signs the person in first, and its media is fetched with their
 // token (a blob), because a browser cannot add a header to an audio element.
-test('a comment link plays with media loaded under the person\'s token', async ({ page, browser }) => {
+test("a comment link plays with media loaded under the person's token", async ({ page, browser }) => {
   await playableProject(page)
   const address = await makeLink(page, 'comment', 'live')
   const account = await verifiedAccount(uniqueEmail(), 'Reader')

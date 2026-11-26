@@ -17,7 +17,9 @@ async function holder(ctx: MemberProject, permission: 'comment' | 'edit'): Promi
 
 async function setTrashed(ctx: MemberProject, deletedAt: string): Promise<void> {
   const version = Number((await readAsAdmin('projects', ctx.projectId)).version)
-  expect((await guardedUpdate(ctx.owner, 'projects', ctx.projectId, { deleted_at: deletedAt, version })).status).toBe(200)
+  expect((await guardedUpdate(ctx.owner, 'projects', ctx.projectId, { deleted_at: deletedAt, version })).status).toBe(
+    200,
+  )
 }
 
 async function count(user: TestUser, collection: string, projectId: string): Promise<number> {
@@ -38,7 +40,11 @@ test('link holders lose a trashed project and get it back on restore', async () 
   const nodeId = await createNode(ctx.member, ctx.projectId, ctx.chapterId, { title: 'start' })
   const editor = await holder(ctx, 'edit')
   const commenter = await holder(ctx, 'comment')
-  await (await asUser(commenter)).collection('comments').create({ project: ctx.projectId, node: nodeId, author: commenter.id, body: 'before' })
+  await (
+    await asUser(commenter)
+  )
+    .collection('comments')
+    .create({ project: ctx.projectId, node: nodeId, author: commenter.id, body: 'before' })
 
   expect(await count(editor, 'projects', ctx.projectId)).toBe(1)
   expect(await count(editor, 'link_grants', ctx.projectId)).toBe(1)
@@ -51,7 +57,9 @@ test('link holders lose a trashed project and get it back on restore', async () 
   expect(await count(commenter, 'comments', ctx.projectId)).toBe(0)
   expect(await count(commenter, 'link_grants', ctx.projectId)).toBe(0)
   await expect(
-    (await asUser(commenter)).collection('comments').create({ project: ctx.projectId, node: nodeId, author: commenter.id, body: 'while trashed' }),
+    (await asUser(commenter))
+      .collection('comments')
+      .create({ project: ctx.projectId, node: nodeId, author: commenter.id, body: 'while trashed' }),
   ).rejects.toMatchObject({ status: 400 })
   expect(await count(ctx.member, 'nodes', ctx.projectId)).toBeGreaterThan(0)
 

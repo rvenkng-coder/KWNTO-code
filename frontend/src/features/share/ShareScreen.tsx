@@ -83,7 +83,11 @@ function Refused({ message, signedIn }: { message: string; signedIn: boolean }) 
   return (
     <div className="mx-auto flex max-w-sm flex-col gap-3">
       <p role="alert">{message}</p>
-      {message === NEEDS_SIGN_IN && !signedIn && !asking && <button type="button" className="btn-primary self-start" onClick={() => setAsking(true)}>Sign in</button>}
+      {message === NEEDS_SIGN_IN && !signedIn && !asking && (
+        <button type="button" className="btn-primary self-start" onClick={() => setAsking(true)}>
+          Sign in
+        </button>
+      )}
       {asking && !signedIn && <SignInForm />}
     </div>
   )
@@ -93,8 +97,13 @@ function Refused({ message, signedIn }: { message: string; signedIn: boolean }) 
 function CommentViewer({ open, token }: { open: Open; token: string }) {
   useNodeComments(open.projectId, '')
   return (
-    <ReadOnlyViewer projectId={open.projectId} file={open.file} token={token} needsSignIn
-      renderComments={(nodeId) => <CommentsSection nodeId={nodeId} />} />
+    <ReadOnlyViewer
+      projectId={open.projectId}
+      file={open.file}
+      token={token}
+      needsSignIn
+      renderComments={(nodeId) => <CommentsSection nodeId={nodeId} />}
+    />
   )
 }
 

@@ -22,7 +22,14 @@ const CONTENT = { id: NEW_ID, project: OWN_PROJECT, version: VERSION, created: S
 
 /** The other fields of those collections, each with the reason an import does not copy it. */
 export const NEVER_CARRIED: Record<string, Record<string, string>> = {
-  projects: { id: NEW_ID, team: 'the team imported into', deleted_at: TRASH, version: VERSION, created: STAMP, updated: STAMP },
+  projects: {
+    id: NEW_ID,
+    team: 'the team imported into',
+    deleted_at: TRASH,
+    version: VERSION,
+    created: STAMP,
+    updated: STAMP,
+  },
   chapters: { ...CONTENT, deleted_at: TRASH },
   nodes: {
     ...CONTENT,

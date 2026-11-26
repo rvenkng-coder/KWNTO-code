@@ -109,7 +109,7 @@ test('invite unknown email rejects; invite real user resolves; accept', async ()
     await users.update(r.id, { verified: true })
   }
   const team = await b1.teams.create('Crew')
-  const unknownErr = b1.teams.invite(team.id, 'nobody@nowhere.com').catch(e => e)
+  const unknownErr = b1.teams.invite(team.id, 'nobody@nowhere.com').catch((e) => e)
   expect((await unknownErr).kind).toBe('not-found')
   await b1.teams.invite(team.id, email2)
   const invites = await b2.teams.invites()
@@ -153,10 +153,10 @@ test('three wrong sign-ins -> the next attempt is locked, even for the right pas
   const r = await users.getFirstListItem(`email = '${email}'`)
   await users.update(r.id, { verified: true })
   for (let attempt = 0; attempt < 3; attempt++) {
-    const refused = await b.auth.signIn(email, 'WrongPass').catch(e => e)
+    const refused = await b.auth.signIn(email, 'WrongPass').catch((e) => e)
     expect(refused.kind).toBe('invalid')
   }
-  const rightButLocked = await b.auth.signIn(email, 'KwntoPass99').catch(e => e)
+  const rightButLocked = await b.auth.signIn(email, 'KwntoPass99').catch((e) => e)
   expect(rightButLocked.kind).toBe('locked')
 })
 
@@ -167,7 +167,7 @@ test('the door refuses team creation for an unverified user', async () => {
   const email = `u9a11_${Date.now()}@test.com`
   await b.auth.signUp(email, 'KwntoPass99', 'User')
   await b.auth.signIn(email, 'KwntoPass99')
-  const err = b.teams.create('x').catch(e => e)
+  const err = b.teams.create('x').catch((e) => e)
   expect((await err).kind).toBe('forbidden')
 })
 

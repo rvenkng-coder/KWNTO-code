@@ -13,10 +13,17 @@ function importLimitReached(app, userId) {
   const { isOverLimit } = require(`${__hooks}/lib/rate-limit.js`)
   const nowMs = Date.now()
   const since = new Date(nowMs - HOUR_MS).toISOString().replace("T", " ")
-  const rows = app.findRecordsByFilter("security_events", "user = {:user} && type = 'import' && created > {:since}", "", 0, 0, {
-    user: userId,
-    since: since,
-  })
+  const rows = app.findRecordsByFilter(
+    "security_events",
+    "user = {:user} && type = 'import' && created > {:since}",
+    "",
+    0,
+    0,
+    {
+      user: userId,
+      since: since,
+    },
+  )
   const times = rows.map((record) => record.getDateTime("created").time().unixMilli())
   return isOverLimit(times, nowMs, HOUR_MS, IMPORTS_PER_HOUR)
 }

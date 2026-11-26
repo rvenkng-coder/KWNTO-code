@@ -17,7 +17,10 @@ function findUserByEmail(app, typed) {
     return null
   }
   const rows = app.findRecordsByFilter("users", "email:lower = {:email}", "", 2, 0, { email: typed.toLowerCase() })
-  const index = chooseAccountIndex(rows.map((row) => row.getString("email")), typed)
+  const index = chooseAccountIndex(
+    rows.map((row) => row.getString("email")),
+    typed,
+  )
   return index === -1 ? null : rows[index]
 }
 
@@ -30,7 +33,10 @@ function findRecordOrNull(app, collection, id) {
 }
 
 function isMember(app, teamId, userId) {
-  const rows = app.findRecordsByFilter("team_members", "team = {:team} && user = {:user}", "", 1, 0, { team: teamId, user: userId })
+  const rows = app.findRecordsByFilter("team_members", "team = {:team} && user = {:user}", "", 1, 0, {
+    team: teamId,
+    user: userId,
+  })
   return rows.length > 0
 }
 
@@ -65,7 +71,10 @@ function createInvite(app, teamId, inviteeId, inviterId) {
 // The invite with this id if it was sent to this user, else null: someone else's
 // invite and an id that does not exist look the same.
 function findOwnInvite(app, inviteId, userId) {
-  const rows = app.findRecordsByFilter("team_invites", "id = {:id} && invited_user = {:user}", "", 1, 0, { id: inviteId, user: userId })
+  const rows = app.findRecordsByFilter("team_invites", "id = {:id} && invited_user = {:user}", "", 1, 0, {
+    id: inviteId,
+    user: userId,
+  })
   return rows.length > 0 ? rows[0] : null
 }
 

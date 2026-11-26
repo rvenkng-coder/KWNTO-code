@@ -3,9 +3,15 @@ import { zipEntryText } from '../../../../../tests/helpers/zip-entry'
 import { buildDocx, buildPdf, dataUrlBytes } from './documents'
 import type { MapImage } from './exportPlan'
 
-const PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
-const map = (chapterTitle: string, width: number, height: number): MapImage =>
-  ({ chapterTitle, dataUrl: PNG, width, height, small: false })
+const PNG =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
+const map = (chapterTitle: string, width: number, height: number): MapImage => ({
+  chapterTitle,
+  dataUrl: PNG,
+  width,
+  height,
+  small: false,
+})
 const THREE = [map('Chapter 1', 2000, 1000), map('Chapter 2', 800, 1600), map('Chapter 3', 1200, 900)]
 const bytesOf = async (b: Blob) => new Uint8Array(await b.arrayBuffer())
 
@@ -23,7 +29,9 @@ test('the PDF has one page per chapter with its heading and orientation', async 
   const text = new TextDecoder('latin1').decode(await bytesOf(blob))
   expect(text.startsWith('%PDF-')).toBe(true)
   expect(text.match(/\/Type \/Page\b(?!s)/g)).toHaveLength(3)
-  const boxes = [...text.matchAll(/\/MediaBox \[0(?:\.0+)? 0(?:\.0+)? ([\d.]+) ([\d.]+)\]/g)].map((m) => Number(m[1]) > Number(m[2]))
+  const boxes = [...text.matchAll(/\/MediaBox \[0(?:\.0+)? 0(?:\.0+)? ([\d.]+) ([\d.]+)\]/g)].map(
+    (m) => Number(m[1]) > Number(m[2]),
+  )
   expect(boxes).toEqual([true, false, true])
   for (const n of [1, 2, 3]) expect(text).toContain(`(Story - Chapter ${n})`)
 })
@@ -50,6 +58,10 @@ test('an empty list is refused', async () => {
 // Protects: a chapter with no title gets the same "Untitled" in its page heading as in its file name.
 test('an untitled chapter is headed Untitled in both formats', async () => {
   const untitled = [map('  ', 800, 600)]
-  expect(new TextDecoder('latin1').decode(await bytesOf(await buildPdf('Story', untitled)))).toContain('(Story - Untitled)')
-  expect(zipEntryText(await bytesOf(await buildDocx('Story', untitled)), 'word/document.xml')).toContain('Story - Untitled')
+  expect(new TextDecoder('latin1').decode(await bytesOf(await buildPdf('Story', untitled)))).toContain(
+    '(Story - Untitled)',
+  )
+  expect(zipEntryText(await bytesOf(await buildDocx('Story', untitled)), 'word/document.xml')).toContain(
+    'Story - Untitled',
+  )
 })

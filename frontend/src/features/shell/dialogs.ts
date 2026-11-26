@@ -7,7 +7,9 @@ export type DialogRequest =
   | { kind: 'confirm'; message: string; confirmLabel: string; resolve(ok: boolean): void }
   | { kind: 'prompt'; label: string; confirmLabel: string; resolve(text: string | null): void }
 
-interface DialogState { current: DialogRequest | null }
+interface DialogState {
+  current: DialogRequest | null
+}
 
 export const useDialogs = create<DialogState>(() => ({ current: null }))
 

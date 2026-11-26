@@ -19,11 +19,7 @@ function play(st: Story, ...choiceIds: string[]): Session {
   }
   return session
 }
-const THREE = story([
-  pnode('n1', 'c1', [go('k1', 'n2')]),
-  pnode('n2', 'c1', [go('k2', 'n3')]),
-  pnode('n3', 'c2'),
-])
+const THREE = story([pnode('n1', 'c1', [go('k1', 'n2')]), pnode('n2', 'c1', [go('k2', 'n3')]), pnode('n3', 'c2')])
 
 // Protects Review Focus 1: a story with no start, or a start that is not in the story, has nothing to play.
 test('a session starts only at a real start node', () => {
@@ -37,7 +33,12 @@ test('a session starts only at a real start node', () => {
 test('an empty or unknown choice returns null and changes nothing', () => {
   const st = story([pnode('n1', 'c1', [go('k1', 'n2'), go('k2', null), go('k3', 'ghost')]), pnode('n2', 'c1')])
   const start = startSession(st)!
-  expect(choose(st, start, 'k1')).toEqual({ steps: [{ nodeId: 'n1', viaChoiceId: null }, { nodeId: 'n2', viaChoiceId: 'k1' }] })
+  expect(choose(st, start, 'k1')).toEqual({
+    steps: [
+      { nodeId: 'n1', viaChoiceId: null },
+      { nodeId: 'n2', viaChoiceId: 'k1' },
+    ],
+  })
   expect(choose(st, start, 'k2')).toBeNull()
   expect(choose(st, start, 'k3')).toBeNull()
   expect(choose(st, start, 'nope')).toBeNull()
@@ -64,7 +65,9 @@ test('a loop is just more steps', () => {
   const pair = story([pnode('n1', 'c1', [go('a', 'n2')]), pnode('n2', 'c1', [go('b', 'n1')])])
   const path = play(pair, 'a', 'b', 'a', 'b', 'a', 'b')
   expect(path.steps.map((s) => s.nodeId)).toEqual(['n1', 'n2', 'n1', 'n2', 'n1', 'n2', 'n1'])
-  expect(path.steps.slice(1).every((_, i) => !screenOf(pair, { steps: path.steps.slice(0, i + 2) }).showChapter)).toBe(true)
+  expect(path.steps.slice(1).every((_, i) => !screenOf(pair, { steps: path.steps.slice(0, i + 2) }).showChapter)).toBe(
+    true,
+  )
 })
 
 // Protects Review Focus 4: Back removes exactly one step, never goes below the start, leaves the old session as it was.

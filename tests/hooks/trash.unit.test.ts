@@ -14,7 +14,7 @@ const CUTOFF = '2026-10-21 10:00:00.000Z'
 // Protects design 6.8 and plan D11 (Review Focus 2): the server's own time is the trash
 // time, so a wrong browser clock cannot make a teammate's work expire early; an empty
 // value (a restore) stays empty; only items strictly older than the cut-off expire.
-test('the server\'s own time is used and only older items expire', () => {
+test("the server's own time is used and only older items expire", () => {
   expect(serverDeletedAt('', NOW)).toBe('')
   expect(serverDeletedAt(null, NOW)).toBe('')
   expect(serverDeletedAt(undefined, NOW)).toBe('')

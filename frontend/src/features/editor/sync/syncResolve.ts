@@ -16,7 +16,17 @@ export function mineEntry(conflict: PendingConflict): OutboxEntry | null {
   if (conflict.deleted || server === null) {
     if (entry.snapshot === null) return null
     const { seq, userId, projectId, id, offline, made, kind } = entry
-    return { seq, userId, projectId, id, offline, made, op: 'create', kind: kind as CreatableKind, record: entry.snapshot }
+    return {
+      seq,
+      userId,
+      projectId,
+      id,
+      offline,
+      made,
+      op: 'create',
+      kind: kind as CreatableKind,
+      record: entry.snapshot,
+    }
   }
   const baseValues = { ...entry.baseValues }
   for (const field of conflict.fields) baseValues[field] = valueOf(server as ContentRecords[ContentKind], field)
@@ -39,7 +49,11 @@ export function theirsEntry(conflict: PendingConflict): OutboxEntry | null {
 const NO_COPY = 'The record was deleted and no copy of your change is left to restore it.'
 
 /** Writes the answer to a conflict into the outbox. Returns what to tell the screens, or null when the entry will be sent again. */
-export async function applyChoice(storage: OutboxStorage, conflict: PendingConflict, choice: 'mine' | 'theirs'): Promise<Answer | null> {
+export async function applyChoice(
+  storage: OutboxStorage,
+  conflict: PendingConflict,
+  choice: 'mine' | 'theirs',
+): Promise<Answer | null> {
   const { entry, server } = conflict
   // Keeping theirs still sends the fields that did not conflict.
   const replacement = choice === 'mine' ? mineEntry(conflict) : theirsEntry(conflict)

@@ -22,44 +22,54 @@ test('gateway errors and a bare proxy 500 -> unreachable, a real 500 with a mess
 })
 
 test('status 400 with field message -> invalid with fields', () => {
-  const err = toBackendError(new ClientResponseError({
-    status: 400,
-    response: { data: { password: { message: 'Use at least 10 characters.' } } },
-  }))
+  const err = toBackendError(
+    new ClientResponseError({
+      status: 400,
+      response: { data: { password: { message: 'Use at least 10 characters.' } } },
+    }),
+  )
   expect(err.kind).toBe('invalid')
   expect(err.fields.password).toBe('Use at least 10 characters.')
 })
 
 test('status 429 -> locked with server message', () => {
-  const err = toBackendError(new ClientResponseError({
-    status: 429,
-    response: { message: 'Too many failed sign-in attempts. Try again after 5 minutes.' },
-  }))
+  const err = toBackendError(
+    new ClientResponseError({
+      status: 429,
+      response: { message: 'Too many failed sign-in attempts. Try again after 5 minutes.' },
+    }),
+  )
   expect(err.kind).toBe('locked')
   expect(err.message).toBe('Too many failed sign-in attempts. Try again after 5 minutes.')
 })
 
 test('status 403 -> forbidden', () => {
-  const err = toBackendError(new ClientResponseError({
-    status: 403,
-    response: { message: 'Access denied.' },
-  }))
+  const err = toBackendError(
+    new ClientResponseError({
+      status: 403,
+      response: { message: 'Access denied.' },
+    }),
+  )
   expect(err.kind).toBe('forbidden')
 })
 
 test('status 404 -> not-found', () => {
-  const err = toBackendError(new ClientResponseError({
-    status: 404,
-    response: { message: 'Not found.' },
-  }))
+  const err = toBackendError(
+    new ClientResponseError({
+      status: 404,
+      response: { message: 'Not found.' },
+    }),
+  )
   expect(err.kind).toBe('not-found')
 })
 
 test('status 409 -> conflict', () => {
-  const err = toBackendError(new ClientResponseError({
-    status: 409,
-    response: { message: 'Conflict.' },
-  }))
+  const err = toBackendError(
+    new ClientResponseError({
+      status: 409,
+      response: { message: 'Conflict.' },
+    }),
+  )
   expect(err.kind).toBe('conflict')
 })
 

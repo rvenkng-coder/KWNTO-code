@@ -19,7 +19,10 @@ export function trashLabel(days: number): string {
   return days === 1 ? '1 day left' : `${days} days left`
 }
 
-export interface TrashedNode { node: StoryNode; chapterTrashed: boolean }
+export interface TrashedNode {
+  node: StoryNode
+  chapterTrashed: boolean
+}
 
 // A just-trashed record in this tab has no server time yet; it counts as the newest.
 function timeOf(deletedAt: string | null): number {

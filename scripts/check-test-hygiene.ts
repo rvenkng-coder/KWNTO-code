@@ -9,9 +9,14 @@ import { isMain } from './lib/is-main.ts'
 import { parseTestFile } from './lib/test-ast.ts'
 import { countRawDeclarations, countRawExpects, rawHeaderLines } from './lib/test-raw.ts'
 
-export interface HygieneProblem { file: string; rule: 'header' | 'scan' | 'skipped' | 'focused' | 'lost-test' | 'lost-assertion'; detail: string }
+export interface HygieneProblem {
+  file: string
+  rule: 'header' | 'scan' | 'skipped' | 'focused' | 'lost-test' | 'lost-assertion'
+  detail: string
+}
 
-const SKIPPED = /\.skip(?:If)?\b|\bxit\b|\bxtest\b|\bxdescribe\b|\.fixme\b|\.todo\b|\.runIf\b|\.fails?\b|\bskip\s*\(|['"`]?\b(?:skip|todo|fails)['"`]?\s*:|\[\s*['"`](?:skip|fixme|todo)['"`]/
+const SKIPPED =
+  /\.skip(?:If)?\b|\bxit\b|\bxtest\b|\bxdescribe\b|\.fixme\b|\.todo\b|\.runIf\b|\.fails?\b|\bskip\s*\(|['"`]?\b(?:skip|todo|fails)['"`]?\s*:|\[\s*['"`](?:skip|fixme|todo)['"`]/
 const FOCUSED = /\.only\b|\bfdescribe\b|\bfit\s*\(|\bftest\s*\(|['"`]?\bonly['"`]?\s*:|\[\s*['"`]only['"`]/
 
 export function isTestFile(path: string): boolean {
@@ -27,18 +32,26 @@ export function checkSource(path: string, source: string, added: Set<number> | n
     const skip = SKIPPED.exec(row)
     if (skip) problems.push({ file: path, rule: 'skipped', detail: `line ${n}: "${skip[0].trim()}" disables a test` })
     const focus = FOCUSED.exec(row)
-    if (focus) problems.push({ file: path, rule: 'focused', detail: `line ${n}: "${focus[0].trim()}" runs only some tests` })
+    if (focus)
+      problems.push({ file: path, rule: 'focused', detail: `line ${n}: "${focus[0].trim()}" runs only some tests` })
   })
   const parsed = parseTestFile(path, source)
   const found = new Map<number, string>() // line -> what is wrong; the parser view (trusted only if the file parsed) and the raw view
   if (!parsed.ok) {
-    problems.push({ file: path, rule: 'scan', detail: `${parsed.error ?? 'line 1: syntax error'}; cannot scan this file reliably` })
+    problems.push({
+      file: path,
+      rule: 'scan',
+      detail: `${parsed.error ?? 'line 1: syntax error'}; cannot scan this file reliably`,
+    })
   } else {
-    for (const { line, headerProblem } of parsed.declarations) if (headerProblem !== null) found.set(line, headerProblem)
+    for (const { line, headerProblem } of parsed.declarations)
+      if (headerProblem !== null) found.set(line, headerProblem)
   }
-  for (const line of rawHeaderLines(source)) if (!found.has(line)) found.set(line, 'has no comment directly above it (// Protects: ...)')
+  for (const line of rawHeaderLines(source))
+    if (!found.has(line)) found.set(line, 'has no comment directly above it (// Protects: ...)')
   for (const [line, why] of found) {
-    if (added === null || added.has(line)) problems.push({ file: path, rule: 'header', detail: `line ${line}: new test ${why}` })
+    if (added === null || added.has(line))
+      problems.push({ file: path, rule: 'header', detail: `line ${line}: new test ${why}` })
   }
   return problems.sort((x, y) => Number(/line (\d+)/.exec(x.detail)?.[1]) - Number(/line (\d+)/.exec(y.detail)?.[1]))
 }
@@ -52,23 +65,42 @@ export function compareWithBase(path: string, baseSource: string, headSource: st
   const [baseRaw, headRaw] = [countRawDeclarations(baseSource), countRawDeclarations(headSource)]
   const countDropped = trusted && head.declarations.length < base.declarations.length
   if (countDropped) {
-    problems.push({ file: path, rule: 'lost-test', detail: `${base.declarations.length} tests at base, ${head.declarations.length} now` })
+    problems.push({
+      file: path,
+      rule: 'lost-test',
+      detail: `${base.declarations.length} tests at base, ${head.declarations.length} now`,
+    })
   } else if (headRaw < baseRaw) {
-    problems.push({ file: path, rule: 'lost-test', detail: `${baseRaw} test-like calls at base, ${headRaw} now (raw text count)` })
+    problems.push({
+      file: path,
+      rule: 'lost-test',
+      detail: `${baseRaw} test-like calls at base, ${headRaw} now (raw text count)`,
+    })
   }
   if (trusted) {
-    const count = (keys: string[]): Map<string, number> => keys.reduce((map, key) => map.set(key, (map.get(key) ?? 0) + 1), new Map<string, number>())
+    const count = (keys: string[]): Map<string, number> =>
+      keys.reduce((map, key) => map.set(key, (map.get(key) ?? 0) + 1), new Map<string, number>())
     const headKeys = count(head.declarations.map((d) => d.key))
     for (const [key, baseCount] of count(base.declarations.map((d) => d.key))) {
       if ((headKeys.get(key) ?? 0) >= baseCount || (key.startsWith('\u0000') && countDropped)) continue
       const what = key.startsWith('\u0000') ? `a test titled by \`${key.slice(1)}\`` : `test "${key}"`
-      problems.push({ file: path, rule: 'lost-test', detail: `${what} is gone (removed, or renamed: the reviewer decides)` })
+      problems.push({
+        file: path,
+        rule: 'lost-test',
+        detail: `${what} is gone (removed, or renamed: the reviewer decides)`,
+      })
     }
   }
   const [before, now] = trusted ? [base.expects, head.expects] : [Infinity, 0]
   const [rawBefore, rawNow] = [countRawExpects(baseSource), countRawExpects(headSource)]
-  if (trusted && now < before) problems.push({ file: path, rule: 'lost-assertion', detail: `${before} expect( calls at base, ${now} now` })
-  else if (rawNow < rawBefore) problems.push({ file: path, rule: 'lost-assertion', detail: `${rawBefore} expect( calls at base, ${rawNow} now (raw text count)` })
+  if (trusted && now < before)
+    problems.push({ file: path, rule: 'lost-assertion', detail: `${before} expect( calls at base, ${now} now` })
+  else if (rawNow < rawBefore)
+    problems.push({
+      file: path,
+      rule: 'lost-assertion',
+      detail: `${rawBefore} expect( calls at base, ${rawNow} now (raw text count)`,
+    })
   return problems
 }
 
@@ -106,7 +138,10 @@ function declarationsAsList(path: string, source: string): string[] {
 
 if (isMain(import.meta.filename)) {
   const args = process.argv.slice(2)
-  if (!(args.length === 0 || (args.length === 2 && args[0] === '--base' && args[1] !== '' && !args[1].startsWith('-')))) {
+  if (!(
+    args.length === 0 ||
+    (args.length === 2 && args[0] === '--base' && args[1] !== '' && !args[1].startsWith('-'))
+  )) {
     console.log('usage: node scripts/check-test-hygiene.ts [--base <sha>]')
     process.exit(2)
   }
@@ -114,7 +149,8 @@ if (isMain(import.meta.filename)) {
     let base = args[1]
     if (!base) {
       const result = spawnSync('git', ['merge-base', 'HEAD', 'main'], { encoding: 'utf8' })
-      if (result.status !== 0) throw new Error(`cannot find the merge base with main (pass --base <sha>): ${result.stderr.trim()}`)
+      if (result.status !== 0)
+        throw new Error(`cannot find the merge base with main (pass --base <sha>): ${result.stderr.trim()}`)
       base = result.stdout.trim()
     }
     const problems = checkHygiene(base)

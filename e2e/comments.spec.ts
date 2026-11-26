@@ -23,7 +23,9 @@ async function comment(page: Page, text: string): Promise<void> {
 test('a comment appears for the team live and the owner can delete it', async ({ browser }) => {
   const { a, b, ids } = await ownerAndMember(browser, 1)
   const [id] = ids as [string]
-  a.on('dialog', () => { throw new Error('a browser dialog opened') })
+  a.on('dialog', () => {
+    throw new Error('a browser dialog opened')
+  })
   await card(a, id).click()
   await card(b, id).click()
   await comment(b, 'Line 3 needs a pause')

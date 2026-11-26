@@ -34,19 +34,56 @@ function createChapters(app, projectId, chapters) {
 
 function createContent(app, projectId, creatorId, chapterIds, plan) {
   for (const n of plan.nodes) {
-    add(app, "nodes", { id: n.id, project: projectId, chapter: chapterIds[n.chapter], title: n.title, color: n.color, x: n.x, y: n.y, width: n.width, height: n.height })
+    add(app, "nodes", {
+      id: n.id,
+      project: projectId,
+      chapter: chapterIds[n.chapter],
+      title: n.title,
+      color: n.color,
+      x: n.x,
+      y: n.y,
+      width: n.width,
+      height: n.height,
+    })
   }
   for (const l of plan.lines) {
-    add(app, "script_lines", { id: l.id, project: projectId, node: l.node, character: l.character, text: l.text, sort_order: l.sortOrder })
+    add(app, "script_lines", {
+      id: l.id,
+      project: projectId,
+      node: l.node,
+      character: l.character,
+      text: l.text,
+      sort_order: l.sortOrder,
+    })
   }
   for (const q of plan.cues) {
-    add(app, "cues", { id: q.id, project: projectId, node: q.node, type: q.type, text: q.text, sort_order: q.sortOrder })
+    add(app, "cues", {
+      id: q.id,
+      project: projectId,
+      node: q.node,
+      type: q.type,
+      text: q.text,
+      sort_order: q.sortOrder,
+    })
   }
   for (const k of plan.connections) {
-    add(app, "connections", { id: k.id, project: projectId, from_node: k.from, to_node: k.to === null ? "" : k.to, label: k.label })
+    add(app, "connections", {
+      id: k.id,
+      project: projectId,
+      from_node: k.from,
+      to_node: k.to === null ? "" : k.to,
+      label: k.label,
+    })
   }
   for (const l of plan.links) {
-    add(app, "node_links", { id: l.id, project: projectId, node: l.node, creator: creatorId, title: l.title, url: l.url })
+    add(app, "node_links", {
+      id: l.id,
+      project: projectId,
+      node: l.node,
+      creator: creatorId,
+      title: l.title,
+      url: l.url,
+    })
   }
 }
 

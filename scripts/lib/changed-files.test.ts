@@ -27,7 +27,9 @@ describe('parseNameStatus', () => {
   test('paths with spaces are kept', () => {
     expect(parseNameStatus('M\tsrc/my file.ts\n')).toEqual([{ path: 'src/my file.ts', status: 'modified' }])
     expect(parseNameStatus('R100\told dir/a b.ts\tnew dir/a b.ts\n')[0]).toEqual({
-      path: 'new dir/a b.ts', status: 'renamed', oldPath: 'old dir/a b.ts',
+      path: 'new dir/a b.ts',
+      status: 'renamed',
+      oldPath: 'old dir/a b.ts',
     })
     expect(parseNameStatus('M\0src/my file.ts\0R100\0a b.ts\0c d.ts\0')).toEqual([
       { path: 'src/my file.ts', status: 'modified' },
@@ -48,7 +50,9 @@ describe('parseNameStatus', () => {
 })
 
 const dirs: string[] = []
-afterEach(() => { for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true }) })
+afterEach(() => {
+  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true })
+})
 
 function git(cwd: string, ...args: string[]): string {
   const result = spawnSync('git', args, { cwd, encoding: 'utf8' })

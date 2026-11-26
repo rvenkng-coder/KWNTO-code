@@ -7,7 +7,14 @@ export const DEFAULT_MEDIA_SIZE = 56
 /** The tile sizes offered, in pixels. */
 export const MEDIA_SIZES = [32, 40, 48, 56, 64, 80, 96, 128, 160]
 
-export interface ViewPrefs { minimap: boolean; toggleMinimap(): void; fontSize: number; setFontSize(size: number): void; mediaSize: number; setMediaSize(size: number): void }
+export interface ViewPrefs {
+  minimap: boolean
+  toggleMinimap(): void
+  fontSize: number
+  setFontSize(size: number): void
+  mediaSize: number
+  setMediaSize(size: number): void
+}
 
 /** The account's canvas view choices (user_preferences): the minimap, the card font size and the size of the media tiles on a card. Shown at their defaults until they load. */
 export function useViewPrefs(): ViewPrefs {
@@ -16,7 +23,8 @@ export function useViewPrefs(): ViewPrefs {
   const [mediaSize, setMedia] = useState(DEFAULT_MEDIA_SIZE)
   useEffect(() => {
     let cancelled = false
-    backend.preferences.get()
+    backend.preferences
+      .get()
       .then((p) => {
         if (cancelled) return
         setMinimap(p.minimapVisible)

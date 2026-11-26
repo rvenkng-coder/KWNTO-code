@@ -6,17 +6,20 @@ import { fromContent, putRecord } from './state'
 const T1 = '2026-11-18T10:00:01.000Z'
 const T2 = '2026-11-18T10:00:02.000Z'
 
-const state = () => fromContent(content({
-  chapters: [chapter('c1'), chapter('gone', { deleted: true })],
-  nodes: [node('a'), node('b'), node('c'), node('t', { deleted: true })],
-  connections: [
-    connection('late', 'a', 'b', { created: T2 }),
-    connection('y2', 'a', null, { created: T1 }),
-    connection('x1', 'a', 'c', { created: T1 }),
-    connection('other', 'b', 'c'),
-    connection('toTrash', 'a', 't', { created: T1 }),
-  ],
-}))
+const state = () =>
+  fromContent(
+    content({
+      chapters: [chapter('c1'), chapter('gone', { deleted: true })],
+      nodes: [node('a'), node('b'), node('c'), node('t', { deleted: true })],
+      connections: [
+        connection('late', 'a', 'b', { created: T2 }),
+        connection('y2', 'a', null, { created: T1 }),
+        connection('x1', 'a', 'c', { created: T1 }),
+        connection('other', 'b', 'c'),
+        connection('toTrash', 'a', 't', { created: T1 }),
+      ],
+    }),
+  )
 
 // Protects: editor cards design 1 (choices in the order they were made, empty ones included; F1 and F2).
 test("choicesOf lists a node's choices by when they were made, empty ones included", () => {
@@ -45,6 +48,12 @@ test('hasChoiceTo finds a duplicate target but not the choice itself', () => {
 // Protects: editor cards design 1: a new choice starts at version 0 with the time it was made.
 test('newChoice makes an empty or linked choice at version 0', () => {
   expect(newChoice('p', 'a', null, '2026-11-18T10:00:00.000Z', () => 'id1')).toEqual({
-    id: 'id1', projectId: 'p', fromNodeId: 'a', toNodeId: null, label: '', created: '2026-11-18T10:00:00.000Z', version: 0,
+    id: 'id1',
+    projectId: 'p',
+    fromNodeId: 'a',
+    toNodeId: null,
+    label: '',
+    created: '2026-11-18T10:00:00.000Z',
+    version: 0,
   })
 })

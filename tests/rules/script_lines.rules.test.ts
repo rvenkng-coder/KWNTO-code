@@ -1,6 +1,14 @@
 import { expect, test } from 'vitest'
 import { expectRefused } from './helpers/admin-only.ts'
-import { clientId, createLine, createNode, createProject, guardedUpdate, memberProject, readAsAdmin } from './helpers/content.ts'
+import {
+  clientId,
+  createLine,
+  createNode,
+  createProject,
+  guardedUpdate,
+  memberProject,
+  readAsAdmin,
+} from './helpers/content.ts'
 import { asAdmin, asUser, createTeam, createUser } from './helpers/pb.ts'
 import { expectCreateRefused } from './helpers/teams.ts'
 
@@ -19,7 +27,9 @@ test('a script line cannot point into another project', async () => {
   const secondNode = await createNode(member, projectId, chapterId)
 
   await expectCreateRefused(
-    (await asUser(member)).collection('script_lines').create({ project: projectId, node: foreignNode, text: 'Stray', sort_order: 1 }),
+    (await asUser(member))
+      .collection('script_lines')
+      .create({ project: projectId, node: foreignNode, text: 'Stray', sort_order: 1 }),
   )
 
   const lineId = await createLine(member, projectId, nodeId, { text: 'Mine' })
@@ -29,7 +39,9 @@ test('a script line cannot point into another project', async () => {
   }
   expect(await readAsAdmin('script_lines', lineId)).toMatchObject({ project: projectId, node: nodeId, version: 0 })
   const admin = await asAdmin()
-  expect(await admin.collection('script_lines').getFullList({ filter: admin.filter('node = {:n}', { n: foreignNode }) })).toEqual([])
+  expect(
+    await admin.collection('script_lines').getFullList({ filter: admin.filter('node = {:n}', { n: foreignNode }) }),
+  ).toEqual([])
 })
 
 // Design 5: members write and remove lines; someone outside the team cannot.
@@ -38,7 +50,9 @@ test('members write and delete script lines', async () => {
   const nodeId = await createNode(owner, projectId, chapterId)
   const pb = await asUser(member)
 
-  const created = await pb.collection('script_lines').create({ project: projectId, node: nodeId, character: 'ANNA', text: 'Hi', sort_order: 1.5 })
+  const created = await pb
+    .collection('script_lines')
+    .create({ project: projectId, node: nodeId, character: 'ANNA', text: 'Hi', sort_order: 1.5 })
   expect(created).toMatchObject({ character: 'ANNA', text: 'Hi', sort_order: 1.5, version: 0 })
 
   const edited = await guardedUpdate(member, 'script_lines', created.id, { version: 0, text: 'Hello' })
@@ -81,10 +95,19 @@ test('an existing id cannot be taken over', async () => {
   const theirNode = await createNode(outsider, theirs.id, theirs.chapterId)
 
   await expectCreateRefused(
-    (await asUser(member)).collection('script_lines').create({ id: lineId, project: projectId, node: nodeId, text: 'Taken', sort_order: 1 }),
+    (await asUser(member))
+      .collection('script_lines')
+      .create({ id: lineId, project: projectId, node: nodeId, text: 'Taken', sort_order: 1 }),
   )
   await expectCreateRefused(
-    (await asUser(outsider)).collection('script_lines').create({ id: lineId, project: theirs.id, node: theirNode, text: 'Taken', sort_order: 1 }),
+    (await asUser(outsider))
+      .collection('script_lines')
+      .create({ id: lineId, project: theirs.id, node: theirNode, text: 'Taken', sort_order: 1 }),
   )
-  expect(await readAsAdmin('script_lines', lineId)).toMatchObject({ project: projectId, node: nodeId, text: 'Original', version: 0 })
+  expect(await readAsAdmin('script_lines', lineId)).toMatchObject({
+    project: projectId,
+    node: nodeId,
+    text: 'Original',
+    version: 0,
+  })
 })

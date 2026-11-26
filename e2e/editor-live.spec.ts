@@ -4,14 +4,25 @@
 // leaves nothing half-saved, and a member removed from the team loses the project.
 import { expect, test, type Browser, type Page } from '@playwright/test'
 import { uniqueEmail } from './helpers/admin'
-import { addNodeAt, card, cards, connectNodes, createProject, nodePosition, openProject, readyCanvas, waitForSave } from './helpers/editor'
+import {
+  addNodeAt,
+  card,
+  cards,
+  connectNodes,
+  createProject,
+  nodePosition,
+  openProject,
+  readyCanvas,
+  waitForSave,
+} from './helpers/editor'
 import { createTeam, enableJoinCode, joinWithCode, openTeam, signUpVerifyAndSignIn } from './helpers/ui'
 
 const TOO_BUSY = 'Could not save: too many people are editing this at once. Try again.'
 const NOT_FOUND = 'This project does not exist or you are not a member of its team.'
 const panel = (page: Page) => page.getByTestId('editor-panel')
 const titleField = (page: Page) => panel(page).getByLabel('Title', { exact: true })
-const isNodePatch = (method: string, url: string) => method === 'PATCH' && url.includes('/api/collections/nodes/records/')
+const isNodePatch = (method: string, url: string) =>
+  method === 'PATCH' && url.includes('/api/collections/nodes/records/')
 
 /** The owner (page `a`) and a member who joined by code (page `b`), both with project `Story` open. */
 async function ownerAndMember(page: Page, browser: Browser): Promise<{ a: Page; b: Page }> {
@@ -62,7 +73,9 @@ test('two people editing one node both keep their change', async ({ page, browse
   await expect(titleField(a)).toBeVisible()
   const titleSaved = waitForSave(a, 'nodes', 'PATCH')
   let markHeld = () => undefined as void
-  const held = new Promise<void>((resolve) => { markHeld = resolve })
+  const held = new Promise<void>((resolve) => {
+    markHeld = resolve
+  })
   let heldOnce = false
   await b.route('**/api/collections/nodes/records/**', async (route) => {
     const request = route.request()
@@ -143,7 +156,11 @@ test('when saving keeps conflicting the person is told and nothing half-saves', 
   await a.route('**/api/collections/nodes/records/**', async (route) => {
     if (!isNodePatch(route.request().method(), route.request().url())) return route.continue()
     refused++
-    return route.fulfill({ status: 409, contentType: 'application/json', body: JSON.stringify({ status: 409, message: 'Conflict.', data: {} }) })
+    return route.fulfill({
+      status: 409,
+      contentType: 'application/json',
+      body: JSON.stringify({ status: 409, message: 'Conflict.', data: {} }),
+    })
   })
   await titleField(a).fill('New title')
   await titleField(a).blur()

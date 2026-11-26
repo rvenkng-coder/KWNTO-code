@@ -53,7 +53,13 @@ test('at most eight suggestions, ties alphabetical', () => {
 // Protects: C3 — equal counts are ordered alphabetically even when the lines come in reverse order.
 test('ties are alphabetical whatever order the lines come in', () => {
   const lines: ScriptLine[] = ['Cara', 'Ben', 'Anna'].map((character, i) => ({
-    id: `l${i}`, projectId: 'p1', nodeId: 'n1', character, text: '', sortOrder: i, version: 0,
+    id: `l${i}`,
+    projectId: 'p1',
+    nodeId: 'n1',
+    character,
+    text: '',
+    sortOrder: i,
+    version: 0,
   }))
   expect(characterSuggestions(lines, '')).toEqual(['Anna', 'Ben', 'Cara'])
 })

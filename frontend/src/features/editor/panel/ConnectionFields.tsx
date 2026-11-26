@@ -18,7 +18,9 @@ export function ConnectionFields({ connection }: { connection: Connection }) {
         <span>Choice text</span>
         <input className="field" value={label} onChange={(e) => setLabel(e.target.value)} onBlur={flush} />
       </label>
-      <button type="button" className="btn-danger self-start" onClick={remove}>Delete connection</button>
+      <button type="button" className="btn-danger self-start" onClick={remove}>
+        Delete connection
+      </button>
     </div>
   )
 }

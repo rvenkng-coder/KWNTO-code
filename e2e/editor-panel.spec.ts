@@ -38,7 +38,11 @@ async function oneNode(page: Page): Promise<string> {
 test('script lines keep their text, characters and order', async ({ page }) => {
   const id = await oneNode(page)
   await typeAndSave(page, panel(page).getByLabel('Title', { exact: true }), 'The Hall', 'nodes')
-  const lines: Array<[string, string]> = [['ANNA', 'Hello.'], ['BEN', 'Hi.'], ['', 'They wave.']]
+  const lines: Array<[string, string]> = [
+    ['ANNA', 'Hello.'],
+    ['BEN', 'Hi.'],
+    ['', 'They wave.'],
+  ]
   for (const [i, [who, text]] of lines.entries()) {
     await addLine(page)
     if (who !== '') await typeAndSave(page, character(page, i), who, 'script_lines')

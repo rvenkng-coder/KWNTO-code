@@ -7,7 +7,13 @@ export function PlayerHistory({ entries }: { entries: HistoryEntry[] }) {
       <h3>History</h3>
       <ol data-testid="player-history" className="flex list-decimal flex-col gap-1 pl-6">
         {entries.map((e, i) => (
-          <li key={i} aria-current={e.current ? 'step' : undefined} className={e.current ? 'font-semibold' : 'text-muted'}>{e.text}</li>
+          <li
+            key={i}
+            aria-current={e.current ? 'step' : undefined}
+            className={e.current ? 'font-semibold' : 'text-muted'}
+          >
+            {e.text}
+          </li>
         ))}
       </ol>
     </section>

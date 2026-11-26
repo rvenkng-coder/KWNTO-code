@@ -20,8 +20,12 @@ async function seedTwoChapters(projectId: string): Promise<{ gate: string; door:
   const pb = await adminPB()
   const opts = { requestKey: null }
   const chapter = await pb.collection('chapters').create({ project: projectId, title: 'Chapter 2', position: 2 }, opts)
-  const far = await pb.collection('nodes').create({ project: projectId, chapter: chapter.id, title: 'Far', color: 'red', x: 60, y: 80 }, opts)
-  await pb.collection('connections').create({ project: projectId, from_node: gate, to_node: far.id, label: 'Go far' }, opts)
+  const far = await pb
+    .collection('nodes')
+    .create({ project: projectId, chapter: chapter.id, title: 'Far', color: 'red', x: 60, y: 80 }, opts)
+  await pb
+    .collection('connections')
+    .create({ project: projectId, from_node: gate, to_node: far.id, label: 'Go far' }, opts)
   return { gate, door, far: far.id }
 }
 
@@ -34,7 +38,9 @@ async function revokeFirst(page: Page, alreadyRevoked: number): Promise<void> {
 }
 
 // Protects: Task 8 case C2 (the Flow), see the file header; one test so the people and their links carry through every step.
-test('the sharing plan end to end: export, links, comments, presence, revoke and trash', async ({ browser }, testInfo) => {
+test('the sharing plan end to end: export, links, comments, presence, revoke and trash', async ({
+  browser,
+}, testInfo) => {
   testInfo.setTimeout(300_000)
   const { a: owner, b: member } = await ownerAndMember(browser, 0)
   const projectId = projectIdOf(owner)
@@ -80,7 +86,14 @@ test('the sharing plan end to end: export, links, comments, presence, revoke and
     await expect(cards(visitor)).toHaveCount(2)
     await card(visitor, gate).click()
     await expect(visitor.getByTestId('readonly-panel')).toContainText('Who goes there?')
-    await expect.poll(() => visitor.getByTestId('share-media').first().evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(1)
+    await expect
+      .poll(() =>
+        visitor
+          .getByTestId('share-media')
+          .first()
+          .evaluate((img: HTMLImageElement) => img.naturalWidth),
+      )
+      .toBe(1)
     await visitor.close()
   }
   const visitorView = await visitorContext.newPage()

@@ -7,10 +7,20 @@ import type { TabMessage } from './syncAnswers'
 // The types of the sync engine (offline sync plan Task 3); syncEngine.ts re-exports them.
 
 export type SyncDoor = Pick<Backend['content'], 'get' | 'create' | 'update' | 'remove'>
-export interface PendingConflict { entry: OutboxEntry; server: ContentRecords[ContentKind] | null; fields: string[]; deleted: boolean }
+export interface PendingConflict {
+  entry: OutboxEntry
+  server: ContentRecords[ContentKind] | null
+  fields: string[]
+  deleted: boolean
+}
 export interface SyncSnapshot {
-  online: boolean; owner: boolean; waiting: number; sendingSeq: number | null
-  failed: FailedEntry[]; conflict: PendingConflict | null; entries: OutboxEntry[]
+  online: boolean
+  owner: boolean
+  waiting: number
+  sendingSeq: number | null
+  failed: FailedEntry[]
+  conflict: PendingConflict | null
+  entries: OutboxEntry[]
 }
 export interface SyncHooks {
   saved(entry: OutboxEntry, record: ContentRecords[ContentKind] | null): void
@@ -18,7 +28,10 @@ export interface SyncHooks {
   theirs(entry: OutboxEntry, server: ContentRecords[ContentKind] | null): void
 }
 export interface SyncDeps {
-  userId: string; door: SyncDoor; storage: OutboxStorage; hooks: SyncHooks
+  userId: string
+  door: SyncDoor
+  storage: OutboxStorage
+  hooks: SyncHooks
   clock: { now(): number; setTimeout(fn: () => void, ms: number): unknown; clearTimeout(handle: unknown): void }
   lock(name: string, run: () => Promise<void>): Promise<void>
   /** Refreshes the session; false when it has ended (the sign-in is then needed before anything is sent). */
@@ -26,7 +39,11 @@ export interface SyncDeps {
   channel: { post(message?: TabMessage): void; listen(fn: (message?: TabMessage) => void): () => void }
 }
 /** What a caller gives `add`: the engine fills the user, the offline flag and the time. */
-export type EngineEntry = NewEntry extends infer E ? (E extends NewEntry ? Omit<E, 'userId' | 'offline' | 'made'> : never) : never
+export type EngineEntry = NewEntry extends infer E
+  ? E extends NewEntry
+    ? Omit<E, 'userId' | 'offline' | 'made'>
+    : never
+  : never
 export interface SyncEngine {
   start(): void
   stop(): Promise<void>

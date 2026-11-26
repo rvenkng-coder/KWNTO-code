@@ -63,9 +63,13 @@ class Engine implements SyncEngine {
 
   private build(): SyncSnapshot {
     return {
-      online: this.netOnline && !this.serverDown && (this.owner || this.link.remoteOnline), owner: this.owner,
-      waiting: this.queue.length + this.adding, sendingSeq: this.sendingSeq,
-      failed: this.failed, conflict: this.owner ? this.conflict : this.link.remoteConflict, entries: this.queue,
+      online: this.netOnline && !this.serverDown && (this.owner || this.link.remoteOnline),
+      owner: this.owner,
+      waiting: this.queue.length + this.adding,
+      sendingSeq: this.sendingSeq,
+      failed: this.failed,
+      conflict: this.owner ? this.conflict : this.link.remoteConflict,
+      entries: this.queue,
     }
   }
 
@@ -105,7 +109,10 @@ class Engine implements SyncEngine {
   /** Storage work never interleaves: adds, picks and bookkeeping run one after another. */
   private exclusive<T>(fn: () => Promise<T>): Promise<T> {
     const run = this.chain.then(fn)
-    this.chain = run.then(() => undefined, () => undefined)
+    this.chain = run.then(
+      () => undefined,
+      () => undefined,
+    )
     return run
   }
 
@@ -175,7 +182,12 @@ class Engine implements SyncEngine {
     this.publish()
     return this.exclusive(async () => {
       try {
-        const entry = { ...partial, userId: this.deps.userId, offline: !this.current.online, made: this.deps.clock.now() } as NewEntry
+        const entry = {
+          ...partial,
+          userId: this.deps.userId,
+          offline: !this.current.online,
+          made: this.deps.clock.now(),
+        } as NewEntry
         const seq = await this.store(entry)
         if (seq > 0) this.answers.remember(seq, { ...entry, seq } as OutboxEntry)
         return seq
@@ -195,7 +207,11 @@ class Engine implements SyncEngine {
     const locked = this.sendingSeq ?? this.conflict?.entry.seq ?? null
     const { seq, dropped } = await writeEntry(storage, this.queue, locked, entry)
     // Edits the new one cancelled never reach the server; that is what the person asked for, so they are answered as done.
-    for (const seqOf of dropped) this.answers.announce(this.queue.find((q) => q.seq === seqOf), { seq: seqOf, type: 'saved', record: null })
+    for (const seqOf of dropped)
+      this.answers.announce(
+        this.queue.find((q) => q.seq === seqOf),
+        { seq: seqOf, type: 'saved', record: null },
+      )
     return seq
   }
 
@@ -300,7 +316,8 @@ class Engine implements SyncEngine {
     } else {
       this.markReachable()
       await storage.fail(entry, outcome.error.message)
-      tell = () => this.answers.announce(entry, { seq: entry.seq, type: 'refused', message: outcome.error.message }, outcome.error)
+      tell = () =>
+        this.answers.announce(entry, { seq: entry.seq, type: 'refused', message: outcome.error.message }, outcome.error)
     }
     await this.refresh()
     // After the refresh: whoever hears the answer sees a snapshot without the entry that was just answered.

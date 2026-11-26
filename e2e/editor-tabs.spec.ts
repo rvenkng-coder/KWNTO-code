@@ -105,7 +105,9 @@ test('the menu of a scrolled-off tab stays open and works', async ({ page }) => 
   await page.setViewportSize({ width: 1000, height: 700 })
   await ownerWithProject(page, 'Story')
   for (let i = 0; i < 4; i++) await addChapter(page)
-  await page.getByRole('tablist').evaluate((strip) => { strip.scrollLeft = 0 })
+  await page.getByRole('tablist').evaluate((strip) => {
+    strip.scrollLeft = 0
+  })
   const moved = waitForSave(page, 'chapters', 'PATCH')
   await page.getByRole('button', { name: 'Menu for Chapter 5' }).click()
   await page.getByRole('menuitem', { name: 'Move left' }).click()
@@ -120,7 +122,9 @@ test('scrolling the tab strip closes an open menu', async ({ page }) => {
   for (let i = 0; i < 4; i++) await addChapter(page)
   await page.getByRole('button', { name: 'Menu for Chapter 1' }).click()
   await expect(page.getByRole('menu', { name: 'Chapter menu' })).toBeVisible()
-  await page.getByRole('tablist').evaluate((strip) => { strip.scrollLeft = strip.scrollWidth })
+  await page.getByRole('tablist').evaluate((strip) => {
+    strip.scrollLeft = strip.scrollWidth
+  })
   await expect(page.getByRole('menu')).toHaveCount(0)
 })
 

@@ -3,7 +3,9 @@ import { afterEach, beforeEach, expect, test } from 'vitest'
 
 const require = createRequire(import.meta.url)
 type EnsureUserRecords = (app: FakeApp, userId: string) => void
-const { ensureUserRecords } = require('../../backend/pb_hooks/lib/user-records.js') as { ensureUserRecords: EnsureUserRecords }
+const { ensureUserRecords } = require('../../backend/pb_hooks/lib/user-records.js') as {
+  ensureUserRecords: EnsureUserRecords
+}
 
 // Stands in for PocketBase's global Record class, which the hook runtime provides.
 class FakeRecord {
@@ -23,7 +25,14 @@ class FakeApp {
   findCollectionByNameOrId(name: string) {
     return { name }
   }
-  findRecordsByFilter(collection: string, _filter: string, _sort: string, _limit: number, _offset: number, params: { user: string }) {
+  findRecordsByFilter(
+    collection: string,
+    _filter: string,
+    _sort: string,
+    _limit: number,
+    _offset: number,
+    params: { user: string },
+  ) {
     return this.rows.filter((row) => row.collection.name === collection && row.values.user === params.user)
   }
   save(record: FakeRecord) {

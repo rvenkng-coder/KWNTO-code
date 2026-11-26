@@ -5,7 +5,13 @@ export type ExportFormat = 'pdf' | 'docx' | 'jpg' | 'png'
 export type ExportScope = 'chapter' | 'project'
 
 /** One chapter's map as an image; width and height are image pixels. `small` when the ratio fell below 0.5. */
-export interface MapImage { chapterTitle: string; dataUrl: string; width: number; height: number; small: boolean }
+export interface MapImage {
+  chapterTitle: string
+  dataUrl: string
+  width: number
+  height: number
+  small: boolean
+}
 
 /** Space kept around the nodes' bounds, in map pixels. */
 export const MAP_PADDING = 40
@@ -26,7 +32,9 @@ export function scopesFor(format: ExportFormat): ExportScope[] {
 }
 
 export function exportChapters(
-  s: ContentState, scope: ExportScope, activeChapterId: string | null,
+  s: ContentState,
+  scope: ExportScope,
+  activeChapterId: string | null,
 ): { ok: true; chapters: Chapter[]; skipped: number } | { ok: false; message: string } {
   const wanted = liveChapters(s).filter((c) => scope === 'project' || c.id === activeChapterId)
   const chapters = wanted.filter((c) => liveNodes(s, c.id).length > 0)
@@ -50,7 +58,9 @@ function cutTo(text: string, limit: number, bytes: number): string {
 
 function cleanPart(text: string, fallback: string): string {
   const spaced = text.replace(/\s+/g, ' ')
-  const printable = Array.from(spaced).filter((ch) => (ch.codePointAt(0) ?? 0) >= 32).join('')
+  const printable = Array.from(spaced)
+    .filter((ch) => (ch.codePointAt(0) ?? 0) >= 32)
+    .join('')
   const cleaned = printable.replace(UNSAFE, '-').replace(EDGES, '')
   const cut = cutTo(cleaned, PART_LIMIT, PART_BYTES).replace(EDGES, '')
   return cut === '' ? fallback : cut
@@ -76,7 +86,9 @@ export function isSmallText(ratio: number): boolean {
 
 /** The largest size with the same aspect that fits inside the box; may scale up. */
 export function fitInto(
-  width: number, height: number, box: { width: number; height: number },
+  width: number,
+  height: number,
+  box: { width: number; height: number },
 ): { width: number; height: number } {
   const scale = Math.min(box.width / width, box.height / height)
   return { width: width * scale, height: height * scale }

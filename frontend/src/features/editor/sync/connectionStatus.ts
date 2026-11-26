@@ -8,7 +8,12 @@ export const STREAM_GRACE_MS = 3000
  * Offline when the browser says so, or when the live connection has been down for at least the
  * grace time (`downSinceMs` is when it dropped, null when it has not). A brief reconnect is not offline.
  */
-export function isOffline(browserOnline: boolean, streamConnected: boolean, downSinceMs: number | null, nowMs: number): boolean {
+export function isOffline(
+  browserOnline: boolean,
+  streamConnected: boolean,
+  downSinceMs: number | null,
+  nowMs: number,
+): boolean {
   if (!browserOnline) return true
   if (streamConnected || downSinceMs === null) return false
   return nowMs - downSinceMs >= STREAM_GRACE_MS

@@ -19,17 +19,16 @@ test('the trash lists items newest first with the days left', () => {
   expect(trashLabel(5)).toBe('5 days left')
   expect(trashLabel(0)).toBe('Removed tonight')
 
-  const state = fromContent(content({
-    chapters: [
-      chapter('c1'),
-      chapter('c2', { deleted: true, deletedAt: iso(NOW - 2 * DAY) }),
-    ],
-    nodes: [
-      node('inChapter', { chapterId: 'c2' }),
-      node('newer', { chapterId: 'c1', deleted: true, deletedAt: iso(NOW - 1 * DAY) }),
-      node('older', { chapterId: 'c1', deleted: true, deletedAt: iso(NOW - 5 * DAY) }),
-    ],
-  }))
+  const state = fromContent(
+    content({
+      chapters: [chapter('c1'), chapter('c2', { deleted: true, deletedAt: iso(NOW - 2 * DAY) })],
+      nodes: [
+        node('inChapter', { chapterId: 'c2' }),
+        node('newer', { chapterId: 'c1', deleted: true, deletedAt: iso(NOW - 1 * DAY) }),
+        node('older', { chapterId: 'c1', deleted: true, deletedAt: iso(NOW - 5 * DAY) }),
+      ],
+    }),
+  )
   const items = trashedItems(state)
   expect(items.chapters.map((c) => c.id)).toEqual(['c2'])
   expect(items.nodes.map((n) => [n.node.id, n.chapterTrashed])).toEqual([

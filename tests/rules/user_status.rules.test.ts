@@ -6,7 +6,11 @@ import { asAdmin, createUser } from './helpers/pb.ts'
 // status) and docs/security.md section 2 (deny by default). user_status holds whether
 // the admin has blocked an account, so a blocked user must not be able to unblock themselves.
 
-adminOnlyUserRowTests('user_status', { blocked: true, blocked_reason: 'changed by a client', blocked_at: '2026-01-01 00:00:00.000Z' })
+adminOnlyUserRowTests('user_status', {
+  blocked: true,
+  blocked_reason: 'changed by a client',
+  blocked_at: '2026-01-01 00:00:00.000Z',
+})
 
 // Protects design 7c: a new account starts unblocked.
 test('user_status: a new user is not blocked', async () => {

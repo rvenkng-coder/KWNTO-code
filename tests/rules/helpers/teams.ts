@@ -25,7 +25,10 @@ export async function memberRow(teamId: string, userId: string): Promise<Record<
 // A refused create: PocketBase answers a failed create rule with 400 ("Failed to
 // create record") and a locked (null) one with 403.
 export async function expectCreateRefused(request: Promise<unknown>): Promise<void> {
-  const error: unknown = await request.then(() => null, (e: unknown) => e)
+  const error: unknown = await request.then(
+    () => null,
+    (e: unknown) => e,
+  )
   expect(error, 'the create was allowed').not.toBeNull()
   expect([400, 403]).toContain((error as { status?: number }).status)
 }

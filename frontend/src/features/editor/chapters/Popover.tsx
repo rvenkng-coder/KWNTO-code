@@ -2,7 +2,12 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type Reac
 import { createPortal } from 'react-dom'
 import { menuPosition } from './menuPosition'
 
-interface PopoverProps { anchor: HTMLElement; label: string; onClose(): void; children: ReactNode }
+interface PopoverProps {
+  anchor: HTMLElement
+  label: string
+  onClose(): void
+  children: ReactNode
+}
 
 // A menu drawn in its own layer on `document.body`, so a scrolling tab strip cannot clip it and
 // the canvas cannot cover it. It sits where `menuPosition` says, measured after the first render.

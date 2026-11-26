@@ -14,6 +14,10 @@ test('moveChapter swaps neighbours and renumbers when there is no room', () => {
   expect(moveChapter(abc, 'X', 'right')).toBeNull()
   expect(moveChapter(at(['A', 1], ['B', 1], ['C', 3]), 'C', 'left')).toEqual({
     kind: 'renumber',
-    positions: [{ id: 'A', position: 1 }, { id: 'C', position: 2 }, { id: 'B', position: 3 }],
+    positions: [
+      { id: 'A', position: 1 },
+      { id: 'C', position: 2 },
+      { id: 'B', position: 3 },
+    ],
   })
 })

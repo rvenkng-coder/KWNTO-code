@@ -31,5 +31,8 @@ export async function cutSelection(): Promise<void> {
 
 /** Selects every live node of the chapter. */
 export function selectAll(chapterId: string): void {
-  useSelection.getState().set(liveNodes(editorStore.getState().content, chapterId).map((n) => n.id), null)
+  useSelection.getState().set(
+    liveNodes(editorStore.getState().content, chapterId).map((n) => n.id),
+    null,
+  )
 }

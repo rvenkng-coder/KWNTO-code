@@ -11,12 +11,7 @@ export class BackendError extends Error {
   status: number
   fields: Record<string, string>
 
-  constructor(
-    kind: BackendErrorKind,
-    status: number,
-    fields: Record<string, string>,
-    message: string,
-  ) {
+  constructor(kind: BackendErrorKind, status: number, fields: Record<string, string>, message: string) {
     super(message)
     this.kind = kind
     this.status = status
@@ -39,7 +34,12 @@ export class EditConflict<R = unknown> extends BackendError {
 }
 
 const STATUS_KINDS: Record<number, BackendErrorKind> = {
-  400: 'invalid', 401: 'forbidden', 403: 'forbidden', 404: 'not-found', 409: 'conflict', 429: 'locked',
+  400: 'invalid',
+  401: 'forbidden',
+  403: 'forbidden',
+  404: 'not-found',
+  409: 'conflict',
+  429: 'locked',
 }
 
 // PocketBase's field errors: `data.<field>` is `{ message }` (or, rarely, a string).
@@ -68,7 +68,8 @@ function fromResponseError(err: ClientResponseError): BackendError {
   const message = text ?? 'Request failed'
   const kind = STATUS_KINDS[err.status]
   if (kind === undefined) {
-    if (err.status === 0 || err.isAbort || isGatewayFailure(err.status, text !== undefined)) return new BackendError('unreachable', 0, {}, 'The server cannot be reached.')
+    if (err.status === 0 || err.isAbort || isGatewayFailure(err.status, text !== undefined))
+      return new BackendError('unreachable', 0, {}, 'The server cannot be reached.')
     return new BackendError('unknown', err.status, {}, message)
   }
   return new BackendError(kind, err.status, kind === 'invalid' ? fieldErrors(response) : {}, message)

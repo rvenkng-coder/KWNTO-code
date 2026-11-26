@@ -10,9 +10,12 @@ export function MemberOnly({ teamId, children }: { teamId: string; children: Rea
   const [member, setMember] = useState(false)
   useEffect(() => {
     let cancelled = false
-    backend.teams.list().then((teams) => {
-      if (!cancelled) setMember(teams.some((t) => t.id === teamId))
-    }).catch(() => undefined)
+    backend.teams
+      .list()
+      .then((teams) => {
+        if (!cancelled) setMember(teams.some((t) => t.id === teamId))
+      })
+      .catch(() => undefined)
     return () => {
       cancelled = true
     }

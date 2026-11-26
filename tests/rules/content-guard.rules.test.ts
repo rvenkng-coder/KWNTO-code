@@ -1,6 +1,12 @@
 import type PocketBase from 'pocketbase'
 import { expect, test } from 'vitest'
-import { createNode, createProject, guardedUpdate, readAsAdmin, saveOwnFields as saveFields } from './helpers/content.ts'
+import {
+  createNode,
+  createProject,
+  guardedUpdate,
+  readAsAdmin,
+  saveOwnFields as saveFields,
+} from './helpers/content.ts'
 import { asUser, createTeam, createUser } from './helpers/pb.ts'
 import { addMember } from './helpers/teams.ts'
 
@@ -92,7 +98,12 @@ test('four people editing one node at once all keep their change', async () => {
 
   for (let round = 1; round <= 10; round++) {
     const before = Number((await readAsAdmin('nodes', nodeId)).version)
-    const fields = [{ title: `Round ${round}` }, { color: colors[round % colors.length] }, { x: round * 10 }, { y: round * -7 }]
+    const fields = [
+      { title: `Round ${round}` },
+      { color: colors[round % colors.length] },
+      { x: round * 10 },
+      { y: round * -7 },
+    ]
     await Promise.all(fields.map((f, i) => saveFields(writers[i], 'nodes', nodeId, before, f)))
     const after = await readAsAdmin('nodes', nodeId)
     expect(after, `round ${round}`).toMatchObject({ ...Object.assign({}, ...fields), version: before + 4 })

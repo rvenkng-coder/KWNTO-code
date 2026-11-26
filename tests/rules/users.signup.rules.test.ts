@@ -19,7 +19,10 @@ function newEmail(): string {
 
 // The PocketBase error of a refused request, or a test failure if it was allowed.
 async function failureOf(request: Promise<unknown>): Promise<Failure> {
-  const error: unknown = await request.then(() => null, (e: unknown) => e)
+  const error: unknown = await request.then(
+    () => null,
+    (e: unknown) => e,
+  )
   expect(error, 'the request was allowed').not.toBeNull()
   const { status, response } = error as { status: number; response: { message: string; data: Failure['data'] } }
   return { status, message: response.message, data: response.data }
@@ -32,9 +35,7 @@ async function setRegistrationOpen(open: boolean): Promise<void> {
 }
 
 async function signupEvents(admin: PocketBase, userId?: string): Promise<number> {
-  const filter = userId
-    ? admin.filter('type = "signup" && user = {:user}', { user: userId })
-    : 'type = "signup"'
+  const filter = userId ? admin.filter('type = "signup" && user = {:user}', { user: userId }) : 'type = "signup"'
   return (await admin.collection('security_events').getList(1, 1, { filter })).totalItems
 }
 
@@ -102,11 +103,12 @@ test('sign-up with a short or common password is refused with the rule message',
 test('a password change must follow the password rules', async () => {
   const user = await createUser()
   const pb = await asUser(user)
-  const change = (password: string) => pb.collection('users').update(user.id, {
-    oldPassword: user.password,
-    password,
-    passwordConfirm: password,
-  })
+  const change = (password: string) =>
+    pb.collection('users').update(user.id, {
+      oldPassword: user.password,
+      password,
+      passwordConfirm: password,
+    })
 
   const short = await failureOf(change('short1'))
   expect(short.status).toBe(400)
@@ -180,7 +182,9 @@ test('the users email unique index is COLLATE NOCASE', async () => {
 test('an account made by the admin with capitals is stored lower-case, and the email cannot be changed to a case variant', async () => {
   const admin = await asAdmin()
   const email = newEmail()
-  const first = await admin.collection('users').create({ email: email.toUpperCase(), password: GOOD_PASSWORD, passwordConfirm: GOOD_PASSWORD })
+  const first = await admin
+    .collection('users')
+    .create({ email: email.toUpperCase(), password: GOOD_PASSWORD, passwordConfirm: GOOD_PASSWORD })
   expect(first.email).toBe(email)
   const other = await createUser()
   const clash = await failureOf(admin.collection('users').update(other.id, { email: email.toUpperCase() }))

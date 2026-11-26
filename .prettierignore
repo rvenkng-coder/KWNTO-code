@@ -1,0 +1,9 @@
+dist
+node_modules
+branching_narrative_tool.tsx
+spike
+backend/pb_migrations
+tests/probes
+.planning
+.pi
+.claude

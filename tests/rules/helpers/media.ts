@@ -1,10 +1,7 @@
 import { asAdmin, asUser, PB_URL, type TestUser } from './pb.ts'
 
 export const PNG_1PX: Uint8Array<ArrayBuffer> = new Uint8Array(
-  Buffer.from(
-    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAAAAAA6fptVAAAACklEQVR4nGNgAAAAAgABSK+kcQAAAABJRU5ErkJggg==',
-    'base64',
-  ),
+  Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAAAAAA6fptVAAAACklEQVR4nGNgAAAAAgABSK+kcQAAAABJRU5ErkJggg==', 'base64'),
 )
 
 export function sampleBytes(
@@ -89,4 +86,3 @@ export async function deleteAllMedia(): Promise<void> {
   const admin = await asAdmin()
   for (const row of await admin.collection('media').getFullList()) await admin.collection('media').delete(row.id)
 }
-

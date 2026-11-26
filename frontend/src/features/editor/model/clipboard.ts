@@ -5,7 +5,12 @@ import { cuesOf, linesOf, liveNodes, type ContentState } from './state'
 // connections between them. A paste makes new records with new ids in the target chapter,
 // each paste 40 px further right and down.
 
-export interface Clip { nodes: StoryNode[]; lines: ScriptLine[]; cues: Cue[]; connections: Connection[] }
+export interface Clip {
+  nodes: StoryNode[]
+  lines: ScriptLine[]
+  cues: Cue[]
+  connections: Connection[]
+}
 export const PASTE_OFFSET = 40
 
 export function copySelection(s: ContentState, nodeIds: string[]): Clip | null {
@@ -17,19 +22,42 @@ export function copySelection(s: ContentState, nodeIds: string[]): Clip | null {
     nodes,
     lines: nodes.flatMap((n) => linesOf(s, n.id)),
     cues: nodes.flatMap((n) => cuesOf(s, n.id)),
-    connections: Object.values(s.connections).filter((c) => ids.has(c.fromNodeId) && (c.toNodeId === null || ids.has(c.toNodeId))),
+    connections: Object.values(s.connections).filter(
+      (c) => ids.has(c.fromNodeId) && (c.toNodeId === null || ids.has(c.toNodeId)),
+    ),
   }
 }
 
-export function buildPaste(clip: Clip, target: { projectId: string; chapterId: string }, pasteCount: number, makeId: () => string): Clip {
+export function buildPaste(
+  clip: Clip,
+  target: { projectId: string; chapterId: string },
+  pasteCount: number,
+  makeId: () => string,
+): Clip {
   const nodeIds = new Map(clip.nodes.map((n) => [n.id, makeId()]))
   const ref = (id: string) => nodeIds.get(id) ?? id
   const shift = PASTE_OFFSET * pasteCount
   const { projectId } = target
   return {
-    nodes: clip.nodes.map((n) => ({ ...n, id: ref(n.id), projectId, chapterId: target.chapterId, x: n.x + shift, y: n.y + shift, version: 0, deleted: false })),
+    nodes: clip.nodes.map((n) => ({
+      ...n,
+      id: ref(n.id),
+      projectId,
+      chapterId: target.chapterId,
+      x: n.x + shift,
+      y: n.y + shift,
+      version: 0,
+      deleted: false,
+    })),
     lines: clip.lines.map((l) => ({ ...l, id: makeId(), projectId, nodeId: ref(l.nodeId), version: 0 })),
     cues: clip.cues.map((c) => ({ ...c, id: makeId(), projectId, nodeId: ref(c.nodeId), version: 0 })),
-    connections: clip.connections.map((c) => ({ ...c, id: makeId(), projectId, fromNodeId: ref(c.fromNodeId), toNodeId: c.toNodeId === null ? null : ref(c.toNodeId), version: 0 })),
+    connections: clip.connections.map((c) => ({
+      ...c,
+      id: makeId(),
+      projectId,
+      fromNodeId: ref(c.fromNodeId),
+      toNodeId: c.toNodeId === null ? null : ref(c.toNodeId),
+      version: 0,
+    })),
   }
 }

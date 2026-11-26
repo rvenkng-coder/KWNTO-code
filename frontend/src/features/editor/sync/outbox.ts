@@ -5,16 +5,31 @@ import { dropRecord, getRecord, putRecord, type ContentState } from '../model/st
 // waiting ones (D5), how waiting edits are laid over fresh server data (D6), and whether a 409 met
 // by an offline edit is a real conflict (D3, D4).
 
-interface EntryBase { seq: number; userId: string; projectId: string; id: string; offline: boolean; made: number }
+interface EntryBase {
+  seq: number
+  userId: string
+  projectId: string
+  id: string
+  offline: boolean
+  made: number
+}
 export type OutboxEntry =
   | (EntryBase & { op: 'create'; kind: CreatableKind; record: ContentRecords[CreatableKind] })
   | (EntryBase & {
-    op: 'update'; kind: ContentKind; changes: Record<string, unknown>; baseVersion: number
-    baseValues: Record<string, unknown>; snapshot: ContentRecords[RemovableKind] | null
-  })
+      op: 'update'
+      kind: ContentKind
+      changes: Record<string, unknown>
+      baseVersion: number
+      baseValues: Record<string, unknown>
+      snapshot: ContentRecords[RemovableKind] | null
+    })
   | (EntryBase & { op: 'remove'; kind: RemovableKind; record: ContentRecords[RemovableKind] })
 export type NewEntry = OutboxEntry extends infer E ? (E extends OutboxEntry ? Omit<E, 'seq'> : never) : never
-export interface AddPlan { append: NewEntry | null; replace: OutboxEntry | null; drop: number[] }
+export interface AddPlan {
+  append: NewEntry | null
+  replace: OutboxEntry | null
+  drop: number[]
+}
 export type ConflictCheck = { type: 'none' } | { type: 'fields'; fields: string[] } | { type: 'deleted' }
 
 const NO_CONFLICT: ConflictCheck = { type: 'none' }
@@ -61,18 +76,20 @@ export function planAdd(queue: OutboxEntry[], entry: NewEntry, sendingSeq: numbe
 /** The waiting edits of this project laid over `state`, in seq order. */
 export function overlay(state: ContentState, queue: OutboxEntry[]): ContentState {
   const projectId = state.project?.id
-  return [...queue].sort((a, b) => a.seq - b.seq).reduce((s, entry) => {
-    if (entry.projectId !== projectId) return s
-    if (entry.op === 'create') {
-      if (getRecord(s, entry.kind, entry.id) !== undefined) return s
-      return putRecord(s, entry.kind, entry.record)
-    }
-    if (entry.op === 'update') {
-      const current = getRecord(s, entry.kind, entry.id)
-      return current === undefined ? s : putRecord(s, entry.kind, { ...current, ...entry.changes })
-    }
-    return dropRecord(s, entry.kind, entry.id)
-  }, state)
+  return [...queue]
+    .sort((a, b) => a.seq - b.seq)
+    .reduce((s, entry) => {
+      if (entry.projectId !== projectId) return s
+      if (entry.op === 'create') {
+        if (getRecord(s, entry.kind, entry.id) !== undefined) return s
+        return putRecord(s, entry.kind, entry.record)
+      }
+      if (entry.op === 'update') {
+        const current = getRecord(s, entry.kind, entry.id)
+        return current === undefined ? s : putRecord(s, entry.kind, { ...current, ...entry.changes })
+      }
+      return dropRecord(s, entry.kind, entry.id)
+    }, state)
 }
 
 const REMOVABLE_FIELDS: Record<RemovableKind, string[]> = {
@@ -91,7 +108,9 @@ function updateConflict(entry: UpdateEntry, server: object | null): ConflictChec
   })
   if (clashing.length === 0) return NO_CONFLICT
   const position = clashing.some((f) => f === 'x' || f === 'y')
-  const fields = Object.keys(entry.changes).filter((f) => clashing.includes(f) || (position && (f === 'x' || f === 'y')))
+  const fields = Object.keys(entry.changes).filter(
+    (f) => clashing.includes(f) || (position && (f === 'x' || f === 'y')),
+  )
   return { type: 'fields', fields }
 }
 

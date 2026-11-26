@@ -18,16 +18,40 @@ export function ChoiceRow({ choice, autoFocus }: { choice: Connection; autoFocus
     <li data-testid="panel-choice" className={`${CARD} border-border`}>
       <EditingBadge nodeId={choice.fromNodeId} field={`choice:${choice.id}`} />
       <div className="flex items-center gap-1">
-        <input className="field min-w-0 flex-1" aria-label="Choice text" placeholder="Choice text" autoFocus={autoFocus}
-          value={text} onChange={(e) => setText(e.target.value)} onFocus={marks.onFocus} onBlur={() => {
+        <input
+          className="field min-w-0 flex-1"
+          aria-label="Choice text"
+          placeholder="Choice text"
+          autoFocus={autoFocus}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onFocus={marks.onFocus}
+          onBlur={() => {
             marks.onBlur()
             flush()
-          }} />
-        <ToolButton icon="link" name={linked ? 'Re-link' : 'Link'} align="end" onClick={() => useLinkMode.getState().start(choice.id)} />
+          }}
+        />
+        <ToolButton
+          icon="link"
+          name={linked ? 'Re-link' : 'Link'}
+          align="end"
+          onClick={() => useLinkMode.getState().start(choice.id)}
+        />
         {linked && (
-          <ToolButton icon="unlink" name="Unlink" align="end" onClick={() => void edits.update('connections', choice.id, { toNodeId: null }, 'Unlink choice')} />
+          <ToolButton
+            icon="unlink"
+            name="Unlink"
+            align="end"
+            onClick={() => void edits.update('connections', choice.id, { toNodeId: null }, 'Unlink choice')}
+          />
         )}
-        <ToolButton icon="trash" name="Delete" danger align="end" onClick={() => void edits.remove('connections', choice.id, 'Delete choice')} />
+        <ToolButton
+          icon="trash"
+          name="Delete"
+          danger
+          align="end"
+          onClick={() => void edits.remove('connections', choice.id, 'Delete choice')}
+        />
       </div>
       <p className="text-muted">{linked ? `Linked → ${target?.title || 'Untitled'}` : 'Not linked'}</p>
     </li>

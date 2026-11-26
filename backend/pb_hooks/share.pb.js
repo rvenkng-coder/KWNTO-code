@@ -8,7 +8,10 @@ onRecordCreate((e) => {
   const { utf8Length } = require(`${__hooks}/lib/project-file.js`)
 
   // About 238 bits from the server's own random source; a client can never choose one.
-  e.record.set("token", $security.randomStringWithAlphabet(40, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"))
+  e.record.set(
+    "token",
+    $security.randomStringWithAlphabet(40, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"),
+  )
   if (e.record.getString("kind") === "snapshot") {
     const records = loadProjectRecords(e.app, e.record.getString("project"))
     const file = buildProjectFile(records, new Date().toISOString().replace("T", " "))
@@ -37,6 +40,11 @@ routerAdd("GET", "/api/kwnto/share/{token}/media/{mediaId}", (e) => {
   return require(`${__hooks}/lib/share-routes.js`).handleMedia(e)
 })
 
-routerAdd("POST", "/api/kwnto/share-links/{id}/republish", (e) => {
-  return require(`${__hooks}/lib/share-routes.js`).handleRepublish(e)
-}, $apis.requireAuth("users"))
+routerAdd(
+  "POST",
+  "/api/kwnto/share-links/{id}/republish",
+  (e) => {
+    return require(`${__hooks}/lib/share-routes.js`).handleRepublish(e)
+  },
+  $apis.requireAuth("users"),
+)

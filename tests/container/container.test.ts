@@ -47,13 +47,26 @@ async function waitForHealth() {
     }
     await new Promise((r) => setTimeout(r, 500))
   }
-  throw new Error(`PocketBase did not become healthy: ${docker('logs', CONTAINER).stdout}${docker('logs', CONTAINER).stderr}`)
+  throw new Error(
+    `PocketBase did not become healthy: ${docker('logs', CONTAINER).stdout}${docker('logs', CONTAINER).stderr}`,
+  )
 }
 
 async function startOnVolume({ password }: { password: string }) {
   const run = docker(
-    'run', '-d', '--name', CONTAINER, '-v', `${VOLUME}:/pb/pb_data`, '-p', `127.0.0.1:${PORT}:8090`,
-    '-e', `KWNTO_ADMIN_EMAIL=${EMAIL}`, '-e', `KWNTO_ADMIN_PASSWORD=${password}`, IMAGE,
+    'run',
+    '-d',
+    '--name',
+    CONTAINER,
+    '-v',
+    `${VOLUME}:/pb/pb_data`,
+    '-p',
+    `127.0.0.1:${PORT}:8090`,
+    '-e',
+    `KWNTO_ADMIN_EMAIL=${EMAIL}`,
+    '-e',
+    `KWNTO_ADMIN_PASSWORD=${password}`,
+    IMAGE,
   )
   expect(run.status, run.stderr).toBe(0)
   await waitForHealth()
@@ -134,13 +147,22 @@ test('with-pocketbase passes on the exit code and cleans up', () => {
   expect(left).toBe('')
 })
 
-
 // Protects D8: production mode without a public https URL would write wrong mail links and
 // settings, so the container must refuse to start (exit 64) instead.
 test('refuses production mode without a public https URL', () => {
   const run = spawnSync(
     'docker',
-    ['run', '--rm', '-e', `KWNTO_ADMIN_EMAIL=${EMAIL}`, '-e', 'KWNTO_ADMIN_PASSWORD=test-admin-password-1', '-e', 'KWNTO_PRODUCTION=1', IMAGE],
+    [
+      'run',
+      '--rm',
+      '-e',
+      `KWNTO_ADMIN_EMAIL=${EMAIL}`,
+      '-e',
+      'KWNTO_ADMIN_PASSWORD=test-admin-password-1',
+      '-e',
+      'KWNTO_PRODUCTION=1',
+      IMAGE,
+    ],
     { encoding: 'utf8' },
   )
   expect(run.status).toBe(64)

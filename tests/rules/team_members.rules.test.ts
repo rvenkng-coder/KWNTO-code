@@ -23,7 +23,10 @@ test('team_members: a member lists the members of their team by name, with no em
 
   const pb = await asUser(member)
   const rows = await pb.collection('team_members').getFullList()
-  expect(rows.map((r) => [r.user_name, r.role]).sort()).toEqual([['Max Member', 'member'], ['Olive Owner', 'owner']])
+  expect(rows.map((r) => [r.user_name, r.role]).sort()).toEqual([
+    ['Max Member', 'member'],
+    ['Olive Owner', 'owner'],
+  ])
   expectNoEmail(rows)
   const ownerRow = await memberRow(team.id, owner.id)
   expectNoEmail(await pb.collection('team_members').getOne(ownerRow.id))

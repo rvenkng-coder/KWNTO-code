@@ -59,7 +59,15 @@ onRecordAfterUpdateSuccess((e) => {
       e.app.save(row)
     }
   } catch (error) {
-    e.app.logger().error("teams: could not copy the new name of a user to team_members", "user", e.record.id, "error", String(error))
+    e.app
+      .logger()
+      .error(
+        "teams: could not copy the new name of a user to team_members",
+        "user",
+        e.record.id,
+        "error",
+        String(error),
+      )
   }
   e.next()
 }, "users")

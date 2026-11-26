@@ -133,7 +133,8 @@ test('the player keeps its story and writes nothing', async ({ page }) => {
   const writes: string[] = []
   page.on('request', (r) => {
     // The live connection registers its subscriptions with a POST to /api/realtime; that is not a write of data.
-    if (r.method() !== 'GET' && r.url().includes('/api/') && !r.url().includes('/api/realtime')) writes.push(`${r.method()} ${r.url()}`)
+    if (r.method() !== 'GET' && r.url().includes('/api/') && !r.url().includes('/api/realtime'))
+      writes.push(`${r.method()} ${r.url()}`)
   })
   const dialog = await openPlayer(page)
   await changeRecord('nodes', story.gate, { title: 'Gate 2' })

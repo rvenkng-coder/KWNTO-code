@@ -6,8 +6,12 @@ import type { SyncEngine } from './syncEngine'
 
 // More engine behaviour (offline sync plan, whole-branch review): answers for cancelled edits, and answers in a tab that does not send.
 type Add = Parameters<SyncEngine['add']>[0]
-const upd = (id: string, changes: Record<string, unknown>, baseValues: Record<string, unknown>, baseVersion = 3): Add =>
-  ({ projectId: 'p1', op: 'update', kind: 'nodes', id, changes, baseVersion, baseValues, snapshot: null })
+const upd = (
+  id: string,
+  changes: Record<string, unknown>,
+  baseValues: Record<string, unknown>,
+  baseVersion = 3,
+): Add => ({ projectId: 'p1', op: 'update', kind: 'nodes', id, changes, baseVersion, baseValues, snapshot: null })
 const createLine = (id: string): Add => ({ projectId: 'p1', op: 'create', kind: 'script_lines', id, record: line(id) })
 async function started() {
   const t = tab()
@@ -23,8 +27,23 @@ test('a remove that cancels waiting edits still answers them', async () => {
   const t = await started()
   t.engine.setOnline(false)
   const created = await t.engine.add(createLine('L'))
-  const updated = await t.engine.add({ projectId: 'p1', op: 'update', kind: 'script_lines', id: 'L', changes: { text: 'x' }, baseVersion: 0, baseValues: { text: 'L' }, snapshot: null })
-  const removed = await t.engine.add({ projectId: 'p1', op: 'remove', kind: 'script_lines', id: 'L', record: line('L') })
+  const updated = await t.engine.add({
+    projectId: 'p1',
+    op: 'update',
+    kind: 'script_lines',
+    id: 'L',
+    changes: { text: 'x' },
+    baseVersion: 0,
+    baseValues: { text: 'L' },
+    snapshot: null,
+  })
+  const removed = await t.engine.add({
+    projectId: 'p1',
+    op: 'remove',
+    kind: 'script_lines',
+    id: 'L',
+    record: line('L'),
+  })
   expect(removed).toBe(0)
   expect(await t.storage.list('u1')).toEqual([])
   expect(t.log.saved.map(seqOf).sort()).toEqual([created, updated].sort())

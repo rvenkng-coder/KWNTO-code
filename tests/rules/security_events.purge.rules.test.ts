@@ -39,7 +39,9 @@ async function entryExists(id: string): Promise<boolean> {
 
 test('security_events: the purge keeps entries inside the retention period and removes older ones', async () => {
   const admin = await asAdmin()
-  const entry = await admin.collection('security_events').create({ type: 'admin', ip: '203.0.113.9', detail: { note: 'purge test' } })
+  const entry = await admin
+    .collection('security_events')
+    .create({ type: 'admin', ip: '203.0.113.9', detail: { note: 'purge test' } })
 
   await setRetentionDays(365)
   await admin.crons.run(JOB)
@@ -49,5 +51,7 @@ test('security_events: the purge keeps entries inside the retention period and r
   // routine.FireAndForget), so wait for the delete instead of checking straight away.
   await setRetentionDays(0)
   await admin.crons.run(JOB)
-  await expect.poll(() => entryExists(entry.id), { message: 'an entry older than the retention period was kept', timeout: 5000 }).toBe(false)
+  await expect
+    .poll(() => entryExists(entry.id), { message: 'an entry older than the retention period was kept', timeout: 5000 })
+    .toBe(false)
 })

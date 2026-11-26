@@ -13,15 +13,34 @@ vi.mock('../../../backend/index.ts', () => ({ backend: { media: door } }))
 
 import { useMediaStore } from './useProjectMedia.ts'
 
-const STORAGE = { usedBytes: 0, quotaBytes: 1000, maxBytes: { audio: 1000, video: 1000, image: 1000 }, allowedTypes: ['png'], isLead: false }
+const STORAGE = {
+  usedBytes: 0,
+  quotaBytes: 1000,
+  maxBytes: { audio: 1000, video: 1000, image: 1000 },
+  allowedTypes: ['png'],
+  isLead: false,
+}
 
 function media(id: string, projectId = 'A'): Media {
-  return { id, projectId, nodeId: 'n', uploaderId: 'u', title: id, kind: 'image', sizeBytes: 1, fileName: `${id}.png`, created: `2026-11-20 10:00:0${id.length}Z`, removedAt: '' }
+  return {
+    id,
+    projectId,
+    nodeId: 'n',
+    uploaderId: 'u',
+    title: id,
+    kind: 'image',
+    sizeBytes: 1,
+    fileName: `${id}.png`,
+    created: `2026-11-20 10:00:0${id.length}Z`,
+    removedAt: '',
+  }
 }
 
 function deferred<T>() {
   let resolve!: (v: T) => void
-  const promise = new Promise<T>((r) => { resolve = r })
+  const promise = new Promise<T>((r) => {
+    resolve = r
+  })
   return { promise, resolve }
 }
 
@@ -62,7 +81,12 @@ describe('media store', () => {
     emit({ action: 'create', record: media('late') })
     slow.resolve([media('a1')])
     await opening
-    expect(useMediaStore.getState().media.map((m) => m.id).sort()).toEqual(['a1', 'late'])
+    expect(
+      useMediaStore
+        .getState()
+        .media.map((m) => m.id)
+        .sort(),
+    ).toEqual(['a1', 'late'])
   })
 
   // Protects: realtime being unavailable shows an error instead of an unhandled rejection.

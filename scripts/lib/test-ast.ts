@@ -9,7 +9,12 @@ export interface Declaration {
   key: string // title, or the source text of an unreadable title (so a swap is still visible)
   headerProblem: string | null // why the statement has no header comment directly above, or null
 }
-export interface ParsedFile { ok: boolean; error: string | null; declarations: Declaration[]; expects: number }
+export interface ParsedFile {
+  ok: boolean
+  error: string | null
+  declarations: Declaration[]
+  expects: number
+}
 
 function scriptKind(path: string): ts.ScriptKind {
   if (/\.[cm]?tsx$/.test(path)) return ts.ScriptKind.TSX
@@ -25,9 +30,13 @@ function chainRoot(node: ts.Node): ts.Identifier | null {
     if (ts.isIdentifier(current)) return current
     if (ts.isTaggedTemplateExpression(current)) current = current.tag
     else if (
-      ts.isPropertyAccessExpression(current) || ts.isElementAccessExpression(current) || ts.isCallExpression(current) ||
-      ts.isNonNullExpression(current) || ts.isParenthesizedExpression(current)
-    ) current = current.expression
+      ts.isPropertyAccessExpression(current) ||
+      ts.isElementAccessExpression(current) ||
+      ts.isCallExpression(current) ||
+      ts.isNonNullExpression(current) ||
+      ts.isParenthesizedExpression(current)
+    )
+      current = current.expression
     else return null
   }
 }
@@ -45,14 +54,19 @@ function isChainLink(node: ts.CallExpression): boolean {
 function isExpectCall(node: ts.CallExpression): boolean {
   const callee = node.expression
   if (ts.isIdentifier(callee)) return callee.text === 'expect'
-  return ts.isPropertyAccessExpression(callee) && ts.isIdentifier(callee.expression) && callee.expression.text === 'expect' &&
+  return (
+    ts.isPropertyAccessExpression(callee) &&
+    ts.isIdentifier(callee.expression) &&
+    callee.expression.text === 'expect' &&
     (callee.name.text === 'soft' || callee.name.text === 'poll')
+  )
 }
 
 function titleOf(arg: ts.Expression | undefined): string | null {
   if (arg === undefined) return null
   if (ts.isStringLiteral(arg) || ts.isNoSubstitutionTemplateLiteral(arg)) return arg.text
-  if (ts.isTemplateExpression(arg)) return arg.head.text + arg.templateSpans.map((span) => '${}' + span.literal.text).join('')
+  if (ts.isTemplateExpression(arg))
+    return arg.head.text + arg.templateSpans.map((span) => '${}' + span.literal.text).join('')
   return null
 }
 
@@ -61,7 +75,14 @@ function enclosingStatement(node: ts.Node): ts.Node {
   let current = node
   while (current.parent) {
     const parent = current.parent
-    if (ts.isSourceFile(parent) || ts.isBlock(parent) || ts.isModuleBlock(parent) || ts.isCaseClause(parent) || ts.isDefaultClause(parent)) break
+    if (
+      ts.isSourceFile(parent) ||
+      ts.isBlock(parent) ||
+      ts.isModuleBlock(parent) ||
+      ts.isCaseClause(parent) ||
+      ts.isDefaultClause(parent)
+    )
+      break
     if (ts.isArrowFunction(parent) && parent.body === current) break
     current = parent
   }
@@ -81,8 +102,12 @@ function headerProblem(file: ts.SourceFile, node: ts.Node): string | null {
     // A declaration deeper inside a multi-line statement (or one that ASI glued to the previous call) needs its own comment.
     const declLine = file.getLineAndCharacterOfPosition(node.getStart(file)).line
     if (declLine === startLine) return null
-    const above = text.slice(file.getPositionOfLineAndCharacter(declLine - 1, 0), file.getPositionOfLineAndCharacter(declLine, 0)).trim()
-    return above.startsWith('//') || above.endsWith('*/') ? null : 'is inside a longer statement and has no comment directly above it'
+    const above = text
+      .slice(file.getPositionOfLineAndCharacter(declLine - 1, 0), file.getPositionOfLineAndCharacter(declLine, 0))
+      .trim()
+    return above.startsWith('//') || above.endsWith('*/')
+      ? null
+      : 'is inside a longer statement and has no comment directly above it'
   }
   return 'has no comment directly above it (// Protects: ...)'
 }
@@ -112,6 +137,9 @@ export function parseTestFile(path: string, source: string): ParsedFile {
   }
   visit(file)
   const first = diagnostics[0]
-  const error = first === undefined ? null : `line ${file.getLineAndCharacterOfPosition(first.start ?? 0).line + 1}: ${ts.flattenDiagnosticMessageText(first.messageText, ' ')}`
+  const error =
+    first === undefined
+      ? null
+      : `line ${file.getLineAndCharacterOfPosition(first.start ?? 0).line + 1}: ${ts.flattenDiagnosticMessageText(first.messageText, ' ')}`
   return { ok: diagnostics.length === 0, error, declarations, expects }
 }

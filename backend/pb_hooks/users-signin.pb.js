@@ -71,7 +71,14 @@ onRecordAuthWithPasswordRequest((e) => {
   // the pair's last successful sign-in (decision D2: a success resets the count).
   function pairFailureTimesMs(app, pair, windowStartMs) {
     const pairFilter = "ip = {:ip} && detail.identity = {:identity}"
-    const lastSignIn = app.findRecordsByFilter("security_events", `type = 'sign-in' && ${pairFilter}`, "-created", 1, 0, pair)
+    const lastSignIn = app.findRecordsByFilter(
+      "security_events",
+      `type = 'sign-in' && ${pairFilter}`,
+      "-created",
+      1,
+      0,
+      pair,
+    )
     const lastSignInMs = lastSignIn.length > 0 ? createdMs(lastSignIn[0]) : 0
     const sinceMs = Math.max(windowStartMs, lastSignInMs)
     const rows = app.findRecordsByFilter(

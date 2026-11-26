@@ -17,10 +17,16 @@ test('cues take only the three types and stay in their project', async () => {
   const foreignNode = await createNode(owner, other.id, other.chapterId)
   const pb = await asUser(member)
 
-  await expectCreateRefused(pb.collection('cues').create({ project: projectId, node: nodeId, type: 'video', sort_order: 1 }))
-  await expectCreateRefused(pb.collection('cues').create({ project: projectId, node: foreignNode, type: 'audio', sort_order: 1 }))
+  await expectCreateRefused(
+    pb.collection('cues').create({ project: projectId, node: nodeId, type: 'video', sort_order: 1 }),
+  )
+  await expectCreateRefused(
+    pb.collection('cues').create({ project: projectId, node: foreignNode, type: 'audio', sort_order: 1 }),
+  )
 
-  const cue = await pb.collection('cues').create({ project: projectId, node: nodeId, type: 'lighting', text: 'Dim', sort_order: 1 })
+  const cue = await pb
+    .collection('cues')
+    .create({ project: projectId, node: nodeId, type: 'lighting', text: 'Dim', sort_order: 1 })
   expect(cue).toMatchObject({ type: 'lighting', text: 'Dim', version: 0 })
 
   const moved = await guardedUpdate(member, 'cues', cue.id, { version: 0, node: foreignNode })
@@ -29,14 +35,20 @@ test('cues take only the three types and stay in their project', async () => {
   expect(edited.status).toBe(200)
   expect(await readAsAdmin('cues', cue.id)).toMatchObject({ node: nodeId, text: 'Blackout', version: 1 })
   const admin = await asAdmin()
-  expect(await admin.collection('cues').getFullList({ filter: admin.filter('node = {:n}', { n: foreignNode }) })).toEqual([])
+  expect(
+    await admin.collection('cues').getFullList({ filter: admin.filter('node = {:n}', { n: foreignNode }) }),
+  ).toEqual([])
 })
 
 // Security 2: cues are hidden from outsiders and signed-out callers; injection is data.
 test('outsiders and signed-out callers cannot reach cues', async () => {
   const { owner, projectId, chapterId } = await memberProject()
   const nodeId = await createNode(owner, projectId, chapterId)
-  const cue = await (await asUser(owner)).collection('cues').create({ project: projectId, node: nodeId, type: 'audio', sort_order: 1 })
+  const cue = await (
+    await asUser(owner)
+  )
+    .collection('cues')
+    .create({ project: projectId, node: nodeId, type: 'audio', sort_order: 1 })
   const outsider = await createUser()
 
   for (const pb of [await asUser(outsider), asAnonymous()]) {
@@ -44,7 +56,9 @@ test('outsiders and signed-out callers cannot reach cues', async () => {
     await expectNoRows(pb, 'cues', pb.filter('text = {:t}', { t: `' OR 1=1 --` }))
     await expectRefused(pb.collection('cues').getOne(cue.id))
     await expectRefused(pb.collection('cues').delete(cue.id))
-    await expectCreateRefused(pb.collection('cues').create({ project: projectId, node: nodeId, type: 'other', sort_order: 2 }))
+    await expectCreateRefused(
+      pb.collection('cues').create({ project: projectId, node: nodeId, type: 'other', sort_order: 2 }),
+    )
   }
   expect(await readAsAdmin('cues', cue.id)).toMatchObject({ type: 'audio', version: 0 })
 })

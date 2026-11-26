@@ -3,10 +3,10 @@
 // The hook itself is content-guard.pb.js.
 
 // The content collections whose updates must carry the version they were based on.
-const GUARDED = ['projects', 'project_settings', 'chapters', 'nodes', 'script_lines', 'cues', 'connections']
+const GUARDED = ["projects", "project_settings", "chapters", "nodes", "script_lines", "cues", "connections"]
 
 // Fields the guard never copies from the request: the server owns them.
-const SKIP = ['id', 'version', 'created', 'updated']
+const SKIP = ["id", "version", "created", "updated"]
 
 // The guard puts the table name into its SQL, so only a known name may come back.
 function guardedTable(name) {

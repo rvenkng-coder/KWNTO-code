@@ -6,7 +6,16 @@ import type { SyncEngine } from './syncEngine'
 
 // What a tab that does not send shows and can do (offline sync plan, whole-branch review I4): the offline state and the conflict of the tab that sends.
 type Add = Parameters<SyncEngine['add']>[0]
-const upd = (id: string, title: string): Add => ({ projectId: 'p1', op: 'update', kind: 'nodes', id, changes: { title }, baseVersion: 3, baseValues: { title: 'A' }, snapshot: null })
+const upd = (id: string, title: string): Add => ({
+  projectId: 'p1',
+  op: 'update',
+  kind: 'nodes',
+  id,
+  changes: { title },
+  baseVersion: 3,
+  baseValues: { title: 'A' },
+  snapshot: null,
+})
 
 async function twoTabs() {
   const shared = sharedParts()
@@ -22,7 +31,9 @@ async function twoTabs() {
 // Protects: D3: a tab that does not send shows `Offline` when the tab that sends cannot reach the server, and marks its own edits offline, so they can raise the conflict dialog instead of silently overwriting a teammate.
 test('a tab that does not send follows the server being unreachable', async () => {
   const { shared, a, b } = await twoTabs()
-  shared.door.on('update', () => { throw new BackendError('unreachable', 0, {}, 'The server cannot be reached.') })
+  shared.door.on('update', () => {
+    throw new BackendError('unreachable', 0, {}, 'The server cannot be reached.')
+  })
   await a.engine.add(upd('n1', 'B'))
   await settle()
   expect(a.engine.snapshot().online).toBe(false)
@@ -63,7 +74,9 @@ test('a tab opened later sees the open conflict', async () => {
   const a = tab(shared)
   a.engine.start()
   await settle()
-  shared.door.on('update', () => { throw new EditConflict(node('n1', { title: 'Theirs', version: 9 })) })
+  shared.door.on('update', () => {
+    throw new EditConflict(node('n1', { title: 'Theirs', version: 9 }))
+  })
   a.engine.setOnline(false)
   await a.engine.add(upd('n1', 'Mine'))
   a.engine.setOnline(true)

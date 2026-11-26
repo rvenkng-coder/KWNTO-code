@@ -20,13 +20,18 @@ describe('the reviewer inputs: JSX text with /* after a word', () => {
   // Protects Review Focus 1: deleting a test and leaving a commented-out copy is a lost test and a lost assertion.
   test('deleting a test and leaving a commented-out copy is reported', () => {
     const head = lines(el, '// P', one, `// ${two}`, '/* end */')
-    expect(rules(compareWithBase('a.test.tsx', base, head))).toEqual(expect.arrayContaining(['lost-test', 'lost-assertion']))
+    expect(rules(compareWithBase('a.test.tsx', base, head))).toEqual(
+      expect.arrayContaining(['lost-test', 'lost-assertion']),
+    )
   })
 
   // Protects Review Focus 1: a new header-less test is reported wherever it sits in an expression.
   test('a header-less new test is reported in a conditional, export default, comma and parenthesised form', () => {
     for (const code of [
-      "cond ? test('new', () => {}) : null", "export default test('new', () => {})", "x, test('new', () => {})", "(test('new', () => {}))",
+      "cond ? test('new', () => {}) : null",
+      "export default test('new', () => {})",
+      "x, test('new', () => {})",
+      "(test('new', () => {}))",
     ]) {
       const source = lines(el, '// P', one, code, '/* end */')
       expect(rules(checkSource('a.test.tsx', source, null)), code).toContain('header')
@@ -56,13 +61,17 @@ describe('other ways to fool a counter', () => {
 
   // Protects the header rule: two tests on one line cannot each have a comment, so it is a problem.
   test('two tests on one line fail header', () => {
-    expect(rules(checkSource('a.test.ts', lines('// P', "test('a', () => {}); te" + "st('b', () => {})"), null))).toContain('header')
+    expect(
+      rules(checkSource('a.test.ts', lines('// P', "test('a', () => {}); te" + "st('b', () => {})"), null)),
+    ).toContain('header')
   })
 
   // Protects the header rule: a block comment or JSDoc directly above counts, one separated by a blank line does not.
   test('a JSDoc comment directly above is a header, one with a blank line between is not', () => {
     expect(checkSource('a.test.ts', lines('/** Protects: r', ' */', "test('a', () => {})"), null)).toEqual([])
-    expect(rules(checkSource('a.test.ts', lines('/** Protects: r */', '', "test('a', () => {})"), null))).toEqual(['header'])
+    expect(rules(checkSource('a.test.ts', lines('/** Protects: r */', '', "test('a', () => {})"), null))).toEqual([
+      'header',
+    ])
   })
 })
 

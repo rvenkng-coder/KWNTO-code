@@ -12,9 +12,15 @@ export function useAccountTheme(signedIn: boolean): void {
       let cancelled = false
       backend.preferences
         .get()
-        .then((p) => { if (!cancelled) applyTheme(p.theme) })
-        .catch(() => { if (!cancelled) applyTheme(systemTheme()) })
-      return () => { cancelled = true }
+        .then((p) => {
+          if (!cancelled) applyTheme(p.theme)
+        })
+        .catch(() => {
+          if (!cancelled) applyTheme(systemTheme())
+        })
+      return () => {
+        cancelled = true
+      }
     }
     applyTheme(systemTheme())
     const media = window.matchMedia('(prefers-color-scheme: dark)')

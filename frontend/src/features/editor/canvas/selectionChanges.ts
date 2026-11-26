@@ -3,19 +3,26 @@
 // reports selections the canvas itself pushed in, one update late, so a selection made from
 // outside (search, a cross-chapter tag) and that echo flipped back and forth for ever.
 
-export interface SelectionValue { nodeIds: string[]; connectionId: string | null }
+export interface SelectionValue {
+  nodeIds: string[]
+  connectionId: string | null
+}
 // React Flow's NodeChange and EdgeChange, reduced to what a select change carries (an add change has no id).
 type Change = { type: string; id?: string; selected?: boolean }
 type Select = { type: 'select'; id: string; selected?: boolean }
 
-const selects = (changes: Change[]): Select[] => changes.filter((c): c is Select => c.type === 'select' && typeof c.id === 'string')
+const selects = (changes: Change[]): Select[] =>
+  changes.filter((c): c is Select => c.type === 'select' && typeof c.id === 'string')
 
 /**
  * The selection after React Flow's node and edge changes, or null when none of them is a select
  * change. `shown` (the canvas's node ids) drops nodes of another chapter left selected after a tab switch.
  */
 export function fromSelectChanges(
-  current: SelectionValue, nodeChanges: Change[], edgeChanges: Change[], shown?: Set<string>,
+  current: SelectionValue,
+  nodeChanges: Change[],
+  edgeChanges: Change[],
+  shown?: Set<string>,
 ): SelectionValue | null {
   const nodes = selects(nodeChanges)
   const edges = selects(edgeChanges)

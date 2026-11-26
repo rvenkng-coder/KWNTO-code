@@ -22,9 +22,23 @@ export function failedText(count: number): string {
 }
 
 const LABELS: Record<string, string> = {
-  title: 'Title', color: 'Colour', x: 'Position', y: 'Position', width: 'Size', height: 'Size', deleted: 'In trash', character: 'Character',
-  text: 'Text', sortOrder: 'Order', type: 'Cue type', label: 'Choice text', toNodeId: 'Choice target',
-  name: 'Name', startNodeId: 'Start node', analyticsEnabled: 'Analytics', position: 'Tab order',
+  title: 'Title',
+  color: 'Colour',
+  x: 'Position',
+  y: 'Position',
+  width: 'Size',
+  height: 'Size',
+  deleted: 'In trash',
+  character: 'Character',
+  text: 'Text',
+  sortOrder: 'Order',
+  type: 'Cue type',
+  label: 'Choice text',
+  toNodeId: 'Choice target',
+  name: 'Name',
+  startNodeId: 'Start node',
+  analyticsEnabled: 'Analytics',
+  position: 'Tab order',
 }
 
 export function fieldLabel(_kind: ContentKind, field: string): string {

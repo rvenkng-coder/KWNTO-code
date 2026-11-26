@@ -5,7 +5,12 @@ import { createSyncEngine, type TabMessage, type SyncDeps, type SyncDoor, type S
 // runs timers when the test says, a lock that grants one holder per name, a channel between tabs.
 
 type Method = 'get' | 'create' | 'update' | 'remove'
-export interface DoorCall { method: Method; kind: string; id: string; args: unknown[] }
+export interface DoorCall {
+  method: Method
+  kind: string
+  id: string
+  args: unknown[]
+}
 type Handler = (call: DoorCall) => unknown
 
 /** Answers from `on(method, handler)`; defaults: create echoes, update bumps the version, get finds nothing. */
@@ -33,9 +38,14 @@ export function fakeDoor() {
     remove: (kind: string, id: string) => run('remove', kind, id),
   } as unknown as SyncDoor
   return {
-    door, calls,
-    on: (method: Method, handler: Handler) => { handlers[method] = handler },
-    gate: (on: boolean) => { gated = on },
+    door,
+    calls,
+    on: (method: Method, handler: Handler) => {
+      handlers[method] = handler
+    },
+    gate: (on: boolean) => {
+      gated = on
+    },
     releaseNext: () => gates.shift()?.(),
   }
 }
@@ -50,7 +60,9 @@ export function fakeClock() {
       timers.set(next, { at: t + ms, fn })
       return next++
     },
-    clearTimeout: (handle: unknown) => { timers.delete(handle as number) },
+    clearTimeout: (handle: unknown) => {
+      timers.delete(handle as number)
+    },
     advance(ms: number) {
       t += ms
       const due = [...timers].filter(([, v]) => v.at <= t).sort((a, b) => a[1].at - b[1].at)
@@ -68,7 +80,10 @@ export function fakeLock(): SyncDeps['lock'] {
   const tails = new Map<string, Promise<void>>()
   return (name, run) => {
     const mine = (tails.get(name) ?? Promise.resolve()).then(run)
-    tails.set(name, mine.catch(() => undefined))
+    tails.set(
+      name,
+      mine.catch(() => undefined),
+    )
     return mine
   }
 }
@@ -80,7 +95,9 @@ export function fakeBus() {
     const me: { fn: (message?: TabMessage) => void } = { fn: () => {} }
     members.add(me)
     return {
-      post: (message) => { for (const m of members) if (m !== me) queueMicrotask(() => m.fn(message)) },
+      post: (message) => {
+        for (const m of members) if (m !== me) queueMicrotask(() => m.fn(message))
+      },
       listen: (fn) => {
         me.fn = fn
         return () => {
@@ -91,21 +108,47 @@ export function fakeBus() {
   }
 }
 
-export interface HookLog { saved: unknown[][]; refused: unknown[][]; theirs: unknown[][] }
+export interface HookLog {
+  saved: unknown[][]
+  refused: unknown[][]
+  theirs: unknown[][]
+}
 
-export interface Shared { storage: OutboxStorage; lock: SyncDeps['lock']; channel: () => SyncDeps['channel']; door: ReturnType<typeof fakeDoor> }
-export const sharedParts = (): Shared => ({ storage: createMemoryOutbox(), lock: fakeLock(), channel: fakeBus(), door: fakeDoor() })
+export interface Shared {
+  storage: OutboxStorage
+  lock: SyncDeps['lock']
+  channel: () => SyncDeps['channel']
+  door: ReturnType<typeof fakeDoor>
+}
+export const sharedParts = (): Shared => ({
+  storage: createMemoryOutbox(),
+  lock: fakeLock(),
+  channel: fakeBus(),
+  door: fakeDoor(),
+})
 
 /** An engine on the shared parts (one per "tab"), with its own clock and hook log. */
 export function tab(shared: Shared = sharedParts(), extra: Partial<SyncDeps> = {}) {
   const clock = fakeClock()
   const log: HookLog = { saved: [], refused: [], theirs: [] }
   const engine: SyncEngine = createSyncEngine({
-    userId: 'u1', door: shared.door.door, storage: shared.storage, clock, lock: shared.lock, channel: shared.channel(), ...extra,
+    userId: 'u1',
+    door: shared.door.door,
+    storage: shared.storage,
+    clock,
+    lock: shared.lock,
+    channel: shared.channel(),
+    ...extra,
     hooks: {
-      saved: (...a) => { log.saved.push(a) },
-      refused: (...a) => { log.refused.push(a) },
-      theirs: (...a) => { log.theirs.push(a) },
+      saved: (...a) => {
+        log.saved.push(a)
+      },
+      refused: (...a) => {
+        log.refused.push(a)
+      },
+      theirs: (...a) => {
+        log.theirs.push(a)
+      },
     },
   })
   return { engine, clock, log, ...shared }

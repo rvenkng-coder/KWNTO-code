@@ -9,14 +9,19 @@ function fakePb(isConnected = false) {
   const pb = {
     filter: (q: string) => q,
     collection: (name: string) => ({
-      subscribe: async () => async () => { closed.push(name) },
+      subscribe: async () => async () => {
+        closed.push(name)
+      },
     }),
     realtime: {
       isConnected,
       subscribe: async (topic: string, cb: () => void) => {
         expect(topic).toBe('PB_CONNECT')
         connectCallbacks.add(cb)
-        return async () => { connectCallbacks.delete(cb); closed.push('PB_CONNECT') }
+        return async () => {
+          connectCallbacks.delete(cb)
+          closed.push('PB_CONNECT')
+        }
       },
     },
   }
@@ -28,7 +33,14 @@ function fakePb(isConnected = false) {
 test('a reconnect is reported but the first connect is not', async () => {
   const { pb, connect, closed, listeners } = fakePb()
   let reconnects = 0
-  const close = await subscribeProject(pb, 'p1', () => {}, () => { reconnects++ })
+  const close = await subscribeProject(
+    pb,
+    'p1',
+    () => {},
+    () => {
+      reconnects++
+    },
+  )
   connect()
   expect(reconnects).toBe(0)
   connect()
@@ -47,7 +59,14 @@ test('a reconnect is reported but the first connect is not', async () => {
 test('a connect seen on an already open connection is a reconnect', async () => {
   const { pb, connect } = fakePb(true)
   let reconnects = 0
-  await subscribeProject(pb, 'p1', () => {}, () => { reconnects++ })
+  await subscribeProject(
+    pb,
+    'p1',
+    () => {},
+    () => {
+      reconnects++
+    },
+  )
   connect()
   expect(reconnects).toBe(1)
 })
@@ -68,7 +87,12 @@ test('connection listeners hear connects and drops only while subscribed', async
   const heard: string[] = []
   const off = realtime.onConnectionChange((up) => heard.push(`a:${up}`))
   realtime.onConnectionChange((up) => heard.push(`b:${up}`))
-  const close = await subscribeProject(pb, 'p1', () => {}, () => {})
+  const close = await subscribeProject(
+    pb,
+    'p1',
+    () => {},
+    () => {},
+  )
   connect()
   const drop = (pb as unknown as { realtime: { onDisconnect?: (subs: string[]) => void } }).realtime.onDisconnect
   drop?.(['x'])
@@ -97,9 +121,15 @@ test('the stream probe uses the client address and answers on connect, error or 
       this.url = url
       opened.push(this)
     }
-    addEventListener(type: string, fn: () => void) { this.handlers.set(type, fn) }
-    fire(type: string) { this.handlers.get(type)?.() }
-    close() { this.closed = true }
+    addEventListener(type: string, fn: () => void) {
+      this.handlers.set(type, fn)
+    }
+    fire(type: string) {
+      this.handlers.get(type)?.()
+    }
+    close() {
+      this.closed = true
+    }
   }
   vi.stubGlobal('EventSource', FakeSource)
   vi.useFakeTimers()

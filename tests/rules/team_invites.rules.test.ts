@@ -18,7 +18,13 @@ async function setName(user: TestUser, name: string): Promise<void> {
   await (await asAdmin()).collection('users').update(user.id, { name })
 }
 
-async function seedInvite(teamId: string, invitee: TestUser, inviter: TestUser, teamName: string, inviterName: string): Promise<Invite> {
+async function seedInvite(
+  teamId: string,
+  invitee: TestUser,
+  inviter: TestUser,
+  teamName: string,
+  inviterName: string,
+): Promise<Invite> {
   return (await asAdmin()).collection('team_invites').create({
     team: teamId,
     invited_user: invitee.id,
@@ -35,7 +41,13 @@ async function storedInvite(id: string): Promise<Invite> {
 
 // A team owned by "Olive Owner" with one plain member, and one pending invite for a
 // third person.
-async function teamWithInvite(): Promise<{ owner: TestUser; member: TestUser; invitee: TestUser; teamId: string; invite: Invite }> {
+async function teamWithInvite(): Promise<{
+  owner: TestUser
+  member: TestUser
+  invitee: TestUser
+  teamId: string
+  invite: Invite
+}> {
   const [owner, member, invitee] = [await createUser(), await createUser(), await createUser()]
   await setName(owner, 'Olive Owner')
   const team = await createTeam(owner, 'Drama 101')
@@ -56,7 +68,12 @@ test('team_invites: the invited user lists and views their own invite with the t
   const rows = await pb.collection('team_invites').getFullList()
   expect(rows.map((row) => row.id)).toEqual([invite.id])
   const viewed = await pb.collection('team_invites').getOne(invite.id)
-  expect(viewed).toMatchObject({ team: teamId, status: 'pending', team_name: 'Drama 101', invited_by_name: 'Olive Owner' })
+  expect(viewed).toMatchObject({
+    team: teamId,
+    status: 'pending',
+    team_name: 'Drama 101',
+    invited_by_name: 'Olive Owner',
+  })
 })
 
 // D7: nobody but the invitee sees an invite: not the owner who sent it (no pending
@@ -81,13 +98,21 @@ test('team_invites: nobody can create, update or delete an invite through the AP
   const outsider = await createUser()
   const before = await storedInvite(invite.id)
 
-  for (const pb of [await asUser(invitee), await asUser(owner), await asUser(member), await asUser(outsider), asAnonymous()]) {
-    await expectCreateRefused(pb.collection('team_invites').create({
-      team: teamId,
-      invited_user: outsider.id,
-      invited_by: owner.id,
-      status: 'pending',
-    }))
+  for (const pb of [
+    await asUser(invitee),
+    await asUser(owner),
+    await asUser(member),
+    await asUser(outsider),
+    asAnonymous(),
+  ]) {
+    await expectCreateRefused(
+      pb.collection('team_invites').create({
+        team: teamId,
+        invited_user: outsider.id,
+        invited_by: owner.id,
+        status: 'pending',
+      }),
+    )
     await expectRefused(pb.collection('team_invites').update(invite.id, { status: 'accepted' }))
     await expectRefused(pb.collection('team_invites').update(invite.id, { status: 'declined' }))
     await expectRefused(pb.collection('team_invites').delete(invite.id))
@@ -95,14 +120,16 @@ test('team_invites: nobody can create, update or delete an invite through the AP
 
   expect(await storedInvite(invite.id)).toEqual(before)
   const admin = await asAdmin()
-  const all = await admin.collection('team_invites').getFullList({ filter: admin.filter('team = {:team}', { team: teamId }) })
+  const all = await admin
+    .collection('team_invites')
+    .getFullList({ filter: admin.filter('team = {:team}', { team: teamId }) })
   expect(all.map((row) => row.id)).toEqual([invite.id])
 })
 
 // Design 5, emails are private: the invitee's list holds names, never an email, and
 // expanding the relations cannot reach the inviter's account. (The invitee's own record
 // may expand: the users rule shows each person their own record, as in team_members.)
-test('team_invites: the invitee\'s list holds no email, and expanding cannot reach the inviter\'s', async () => {
+test("team_invites: the invitee's list holds no email, and expanding cannot reach the inviter's", async () => {
   const { owner, member, invitee } = await teamWithInvite()
   const pb = await asUser(invitee)
 
@@ -112,7 +139,9 @@ test('team_invites: the invitee\'s list holds no email, and expanding cannot rea
   for (const row of rows) {
     expect(Object.keys(row)).not.toContain('email')
   }
-  const expanded = await pb.collection('team_invites').getFullList({ expand: 'team,invited_by,invited_user,team.owner' })
+  const expanded = await pb
+    .collection('team_invites')
+    .getFullList({ expand: 'team,invited_by,invited_user,team.owner' })
   expectNoEmailOf(expanded, owner, member)
 })
 
@@ -127,7 +156,9 @@ test('team_invites: the table holds at most one pending invite per person and te
   await expect(seedInvite(teamId, invitee, owner, 'Drama 101', 'Olive Owner')).rejects.toMatchObject({ status: 400 })
   await admin.collection('team_invites').update(invite.id, { status: 'declined' })
   const again = await seedInvite(teamId, invitee, owner, 'Drama 101', 'Olive Owner')
-  await expect(admin.collection('team_invites').update(invite.id, { status: 'pending' })).rejects.toMatchObject({ status: 400 })
+  await expect(admin.collection('team_invites').update(invite.id, { status: 'pending' })).rejects.toMatchObject({
+    status: 400,
+  })
 
   expect((await storedInvite(again.id)).status).toBe('pending')
   expect((await storedInvite(invite.id)).status).toBe('declined')

@@ -25,7 +25,11 @@ type File = {
   connections: { id: string; from: string; to: string | null; label: string }[]
 }
 
-async function call(token: string | undefined, path: string, init?: { method?: string; text?: string }): Promise<Response> {
+async function call(
+  token: string | undefined,
+  path: string,
+  init?: { method?: string; text?: string },
+): Promise<Response> {
   const headers: Record<string, string> = {}
   if (token !== undefined) headers.Authorization = token
   if (init?.text !== undefined) headers['Content-Type'] = 'application/json'
@@ -50,8 +54,12 @@ async function storyProject(): Promise<MemberProject & { nodeIds: string[] }> {
   const second = await createNode(ctx.member, ctx.projectId, chapter2, { title: 'Later' })
   const third = await createNode(ctx.member, ctx.projectId, ctx.chapterId, { title: 'Side' })
   await createLine(ctx.member, ctx.projectId, first, { character: 'Mara', text: 'Hello there.' })
-  await pb.collection('connections').create({ project: ctx.projectId, from_node: first, to_node: second, label: 'Go on' })
-  await pb.collection('connections').create({ project: ctx.projectId, from_node: second, to_node: '', label: 'Open end' })
+  await pb
+    .collection('connections')
+    .create({ project: ctx.projectId, from_node: first, to_node: second, label: 'Go on' })
+  await pb
+    .collection('connections')
+    .create({ project: ctx.projectId, from_node: second, to_node: '', label: 'Open end' })
   return { ...ctx, nodeIds: [first, second, third] }
 }
 
@@ -85,7 +93,18 @@ test('only members export a project', async () => {
   expect(reply.headers.get('content-disposition')).toBe('attachment; filename="Test-project.kwnto.json"')
   const file = (await reply.json()) as File
   // Readable in a text editor: the keys come in the documented order, and a node's keys too.
-  expect(Object.keys(file)).toEqual(['format', 'version', 'exportedAt', 'project', 'chapters', 'nodes', 'lines', 'cues', 'connections', 'media'])
+  expect(Object.keys(file)).toEqual([
+    'format',
+    'version',
+    'exportedAt',
+    'project',
+    'chapters',
+    'nodes',
+    'lines',
+    'cues',
+    'connections',
+    'media',
+  ])
   expect(Object.keys(file.nodes[0])).toEqual(['id', 'chapter', 'title', 'color', 'x', 'y'])
   expect(file.format).toBe('kwnto-project')
   expect(file.version).toBe(1)
@@ -181,7 +200,11 @@ test('a refused import creates nothing', async () => {
   const cases: [string, number, string][] = [
     ['a'.repeat(MAX_BYTES + 1), 413, TOO_LARGE],
     ['not json', 400, `${NOT_A_PROJECT}it is not JSON.`],
-    [JSON.stringify(badLink), 400, `${NOT_A_PROJECT}connections[${base.connections.length - 1}].to is not a node in the file.`],
+    [
+      JSON.stringify(badLink),
+      400,
+      `${NOT_A_PROJECT}connections[${base.connections.length - 1}].to is not a node in the file.`,
+    ],
     [JSON.stringify(crowded), 400, `${NOT_A_PROJECT}too many nodes (2001, at most 2000).`],
   ]
   for (const [text, status, message] of cases) {

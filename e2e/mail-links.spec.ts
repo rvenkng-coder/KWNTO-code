@@ -17,7 +17,9 @@ async function signIn(page: import('@playwright/test').Page, email: string, pass
 // C4: a bad verification link says so and offers the way back
 test('a bad verification link says so and offers the way back', async ({ page }) => {
   await page.goto('/#/verify/aaa.bbb.ccc')
-  await expect(page.getByRole('alert')).toHaveText('This verification link is not valid or has expired. Sign in and ask for a new one.')
+  await expect(page.getByRole('alert')).toHaveText(
+    'This verification link is not valid or has expired. Sign in and ask for a new one.',
+  )
   await page.getByRole('link', { name: 'Go to KWNTO' }).click()
   await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
 })

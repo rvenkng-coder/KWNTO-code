@@ -4,7 +4,11 @@
 // Exit 0 if the server answers (loaded or idle), 1 if it does not, 2 for a bad argument.
 import { isMain } from './lib/is-main.ts'
 
-export interface PingResult { ok: boolean; loaded: boolean; detail: string }
+export interface PingResult {
+  ok: boolean
+  loaded: boolean
+  detail: string
+}
 
 export const DEFAULT_URL = 'http://localhost:9092'
 const DEFAULT_TIMEOUT_MS = 3000
@@ -58,7 +62,11 @@ async function ask(url: string, fetchFn: typeof fetch, signal: AbortSignal): Pro
   return { ok: true, loaded, detail: loaded ? 'model loaded' : 'model idle (loads on the first request)' }
 }
 
-export async function pingModelServer(baseUrl: string, fetchFn: typeof fetch = fetch, timeoutMs: number = DEFAULT_TIMEOUT_MS): Promise<PingResult> {
+export async function pingModelServer(
+  baseUrl: string,
+  fetchFn: typeof fetch = fetch,
+  timeoutMs: number = DEFAULT_TIMEOUT_MS,
+): Promise<PingResult> {
   const controller = new AbortController()
   let timer: ReturnType<typeof setTimeout> | undefined
   const timeout = new Promise<PingResult>((resolve) => {
@@ -92,7 +100,8 @@ export function parseArgs(args: string[]): { url: string } | { error: string } {
   if (url.startsWith('-')) return { error: `unknown option; ${usage}` }
   try {
     const parsed = new URL(url)
-    if (parsed.username !== '' || parsed.password !== '') return { error: 'baseUrl must not contain a user name or password' }
+    if (parsed.username !== '' || parsed.password !== '')
+      return { error: 'baseUrl must not contain a user name or password' }
     if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return { url }
   } catch {
     // falls through to the message below
@@ -100,7 +109,11 @@ export function parseArgs(args: string[]): { url: string } | { error: string } {
   return { error: 'baseUrl must be an http or https URL' }
 }
 
-export async function runPing(args: string[], fetchFn: typeof fetch = fetch, timeoutMs?: number): Promise<{ code: number; line: string }> {
+export async function runPing(
+  args: string[],
+  fetchFn: typeof fetch = fetch,
+  timeoutMs?: number,
+): Promise<{ code: number; line: string }> {
   const parsed = parseArgs(args)
   if ('error' in parsed) return { code: 2, line: parsed.error }
   const result = await pingModelServer(parsed.url, fetchFn, timeoutMs)

@@ -20,7 +20,14 @@ cronAdd("purge_presence", "* * * * *", () => {
   purgeInBatches(
     (skipIds) => {
       const params = { cutoff: cutoff }
-      return $app.findRecordsByFilter("presence", withoutSkipped("updated < {:cutoff}", skipIds, params), "", 200, 0, params)
+      return $app.findRecordsByFilter(
+        "presence",
+        withoutSkipped("updated < {:cutoff}", skipIds, params),
+        "",
+        200,
+        0,
+        params,
+      )
     },
     (row) => $app.delete(row),
     (row, error) => $app.logger().error("purge_presence: could not delete a row", "id", row.id, "error", String(error)),

@@ -32,7 +32,13 @@ export class SandboxError extends Error {
   }
 }
 
-function run(command: string, args: string[], cwd: string, input?: Buffer, env: NodeJS.ProcessEnv = cleanEnv()): Buffer {
+function run(
+  command: string,
+  args: string[],
+  cwd: string,
+  input?: Buffer,
+  env: NodeJS.ProcessEnv = cleanEnv(),
+): Buffer {
   const result = spawnSync(command, args, { cwd, env, input, maxBuffer: BIG })
   if (result.error) throw new Error(`cannot run ${command}: ${result.error.message}`)
   if (result.status !== 0) throw new Error(`${command} ${args.join(' ')} failed: ${result.stderr.toString().trim()}`)
@@ -40,7 +46,8 @@ function run(command: string, args: string[], cwd: string, input?: Buffer, env: 
 }
 
 const git = (cwd: string, ...args: string[]): string => run('git', args, cwd).toString().trim()
-const sandboxGit = (cwd: string, ...args: string[]): string => run('git', args, cwd, undefined, isolatedEnv()).toString().trim()
+const sandboxGit = (cwd: string, ...args: string[]): string =>
+  run('git', args, cwd, undefined, isolatedEnv()).toString().trim()
 
 export function repoTop(cwd: string): string {
   return git(cwd, 'rev-parse', '--show-toplevel')
@@ -48,7 +55,15 @@ export function repoTop(cwd: string): string {
 
 // Tracked files that differ from HEAD (staged or not), and untracked files not ignored.
 export function checkoutState(root: string, isolated = false): { tracked: string[]; untracked: string[] } {
-  const tokens = run('git', ['status', '--porcelain', '-z', '--untracked-files=all'], root, undefined, isolated ? isolatedEnv() : cleanEnv()).toString().split('\0')
+  const tokens = run(
+    'git',
+    ['status', '--porcelain', '-z', '--untracked-files=all'],
+    root,
+    undefined,
+    isolated ? isolatedEnv() : cleanEnv(),
+  )
+    .toString()
+    .split('\0')
   const tracked: string[] = []
   const untracked: string[] = []
   for (let i = 0; i < tokens.length; i++) {
@@ -132,7 +147,13 @@ function fillSandbox(root: string, sandbox: string): string {
 }
 
 export const realRunCheck: RunCheck = (name, cwd) => {
-  const result = spawnSync('npm', ['run', name], { cwd, env: isolatedEnv(), encoding: 'utf8', timeout: CHECK_TIMEOUT_MS, maxBuffer: BIG })
+  const result = spawnSync('npm', ['run', name], {
+    cwd,
+    env: isolatedEnv(),
+    encoding: 'utf8',
+    timeout: CHECK_TIMEOUT_MS,
+    maxBuffer: BIG,
+  })
   const output = `${result.stdout ?? ''}${result.stderr ?? ''}${result.error ? `\ncannot run npm: ${result.error.message}` : ''}`
   return { ok: result.status === 0 && !result.error, output }
 }
@@ -143,11 +164,16 @@ export function confirmBaseline(sandbox: string, runCheck: RunCheck): string[] {
   const failures: string[] = []
   for (const name of ['lint', 'typecheck']) {
     const result = runCheck(name, sandbox)
-    if (!result.ok) failures.push(`npm run ${name} failed in the sandbox:\n${result.output.trimEnd().split('\n').slice(-20).join('\n')}`)
+    if (!result.ok)
+      failures.push(
+        `npm run ${name} failed in the sandbox:\n${result.output.trimEnd().split('\n').slice(-20).join('\n')}`,
+      )
   }
   const left = checkoutState(sandbox, true)
   if (left.tracked.length + left.untracked.length > 0) {
-    failures.push(`the baseline checks left changes in the sandbox: ${[...left.tracked, ...left.untracked].slice(0, 10).join(', ')}`)
+    failures.push(
+      `the baseline checks left changes in the sandbox: ${[...left.tracked, ...left.untracked].slice(0, 10).join(', ')}`,
+    )
   }
   return failures
 }

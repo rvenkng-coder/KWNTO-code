@@ -4,10 +4,42 @@ import { fromContent } from '../model/state'
 import { classifyConflict, overlay, planAdd, type NewEntry, type OutboxEntry } from './outbox'
 
 const base = { userId: 'u1', projectId: 'p1', offline: false, made: 1 }
-const upd = (seq: number, id: string, changes: Record<string, unknown>, baseValues: Record<string, unknown>, over: Partial<OutboxEntry> = {}): OutboxEntry =>
-  ({ ...base, seq, op: 'update', kind: 'nodes', id, changes, baseVersion: 3, baseValues, snapshot: null, ...over }) as OutboxEntry
-const newUpd = (id: string, changes: Record<string, unknown>, baseValues: Record<string, unknown>, over: Partial<NewEntry> = {}): NewEntry =>
-  ({ ...base, op: 'update', kind: 'nodes', id, changes, baseVersion: 4, baseValues, snapshot: null, ...over }) as NewEntry
+const upd = (
+  seq: number,
+  id: string,
+  changes: Record<string, unknown>,
+  baseValues: Record<string, unknown>,
+  over: Partial<OutboxEntry> = {},
+): OutboxEntry =>
+  ({
+    ...base,
+    seq,
+    op: 'update',
+    kind: 'nodes',
+    id,
+    changes,
+    baseVersion: 3,
+    baseValues,
+    snapshot: null,
+    ...over,
+  }) as OutboxEntry
+const newUpd = (
+  id: string,
+  changes: Record<string, unknown>,
+  baseValues: Record<string, unknown>,
+  over: Partial<NewEntry> = {},
+): NewEntry =>
+  ({
+    ...base,
+    op: 'update',
+    kind: 'nodes',
+    id,
+    changes,
+    baseVersion: 4,
+    baseValues,
+    snapshot: null,
+    ...over,
+  }) as NewEntry
 
 describe('planAdd', () => {
   // Protects: D5: an edit joins the last waiting edit of the same record, never one being sent or one behind another record's edit.
@@ -15,16 +47,32 @@ describe('planAdd', () => {
     const queue = [upd(1, 'n1', { title: 'B' }, { title: 'A' })]
     const plan = planAdd(queue, newUpd('n1', { title: 'C', color: 'red' }, { title: 'B', color: 'slate' }), null)
     expect(plan.append).toBeNull()
-    expect(plan.replace).toMatchObject({ seq: 1, changes: { title: 'C', color: 'red' }, baseValues: { title: 'A', color: 'slate' }, baseVersion: 3 })
+    expect(plan.replace).toMatchObject({
+      seq: 1,
+      changes: { title: 'C', color: 'red' },
+      baseValues: { title: 'A', color: 'slate' },
+      baseVersion: 3,
+    })
     const sending = planAdd(queue, newUpd('n1', { title: 'C' }, { title: 'B' }), 1)
     expect(sending.replace).toBeNull()
     expect(sending.append).not.toBeNull()
-    const between = planAdd([...queue, upd(2, 'n2', { title: 'X' }, { title: 'Y' })], newUpd('n1', { title: 'C' }, { title: 'B' }), null)
+    const between = planAdd(
+      [...queue, upd(2, 'n2', { title: 'X' }, { title: 'Y' })],
+      newUpd('n1', { title: 'C' }, { title: 'B' }),
+      null,
+    )
     expect(between.replace).toBeNull()
     expect(between.append).not.toBeNull()
   })
 
-  const create = (seq: number): OutboxEntry => ({ ...base, seq, op: 'create', kind: 'script_lines', id: 'L', record: line('L') })
+  const create = (seq: number): OutboxEntry => ({
+    ...base,
+    seq,
+    op: 'create',
+    kind: 'script_lines',
+    id: 'L',
+    record: line('L'),
+  })
   const lineUpd = (seq: number): OutboxEntry => upd(seq, 'L', { text: 'x' }, { text: 'L' }, { kind: 'script_lines' })
   const remove: NewEntry = { ...base, op: 'remove', kind: 'script_lines', id: 'L', record: line('L') }
 
@@ -42,10 +90,12 @@ describe('planAdd', () => {
 describe('overlay', () => {
   // Protects: decision 0002 finding E: waiting edits are laid over fresh server data, not under it.
   test('waiting edits are laid over fresh server data', () => {
-    const server = fromContent(content({
-      nodes: [node('n1', { title: 'Theirs', color: 'red', version: 7 })],
-      lines: [line('K', { text: 'server K' }), line('M')],
-    }))
+    const server = fromContent(
+      content({
+        nodes: [node('n1', { title: 'Theirs', color: 'red', version: 7 })],
+        lines: [line('K', { text: 'server K' }), line('M')],
+      }),
+    )
     const queue: OutboxEntry[] = [
       upd(1, 'n1', { color: 'blue' }, { color: 'red' }),
       { ...base, seq: 2, op: 'create', kind: 'script_lines', id: 'L', record: line('L') },
@@ -63,8 +113,11 @@ describe('overlay', () => {
 })
 
 describe('classifyConflict', () => {
-  const offlineUpd = (changes: Record<string, unknown>, baseValues: Record<string, unknown>, over: Partial<OutboxEntry> = {}) =>
-    upd(1, 'n1', changes, baseValues, { offline: true, ...over })
+  const offlineUpd = (
+    changes: Record<string, unknown>,
+    baseValues: Record<string, unknown>,
+    over: Partial<OutboxEntry> = {},
+  ) => upd(1, 'n1', changes, baseValues, { offline: true, ...over })
 
   // Protects: D4: only a change by someone else to the same attribute is a conflict.
   test('only a change by someone else to the same attribute is a conflict', () => {
@@ -82,7 +135,15 @@ describe('classifyConflict', () => {
 
   // Protects: D4: a record removed while someone else edited it is a conflict; a create never is.
   test('a removed record edited by someone else is a conflict', () => {
-    const rm: OutboxEntry = { ...base, seq: 1, offline: true, op: 'remove', kind: 'cues', id: 'q', record: cue('q', { text: 'mine' }) }
+    const rm: OutboxEntry = {
+      ...base,
+      seq: 1,
+      offline: true,
+      op: 'remove',
+      kind: 'cues',
+      id: 'q',
+      record: cue('q', { text: 'mine' }),
+    }
     expect(classifyConflict(rm, cue('q', { text: 'theirs' }))).toEqual({ type: 'fields', fields: ['text'] })
     expect(classifyConflict(rm, null)).toEqual({ type: 'none' })
     expect(classifyConflict(rm, cue('q', { text: 'mine', version: 5 }))).toEqual({ type: 'none' })

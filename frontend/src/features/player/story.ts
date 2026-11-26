@@ -6,10 +6,26 @@ import { linesOf, liveNodes, type ContentState } from '../editor/model/state'
 // What a player sees of a project (plan 2026-11-26-player-mode, Task 1): live nodes with their
 // lines, media and choices. Cues, lighting notes, comments and links are left out on purpose.
 
-export interface StoryMediaInput { id: string; nodeId: string; title: string; kind: MediaKind }
-export interface PlayLine { character: string; text: string }
-export interface PlayMedia { id: string; title: string; kind: MediaKind }
-export interface PlayChoice { id: string; label: string; targetId: string | null }
+export interface StoryMediaInput {
+  id: string
+  nodeId: string
+  title: string
+  kind: MediaKind
+}
+export interface PlayLine {
+  character: string
+  text: string
+}
+export interface PlayMedia {
+  id: string
+  title: string
+  kind: MediaKind
+}
+export interface PlayChoice {
+  id: string
+  label: string
+  targetId: string | null
+}
 export interface PlayNode {
   id: string
   title: string
@@ -19,7 +35,11 @@ export interface PlayNode {
   media: PlayMedia[]
   choices: PlayChoice[]
 }
-export interface Story { projectName: string; startId: string | null; nodes: Record<string, PlayNode> }
+export interface Story {
+  projectName: string
+  startId: string | null
+  nodes: Record<string, PlayNode>
+}
 
 const UNTITLED = 'Untitled'
 

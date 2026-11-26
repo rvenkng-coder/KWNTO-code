@@ -3,10 +3,25 @@ import type { PlayNode, Story } from './story'
 // The path a player has taken (plan 2026-11-26-player-mode, Task 1). A session is never changed in
 // place: every move returns a new one.
 
-export interface Step { nodeId: string; viaChoiceId: string | null }
-export interface Session { steps: Step[] }
-export interface Screen { node: PlayNode; index: number; showChapter: boolean; isEnd: boolean; canGoBack: boolean }
-export interface HistoryEntry { text: string; chapterTitle: string; current: boolean }
+export interface Step {
+  nodeId: string
+  viaChoiceId: string | null
+}
+export interface Session {
+  steps: Step[]
+}
+export interface Screen {
+  node: PlayNode
+  index: number
+  showChapter: boolean
+  isEnd: boolean
+  canGoBack: boolean
+}
+export interface HistoryEntry {
+  text: string
+  chapterTitle: string
+  current: boolean
+}
 
 /** A node of the story by id; an id like `constructor` that only the object's prototype has is not a node. */
 function nodeOf(story: Story, id: string): PlayNode | undefined {

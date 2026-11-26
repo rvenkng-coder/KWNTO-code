@@ -16,7 +16,12 @@ onFileDownloadRequest((e) => {
   handleFileDownload(e)
 }, "media")
 
-routerAdd("GET", "/api/kwnto/storage", (e) => {
-  const { handleStorageRoute } = require(`${__hooks}/lib/media-hook.js`)
-  return handleStorageRoute(e)
-}, $apis.requireAuth("users"))
+routerAdd(
+  "GET",
+  "/api/kwnto/storage",
+  (e) => {
+    const { handleStorageRoute } = require(`${__hooks}/lib/media-hook.js`)
+    return handleStorageRoute(e)
+  },
+  $apis.requireAuth("users"),
+)

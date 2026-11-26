@@ -37,7 +37,10 @@ export async function joinShare(token: string, user: TestUser): Promise<Reply> {
 
 // GET /api/kwnto/share/{token}/media/{mediaId}
 export async function shareMedia(token: string, mediaId: string, user?: TestUser): Promise<Response> {
-  return rawSend(await tokenFor(user), `/api/kwnto/share/${encodeURIComponent(token)}/media/${encodeURIComponent(mediaId)}`)
+  return rawSend(
+    await tokenFor(user),
+    `/api/kwnto/share/${encodeURIComponent(token)}/media/${encodeURIComponent(mediaId)}`,
+  )
 }
 
 export { PB_URL }

@@ -25,7 +25,9 @@ const OUTBOX = '/src/features/editor/sync/indexedDbOutbox.ts'
 async function inPage<T>(page: import('@playwright/test').Page, script: string): Promise<T> {
   return page.evaluate(
     async ([path, body]) => {
-      const { createIndexedDbOutbox } = (await import(/* @vite-ignore */ path as string)) as { createIndexedDbOutbox: () => Record<string, (...a: unknown[]) => Promise<unknown>> }
+      const { createIndexedDbOutbox } = (await import(/* @vite-ignore */ path as string)) as {
+        createIndexedDbOutbox: () => Record<string, (...a: unknown[]) => Promise<unknown>>
+      }
       const box = createIndexedDbOutbox()
       return new Function('box', `return (async () => { ${body as string} })()`)(box) as Promise<unknown>
     },
@@ -39,22 +41,28 @@ const entry = (userId: string, id: string) =>
 // Protects: the outbox survives a reload: entries per user in order, a failed entry kept with its message, another user's entry apart.
 test('the browser outbox keeps entries across a reload', async ({ page }) => {
   await page.goto('/')
-  await inPage(page, `
+  await inPage(
+    page,
+    `
     const a = await box.add(${entry('U', 'a')}); const b = await box.add(${entry('U', 'b')}); const c = await box.add(${entry('U', 'c')})
     await box.add(${entry('V', 'z')})
     const listed = await box.list('U')
     const { fail } = box
     await fail(listed[1], 'nope')
     return [a, b, c]
-  `)
+  `,
+  )
   await page.reload()
-  const after = await inPage<{ list: number[]; failed: Array<[number, string]>; other: number[]; again: number }>(page, `
+  const after = await inPage<{ list: number[]; failed: Array<[number, string]>; other: number[]; again: number }>(
+    page,
+    `
     const list = (await box.list('U')).map((e) => e.seq)
     const failed = (await box.failed('U')).map((f) => [f.entry.seq, f.message])
     const other = (await box.list('V')).map((e) => e.seq)
     const again = await box.add(${entry('U', 'd')})
     return { list, failed, other, again }
-  `)
+  `,
+  )
   expect(after.list).toEqual([1, 3])
   expect(after.failed).toEqual([[2, 'nope']])
   expect(after.other).toEqual([4])
@@ -63,7 +71,7 @@ test('the browser outbox keeps entries across a reload', async ({ page }) => {
 
 // Protects: design 6.7: edits made offline wait in the outbox (counted in the status), nothing reaches the server, and all of them are saved when the connection returns.
 test('edits made offline are saved when the connection returns', async ({ page, context }) => {
-  const [a, b, c] = await projectWithNodes(page, 3) as [string, string, string]
+  const [a, b, c] = (await projectWithNodes(page, 3)) as [string, string, string]
   await goOffline(context, page)
   await rename(page, a, 'First')
   await card(page, b).click()
@@ -89,7 +97,7 @@ test('edits made offline are saved when the connection returns', async ({ page, 
 
 // Protects: review focus 1: text typed just before closing an offline tab reaches IndexedDB and is sent from the next page.
 test('text typed just before closing an offline tab is not lost', async ({ page, context }) => {
-  const [id] = await projectWithNodes(page, 1) as [string]
+  const [id] = (await projectWithNodes(page, 1)) as [string]
   await card(page, id).click()
   await goOffline(context, page)
   await titleField(page).fill('Typed in a hurry')
@@ -106,7 +114,7 @@ test('text typed just before closing an offline tab is not lost', async ({ page,
 })
 
 // Protects: review focus 3: after reconnecting, a teammate's changes made meanwhile appear and my waiting edits still show on top.
-test('after reconnecting a teammate\'s changes show and mine are kept', async ({ browser }) => {
+test("after reconnecting a teammate's changes show and mine are kept", async ({ browser }) => {
   const { a, b, ctxA, ids } = await ownerAndMember(browser, 2)
   const [n1, n2] = ids as [string, string]
   await goOffline(ctxA, a)
@@ -131,12 +139,16 @@ test('after reconnecting a teammate\'s changes show and mine are kept', async ({
 
 // Protects: review focus 5: a refused change is shown with the server's message and rolled back, the next change still saves, and Dismiss clears the list.
 test('a refused change goes to the failed list and later changes still save', async ({ page }) => {
-  const [a, b] = await projectWithNodes(page, 2) as [string, string]
+  const [a, b] = (await projectWithNodes(page, 2)) as [string, string]
   let refused = false
   await page.route('**/api/collections/nodes/records/*', async (route) => {
     if (!refused && route.request().method() === 'PATCH') {
       refused = true
-      await route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ message: 'Not allowed.' }) })
+      await route.fulfill({
+        status: 403,
+        contentType: 'application/json',
+        body: JSON.stringify({ message: 'Not allowed.' }),
+      })
     } else {
       await route.continue()
     }
@@ -157,8 +169,10 @@ test('a refused change goes to the failed list and later changes still save', as
 
 // Protects: D13: signing out with waiting changes asks in the page (no browser pop-up), and Stay signed in keeps the session.
 test('signing out with waiting changes asks first', async ({ page, context }) => {
-  const [id] = await projectWithNodes(page, 1) as [string]
-  page.on('dialog', () => { throw new Error('a browser dialog opened') })
+  const [id] = (await projectWithNodes(page, 1)) as [string]
+  page.on('dialog', () => {
+    throw new Error('a browser dialog opened')
+  })
   await goOffline(context, page)
   await rename(page, id, 'Waiting')
   await expect(syncStatus(page)).toHaveText('Offline, 1 change waiting')
@@ -174,11 +188,13 @@ test('signing out with waiting changes asks first', async ({ page, context }) =>
 
 // Protects: D11: undo is paused while offline changes wait, and works once they are saved.
 test('undo works again once offline changes are saved', async ({ page, context }) => {
-  const [id] = await projectWithNodes(page, 1) as [string]
+  const [id] = (await projectWithNodes(page, 1)) as [string]
   await goOffline(context, page)
   await rename(page, id, 'Changed')
   await page.keyboard.press(`${mod}+z`)
-  await expect(page.getByRole('alert')).toContainText('Undo waits until you are back online and your changes are saved.')
+  await expect(page.getByRole('alert')).toContainText(
+    'Undo waits until you are back online and your changes are saved.',
+  )
   await expect(card(page, id)).toContainText('Changed')
   await goOnline(context, page)
   await expect(syncStatus(page)).toHaveCount(0)
@@ -212,7 +228,7 @@ test('a title changed by both sides asks which to keep', async ({ browser }) => 
 
 // Protects: design 6.7: a stopped backend (a proxy answering 502) is offline, not a refusal: the edit stays on screen and waits, then saves when the server is back.
 test('a stopped backend keeps the edit waiting and saves it when the server returns', async ({ page }) => {
-  const [id] = await projectWithNodes(page, 1) as [string]
+  const [id] = (await projectWithNodes(page, 1)) as [string]
   const down = '**/api/collections/nodes/records/*'
   await page.route(down, (route) => route.fulfill({ status: 502, contentType: 'text/plain', body: 'Bad Gateway' }))
   await rename(page, id, 'While down')
@@ -227,7 +243,7 @@ test('a stopped backend keeps the edit waiting and saves it when the server retu
 })
 
 // Protects: design 6.7, review focus 3: a script line added offline survives the reconnect on the screen that made it, next to a teammate's recolour of the node.
-test('a line added offline stays on screen after reconnecting next to a teammate\'s recolour', async ({ browser }) => {
+test("a line added offline stays on screen after reconnecting next to a teammate's recolour", async ({ browser }) => {
   const { a, b, ids } = await ownerAndMember(browser, 1)
   const [n1] = ids as [string]
   const ctxB = b.context()

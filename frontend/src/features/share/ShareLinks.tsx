@@ -12,9 +12,18 @@ export function ShareLinks({ links }: { links: NonNullable<ProjectFile['links']>
           const href = safeHref(l.url)
           return (
             <li key={l.id} className="flex flex-col">
-              {href === null
-                ? <span className="text-muted">{linkLabel(l)}</span>
-                : <a href={href} target="_blank" rel="noopener noreferrer" className="break-all text-accent hover:underline">{linkLabel(l)}</a>}
+              {href === null ? (
+                <span className="text-muted">{linkLabel(l)}</span>
+              ) : (
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="break-all text-accent hover:underline"
+                >
+                  {linkLabel(l)}
+                </a>
+              )}
               <span className="break-all text-xs text-muted">{linkHost(l.url)}</span>
             </li>
           )

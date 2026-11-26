@@ -34,7 +34,11 @@ test('titles, lines and choices with HTML show as text in the read-only viewer',
   const panel = guest.getByTestId('readonly-panel')
   await expect(panel).toContainText(TITLE)
   await expect(panel).toContainText(TEXT)
-  await expect(guest.locator('[data-testid="readonly-panel"] b, [data-testid="readonly-panel"] script, [data-testid="readonly-panel"] img[src="x"]')).toHaveCount(0)
+  await expect(
+    guest.locator(
+      '[data-testid="readonly-panel"] b, [data-testid="readonly-panel"] script, [data-testid="readonly-panel"] img[src="x"]',
+    ),
+  ).toHaveCount(0)
   await expect(guest.locator('img[src="x"]')).toHaveCount(0)
   expect(await guest.evaluate(() => (window as unknown as { __xss?: number }).__xss)).toBeUndefined()
 })

@@ -25,7 +25,10 @@ cronAdd("purge_trash", "30 3 * * *", () => {
         return $app.findRecordsByFilter(name, withoutSkipped(filter, skipIds, params), "", 200, 0, params)
       },
       (record) => $app.delete(record),
-      (record, error) => $app.logger().error("purge_trash: could not delete a record", "collection", name, "id", record.id, "error", String(error)),
+      (record, error) =>
+        $app
+          .logger()
+          .error("purge_trash: could not delete a record", "collection", name, "id", record.id, "error", String(error)),
     )
   }
 })

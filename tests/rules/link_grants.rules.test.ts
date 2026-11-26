@@ -26,7 +26,11 @@ test('grants are made only by the server and seen only by their holder', async (
   const link = await createLink(member, projectId, 'edit', 'live')
   const admin = await asAdmin()
   const grant = await admin.collection('link_grants').create({
-    link: link.id, user: holder.id, project: projectId, permission: 'edit', project_name: 'Test project',
+    link: link.id,
+    user: holder.id,
+    project: projectId,
+    permission: 'edit',
+    project_name: 'Test project',
   })
 
   const own = await (await asUser(holder)).collection('link_grants').getFullList()

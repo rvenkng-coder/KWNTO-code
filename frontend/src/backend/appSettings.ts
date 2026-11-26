@@ -1,7 +1,10 @@
 import type PocketBase from 'pocketbase'
 import { toBackendError } from './errors'
 
-export interface AppSettings { trashRetentionDays: number; presenceTimeoutSeconds: number }
+export interface AppSettings {
+  trashRetentionDays: number
+  presenceTimeoutSeconds: number
+}
 
 /** The two admin settings the browser needs; `system_behavior` itself stays admin only (plan 7 D12). */
 export function createAppSettings(pb: PocketBase) {

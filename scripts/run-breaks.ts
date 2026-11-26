@@ -14,7 +14,12 @@ import { spawnVitest } from './lib/vitest-bin.ts'
 const USAGE = 'usage: node scripts/run-breaks.ts [--cwd <dir>] <task.md>'
 
 // What a signal handler needs: the file a break is applied to (with its original text) and the Vitest run.
-export interface InFlight { path: string | null; original: string; child: ChildProcess | null; output: string }
+export interface InFlight {
+  path: string | null
+  original: string
+  child: ChildProcess | null
+  output: string
+}
 
 export function parseArgs(argv: string[]): { cwd: string; task: string } | null {
   const rest = [...argv]
@@ -51,7 +56,9 @@ function filesThatRan(reportPath: string): Set<string> {
     throw new Error('vitest wrote no test report, so it cannot be told which tests ran')
   }
   if (!Array.isArray(results)) throw new Error('the vitest test report has no testResults')
-  const names = results.map((result: { name?: unknown }) => (typeof result.name === 'string' ? realOrSame(result.name) : ''))
+  const names = results.map((result: { name?: unknown }) =>
+    typeof result.name === 'string' ? realOrSame(result.name) : '',
+  )
   return new Set(names)
 }
 
@@ -63,11 +70,22 @@ async function runVitest(cwd: string, paths: string[], state: InFlight): Promise
   const reportDir = mkdtempSync(join(tmpdir(), 'run-breaks-'))
   const reportPath = join(reportDir, 'report.json')
   try {
-    const args = ['run', '--project', 'unit', '--reporter=default', '--reporter=json', `--outputFile.json=${reportPath}`, ...paths]
+    const args = [
+      'run',
+      '--project',
+      'unit',
+      '--reporter=default',
+      '--reporter=json',
+      `--outputFile.json=${reportPath}`,
+      ...paths,
+    ]
     const code = await spawnVitest(cwd, args, state) // output kept in state for the baseline message
     const ran = filesThatRan(reportPath)
     const notRun = paths.filter((path) => !ran.has(realOrSame(join(cwd, path))))
-    if (notRun.length > 0) throw new Error(`named test file did not run in the unit project: ${notRun.join(', ')} (Breaks may name only unit tests)`)
+    if (notRun.length > 0)
+      throw new Error(
+        `named test file did not run in the unit project: ${notRun.join(', ')} (Breaks may name only unit tests)`,
+      )
     return code === 0
   } finally {
     rmSync(reportDir, { recursive: true, force: true })
@@ -96,7 +114,10 @@ export function makeDeps(cwd: string, state: InFlight): BreakDeps {
 }
 
 export function installSignalHandlers(cwd: string, state: InFlight): void {
-  for (const [signal, code] of [['SIGINT', 130], ['SIGTERM', 143]] as const) {
+  for (const [signal, code] of [
+    ['SIGINT', 130],
+    ['SIGTERM', 143],
+  ] as const) {
     process.on(signal, () => {
       if (state.path !== null) {
         writeFileSync(join(cwd, state.path), state.original, 'latin1')
@@ -135,15 +156,28 @@ async function runPlan(plan: TestPlan, cwd: string): Promise<number> {
     console.log(`${state.output}\nrun-breaks: the named tests fail before any break (baseline); fix them first`)
     return 1
   }
-  for (const result of outcome.results) console.log(formatResult(result, plan.breaks.find((row) => row.id === result.id)))
+  for (const result of outcome.results)
+    console.log(
+      formatResult(
+        result,
+        plan.breaks.find((row) => row.id === result.id),
+      ),
+    )
   const failed = outcome.results.filter((result) => result.status !== 'caught').length
-  console.log(failed === 0 ? `run-breaks: ${outcome.results.length} caught` : `run-breaks: ${failed} of ${outcome.results.length} breaks not caught`)
+  console.log(
+    failed === 0
+      ? `run-breaks: ${outcome.results.length} caught`
+      : `run-breaks: ${failed} of ${outcome.results.length} breaks not caught`,
+  )
   return failed === 0 ? 0 : 1
 }
 
 export async function main(argv: string[]): Promise<number> {
   const args = parseArgs(argv)
-  if (args === null) { console.log(USAGE); return 1 }
+  if (args === null) {
+    console.log(USAGE)
+    return 1
+  }
   let markdown: string
   try {
     markdown = readFileSync(args.task, 'utf8')

@@ -3,7 +3,16 @@ import { afterEach, expect, test } from 'vitest'
 import { asAdmin, asUser, createTeam, createUser, type TestUser } from './helpers/pb.ts'
 import { addMember, expectNoEmail, memberRow, teamRows } from './helpers/teams.ts'
 import {
-  accept, eventsOf, invite, invitePath, invitesOf, namedUser, onlyInviteOf, send, setAttemptsPerHour, setVerified,
+  accept,
+  eventsOf,
+  invite,
+  invitePath,
+  invitesOf,
+  namedUser,
+  onlyInviteOf,
+  send,
+  setAttemptsPerHour,
+  setVerified,
   unverifiedUser,
 } from './helpers/invites.ts'
 
@@ -44,7 +53,12 @@ test('invite: the owner invites an existing user, who sees the invite, accepts a
   expect(sent.status).toBe(204)
   const listed = await (await asUser(invitee)).collection('team_invites').getFullList()
   expect(listed).toHaveLength(1)
-  expect(listed[0]).toMatchObject({ team: teamId, status: 'pending', team_name: 'Drama 101', invited_by_name: 'Olive Owner' })
+  expect(listed[0]).toMatchObject({
+    team: teamId,
+    status: 'pending',
+    team_name: 'Drama 101',
+    invited_by_name: 'Olive Owner',
+  })
   expectNoEmail(listed)
 
   const accepted = await accept(invitee, listed[0].id)
@@ -61,7 +75,7 @@ test('invite: the owner invites an existing user, who sees the invite, accepts a
 // Review Focus 5 and D7: the invite answer (body and headers) holds no email; before
 // acceptance the owner finds no trace of the invitee (id, email or name) in ANY
 // collection they can read; after it, the owner's member list shows the name only.
-test('invite: the owner never sees the invitee\'s email, and sees nothing of them before they accept', async () => {
+test("invite: the owner never sees the invitee's email, and sees nothing of them before they accept", async () => {
   const { owner, teamId } = await ownerWithTeam()
   const invitee = await namedUser('Ivy Invitee')
 
@@ -74,7 +88,10 @@ test('invite: the owner never sees the invitee\'s email, and sees nothing of the
   const collections = await (await asAdmin()).collections.getFullList()
   let readable = 0
   for (const collection of collections) {
-    const rows = await asOwner.collection(collection.name).getFullList().catch(() => null)
+    const rows = await asOwner
+      .collection(collection.name)
+      .getFullList()
+      .catch(() => null)
     if (rows === null) continue
     readable += 1
     const text = JSON.stringify(rows)
@@ -85,7 +102,9 @@ test('invite: the owner never sees the invitee\'s email, and sees nothing of the
   expect(readable).toBeGreaterThanOrEqual(4) // users, teams, team_members, team_settings at least
 
   expect((await accept(invitee, (await onlyInviteOf(invitee)).id)).status).toBe(200)
-  const members = await asOwner.collection('team_members').getFullList({ filter: asOwner.filter('team = {:t}', { t: teamId }) })
+  const members = await asOwner
+    .collection('team_members')
+    .getFullList({ filter: asOwner.filter('team = {:t}', { t: teamId }) })
   expect(members.map((m) => m.user_name).sort()).toEqual(['Ivy Invitee', 'Olive Owner'])
   expectNoEmail(members)
 })
@@ -99,7 +118,9 @@ test('invite: an unknown email gives 404 "That user doesn\'t exist."; letter cas
   const invitee = await createUser()
   const mixed = `Mixed-${crypto.randomUUID()}@Example.TEST`
   const admin = await asAdmin()
-  const stored = await admin.collection('users').create({ email: mixed, password: 'Test-password-1234', passwordConfirm: 'Test-password-1234', verified: true })
+  const stored = await admin
+    .collection('users')
+    .create({ email: mixed, password: 'Test-password-1234', passwordConfirm: 'Test-password-1234', verified: true })
 
   const unknown = await invite(owner, teamId, `nobody-${crypto.randomUUID()}@example.test`)
   const typedUpper = await invite(owner, teamId, `  ${invitee.email.toUpperCase()}  `)
@@ -140,9 +161,14 @@ test('invite: missing, malformed and injected emails give the same 404 and invit
 // anyone outside the team, the owner of ANOTHER team included, and an unknown team id
 // get the same 404, so team ids do not leak. Verified email is required (403) and a
 // signed-out caller gets 401. Nobody gets an invite from any of these.
-test('invite: a member gets 403; an outsider, another team\'s owner and an unknown id 404; unverified 403; signed-out 401', async () => {
+test("invite: a member gets 403; an outsider, another team's owner and an unknown id 404; unverified 403; signed-out 401", async () => {
   const { owner, teamId } = await ownerWithTeam()
-  const [member, outsider, otherOwner, invitee] = [await createUser(), await createUser(), await createUser(), await createUser()]
+  const [member, outsider, otherOwner, invitee] = [
+    await createUser(),
+    await createUser(),
+    await createUser(),
+    await createUser(),
+  ]
   await addMember(teamId, member)
   const otherTeam = await createTeam(otherOwner)
 
@@ -202,9 +228,15 @@ test('invite: unverified and signed-out calls write no invite event', async () =
   const invitee = await createUser()
 
   expect((await invite(unverified, teamId, invitee.email)).status).toBe(403)
-  expect((await send(undefined, invitePath(teamId), { method: 'POST', body: { email: invitee.email } })).status).toBe(401)
+  expect((await send(undefined, invitePath(teamId), { method: 'POST', body: { email: invitee.email } })).status).toBe(
+    401,
+  )
 
   expect(await eventsOf(unverified, 'invite')).toHaveLength(0)
-  const anonymousEvents = await (await asAdmin()).collection('security_events').getFullList({ filter: "type = 'invite' && user = ''" })
+  const anonymousEvents = await (
+    await asAdmin()
+  )
+    .collection('security_events')
+    .getFullList({ filter: "type = 'invite' && user = ''" })
   expect(anonymousEvents).toHaveLength(0)
 })

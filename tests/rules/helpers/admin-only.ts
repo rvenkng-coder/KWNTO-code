@@ -5,14 +5,20 @@ import { asAdmin, asAnonymous, asUser, createUser } from './pb.ts'
 // PocketBase answers a locked (null) rule with 403, and an unknown record with 404.
 // Either one means the caller got nothing, which is what these checks protect.
 export async function expectRefused(request: Promise<unknown>): Promise<void> {
-  const error: unknown = await request.then(() => null, (e: unknown) => e)
+  const error: unknown = await request.then(
+    () => null,
+    (e: unknown) => e,
+  )
   expect(error, 'the request was allowed').not.toBeNull()
   expect([403, 404]).toContain((error as { status?: number }).status)
 }
 
 // A list is refused either with 403 or by returning no rows; both hide every record.
 export async function expectNoRows(pb: PocketBase, collection: string, filter?: string): Promise<void> {
-  const result = await pb.collection(collection).getList(1, 10, filter ? { filter } : {}).catch((e: unknown) => e)
+  const result = await pb
+    .collection(collection)
+    .getList(1, 10, filter ? { filter } : {})
+    .catch((e: unknown) => e)
   if (result instanceof Error) {
     expect((result as { status?: number }).status).toBe(403)
     return

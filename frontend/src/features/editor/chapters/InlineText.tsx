@@ -17,7 +17,17 @@ interface InlineTextProps {
 }
 
 /** A text that turns into a box on double-click; Enter or leaving the box saves, Escape cancels. */
-export function InlineText({ value, label, onCommit, onClick, className, editing: controlled, onEditingChange, role, selected }: InlineTextProps) {
+export function InlineText({
+  value,
+  label,
+  onCommit,
+  onClick,
+  className,
+  editing: controlled,
+  onEditingChange,
+  role,
+  selected,
+}: InlineTextProps) {
   const [own, setOwn] = useState(false)
   const editing = controlled ?? own
   const setEditing = (next: boolean) => {

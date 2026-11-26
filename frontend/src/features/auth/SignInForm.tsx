@@ -49,14 +49,18 @@ export function SignInForm() {
           required
         />
       </div>
-      {error && <p data-testid="form-error" role="alert">{error}</p>}
-      {resetSent && (
-        <p className="neutral">If that account exists, we sent a link.</p>
+      {error && (
+        <p data-testid="form-error" role="alert">
+          {error}
+        </p>
       )}
+      {resetSent && <p className="neutral">If that account exists, we sent a link.</p>}
       <button type="button" className="link-button" onClick={handleForgotPassword}>
         Forgot password?
       </button>
-      <button type="submit" className="btn-primary">Sign in</button>
+      <button type="submit" className="btn-primary">
+        Sign in
+      </button>
     </form>
   )
 }

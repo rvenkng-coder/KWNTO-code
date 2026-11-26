@@ -15,12 +15,13 @@ export function TeamTrash({ teamId, onRestored }: { teamId: string; onRestored()
   const [now] = useState(() => Date.now())
 
   const load = useCallback(
-    () => Promise.all([backend.projects.listTrashed(teamId), backend.appSettings.get()])
-      .then(([list, settings]) => {
-        setProjects(list)
-        setRetention(settings.trashRetentionDays)
-      })
-      .catch((err: unknown) => setError(errorMessage(err, 'Failed to load the trash'))),
+    () =>
+      Promise.all([backend.projects.listTrashed(teamId), backend.appSettings.get()])
+        .then(([list, settings]) => {
+          setProjects(list)
+          setRetention(settings.trashRetentionDays)
+        })
+        .catch((err: unknown) => setError(errorMessage(err, 'Failed to load the trash'))),
     [teamId],
   )
   useEffect(() => {
@@ -44,13 +45,18 @@ export function TeamTrash({ teamId, onRestored }: { teamId: string; onRestored()
       {error && <p role="alert">{error}</p>}
       {retention !== null && projects.length === 0 && <p className="text-muted">No projects in the trash.</p>}
       <ul className="flex flex-col gap-1">
-        {retention !== null && projects.map((p) => (
-          <li key={p.id} className="flex items-center gap-2">
-            <span className="flex-1">{p.name}</span>
-            <span className="text-muted">{trashLabel(p.deletedAt === null ? retention : daysLeft(p.deletedAt, retention, now))}</span>
-            <button type="button" className="btn" onClick={() => void restore(p)}>Restore</button>
-          </li>
-        ))}
+        {retention !== null &&
+          projects.map((p) => (
+            <li key={p.id} className="flex items-center gap-2">
+              <span className="flex-1">{p.name}</span>
+              <span className="text-muted">
+                {trashLabel(p.deletedAt === null ? retention : daysLeft(p.deletedAt, retention, now))}
+              </span>
+              <button type="button" className="btn" onClick={() => void restore(p)}>
+                Restore
+              </button>
+            </li>
+          ))}
       </ul>
     </div>
   )

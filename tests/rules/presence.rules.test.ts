@@ -18,7 +18,9 @@ async function failure(promise: Promise<unknown>): Promise<number> {
 
 async function mark(user: TestUser | null, ctx: MemberProject, nodeId: string, extra: Record<string, unknown> = {}) {
   const pb = user === null ? asAnonymous() : await asUser(user)
-  return pb.collection('presence').create({ project: ctx.projectId, node: nodeId, user: user?.id ?? '', field: 'title', beat: 0, ...extra })
+  return pb
+    .collection('presence')
+    .create({ project: ctx.projectId, node: nodeId, user: user?.id ?? '', field: 'title', beat: 0, ...extra })
 }
 
 async function holder(ctx: MemberProject, permission: 'comment' | 'edit'): Promise<TestUser> {
@@ -89,7 +91,14 @@ test('presence is seen by the team and old rows are removed', async () => {
     await new Promise((resolve) => setTimeout(resolve, 2500))
     const fresh = await mark(ctx.owner, ctx, nodeId)
     await admin.crons.run('purge_presence')
-    await expect.poll(async () => (await admin.collection('presence').getFullList({ filter: admin.filter('id = {:id}', { id: old.id }) })).length, { timeout: 6000 }).toBe(0)
+    await expect
+      .poll(
+        async () =>
+          (await admin.collection('presence').getFullList({ filter: admin.filter('id = {:id}', { id: old.id }) }))
+            .length,
+        { timeout: 6000 },
+      )
+      .toBe(0)
     expect((await admin.collection('presence').getOne(fresh.id)).id).toBe(fresh.id)
   } finally {
     await admin.collection('system_behavior').update(settings.id, { presence_timeout_seconds: timeout })

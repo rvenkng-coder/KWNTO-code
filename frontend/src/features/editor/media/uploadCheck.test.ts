@@ -4,7 +4,7 @@ import { acceptFor, earlyProblem, formatSize } from './uploadCheck.ts'
 
 describe('early upload check and formatSize', () => {
   // Protects: the browser refuses early with the server's words (C3)
-  test('the browser refuses early with the server\'s words', () => {
+  test("the browser refuses early with the server's words", () => {
     const info: StorageInfo = {
       usedBytes: 50 * 1048576,
       quotaBytes: 100 * 1048576,
@@ -62,7 +62,9 @@ describe('acceptFor', () => {
 
 describe('ogg, m4a and opus', () => {
   const info: StorageInfo = {
-    usedBytes: 0, quotaBytes: 100 * 1048576, isLead: false,
+    usedBytes: 0,
+    quotaBytes: 100 * 1048576,
+    isLead: false,
     maxBytes: { audio: 1048576, video: 200 * 1048576, image: 100 * 1048576 },
     allowedTypes: ['wav', 'mp3', 'ogg', 'm4a', 'opus', 'jpeg', 'png'],
   }
@@ -70,7 +72,9 @@ describe('ogg, m4a and opus', () => {
   // Protects: the new audio formats pass the early check, count as audio and appear in the file picker
   test('the new audio formats are accepted early, limited as audio and offered by the picker', () => {
     for (const name of ['a.ogg', 'a.M4A', 'a.opus']) expect(earlyProblem({ name, size: 1024 }, info)).toBeNull()
-    expect(earlyProblem({ name: 'a.opus', size: 2 * 1048576 }, info)).toBe('This audio file is larger than the 1 MB limit.')
+    expect(earlyProblem({ name: 'a.opus', size: 2 * 1048576 }, info)).toBe(
+      'This audio file is larger than the 1 MB limit.',
+    )
     expect(acceptFor(info.allowedTypes)).toBe('.wav,.mp3,.ogg,.m4a,.opus,.jpg,.jpeg,.png')
   })
 })

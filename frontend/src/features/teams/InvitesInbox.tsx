@@ -45,19 +45,31 @@ export function InvitesInbox({ onAccepted }: InvitesInboxProps) {
   }
 
   if (invites.length === 0) {
-    return error ? <p data-testid="form-error" role="alert">{error}</p> : null
+    return error ? (
+      <p data-testid="form-error" role="alert">
+        {error}
+      </p>
+    ) : null
   }
 
   return (
     <div data-testid="invite-inbox" className="panel flex flex-col gap-2">
       <h3 className="section-label">Invitations</h3>
-      {error && <p data-testid="form-error" role="alert">{error}</p>}
+      {error && (
+        <p data-testid="form-error" role="alert">
+          {error}
+        </p>
+      )}
       <ul className="flex flex-col gap-1">
         {invites.map((invite) => (
           <li key={invite.id} className="flex flex-wrap items-center gap-2">
             {invite.teamName} (invited by {invite.invitedByName})
-            <button className="btn-primary" onClick={() => handleAccept(invite.id)} disabled={!user?.verified}>Accept</button>
-            <button className="btn" onClick={() => handleDecline(invite.id)}>Decline</button>
+            <button className="btn-primary" onClick={() => handleAccept(invite.id)} disabled={!user?.verified}>
+              Accept
+            </button>
+            <button className="btn" onClick={() => handleDecline(invite.id)}>
+              Decline
+            </button>
           </li>
         ))}
       </ul>

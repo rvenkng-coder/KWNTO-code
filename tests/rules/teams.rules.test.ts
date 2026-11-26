@@ -36,7 +36,13 @@ test('teams: a verified user creates a team and becomes its owner, with a settin
 test('teams: an unverified user cannot create a team', async () => {
   const unverified = await createUser({ verified: false })
   const pb = await asUser(unverified)
-  const error: unknown = await pb.collection('teams').create({ name: 'Nope', owner: unverified.id }).then(() => null, (e: unknown) => e)
+  const error: unknown = await pb
+    .collection('teams')
+    .create({ name: 'Nope', owner: unverified.id })
+    .then(
+      () => null,
+      (e: unknown) => e,
+    )
   expect((error as { status?: number } | null)?.status).toBe(400)
   expect(await teamsOwnedBy(unverified.id)).toHaveLength(0)
 })
@@ -54,7 +60,9 @@ test('teams: an empty name or one longer than 80 characters is refused', async (
   const owner = await createUser()
   const pb = await asUser(owner)
   await expect(pb.collection('teams').create({ name: '', owner: owner.id })).rejects.toMatchObject({ status: 400 })
-  await expect(pb.collection('teams').create({ name: 'x'.repeat(81), owner: owner.id })).rejects.toMatchObject({ status: 400 })
+  await expect(pb.collection('teams').create({ name: 'x'.repeat(81), owner: owner.id })).rejects.toMatchObject({
+    status: 400,
+  })
   expect(await teamsOwnedBy(owner.id)).toHaveLength(0)
 })
 

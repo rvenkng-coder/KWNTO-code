@@ -1,6 +1,6 @@
 # Lint and guardrail checks
 
-`npm run lint` runs ESLint on the whole repo, then the PERF comment check, the docs link check, the plan check and the history-reference check. All must pass before a change is done. Both are required by [engineering.md](../engineering.md); this page says what each one catches and how to fix it.
+`npm run lint` runs ESLint on the whole repo, then the PERF comment check, the docs link check, the plan check and the history-reference check. All must pass before a change is done. [engineering.md](../engineering.md) requires them; this page says what each one catches and how to fix it.
 
 ## What ESLint enforces
 

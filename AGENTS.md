@@ -26,29 +26,24 @@ See the [design](docs/superpowers/specs/2026-11-11-kwnto-design.md) and [ERD](do
 | `e2e/` | Playwright end-to-end tests |
 | `scripts/` | TypeScript utility scripts (run with `node`) |
 | `spike/` | Throwaway spikes (isolated from the app) |
-| `.pi/skills/` | Skills for the local model (`local-task`: loaded with `--skill`, see the [runbook](docs/developer/local-model-runbook.md)) |
-| `.claude/skills/` | Skills for the controller (`grading-local-task`: grade, apply and record a local model's work) |
 | `docs/` | Design, engineering, security, developer guides |
 
 ## Commands
 
 | Command | What |
 |---|---|
-| `npm test` | Full suite: lint, typecheck, unit, container, rules |
+| `npm test` | Full suite: lint, typecheck, unit, container, rules, e2e |
 | `npm run test:unit` | Pure functions (Vitest, Node) |
 | `npm run test:container` | Docker container hardening |
 | `npm run test:rules` | PocketBase access rules (live instance) |
 | `npm run test:e2e` | Playwright across Firefox + Chromium |
-| `npm run lint` | ESLint + PERF comment check + docs link check + plan check |
+| `npm run lint` | ESLint + PERF comment check + docs link check + plan check + history-reference check |
+| `npm run format` | Rewrite code layout with Prettier |
+| `npm run format:check` | Fail if a code file is not formatted |
+| `npm run check:comments [-- <path>...]` | No comment cites a plan, task, decision number, case id or finding ([lint.md](docs/developer/lint.md)) |
 | `npm run check:plan` | Task files of opted-in plans have a tier, Interfaces and a valid Test plan block |
 | `npm run check:hygiene [-- --base <sha>]` | New tests have a header comment; nothing skipped or focused; no test or assertion lost against `main` |
-| `npm run check:breaks -- <task.md>` | Applies each deliberate break in the task's Test plan and requires its unit tests to fail; restores the files |
-| `npm run check:probes -- <folder>` | Runs a task's probe folder (the `probes` Vitest project); prints only each failing row and kind |
-| `npm run check:task -- --task <task.md> [--base <sha>] [--built-by local\|strong]` | Every check a task ends with (plan, lint, typecheck, unit, named layers, hygiene, quality, coverage, breaks, probes, review), one verdict; paste the full output in the report. See [check-task.md](docs/developer/check-task.md) |
 | `npm run check:quality [-- --base <sha>]` | Function length, complexity, nesting, parameter and console limits on files changed since `main` |
-| `npm run prepare-local-run -- <plan folder> <task> [<checkpoint>]` | Checks the model server, task and checkout, builds the local-model sandbox and prompt, prints the start command (never starts the model). See [prepare-local-run.md](docs/developer/prepare-local-run.md) |
-| `npm run ping:model [-- <baseUrl>]` | One line: does the local model server (default `http://localhost:9092`) answer, and is the model loaded? Exit 0 if answering, 1 if not. Sends only a GET ([runbook](docs/developer/local-model-runbook.md)) |
-| `npm run report:escape-rate -- <progress.md>` | Share of local-model tasks with a problem found after close (fails on a malformed table) |
 | `npm run report:quality` | The same limits over the whole repository, counts only, exit 0 |
 | `npm run typecheck` | `tsc -b --noEmit` |
 | `npm run dev` | Vite dev server |
@@ -57,14 +52,14 @@ See the [design](docs/superpowers/specs/2026-11-11-kwnto-design.md) and [ERD](do
 ## Hard rules
 
 - **One door to the backend.** Only `frontend/src/backend/` imports `pocketbase`.
-- **300 lines max per file.** Enforced by ESLint `max-lines`.
+- **300 lines max per file.** ESLint `max-lines` enforces it in `frontend/src` (test files 500) and `backend/pb_hooks`.
+- **Comments state the reason.** Never cite a plan, task, decision number, case id or finding.
 - **No `any`.** Justified exception needs a comment.
 - **Deny by default.** PocketBase rules default to `null` (superusers only).
 - **No new dependencies** without a decision record and developer approval.
 - **Ask first** before pushing, deleting data, touching Docker volumes, or force-pushing.
 - **Never merge to `main`.** Agents do not merge.
 - **Never edit a failing test.** If a test fails, stop and explain why.
-- **Evidence is the `check:task` output.** Paste the full output of `npm run check:task` in the task report; the controller refuses a task with a `FAIL` verdict or without the paste ([check-task.md](docs/developer/check-task.md)).
 - **Prototype is reference only.** Do not copy code from `branching_narrative_tool.tsx`.
 
 ## Adding a collection
@@ -73,8 +68,29 @@ See the [design](docs/superpowers/specs/2026-11-11-kwnto-design.md) and [ERD](do
 2. Write `tests/rules/<name>.rules.test.ts` covering list/view/create/update/delete for anonymous, other user, owner, and injection.
 3. If the rule is public (`""`), add it to `PUBLIC_RULES` in `tests/rules/helpers/coverage.ts` with a code comment citing the design section.
 
-## Tracking and resuming
+## Agent workflow only
+
+A person working by hand can skip this section. It serves agents and the plans they follow.
+
+- **Evidence is the `check:task` output.** Paste the full output of `npm run check:task` in the task report; the controller refuses a task with a `FAIL` verdict or without the paste ([check-task.md](docs/developer/check-task.md)).
+
+| Path | Purpose |
+|---|---|
+| `.pi/skills/` | Skills for the local model (`local-task`: loaded with `--skill`, see the [runbook](docs/developer/local-model-runbook.md)) |
+| `.claude/skills/` | Skills for the controller (`grading-local-task`: grade, apply and record a local model's work) |
+| `.planning/` | Progress logs and task reports of each plan |
+
+| Command | What |
+|---|---|
+| `npm run check:breaks -- <task.md>` | Applies each deliberate break in the task's Test plan and requires its unit tests to fail; restores the files |
+| `npm run check:probes -- <folder>` | Runs a task's probe folder (the `probes` Vitest project); prints only each failing row and kind |
+| `npm run check:task -- --task <task.md> [--base <sha>] [--built-by local\|strong]` | Every check a task ends with (plan, lint, typecheck, unit, named layers, hygiene, quality, coverage, breaks, probes, review), one verdict; paste the full output in the report. See [check-task.md](docs/developer/check-task.md) |
+| `npm run prepare-local-run -- <plan folder> <task> [<checkpoint>]` | Checks the model server, task and checkout, builds the local-model sandbox and prompt, prints the start command (never starts the model). See [prepare-local-run.md](docs/developer/prepare-local-run.md) |
+| `npm run ping:model [-- <baseUrl>]` | One line: does the local model server (default `http://localhost:9092`) answer, and is the model loaded? Exit 0 if answering, 1 if not. Sends only a GET ([runbook](docs/developer/local-model-runbook.md)) |
+| `npm run report:escape-rate -- <progress.md>` | Share of local-model tasks with a problem found after close (fails on a malformed table) |
+
+### Tracking and resuming
 
 - Work in checkpoints. Close each with one commit.
 - Track progress in `.planning/<date>-<plan>/progress.md`. Rows for tasks built by a local model carry three columns: **Built by** (`local` or `strong`; `-` for a non-task row), **Review** (`none`, `clean` or `found N`) and **Escaped** (problems found after the task closed, 0 if none). See [review sampling](docs/developer/review-sampling.md); `npm run report:escape-rate -- <progress.md>` prints the rate.
-- To resume: `git worktree list`, switch to the worktree on `feat/foundation`, read `progress.md`, and continue from the last unticked step.
+- To resume: `git worktree list`, switch to the worktree of the current plan's branch, read `progress.md`, and continue from the last unticked step.

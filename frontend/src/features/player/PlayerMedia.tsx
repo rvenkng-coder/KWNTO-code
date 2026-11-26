@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, type SyntheticEvent } from 'react'
+import { failedToLoad } from '../share/mediaError'
 import { MEDIA_GONE } from '../share/ShareMedia'
 import type { PlayMedia } from './story'
 
@@ -16,11 +17,14 @@ export function PlayerMedia({ media, useMediaSrc }: { media: PlayMedia; useMedia
     setFailed(true)
     onError()
   }
+  const failPlayer = (e: SyntheticEvent<HTMLMediaElement>) => {
+    if (failedToLoad(e.currentTarget)) fail()
+  }
   return (
     <figure className="flex flex-col gap-1">
       {media.kind === 'image' && <img data-testid="player-media" src={src} alt={media.title} onError={fail} className="max-h-[50vh] rounded-base object-contain" />}
-      {media.kind === 'audio' && <audio data-testid="player-media" controls autoPlay src={src} onError={fail} className="w-full" />}
-      {media.kind === 'video' && <video data-testid="player-media" controls autoPlay src={src} onError={fail} className="max-h-[50vh] w-full rounded-base bg-black" />}
+      {media.kind === 'audio' && <audio data-testid="player-media" controls autoPlay src={src} onError={failPlayer} className="w-full" />}
+      {media.kind === 'video' && <video data-testid="player-media" controls autoPlay src={src} onError={failPlayer} className="max-h-[50vh] w-full rounded-base bg-black" />}
     </figure>
   )
 }

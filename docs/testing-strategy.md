@@ -59,6 +59,7 @@ Try every kind that fits the code under test. `kind` is the slug used in probe t
 | `secret-in-output` | Secrets in command arguments, logs or messages | Plan 2 incident runbook |
 | `helper-hides-bug` | A test helper or mapper that "fixes" what the code under test gets wrong | Plan 2 `toPlain` and the `user_id` mapper test |
 | `test-asserts-the-mock` | A test whose only assertion is a value it set itself | general |
+| `missing-device` | A machine without the device a feature uses (audio output on a CI runner or a server): the data must not be reported as lost or broken | Player Mode showed `Media removed` for good audio in Firefox with no audio device |
 
 ## 5. Definition of done and what counts as evidence
 

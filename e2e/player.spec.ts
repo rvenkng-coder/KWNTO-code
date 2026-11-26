@@ -160,6 +160,25 @@ test('audio comes with its node and goes when the node does', async ({ page }) =
   await expect(page.locator('audio')).toHaveCount(0)
 })
 
+// Protects D8: a playback failure on a loaded file (Firefox raises a decode error with no audio device) keeps the player.
+test('a playback error keeps the audio player and a load error replaces it', async ({ page }) => {
+  await playableProject(page)
+  const dialog = await openPlayer(page)
+  await pick(dialog, 'Open the door', 'Door')
+  const audio = dialog.locator('audio')
+  await expect.poll(() => audio.evaluate((el: HTMLAudioElement) => el.readyState)).toBeGreaterThan(0)
+  const raise = (code: number) => audio.evaluate((el, value) => {
+    Object.defineProperty(el, 'error', { configurable: true, value: { code: value } })
+    el.dispatchEvent(new Event('error'))
+  }, code)
+  await raise(3)
+  await expect(audio).toHaveCount(1)
+  await expect(dialog.getByText('Media removed')).toHaveCount(0)
+  await raise(2)
+  await expect(dialog.getByText('Media removed')).toBeVisible()
+  await expect(audio).toHaveCount(0)
+})
+
 // Protects D10: Tab stays in the dialog and no key reaches the editor's shortcuts behind it.
 test('keys in the player do not reach the editor', async ({ page }) => {
   const story = await playableProject(page)

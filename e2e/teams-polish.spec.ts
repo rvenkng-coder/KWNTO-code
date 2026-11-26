@@ -89,10 +89,14 @@ test('sign-up replaces the form with a confirmation', async ({ page }) => {
 // C9: keyboard reaches the account controls
 test('forgot password works from the keyboard', async ({ page }) => {
   await page.goto('/')
+  // The form is drawn after the page loads; Tab pressed before that lands on nothing (a flake under load).
+  const forgot = page.getByRole('button', { name: 'Forgot password?' })
+  await expect(forgot).toBeVisible()
   // Tab to Forgot password? (email → password → forgot password)
   await page.keyboard.press('Tab')
   await page.keyboard.press('Tab')
   await page.keyboard.press('Tab')
+  await expect(forgot).toBeFocused()
   await page.keyboard.press('Enter')
   // The neutral message should appear
   await expect(page.getByText('If that account exists, we sent a link.')).toBeVisible({ timeout: 10_000 })

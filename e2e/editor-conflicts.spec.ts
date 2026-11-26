@@ -1,7 +1,6 @@
-// Protects: offline conflicts and two tabs in the browser (offline sync plan Task 5; design 6.7, 8b;
-// decision D4, D9, D12): an edit made offline that meets a teammate's change to the same thing asks
-// the person (keep mine / keep theirs, also for a deleted line), the answer is kept on both pages,
-// and two tabs of one browser send each waiting change once.
+// Protects: offline conflicts and two tabs in the browser (design 6.7, 8b): an edit made offline that meets a
+// teammate's change to the same thing asks the person (keep mine / keep theirs, also for a deleted line), the answer is
+// kept on both pages, and two tabs of one browser send each waiting change once.
 import { expect, test, type Page } from '@playwright/test'
 import { adminPB, adminRecord } from './helpers/admin'
 import { addNodeAt, card, connectNodes, openProject, ownerWithProject, readyCanvas } from './helpers/editor'
@@ -11,7 +10,7 @@ import { openTeam } from './helpers/ui'
 
 const lineText = (page: Page) => panel(page).getByTestId('line-row').first().getByLabel('Line text')
 
-// Protects: D4, D12: a title changed offline and by a teammate asks; Keep mine wins on both pages, also after a reload.
+// Protects: a title changed offline and by a teammate asks; Keep mine wins on both pages, also after a reload.
 test("keep mine overwrites the teammate's change after asking", async ({ browser }) => {
   const { a, b, ctxA, ids } = await ownerAndMember(browser, 1)
   const [n1] = ids as [string]
@@ -36,7 +35,7 @@ test("keep mine overwrites the teammate's change after asking", async ({ browser
   }
 })
 
-// Protects: D4, D12: Keep theirs keeps the teammate's title, and the other field I changed offline (colour) was still sent.
+// Protects: Keep theirs keeps the teammate's title, and the other field I changed offline (colour) was still sent.
 test('keep theirs keeps their change and still saves my other edits', async ({ browser }) => {
   const { a, b, ctxA, ids } = await ownerAndMember(browser, 1)
   const [n1] = ids as [string]
@@ -60,7 +59,8 @@ test('keep theirs keeps their change and still saves my other edits', async ({ b
   expect((await adminRecord('nodes', n1)).title).toBe('Theirs')
 })
 
-// Protects: D4: a script line deleted by a teammate while I edited it offline is named in the dialog, and Keep mine brings it back with my text.
+// Protects: a script line deleted by a teammate while I edited it offline is named in the dialog, and Keep mine brings
+// it back with my text.
 test('a line deleted by a teammate can be brought back', async ({ browser }) => {
   const { a, b, ctxA, ids } = await ownerAndMember(browser, 1)
   const [n1] = ids as [string]
@@ -93,7 +93,8 @@ test('a line deleted by a teammate can be brought back', async ({ browser }) => 
   }
 })
 
-// Protects: review focus 4, D9: two tabs of one browser send each waiting change once, and both end showing all of them.
+// Protects: two tabs of one browser share the waiting changes and only one of them sends, so each goes once, and both
+// end showing all of them.
 test('two tabs of one browser send each waiting change once', async ({ page, context }) => {
   await ownerWithProject(page, 'Story')
   await readyCanvas(page, 0)
@@ -133,7 +134,8 @@ test('two tabs of one browser send each waiting change once', async ({ page, con
   }
 })
 
-// Protects: D4: x and y are one attribute, `Position`: a node moved offline that a teammate moved meanwhile asks once, with both positions.
+// Protects: x and y are one attribute, `Position`: a node moved offline that a teammate moved meanwhile asks once, with
+// both positions.
 test('a node moved by both sides asks about its position once', async ({ browser }) => {
   const { a, b, ctxA, ids } = await ownerAndMember(browser, 1)
   const [n1] = ids as [string]
@@ -157,7 +159,8 @@ test('a node moved by both sides asks about its position once', async ({ browser
   expect(Number(server.x)).toBeLessThan(150)
 })
 
-// Protects: design 6.7, review focus 5: a choice linked offline to a node a teammate linked to from the same card meanwhile is refused by the unique pair index: it is taken back, listed as failed with the server's message, and nothing else is blocked.
+// Protects: design 6.7: a choice linked offline to a node a teammate linked to from the same card meanwhile is refused
+// by the unique pair index: it is taken back, listed as failed with the server's message, and nothing else is blocked.
 test('a choice refused by the unique pair index lands in the failed list', async ({ browser }) => {
   const { a, b, ctxA, ids } = await ownerAndMember(browser, 2)
   const [n1, n2] = ids as [string, string]

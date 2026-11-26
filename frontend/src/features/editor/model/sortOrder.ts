@@ -1,4 +1,4 @@
-// Decimal sort order (plan decision D4): insert between two neighbours takes the midpoint,
+// Decimal sort order: insert between two neighbours takes the midpoint,
 // at an end takes neighbour +- 1. When floats run out of room the whole list is renumbered.
 
 const usable = (n: number | null): boolean => n === null || Number.isFinite(n)

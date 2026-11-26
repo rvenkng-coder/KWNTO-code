@@ -5,7 +5,7 @@ import { LinkItem } from './LinkItem.tsx'
 import { linksOf } from './linksList.ts'
 import { TITLE_MAX, useLinksStore } from './useProjectLinks.ts'
 
-// Links and other material on a node: a title and a web address each (plan 2026-11-21-node-links).
+// Links and other material on a node: a title and a web address each (design 6.2).
 export function LinksSection({ node }: { node: StoryNode }) {
   const links = useLinksStore((s) => s.links)
   const error = useLinksStore((s) => s.error)

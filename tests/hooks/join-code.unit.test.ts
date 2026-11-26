@@ -1,10 +1,9 @@
 import { createRequire } from 'node:module'
 import { expect, test } from 'vitest'
 
-// The team join code (design section 5: a join code lets a whole class join quickly)
-// and decision D1 of the accounts and teams plan: 8 characters from an alphabet without
-// look-alike characters (no 0/O, no 1/I), so a code read off a projector is typed right.
-// The randomness is passed in, so these tests control it; the hook passes a
+// The team join code (design section 5: a join code lets a whole class join quickly): 8 characters
+// from an alphabet without look-alike characters (no 0/O, no 1/I), so a code read off a projector
+// is typed right. The randomness is passed in, so these tests control it; the hook passes a
 // crypto-quality source.
 
 const require = createRequire(import.meta.url)
@@ -23,7 +22,7 @@ test('with randomIndex always n - 1 the code is 99999999', () => {
   expect(generateJoinCode((n) => n - 1)).toBe('99999999')
 })
 
-// Protects D1 over many codes: the length is always 8 and every character is in the
+// Protects the code format over many codes: the length is always 8 and every character is in the
 // alphabet. A small seeded generator keeps the run repeatable.
 test('1,000 codes all have 8 characters from the alphabet', () => {
   let seed = 12345
@@ -41,7 +40,7 @@ test('1,000 codes all have 8 characters from the alphabet', () => {
   }
 })
 
-// Protects D1: 32 distinct characters, none of them a look-alike.
+// Protects the alphabet: 32 distinct characters, none of them a look-alike.
 test('the alphabet has 32 distinct characters and no 0, O, 1 or I', () => {
   expect(JOIN_CODE_ALPHABET).toBe('ABCDEFGHJKLMNPQRSTUVWXYZ23456789')
   expect(new Set(JOIN_CODE_ALPHABET).size).toBe(32)

@@ -65,7 +65,7 @@ test('ensureUserRecords creates the three rows with their defaults', () => {
   expect(rowsFor(app, 'user_status', 'user1')).toEqual([{ user: 'user1', blocked: false }])
 })
 
-// Protects the helper's contract "idempotent": it also runs at sign-in (Task 4), so a
+// Protects the helper's contract "idempotent": it also runs at sign-in, so a
 // second call must not add rows, and must never undo a theme choice or an admin's block.
 test('ensureUserRecords never adds a second row or changes an existing one', () => {
   const app = new FakeApp()
@@ -113,7 +113,7 @@ class RacingApp extends FakeApp {
   }
 }
 
-// Protects sign-in (Task 4): two sign-ins of the same new account at once can both find
+// Protects sign-in: two sign-ins of the same new account at once can both find
 // a row missing and both create it; the second create hits the unique index. That is not
 // an error, because the row now exists, so the sign-in must not fail.
 test('ensureUserRecords accepts a row that another request created first', () => {

@@ -19,7 +19,7 @@ const rename = (label: string, from: string, to: string): Step => ({
   changes: [{ type: 'update', kind: 'nodes', id: 'n1', before: { title: from }, after: { title: to } }],
 })
 
-// Protects: design 8b, D5: at most one hundred steps are kept (the oldest go), and a new edit clears redo.
+// Protects: design 8b: at most one hundred steps are kept (the oldest go), and a new edit clears redo.
 test('history keeps one hundred steps and a new edit clears redo', () => {
   let h: History = EMPTY_HISTORY
   for (let i = 0; i < 105; i++) h = recordStep(h, rename(`s${i}`, `t${i}`, `t${i + 1}`))
@@ -79,7 +79,7 @@ test('undo and redo walk the history in order', () => {
   expect(again?.history.future).toEqual([b])
 })
 
-// Protects: D5 and Review Focus 4: a change whose fields someone else touched since cannot be applied.
+// Protects: a change whose fields someone else touched since cannot be applied.
 test('a change someone else has touched since cannot be applied', () => {
   const update: Change = { type: 'update', kind: 'nodes', id: 'n1', before: { title: 'Y' }, after: { title: 'X' } }
   const now = (title: string) =>

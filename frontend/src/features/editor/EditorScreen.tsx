@@ -32,7 +32,7 @@ function NotFound() {
   )
 }
 
-// Opens the project while the screen is shown; the tab view and the undo history (D5) start
+// Opens the project while the screen is shown; the tab view and the undo history start
 // fresh for each project.
 function useOpenProject(projectId: string): void {
   useEffect(() => {
@@ -46,8 +46,8 @@ function useOpenProject(projectId: string): void {
   }, [projectId])
 }
 
-// Text still waiting to be saved goes now when the person moves on (Review Focus 3): another
-// selection, chapter or project, leaving the editor or the page. Leaving the page while a save
+// Text still waiting to be saved goes now when the person moves on, so it is not lost in the save
+// delay: another selection, chapter or project, leaving the editor or the page. Leaving the page while a save
 // is unsent or in flight asks the browser to warn.
 function useFlushOnLeave(projectId: string, chapterId: string | null): void {
   const nodeIds = useSelection((s) => s.nodeIds)

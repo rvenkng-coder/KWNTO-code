@@ -48,7 +48,7 @@ test('cross-chapter links become tags', () => {
   expect(card?.data.choices.filter((c) => c.crossLink !== null)).toHaveLength(2)
 })
 
-// Protects: D9: a node shows its first 3 lines, cut to 80 characters, and counts the rest.
+// Protects: a node shows its first 3 lines, cut to 80 characters, and counts the rest.
 test('node previews show three lines and count the rest', () => {
   const long = 'L'.repeat(120)
   const s = fromContent(

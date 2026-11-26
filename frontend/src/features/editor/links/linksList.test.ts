@@ -7,7 +7,7 @@ function link(id: string, nodeId: string, created: string): NodeLink {
 }
 
 describe('linksOf', () => {
-  // Protects: a node shows only its own links, oldest first (C1)
+  // Protects: a node shows only its own links, oldest first
   test("a node's links come oldest first", () => {
     const links = [
       link('c', 'n1', '2026-11-21 10:00:03Z'),
@@ -21,7 +21,7 @@ describe('linksOf', () => {
 })
 
 describe('applyLinkEvent', () => {
-  // Protects: a live event and the answer to our own add can both arrive; neither duplicates or mutates (C2)
+  // Protects: a live event and the answer to our own add can both arrive; neither duplicates or mutates
   test('link events never duplicate or mutate', () => {
     const a = link('a', 'n1', '2026-11-21 10:00:01Z')
     const empty: NodeLink[] = []

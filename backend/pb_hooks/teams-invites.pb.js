@@ -7,16 +7,16 @@
 // Emails are private (design 5). What each side can learn is kept small on purpose:
 // - the owner learns only whether an account has the email (204, or 404 "That user
 //   doesn't exist."): the accepted enumeration risk, slowed by the per-user attempt limit
-//   shared with join codes (D3) and recorded by an `invite` log entry per attempt;
+//   shared with join codes and recorded by an `invite` log entry per attempt;
 // - the owner never gets the invitee's email or id back, and cannot see a pending
-//   invite at all (D7); they see the person's name once they have accepted;
+//   invite at all; they see the person's name once they have accepted;
 // - the log keeps only the email's domain, so it cannot become a list of registered
 //   emails;
 // - only the invited person can answer an invite; anyone else gets the same 404 as for
 //   an invite that does not exist.
 
 // The invitee may not read the team or the inviter's account, so the invite carries
-// copies of their names (decision D6), set by the server whatever the caller sent. A
+// copies of their names, set by the server whatever the caller sent. A
 // model hook, so invites made any way (the route, the admin dashboard) get them.
 onRecordCreate((e) => {
   const team = e.app.findRecordById("teams", e.record.getString("team"))

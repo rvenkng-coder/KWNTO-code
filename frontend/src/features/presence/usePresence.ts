@@ -3,7 +3,7 @@ import { create } from 'zustand'
 import { useSync } from '../editor/sync/syncStore'
 import { backend, type PresenceEvent, type PresenceRow } from '../../backend'
 
-// Who is editing what (plan 7 D14). The store holds the rows this browser has received and when
+// Who is editing what. The store holds the rows this browser has received and when
 // (its own clock); the field the person has focus on is reported by a heartbeat.
 
 export const HEARTBEAT_MS = 10_000

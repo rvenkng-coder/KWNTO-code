@@ -1,5 +1,5 @@
-// Checks an untrusted project file (plan 7 D3, security.md 5 "Bad imports"). CommonJS, loaded
-// through lib/project-file.js.
+// Checks an untrusted project file (security.md 5 "Bad imports"). Written by hand: the hooks
+// have no npm packages. CommonJS, loaded through lib/project-file.js.
 
 const { FILE_LIMITS, COLORS, CUE_TYPES, MEDIA_KINDS, MAX_PROBLEMS } = require("./project-file-limits.js")
 const { checkLinkUrl } = require("./link-check.js")

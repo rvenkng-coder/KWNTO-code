@@ -1,6 +1,5 @@
-// Protects: search and cross-chapter links (editor core plan, Task 13; design 6.1): header search
-// jumps to a node in another chapter, a link to another chapter shows a tag that jumps to its
-// target, and a trashed target leaves no tag until undone (Review Focus 5).
+// Protects: search and cross-chapter links (design 6.1): header search jumps to a node in another chapter, a link to
+// another chapter shows a tag that jumps to its target, and a trashed target leaves no tag until undone.
 import { expect, test, type Page } from '@playwright/test'
 import { addNodeAt, card, ownerWithProject, readyCanvas, waitForSave } from './helpers/editor'
 
@@ -92,7 +91,7 @@ test('a cross-chapter link shows a tag that jumps to its target', async ({ page 
   await expect(card(page, a).getByTestId('cross-link')).toHaveText('→ Chapter 2: The Door')
 })
 
-// Protects: Review Focus 5: trashing a link target removes the tag (A becomes an end) until undo brings it back.
+// Protects: trashing a link target removes the tag (A becomes an end) until undo brings it back.
 test('trashing a link target removes its tag until undone', async ({ page }) => {
   const { a, door } = await twoChapters(page)
   await card(page, a).click()

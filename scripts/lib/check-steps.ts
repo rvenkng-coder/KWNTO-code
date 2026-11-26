@@ -1,5 +1,5 @@
 // The real steps of check:task (docs/developer/check-task.md). Fast checks run in this process through the
-// exported functions of Tasks 2 to 7; npm scripts, breaks and probes run as child processes with a deadline.
+// single checks' exported functions; npm scripts, breaks and probes run as child processes with a deadline.
 import { readFileSync } from 'node:fs'
 import { basename, dirname, join, resolve } from 'node:path'
 import type { CheckContext, Step, StepResult } from '../check-task.ts'
@@ -176,7 +176,7 @@ function probesStep(root: string): Step {
   })
 }
 
-// Escape rate for the review line (ruling of Task 8): no file or no tracking table means 0, said so;
+// Escape rate for the review line: no file or no tracking table means 0, said so;
 // any other problem is shown and counts as 1, so every local task is reviewed (fail closed).
 // `markdown` is null when the file does not exist, an Error when it exists but cannot be read.
 export function escapeRateFor(markdown: string | null | Error, path: string): { rate: number; note: string } {

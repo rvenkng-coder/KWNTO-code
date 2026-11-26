@@ -33,7 +33,7 @@ describe('node_links rules and collection', () => {
     }
   })
 
-  // Protects: a member adds a link and the server trims what it stores (C4)
+  // Protects: a member adds a link and the server trims what it stores
   test('a member adds a link and the server trims it', async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -52,7 +52,7 @@ describe('node_links rules and collection', () => {
     expect(data.creator).toBe(owner.id)
   })
 
-  // Protects: only a verified member adds, as themself, to their own project (C5)
+  // Protects: only a verified member adds, as themself, to their own project
   test('only a verified member adds a link, as themself, in their own project', async () => {
     const { owner, member, projectId, chapterId, teamId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -74,7 +74,7 @@ describe('node_links rules and collection', () => {
     expect(await linkRows()).toBe(0)
   })
 
-  // Protects: the server refuses unsafe addresses with the field error and a clear message (C6)
+  // Protects: the server refuses unsafe addresses with the field error and a clear message
   test('the server refuses unsafe addresses with a clear message', async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -97,7 +97,7 @@ describe('node_links rules and collection', () => {
     expect(ok.status).toBe(200)
   })
 
-  // Protects: only team members read links; a filter cannot widen that (C7)
+  // Protects: only team members read links; a filter cannot widen that
   test('only team members read links', async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -117,7 +117,7 @@ describe('node_links rules and collection', () => {
     expect((await listLinks(outsider, `?filter=${encodeURIComponent(`title ~ "'; --"`)}`)).items).toHaveLength(0)
   })
 
-  // Protects: a link is never edited; any member deletes; an outsider cannot (C8)
+  // Protects: a link is never edited; any member deletes; an outsider cannot
   test('links are never updated and any member deletes', async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -137,7 +137,7 @@ describe('node_links rules and collection', () => {
     expect(await linkRows()).toBe(0)
   })
 
-  // Protects: links go with their node, project and team (C9)
+  // Protects: links go with their node, project and team
   test('deleting a node, project or team removes its links', async () => {
     const admin = await asAdmin()
     for (const target of ['nodes', 'projects', 'teams'] as const) {
@@ -158,7 +158,7 @@ describe('node_links rules and collection', () => {
     }
   })
 
-  // Protects: a record edited outside the app (the dashboard) cannot become a non-web address (final review, Important 1)
+  // Protects: a record edited outside the app (the dashboard) cannot become a non-web address
   test('an admin edit cannot make a link a non-web address', async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)

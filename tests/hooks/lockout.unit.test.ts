@@ -6,10 +6,10 @@ import { expect, test } from 'vitest'
 // itself: it is computed from the failure times alone, so time passing unlocks it, and
 // retryAfterSeconds tells the person exactly when.
 //
-// The input is the failures of ONE account from ONE IP (decision D2). Choosing which
-// failures belong to the pair is the hook's job (users-signin.pb.js); the rule tests
-// all come from 127.0.0.1, so the per-IP split is only visible here: a list that holds
-// only this pair's failures decides for this pair alone.
+// The input is the failures of ONE account from ONE IP, so that nobody can lock another person out
+// from a different address. Choosing which failures belong to the pair is the hook's job
+// (users-signin.pb.js); the rule tests all come from 127.0.0.1, so the per-IP split is only visible
+// here: a list that holds only this pair's failures decides for this pair alone.
 
 const require = createRequire(import.meta.url)
 type Decision = { locked: boolean; retryAfterSeconds: number }

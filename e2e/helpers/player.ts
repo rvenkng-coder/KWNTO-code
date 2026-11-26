@@ -36,7 +36,7 @@ export interface PlayStory {
 }
 
 /**
- * Writes a small story as the admin (plan 2026-11-26-player-mode, Task 2). Chapter 1 holds `Gate` (the start:
+ * Writes a small story as the admin. Chapter 1 holds `Gate` (the start:
  * the hooks make the first node created the start) and `Door`; chapter 2, `The Garden`, holds `Garden`.
  * Gate: three lines (one with no name, one blank), a lighting cue, an image, the choices `Open the door`
  * (to Door) and `Wait` (no target). Door: a WAV, the choices `Go back` (to Gate) and one with no text (to Garden).

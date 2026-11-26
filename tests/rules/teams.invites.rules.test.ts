@@ -20,9 +20,8 @@ import {
 // backend/pb_hooks/teams-invites.pb.js: `POST /api/kwnto/teams/{id}/invites`. The owner
 // learns only whether an account exists (the accepted, rate-limited and logged
 // enumeration risk), never the invitee's email or anything else about them, and sees
-// no trace of a pending invitee anywhere (decision D7, Review Focus 5). Not a
-// collection, so no coverage entry; answering invites, the shared attempt limit and the
-// log are in teams.invites-answer.rules.test.ts.
+// no trace of a pending invitee anywhere. Not a collection, so no coverage entry; answering
+// invites, the shared attempt limit and the log are in teams.invites-answer.rules.test.ts.
 //
 // Every test uses fresh users, so the default limit of 20 attempts per user is never
 // reached; afterEach restores it anyway in case a test changed it.
@@ -41,9 +40,9 @@ async function ownerWithTeam(): Promise<{ owner: TestUser; teamId: string }> {
 }
 
 // Design 5, the whole flow: the owner types an existing person's email, the invite
-// appears in that person's account with the team and inviter names (D6 copies) and no
+// appears in that person's account with copies of the team and inviter names and no
 // email; accepting makes them a plain member, with their name copied for teammates
-// (Task 6 hook), who can now see the team; the invite is marked accepted.
+// (by the team_members hook), who can now see the team; the invite is marked accepted.
 test('invite: the owner invites an existing user, who sees the invite, accepts and becomes a member', async () => {
   const { owner, teamId } = await ownerWithTeam()
   const invitee = await namedUser('Ivy Invitee')
@@ -72,7 +71,7 @@ test('invite: the owner invites an existing user, who sees the invite, accepts a
   expect((await onlyInviteOf(invitee)).status).toBe('accepted')
 })
 
-// Review Focus 5 and D7: the invite answer (body and headers) holds no email; before
+// Protects design 5: the invite answer (body and headers) holds no email; before
 // acceptance the owner finds no trace of the invitee (id, email or name) in ANY
 // collection they can read; after it, the owner's member list shows the name only.
 test("invite: the owner never sees the invitee's email, and sees nothing of them before they accept", async () => {
@@ -220,8 +219,8 @@ test('invite: a member or a person with a pending invite from this team gives 40
 })
 
 // Only verified accounts may invite or answer, and a signed-out visitor cannot reach the
-// routes; such refusals are not attempts on anyone's limit, so they are not logged (as
-// for join, Task 7).
+// routes; such refusals are not attempts on anyone's limit, so they are not logged (the
+// join route does the same).
 test('invite: unverified and signed-out calls write no invite event', async () => {
   const { teamId } = await ownerWithTeam()
   const unverified = await unverifiedUser()

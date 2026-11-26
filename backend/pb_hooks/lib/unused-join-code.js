@@ -1,7 +1,7 @@
-// Picks a new join code no team has yet (design section 5, decision D1). Used when a team
-// is created (teams.pb.js) and when the owner regenerates the code (teams-join.pb.js),
-// so both draw codes the same way. Moved here from teams.pb.js in Task 7: hook handlers
-// run in isolated scopes, so a second route could not reach the first handler's helpers.
+// Picks a new join code no team has yet (design section 5). Used when a team is created
+// (teams.pb.js) and when the owner regenerates the code (teams-join.pb.js), so both draw
+// codes the same way. It lives here because hook handlers run in isolated scopes, where
+// one handler cannot reach another's helpers.
 // CommonJS so hooks can load it with require(`${__hooks}/lib/unused-join-code.js`).
 // Needs the PocketBase globals ($security), so it is checked by the rule tests, not Vitest.
 

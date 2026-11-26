@@ -15,8 +15,8 @@ type State = { status: 'loading' } | Answer
 
 const NEEDS_SIGN_IN = 'Sign in to open this shared project.'
 
-// Reads the link again while a live view is on screen (D9): every 5 s a check whether 30 s have
-// passed and the tab is visible, and at once when the tab becomes visible again.
+// Reads the link again while a live view is on screen, because the project is not pushed to a link's viewer: every 5 s
+// a check whether 30 s have passed and the tab is visible, and at once when the tab becomes visible again.
 function useLiveRefresh(kind: 'live' | 'snapshot' | null, reload: () => Promise<void>): void {
   const last = useRef(0)
   useEffect(() => {
@@ -93,7 +93,7 @@ function Refused({ message, signedIn }: { message: string; signedIn: boolean }) 
   )
 }
 
-// A comment link's viewer also shows each node's comments and lets the person write (D8).
+// A comment link's viewer also shows each node's comments and lets the person write.
 function CommentViewer({ open, token }: { open: Open; token: string }) {
   useNodeComments(open.projectId, '')
   return (

@@ -20,8 +20,8 @@ import { editorStore, type EditorStore } from './editorStore'
 import { appSync, undoPausedBy } from './editorSync'
 import { pendingEdits } from './pendingEdits'
 
-// Every content change a screen makes goes through here (plan Task 12), so it lands in the
-// undo history (D5). A step is recorded only after its writes succeed (offline: are stored; a
+// Every content change a screen makes goes through here, so it lands in the
+// undo history. A step is recorded only after its writes succeed (offline: are stored; a
 // write the server refuses after the reconnect leaves the history again). Undo and redo write
 // ordinary guarded updates and never force a change someone else has touched since.
 
@@ -44,7 +44,8 @@ type Edits = {
   reset(): void
 }
 
-// D11: offline with changes waiting, undo and redo do nothing and say why.
+// Offline with changes waiting, undo and redo do nothing and say why: they would first wait for every
+// write on its way, and some of those may not be answered until the connection is back.
 function pauseGate(store: StoreApi<EditorStore>, undoPaused: () => string | null, settle: () => Promise<void>) {
   return (run: () => Promise<void>): Promise<void> | void => {
     const paused = undoPaused()
@@ -241,7 +242,7 @@ function createWrites(store: StoreApi<EditorStore>, rec: Recorder): Pick<Edits, 
   }
 }
 
-// Copy and paste (D11); a paste is one step.
+// Copy and paste through the app's own clipboard; a paste is one step.
 function createClipboard(
   store: StoreApi<EditorStore>,
   writes: Pick<Edits, 'create' | 'update'>,

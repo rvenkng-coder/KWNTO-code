@@ -61,14 +61,14 @@ describe('parseTestPlan', () => {
     })
   })
 
-  // Protects Review Focus 4: a task without the block must not be read as "no cases, all fine".
+  // Protects: a task without the block must not be read as "no cases, all fine".
   test('a missing Test plan heading gives plan null', () => {
     const result = parseTestPlan('# Task\n\nNo plan here.\n')
     expect(result.plan).toBeNull()
     expect(result.problems.length).toBeGreaterThan(0)
   })
 
-  // Protects Review Focus 4: an empty table is a problem, never zero cases passing silently.
+  // Protects: an empty table is a problem, never zero cases passing silently.
   test('a table with no rows gives a problem (not zero cases silently)', () => {
     const { problems } = parseTestPlan(block({ cases: CASES.slice(0, 2) }))
     expect(problems.join('\n')).toMatch(/Cases.*no rows/)
@@ -108,7 +108,7 @@ describe('parseTestPlan', () => {
     expect(parseTestPlan(block({ breaks })).problems.join('\n')).toMatch(/B1.*File/)
   })
 
-  // Protects design 6.3 and Task 5: the one shared rule for what a break may touch.
+  // Protects: the one shared rule for what a break may touch: code Vitest can reach, not tests or hooks (design 6.3).
   test('isBreakablePath accepts frontend/src/a.ts, scripts/x.ts, backend/pb_hooks/lib/y.js and rejects tests/x.ts, frontend/src/a.test.ts, ../x.ts, /etc/passwd, backend/pb_hooks/users-signup.pb.js (a hook is covered by rule tests, design 6.3)', () => {
     for (const ok of ['frontend/src/a.ts', 'scripts/x.ts', 'backend/pb_hooks/lib/y.js'])
       expect(isBreakablePath(ok), ok).toBe(true)
@@ -148,7 +148,7 @@ describe('parseTestPlan', () => {
     expect(problems).toMatch(/Evidence.*empty/)
   })
 
-  // Protects Review Focus 4: a misspelled or misplaced section must be reported, not ignored.
+  // Protects: a misspelled or misplaced section must be reported, not ignored.
   test('sections out of order or misspelled (### Case, ### Breaks ) are problems, not ignored', () => {
     const misspelled = block().replace('### Cases', '### Case')
     expect(parseTestPlan(misspelled).problems.join('\n')).toMatch(/### Case\b.*unknown|unknown.*### Case\b/)
@@ -177,7 +177,7 @@ describe('parseTestPlan', () => {
     expect(parseTestPlan(block({ flow: ['<!-- only a comment -->'] })).problems.join('\n')).toMatch(/Flow.*empty/)
   })
 
-  // Protects Task 5's contract: a task with no unit case may list no breaks (`none`), in any case or spacing.
+  // Protects: with no unit case there is no unit test to break, so `none` (any case or spacing) is accepted.
   test('Breaks none with only rules, e2e and manual cases passes', () => {
     const cases = [
       ...CASES.slice(0, 2),
@@ -203,13 +203,13 @@ describe('parseTestPlan', () => {
     expect(problems).not.toMatch(/C3/)
   })
 
-  // Protects Review Focus 4: a Breaks header with no rows and no `none` is still not read as "no breaks".
+  // Protects: a Breaks header with no rows and no `none` is still not read as "no breaks".
   test('an empty Breaks table without none is a problem', () => {
     expect(parseTestPlan(block({ breaks: BREAKS.slice(0, 2) })).problems.join('\n')).toMatch(/Breaks.*no rows/)
     expect(parseTestPlan(block({ breaks: ['none', ...BREAKS] })).problems.join('\n')).toMatch(/Breaks/)
   })
 
-  // Protects Review Focus 4: an empty Probes section is a problem, not "no probes".
+  // Protects: an empty Probes section is a problem, not "no probes".
   test('an empty Probes section is a problem', () => {
     expect(parseTestPlan(block({ probes: [''] })).problems.join('\n')).toMatch(/Probes.*Probe folder/)
   })

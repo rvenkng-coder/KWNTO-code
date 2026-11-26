@@ -1,9 +1,9 @@
-// Protects the content door (editor core plan Task 7) end to end: door -> routes -> rules
-// -> version guard. Projects are listed for members only; `load` returns a whole project
-// in editor types; two people saving different fields of one node at once both keep their
-// change, because the door retries a 409 itself (decision 0002); and an outsider is
-// refused. A teammate's changes arrive live as editor events (plan D15), and nothing of
-// the project reaches an outsider. Each person drives their own `createBackend(PB_URL)`.
+// Protects the content door end to end: door -> routes -> rules -> version guard. Projects are
+// listed for members only; `load` returns a whole project in editor types; two people saving
+// different fields of one node at once both keep their change, because the door retries a 409
+// itself (decision 0002); and an outsider is refused. A teammate's changes arrive live as editor
+// events, and nothing of the project reaches an outsider. Each person drives their own
+// `createBackend(PB_URL)`.
 import { expect, test } from 'vitest'
 import { createBackend, type Backend } from '../../frontend/src/backend/client'
 import type { RemoteEvent } from '../../frontend/src/backend/content-types'
@@ -135,7 +135,7 @@ test('load returns the whole project', async () => {
   expect(content.connections).toEqual([link])
 })
 
-// Protects: Review Focus 1 through the door: concurrent saves of different fields both survive a real 409.
+// Protects: concurrent saves of different fields through the door both survive a real 409.
 test('two people editing one node both keep their change', async () => {
   const { a, b, project } = await setup()
   const created = await b.content.create('nodes', node(project.id, await firstChapterId(b, project.id), 'Start'))
@@ -196,7 +196,7 @@ function recorder() {
   return { events, onEvent, next }
 }
 
-// Protects: plan D15: a teammate's rename, trash and delete reach the open editor as mapped events.
+// Protects: a teammate's rename, trash and delete reach the open editor as mapped events.
 test("a teammate's changes arrive as events", async () => {
   const { a, b, project } = await setup()
   const chapter = await b.content.create('chapters', {
@@ -238,7 +238,7 @@ test("a teammate's changes arrive as events", async () => {
   await close()
 })
 
-// Protects: live events never leak outside the project (decision 0002 finding D); a control event proves the stream works.
+// Protects: live events never leak outside the project (decision 0002); a control event proves the stream works.
 test('an outsider receives no events of the project', async () => {
   const { b, out, project } = await setup()
   const created = await b.content.create('nodes', node(project.id, await firstChapterId(b, project.id), 'Secret'))
@@ -258,10 +258,10 @@ test('an outsider receives no events of the project', async () => {
   await closeOwn()
 })
 
-// Protects: plan D15 and design 8b for records a teammate makes: a new node (the first one,
+// Protects: design 8b for records a teammate makes: a new node (the first one,
 // which also becomes the start node, and a later one), a line and a connection each reach the
-// open editor as a create event. Found by Task 14's two-browser test: the start-node hook ran
-// the node's insert inside its own transaction, and PocketBase then sent no create event.
+// open editor as a create event. A two-browser end-to-end test found the fault: the start-node
+// hook ran the node's insert inside its own transaction, and PocketBase then sent no create event.
 test("a teammate's new records arrive as create events", async () => {
   const { a, b, project } = await setup()
   const chapterId = await firstChapterId(b, project.id)

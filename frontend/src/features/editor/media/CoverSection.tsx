@@ -7,7 +7,7 @@ import { coverOf } from './mediaList.ts'
 import { useMediaStore } from './useProjectMedia.ts'
 
 // A cover is an ordinary image upload (same file checks, same team storage) that the node names as
-// its cover; it is kept out of the Media list below. Uploads are never queued (media plan D9), so the
+// its cover; it is kept out of the Media list below. Uploads are never queued (design 6.7), so the
 // button is off while the editor is not connected, as in the Media section.
 export function CoverSection({ node }: { node: StoryNode }) {
   const cover = useMediaStore((s) => coverOf(s.media, node.coverMediaId))

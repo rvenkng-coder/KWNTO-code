@@ -9,10 +9,10 @@ import { addMember } from './helpers/teams.ts'
 // Media made here must not outlive the file: other rule files count the whole table.
 afterEach(deleteAllMedia)
 
-// The share routes of backend/pb_hooks/share.pb.js (design 5; plan 2026-11-20-sharing Task 3,
-// D2, D8 and D10): the view of a project through a token, media through a token, joining a
-// comment or edit link, republishing a snapshot and the admin's revoke-all. Every link
-// level is tried signed out, unverified and verified; a bad token gets one and the same 404.
+// The share routes of backend/pb_hooks/share.pb.js (design 5): the view of a project through a
+// token, media through a token, joining a comment or edit link, republishing a snapshot and the
+// admin's revoke-all. Every link level is tried signed out, unverified and verified; a bad token
+// gets one and the same 404.
 
 const BAD_LINK = 'This link is not valid or was revoked.'
 const SIGN_IN = 'Sign in to open this shared project.'
@@ -53,7 +53,7 @@ async function refusal(token: string): Promise<[number, string | null, string]> 
   return [response.status, response.headers.get('content-type'), await response.text()]
 }
 
-// Protects Review Focus 1: a view link shows a live project as it is now, a snapshot as it
+// Protects view links: a view link shows a live project as it is now, a snapshot as it
 // was until it is republished; an unknown, injected, revoked or trashed-project link is one
 // and the same 404, so nobody can tell which tokens exist.
 test('a view link shows the project to anyone until it is revoked', async () => {
@@ -86,7 +86,7 @@ test('a view link shows the project to anyone until it is revoked', async () => 
   for (const token of refusals) expect(await refusal(token)).toEqual(first)
 })
 
-// Protects D8 and Review Focus 1: media goes through the link's own project only, stops
+// Protects shared media: media goes through the link's own project only, stops
 // with the link, never serves removed or foreign media, and a snapshot lists its own.
 test("link holders get the project's media and nothing else", async () => {
   const { member, projectId, chapterId } = await memberProject()
@@ -126,7 +126,7 @@ test("link holders get the project's media and nothing else", async () => {
   expect((await shareMedia(snap.token, mediaId)).status).toBe(404)
 })
 
-// Protects security.md 3 and D2: comment and edit links need a verified sign-in (with the
+// Protects security.md 3: comment and edit links need a verified sign-in (with the
 // exact copy), an edit link answers only with the project id, joining twice makes one
 // grant, a view link cannot be joined, a team member needs no grant, a live link has no
 // snapshot to republish.

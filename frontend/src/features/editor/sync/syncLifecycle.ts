@@ -1,7 +1,7 @@
 import type { SyncEngine } from './syncEngine'
 
-// One sync engine per signed-in account (offline sync plan Task 4, D9, D10): a new user stops the
-// old engine and starts a new one, null stops it, the same user twice does nothing.
+// One sync engine per signed-in account, so an account only ever sends its own waiting edits: a new
+// user stops the old engine and starts a new one, null stops it, the same user twice does nothing.
 
 export interface SyncLifecycle {
   current(): SyncEngine | null

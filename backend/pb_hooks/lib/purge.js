@@ -1,5 +1,5 @@
-// Deletes expired records in batches without letting one bad record stop the job (plan
-// 2026-11-20-sharing, whole-branch review finding L4). CommonJS so hooks can load it with
+// Deletes expired records in batches without letting one bad record stop the job, which
+// would stall the rest at every run. CommonJS so hooks can load it with
 // require(`${__hooks}/lib/purge.js`) and Vitest can load it too. Pure: the hook passes the
 // way to find a batch and to delete one record.
 

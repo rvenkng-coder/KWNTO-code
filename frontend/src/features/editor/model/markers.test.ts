@@ -13,7 +13,7 @@ const project = (startNodeId: string | null) => ({
   version: 0,
 })
 
-// Protects: design 6.1 and D8: the start node, an end node and an unreachable node are told apart.
+// Protects: design 6.1: the start node, an end node and an unreachable node are told apart.
 test('markers for a start, a target and a lone node', () => {
   const s = fromContent(
     content({
@@ -29,13 +29,13 @@ test('markers for a start, a target and a lone node', () => {
   expect(m.get('c')).toEqual({ isStart: false, isEnd: true, isUnreachable: true })
 })
 
-// Protects: D8: a connection from a node to itself is outgoing (not an end) but not incoming (still unreachable).
+// Protects: a connection from a node to itself is outgoing (not an end) but not incoming (still unreachable).
 test('a self-link is outgoing but not incoming', () => {
   const s = fromContent(content({ nodes: [node('c')], connections: [connection('k1', 'c', 'c')] }))
   expect(nodeMarkers(s).get('c')).toEqual({ isStart: false, isEnd: false, isUnreachable: true })
 })
 
-// Protects: Review Focus 5: trashed nodes leave no marker, no link and no start behind.
+// Protects: trashed nodes leave no marker, no link and no start behind.
 test('trashed nodes neither link nor start', () => {
   const s = fromContent(
     content({

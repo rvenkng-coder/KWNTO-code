@@ -1,4 +1,4 @@
-// The trash decisions (design 6.8, plan D11). CommonJS so hooks can load it with
+// The trash decisions (design 6.8). CommonJS so hooks can load it with
 // require(`${__hooks}/lib/trash.js`) and Vitest can load it too.
 
 // The time a trashed record is stamped with. The browser's value is never trusted: a wrong

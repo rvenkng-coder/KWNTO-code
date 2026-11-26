@@ -2,7 +2,7 @@ import { describe, expect, test, vi } from 'vitest'
 import { createFileTokens } from './file-tokens.ts'
 
 describe('file token reuse', () => {
-  // Protects: a file token is reused for ninety seconds (C2)
+  // Protects: a file token is reused for ninety seconds
   test('a file token is reused for ninety seconds', async () => {
     let nowMs = 100_000
     let fetchCount = 0

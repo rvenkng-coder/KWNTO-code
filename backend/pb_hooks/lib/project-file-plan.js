@@ -1,5 +1,5 @@
-// Turns a validated project file into an import plan, plus the small helpers the routes use
-// (plan 7 D4 to D6). CommonJS, loaded through lib/project-file.js.
+// Turns a validated project file into an import plan, plus the small helpers the routes use.
+// CommonJS, loaded through lib/project-file.js.
 
 const { FILE_LIMITS } = require("./project-file-limits.js")
 

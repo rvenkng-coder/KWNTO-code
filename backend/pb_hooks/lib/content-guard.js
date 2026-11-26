@@ -1,4 +1,4 @@
-// The pure parts of the version-guarded update (decision 0002, option 2; plan D3).
+// The pure parts of the version-guarded update (decision 0002, option 2).
 // CommonJS so hooks can load it with require(`${__hooks}/lib/content-guard.js`).
 // The hook itself is content-guard.pb.js.
 

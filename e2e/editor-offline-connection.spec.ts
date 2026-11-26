@@ -1,7 +1,6 @@
-// Protects plan 2026-11-20-sharing Task 7 (D15, carried over from the offline sync plan): the
-// top bar follows the live connection and not only the browser's online flag, a waiting edit
-// is sent as soon as the connection is back instead of on the backoff, and edits made offline
-// undo one step at a time. The stream is cut without `setOffline`, so the browser stays online.
+// Protects design 6.7: the top bar follows the live connection and not only the browser's online flag, a waiting edit
+// is sent as soon as the connection is back instead of on the backoff, and edits made offline undo one step at a time.
+// The stream is cut without `setOffline`, so the browser stays online.
 import { expect, test, type Page } from '@playwright/test'
 import { adminRecord } from './helpers/admin'
 import { addNodeAt, card, cards, ownerWithProject, readyCanvas } from './helpers/editor'
@@ -44,7 +43,7 @@ async function projectWithNode(page: Page): Promise<string> {
   return addNodeAt(page, 40, 60)
 }
 
-// Protects D15: with no edit at all, a live connection that drops (the browser still online) shows
+// Protects: with no edit at all, a live connection that drops (the browser still online) shows
 // `Offline` within five seconds, and it clears without a reload once the stream is let through.
 test('a dropped live connection shows Offline without an edit', async ({ page }) => {
   await projectWithNode(page)
@@ -55,7 +54,7 @@ test('a dropped live connection shows Offline without an edit', async ({ page })
   await expect(syncStatus(page)).toHaveCount(0, { timeout: 8000 })
 })
 
-// Protects D15: an edit made while the connection is down waits, and goes within three seconds of
+// Protects: an edit made while the connection is down waits, and goes within three seconds of
 // the connection coming back, not on the 30 s backoff.
 test('a waiting edit is sent as soon as the connection is back', async ({ page }) => {
   const id = await projectWithNode(page)
@@ -72,14 +71,13 @@ test('a waiting edit is sent as soon as the connection is back', async ({ page }
   await expect(card(page, id)).toContainText('Waited')
 })
 
-// Protects D15: edits made offline are separate undo steps once they are saved. A paste is a group;
-// it closed only when the server answered, so everything done after it offline fell into it and one
-// Ctrl+Z undid both. Now the group closes when its records are stored: one Ctrl+Z takes back only
-// the rename, and the pasted node stays (the check waits for the whole undo, because it undoes the
-// rename first and would trash the pasted node a moment later). The connection is cut the way the other tests here cut it
-// (requests refused, stream cut) and the test waits for `Offline` before it pastes, so the engine
-// knows it is offline when the paste starts: that is the only case the fix is about, and without it
-// the rename joins the paste's open group and this test fails.
+// Protects: edits made offline are separate undo steps once they are saved. A paste is a group. Offline the server does
+// not answer, so the group closes when its records are stored; if it waited for the answer, everything done after the
+// paste would fall into it and one Ctrl+Z would undo both. One Ctrl+Z takes back only the rename, and the pasted node
+// stays (the check waits for the whole undo, because it undoes the rename first and would trash the pasted node a
+// moment later). The connection is cut the way the other tests here cut it (requests refused, stream cut) and the test
+// waits for `Offline` before it pastes, so the engine knows it is offline when the paste starts: only then would a
+// group that waits for the server stay open, so that the rename joins it and this test fails.
 test('edits made offline undo one step at a time after reconnecting', async ({ page }) => {
   const id = await projectWithNode(page)
   await card(page, id).click()
@@ -109,9 +107,9 @@ test('edits made offline undo one step at a time after reconnecting', async ({ p
   await expect(cards(page)).toHaveCount(2)
 })
 
-// Protects the developer's decision (2026-11-21, media plan D9): media uploads are never queued, so the
-// upload button is disabled while the editor is offline, also when only the live connection is down and
-// the browser still says online; no red banner is shown for it, and the button works again afterwards.
+// Protects design 6.7: media uploads are never queued, so the upload button is disabled while the editor is offline,
+// also when only the live connection is down and the browser still says online; no red banner is shown for it, and the
+// button works again afterwards.
 test('media uploads are disabled while the editor is offline', async ({ page }) => {
   const id = await projectWithNode(page)
   await card(page, id).click()

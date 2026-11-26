@@ -1,9 +1,12 @@
 /// <reference path="../pb_data/types.d.ts" />
-// The admin's incident controls (design 7c, docs/security.md section 9; decision D5):
+// The admin's incident controls (design 7c, docs/security.md section 9):
 // signing one account or every account out, ending a blocked account's sessions, and
 // the `admin` entries in the security log for these and for settings changes (design 6.9).
+// The sign-outs are superuser-only routes, not manual steps in the dashboard, so they can be
+// tested and documented. A block is made by editing `user_status` in the dashboard; a hook
+// then ends that user's sessions.
 //
-// How a session ends in PocketBase 0.40.6 (probed, see findings.md, Task 5): a user
+// How a session ends in PocketBase 0.40.6 (checked against a running server): a user
 // token is signed with the user's token key plus the `users` collection's auth-token
 // secret. A new token key ends that user's tokens; a new collection secret ends every
 // user's token. Superuser tokens use the `_superusers` secret, so the admin stays in.
@@ -51,8 +54,8 @@ routerAdd(
   $apis.requireSuperuserAuth(),
 )
 
-// A block ends the sessions the account already has (Review Focus 4). The status is
-// saved first, so from that moment sign-ins and refreshes are refused (users-signin.pb.js);
+// A block does not only refuse the next sign-in: it also ends the account's sessions. The status
+// is saved first, so from that moment sign-ins and refreshes are refused (users-signin.pb.js);
 // then the token key is renewed. If that fails, the request fails with a message saying
 // what to do, instead of reporting a block whose old sessions still work.
 // A model hook, so a block made from server code or a batch ends sessions too.

@@ -1,4 +1,4 @@
-// A person marked as editing a field of a node (design 5, plan 7 D14).
+// A person marked as editing a field of a node (design 5).
 export interface PresenceRow {
   id: string
   userId: string

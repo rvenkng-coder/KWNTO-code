@@ -58,7 +58,8 @@ async function capture(
   const height = Math.ceil(bounds.height + 2 * MAP_PADDING)
   const ratio = exportPixelRatio(width, height)
   // PERF: What: load html-to-image only when an export starts. Why: the library is not needed
-  // to edit (D1). Trade-off: the first export waits for one extra download.
+  // to edit, so the editor's first load stays small. Trade-off: the first export waits for one
+  // extra download.
   const { toJpeg, toPng } = await import('html-to-image')
   const options = {
     backgroundColor: '#ffffff',
@@ -98,8 +99,9 @@ function Capture({
 }
 
 /**
- * Draws one chapter's map off screen, in the light look on white (D4), and turns it into an image (D2).
- * It only reads the store: the visible canvas, the selection and the undo history are untouched (D8).
+ * Draws one chapter's map off screen and turns it into an image: the visible canvas holds one chapter and draws only
+ * what is in view. The look is light on white whatever the theme, because exports are printed and shared. It only
+ * reads the store: the visible canvas, the selection and the undo history are untouched.
  */
 export function ExportStage(props: StageProps) {
   const root = useRef<HTMLDivElement | null>(null)

@@ -85,7 +85,7 @@ describe('summariseProbeRun', () => {
 })
 
 describe('formatProbeSummary', () => {
-  // Protects Review Focus 3: nothing from a failure's message, stack or input reaches the lines.
+  // Protects: nothing from a failure's message, stack or input reaches the lines.
   test('formatProbeSummary output never contains the failure message, "expected", "received", "Error" or a path with a line number', () => {
     const report = {
       testResults: [file([test_('[C2] boundary: x', 'failed'), test_('free text', 'failed')]), file([])],

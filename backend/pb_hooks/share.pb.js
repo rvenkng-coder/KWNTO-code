@@ -1,6 +1,6 @@
 /// <reference path="../pb_data/types.d.ts" />
-// Share links (design 5, plan 7 Task 3). The server makes the token, and for a snapshot the
-// stored file, when a link is created. The routes are added in checkpoint 3B.
+// Share links (design 5). The server makes the token, and for a snapshot the
+// stored file, when a link is created.
 
 onRecordCreate((e) => {
   const { buildProjectFile } = require(`${__hooks}/lib/project-file.js`)
@@ -24,9 +24,9 @@ onRecordCreate((e) => {
   e.next()
 }, "share_links")
 
-// The routes. Every token is looked up as a bound parameter. A view link and a comment link
-// are read through these routes with the app's privileges (plan 7 D2); an edit link is
-// joined here and then works through the content rules.
+// The routes. Every token is looked up as a bound parameter. Access rules never check a token:
+// a view link and a comment link are read through these routes with the app's privileges; an
+// edit link is joined here and then works through the content rules.
 
 routerAdd("GET", "/api/kwnto/share/{token}", (e) => {
   return require(`${__hooks}/lib/share-routes.js`).handleOpen(e)

@@ -70,8 +70,8 @@ test('wrong code and regenerate', async ({ page, browser }) => {
   await page2.close()
 })
 
-// Protects: race between the screen's first team list and a failed join (Plan 3 Task 4
-// flake): a list response that lands after the join error must not clear the error.
+// Protects: race between the screen's first team list and a failed join: a list response that lands after the join
+// error must not clear the error.
 test('wrong code error survives a slow response', async ({ page }) => {
   await page.route('**/api/collections/team_members/records**', async (route) => {
     await new Promise((resolve) => setTimeout(resolve, 1_000))
@@ -177,7 +177,7 @@ test('sign-up and verification gate', async ({ page }) => {
   await page.getByRole('button', { name: 'Sign in' }).click()
   await expect(page.getByText('Verify your email')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Create team' })).toBeDisabled()
-  // Verify, then reload: the stored session is refreshed, so the gate lifts (final review, I1)
+  // Verify, then reload: the stored session is refreshed, so the gate lifts
   await verifyByEmail(email)
   await page.reload()
   await expect(page.getByRole('button', { name: 'Create team' })).toBeEnabled()

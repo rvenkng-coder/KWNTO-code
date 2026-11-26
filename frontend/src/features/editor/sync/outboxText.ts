@@ -1,6 +1,6 @@
 import type { ContentKind } from '../../../backend'
 
-// The outbox's backoff and the words the person sees (offline sync plan Task 1, D7).
+// The outbox's backoff and the words the person sees.
 
 export const BASE_DELAY_MS = 1000
 export const MAX_DELAY_MS = 30000

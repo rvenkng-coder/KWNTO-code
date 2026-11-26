@@ -1,9 +1,9 @@
 import type { ContentKind, ContentRecords, CreatableKind, RemovableKind } from '../../../backend'
 import { dropRecord, getRecord, putRecord, type ContentState } from '../model/state'
 
-// The outbox's decisions as pure functions (offline sync plan Task 1): how a new edit joins the
-// waiting ones (D5), how waiting edits are laid over fresh server data (D6), and whether a 409 met
-// by an offline edit is a real conflict (D3, D4).
+// The outbox's decisions as pure functions: how a new edit joins the waiting ones, how waiting
+// edits are laid over fresh server data, and whether a 409 met by an offline edit is a real
+// conflict. An edit made online never is one: it is retried silently.
 
 interface EntryBase {
   seq: number
@@ -44,6 +44,8 @@ const sameRecord = (a: { kind: ContentKind; id: string }, b: { kind: ContentKind
 
 type UpdateEntry = Extract<OutboxEntry, { op: 'update' }>
 
+// The newer value of a field wins, but the base value and base version stay the older ones: they
+// are what the server held before any of these waiting edits.
 function mergeInto(last: UpdateEntry, entry: Extract<NewEntry, { op: 'update' }>): UpdateEntry {
   return {
     ...last,
@@ -56,6 +58,11 @@ function mergeInto(last: UpdateEntry, entry: Extract<NewEntry, { op: 'update' }>
   }
 }
 
+/**
+ * An update merges only into the last entry of the queue (an update of the same record), so the order
+ * between records is kept. A remove drops the record's waiting edits; if its create was among them,
+ * nothing is sent at all. The entry being sent is never changed or dropped.
+ */
 export function planAdd(queue: OutboxEntry[], entry: NewEntry, sendingSeq: number | null): AddPlan {
   const waiting = queue.filter((q) => q.seq !== sendingSeq)
   if (entry.op === 'update') {
@@ -114,6 +121,10 @@ function updateConflict(entry: UpdateEntry, server: object | null): ConflictChec
   return { type: 'fields', fields }
 }
 
+/**
+ * A field of an offline update conflicts when the server's value differs both from the value the edit
+ * started from and from the edit's own value; x and y count as one attribute.
+ */
 export function classifyConflict(entry: OutboxEntry, server: ContentRecords[ContentKind] | null): ConflictCheck {
   if (!entry.offline) return NO_CONFLICT
   if (entry.op === 'create') return NO_CONFLICT

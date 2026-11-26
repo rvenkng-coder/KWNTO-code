@@ -7,11 +7,11 @@ import { addMember, expectCreateRefused } from './helpers/teams.ts'
 // Protects design section 5 (teams own projects; any member creates and edits a project;
 // only the team owner deletes one, which is a move to the trash, design 6.8) and
 // docs/security.md section 2 (deny by default: outsiders and signed-out callers get
-// nothing). Also plan decisions D6 (settings and Chapter 1 come with every project) and
-// D13 (deleting a team removes its projects).
+// nothing). Also: settings and Chapter 1 come with every project, and deleting a team removes its
+// projects.
 
 const TRASHED_AT = '2026-11-14 10:00:00.000Z'
-// The server stamps its own trash time (Plan 7 D11); the browser's value is ignored.
+// The server stamps its own trash time, so a wrong browser clock cannot expire work early; the sent value is ignored.
 const nearNow = (t: unknown) => Math.abs(Date.parse(String(t).replace(' ', 'T')) - Date.now()) < 10_000
 
 async function rowsOf(collection: string, projectId: string): Promise<Record<string, unknown>[]> {
@@ -19,7 +19,7 @@ async function rowsOf(collection: string, projectId: string): Promise<Record<str
   return admin.collection(collection).getFullList({ filter: admin.filter('project = {:p}', { p: projectId }) })
 }
 
-// D6: a project never exists without its settings row and a first chapter.
+// A project never exists without its settings row and a first chapter.
 test('a member creates a project with its settings and first chapter', async () => {
   const [owner, member] = [await createUser(), await createUser()]
   const team = await createTeam(owner)
@@ -84,7 +84,7 @@ test('a project cannot be moved to another team', async () => {
   expect(await readAsAdmin('projects', project.id)).toMatchObject({ team: team.id, version: 0 })
 })
 
-// D13: a team's projects, their settings and chapters go with the team.
+// A team's projects, their settings and chapters go with the team.
 test('deleting a team removes its projects', async () => {
   const owner = await createUser()
   const team = await createTeam(owner)
@@ -98,7 +98,7 @@ test('deleting a team removes its projects', async () => {
   await expectRefused(admin.collection('chapters').getOne(project.chapterId))
 })
 
-// Plan D7: the first node made in a project becomes its start node when it is saved, and
+// The first node made in a project becomes its start node when it is saved, and
 // the project's version rises once so a stale edit of the project is refused.
 test('the first node becomes the start node', async () => {
   const { member, projectId, chapterId } = await memberProject()
@@ -111,7 +111,7 @@ test('the first node becomes the start node', async () => {
   expect(await readAsAdmin('projects', projectId)).toMatchObject({ start_node: first, version: 1 })
 })
 
-// Review Focus 2: a project cannot start at a node of another project.
+// Protects project isolation: a project cannot start at a node of another project.
 test('the start node must belong to the project', async () => {
   const { owner, member, teamId, projectId, chapterId } = await memberProject()
   const first = await createNode(member, projectId, chapterId)
@@ -129,9 +129,9 @@ test('the start node must belong to the project', async () => {
   expect(await readAsAdmin('projects', projectId)).toMatchObject({ start_node: second, version: version + 1 })
 })
 
-// Protects the offline-sync carry-over of plan 3 (plan 7 Task 7, D15): a project a member
-// makes reaches a teammate's open list as a live `create` event, and its settings row and
-// `Chapter 1` still exist.
+// Protects live lists: a project a member makes reaches a teammate's open list as a live
+// `create` event (PocketBase sends it only when the project's own insert is not inside a
+// transaction of ours), and its settings row and `Chapter 1` still exist.
 test('a new project arrives as a live create event with its settings and first chapter', async () => {
   const { owner, member, teamId } = await memberProject()
   const watcher = await asUser(owner)

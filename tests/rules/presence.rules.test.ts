@@ -3,9 +3,9 @@ import { createNode, memberProject, type MemberProject } from './helpers/content
 import { asAdmin, asAnonymous, asUser, createUser, type TestUser } from './helpers/pb.ts'
 import { createLink, joinShare } from './helpers/share.ts'
 
-// Rules of `presence` (design 5; plan 2026-11-20-sharing Task 6, D14): one row per person and
-// project saying which node and field they are editing. Team members and edit-link holders
-// write their own row; nobody writes another person's; old rows are removed by a job.
+// Rules of `presence` (design 5): one row per person and project saying which node and field they
+// are editing. Team members and edit-link holders write their own row; nobody writes another
+// person's; old rows are removed by a job.
 
 async function failure(promise: Promise<unknown>): Promise<number> {
   try {
@@ -30,7 +30,7 @@ async function holder(ctx: MemberProject, permission: 'comment' | 'edit'): Promi
   return user
 }
 
-// Protects D14: people mark only themselves, in a project they may edit (a team member or
+// Protects presence writes: people mark only themselves, in a project they may edit (a team member or
 // an edit-link holder; a comment-link holder may not); one row per person and project; the
 // name is the server's; nobody changes or removes another person's row.
 test('people mark only themselves as editing, in a project they may edit', async () => {
@@ -70,7 +70,7 @@ test('people mark only themselves as editing, in a project they may edit', async
   await pb.collection('presence').delete(row.id)
 })
 
-// Protects D14: a teammate's row reaches an open subscription with the name, an outsider sees
+// Protects presence reads and the purge: a teammate's row reaches an open subscription with the name, an outsider sees
 // none, and the job removes a row not refreshed for twice the timeout and nothing fresher.
 test('presence is seen by the team and old rows are removed', async () => {
   const ctx = await memberProject()

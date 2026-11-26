@@ -26,7 +26,10 @@ const PART_BYTES = 120
 const RESERVED = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i
 const EDGES = /^[\s.]+|[\s.]+$/g
 
-/** Images hold one chapter, so only PDF and Word offer the whole project (D5). */
+/**
+ * Images hold one chapter, so only PDF and Word offer the whole project: browsers block several image downloads at
+ * once, and a zip would need another dependency.
+ */
 export function scopesFor(format: ExportFormat): ExportScope[] {
   return format === 'pdf' || format === 'docx' ? ['chapter', 'project'] : ['chapter']
 }
@@ -74,7 +77,10 @@ export function exportFileName(projectName: string, chapterTitle: string | null,
   return `${RESERVED.test(stem) ? '_' : ''}${stem}.${format}`
 }
 
-/** Up to 2, lowered so the longest side is at most 8192 px and the area at most 32,000,000 px (D3). */
+/**
+ * Up to 2, lowered so the longest side is at most 8192 px and the area at most 32,000,000 px: past the browser's
+ * canvas limits an image comes out blank.
+ */
 export function exportPixelRatio(width: number, height: number): number {
   if (width <= 0 || height <= 0) return MAX_RATIO
   return Math.min(MAX_RATIO, MAX_SIDE / Math.max(width, height), Math.sqrt(MAX_AREA / (width * height)))

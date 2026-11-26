@@ -17,9 +17,9 @@ import { createLink, joinShare, revokeLink } from './helpers/share.ts'
 // Media made here must not outlive the file: other rule files count the whole table.
 afterEach(deleteAllMedia)
 
-// What an edit link opens in the content rules (design 5; plan 2026-11-20-sharing Task 3,
-// D2 and D8): one project, never the team, only through ONE live grant row of permission
-// `edit`. Grants are made by the join route, as a visitor would.
+// What an edit link opens in the content rules (design 5): one project, never the team, only
+// through ONE live grant row of permission `edit`. Grants are made by the join route, as a visitor
+// would.
 
 async function holderOf(
   ctx: MemberProject,
@@ -49,7 +49,7 @@ async function failure(promise: Promise<unknown>): Promise<number> {
   }
 }
 
-// Protects Review Focus 4 and 1: an edit-grant holder works in the one project (read, edit,
+// Protects the edit link's reach: an edit-grant holder works in the one project (read, edit,
 // add lines, upload) and sees nothing else of the team; the owner-only actions stay closed;
 // a comment grant edits nothing; and once the link is revoked every write is refused and
 // the open live subscription stops receiving events.
@@ -110,7 +110,7 @@ test('an edit link opens one project, never the team, until revoked', async () =
   await closeMember()
 })
 
-// Protects D2: the grant is one row, so a comment grant on one project plus an edit grant on
+// Protects the grant check: the grant is one row, so a comment grant on one project plus an edit grant on
 // another does not open the first, and a revoked grant on one project does not stop a live
 // one on another.
 test('one grant row decides, never parts of two', async () => {

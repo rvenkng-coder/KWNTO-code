@@ -72,7 +72,7 @@ export function createShares(pb: PocketBase) {
       })
     },
 
-    /** A revoked link cannot come back (D10). */
+    /** A revoked link cannot come back; a member makes a new one. */
     async revoke(id: string): Promise<void> {
       await wrapped(() => pb.collection('share_links').update(id, { revoked: true }))
     },

@@ -1,7 +1,7 @@
 import type { Connection, Cue, ScriptLine, StoryNode } from '../../../backend'
 import { cuesOf, linesOf, liveNodes, type ContentState } from './state'
 
-// The in-app clipboard (plan D11): selected nodes with their lines and cues and the
+// The in-app clipboard (not the system one): selected nodes with their lines and cues and the
 // connections between them. A paste makes new records with new ids in the target chapter,
 // each paste 40 px further right and down.
 

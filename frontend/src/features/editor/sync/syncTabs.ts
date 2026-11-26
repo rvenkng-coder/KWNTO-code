@@ -4,7 +4,7 @@ import type { OutboxStorage } from './outboxStorage'
 import type { PendingConflict, SyncDeps } from './syncEngine'
 
 // Two helpers of the sync engine (kept out of syncEngine.ts for its size): writing one new entry, and what the tab
-// that sends tells the tabs that do not (offline sync plan, whole-branch review I4).
+// that sends tells the tabs that do not.
 
 /**
  * Plans and writes one new entry, in the tab that sends. It is planned on the cached `queue` and written without a

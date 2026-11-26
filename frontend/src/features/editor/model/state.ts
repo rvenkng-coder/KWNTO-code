@@ -12,7 +12,7 @@ import type {
 } from '../../../backend'
 import { byOrder } from './sortOrder'
 
-// The editor's state as plain data (plan Task 8): records by id, and pure functions over it.
+// The editor's state as plain data: records by id, and pure functions over it.
 // A node is "live" when it and its chapter are not in the trash.
 
 export interface ContentState {

@@ -68,7 +68,7 @@ export async function openTeam(page: Page, name: string): Promise<void> {
 
 /**
  * Owner on the team detail screen: turns the join code on if it is off (a new
- * team starts with it off, decision D1) and returns the code.
+ * team starts with it off) and returns the code.
  */
 export async function enableJoinCode(page: Page): Promise<string> {
   // The code and its button appear together once the settings have loaded.

@@ -3,10 +3,11 @@ import type { ContentKind, ContentRecords, RemoteEvent } from './content-types'
 import { fromRecord } from './content-mappers'
 import { toBackendError } from './errors'
 
-// Live changes of one project (plan D15, decision 0002 finding D): one subscription per
-// content collection, filtered by project; for `projects`, its one record. PocketBase
+// Live changes of one project: one subscription per content collection, filtered by project so
+// that no other project's events arrive (decision 0002); for `projects`, its one record. PocketBase
 // checks each collection's view rule before it sends an event, so an outsider receives
-// nothing. Events missed while disconnected are not replayed (finding E, Plan 4).
+// nothing. Events missed while disconnected are not replayed, so the caller loads the project
+// again after a reconnect (`onReconnect`).
 
 const KINDS: readonly ContentKind[] = [
   'projects',
@@ -45,7 +46,7 @@ function subscribeKind(
   return pb.collection(kind).subscribe('*', deliver, { filter })
 }
 
-// Who wants to hear that the live stream connected or dropped (plan 7 Task 7). One list per client;
+// Who wants to hear that the live stream connected or dropped. One list per client;
 // it is fed only by an open project subscription, so a drop with nothing subscribed is never reported.
 type ConnectionListener = (connected: boolean) => void
 const listenersOf = new WeakMap<PocketBase, Set<ConnectionListener>>()

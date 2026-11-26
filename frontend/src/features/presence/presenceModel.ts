@@ -1,6 +1,6 @@
 import type { PresenceRow } from '../../backend'
 
-// Who is editing what, from the rows this browser has received (plan 7 D14).
+// Who is editing what, from the rows this browser has received.
 
 /**
  * The rows of other people that are still fresh. `seenAt` is when THIS browser last received

@@ -9,7 +9,7 @@ import { acceptFor } from './uploadCheck.ts'
 import { useOnline } from './useOnline.ts'
 import { useMediaStore } from './useProjectMedia.ts'
 
-// Uploads are never queued (media plan D9, design 6.7), so they need the browser online AND the editor's
+// Uploads are never queued (design 6.7), so they need the browser online AND the editor's
 // own connection: with the live stream down or the server unreachable the editor says Offline, and the
 // upload button follows it instead of failing with a banner.
 function useConnected(): boolean {

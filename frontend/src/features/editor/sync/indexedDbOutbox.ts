@@ -1,7 +1,7 @@
 import type { NewEntry, OutboxEntry } from './outbox'
 import type { FailedEntry, OutboxStorage } from './outboxStorage'
 
-// The browser's outbox (offline sync plan Task 4, D1): one IndexedDB database with the waiting
+// The browser's outbox: one IndexedDB database with the waiting
 // entries and the failed ones. Every method is one transaction; `add` resolves only after the
 // transaction's `complete` event, so an edit that was reported stored survives closing the tab.
 

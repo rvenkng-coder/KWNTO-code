@@ -147,7 +147,7 @@ test('with-pocketbase passes on the exit code and cleans up', () => {
   expect(left).toBe('')
 })
 
-// Protects D8: production mode without a public https URL would write wrong mail links and
+// Protects production start-up: production mode without a public https URL would write wrong mail links and
 // settings, so the container must refuse to start (exit 64) instead.
 test('refuses production mode without a public https URL', () => {
   const run = spawnSync(

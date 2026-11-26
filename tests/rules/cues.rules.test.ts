@@ -6,8 +6,7 @@ import { expectCreateRefused } from './helpers/teams.ts'
 
 // Protects design section 5 (any member writes a node's cues, saved per attribute through
 // the version guard, decision 0002), the ERD (a cue is audio, lighting or other) and
-// docs/security.md section 2 (deny by default; no cue may point into another project,
-// plan Review Focus 2).
+// docs/security.md section 2 (deny by default; no cue may point into another project).
 
 // ERD: three cue types; a cue stays on a node of its own project.
 test('cues take only the three types and stay in their project', async () => {

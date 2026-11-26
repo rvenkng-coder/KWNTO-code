@@ -20,9 +20,9 @@ import {
 // Answering invites, the shared attempt limit and the invite log (design 5; docs/security.md
 // sections 3 and 8), built by backend/pb_hooks/teams-invites.pb.js:
 // `POST /api/kwnto/invites/{id}/accept` and `.../decline`. Only the invited person can
-// answer (Review Focus 5: nobody adds someone else, or themselves, to a team), an
-// invite is answered once, and every invite attempt is logged without the address.
-// Sending invites is in teams.invites.rules.test.ts.
+// answer (nobody adds someone else, or themselves, to a team), an invite is answered once, and
+// every invite attempt is logged without the address. Sending invites is in
+// teams.invites.rules.test.ts.
 //
 // The rate-limit tests change `team_attempts_per_hour` and restore it in afterEach; safe
 // only because rule files run one at a time (vitest.config.ts).
@@ -50,9 +50,9 @@ async function memberCount(teamId: string, user: TestUser): Promise<number> {
   return (await teamRows('team_members', teamId)).filter((row) => row.user === user.id).length
 }
 
-// Review Focus 5: only the invited person answers. Anyone else, the owner and a team
-// member included, gets the same 404 as for an invite id that does not exist (so invite
-// ids do not leak), and the invite stays pending with nobody added.
+// Only the invited person answers. Anyone else, the owner and a team member included, gets the same
+// 404 as for an invite id that does not exist (so invite ids do not leak), and the invite stays
+// pending with nobody added.
 test("answer: another user cannot accept or decline someone else's invite (404)", async () => {
   const { owner, teamId, invitee, inviteId } = await pendingInvite()
   const [member, stranger] = [await createUser(), await createUser()]
@@ -160,10 +160,10 @@ test('answer: an unverified invitee cannot accept (403) and stays invited', asyn
   expect((await memberRow(teamId, invitee.id)).role).toBe('member')
 })
 
-// Security.md section 3 (rate limit, D3): with team_attempts_per_hour 3, the owner's
-// fourth invite attempt in the hour is refused with 429, for an existing email or an
-// unknown one, and nobody is invited. A refused attempt is not counted (Task 7 ruling),
-// so raising the setting to 4 lets exactly one more attempt through.
+// Security.md section 3 (rate limit): with team_attempts_per_hour 3, the owner's fourth invite
+// attempt in the hour is refused with 429, for an existing email or an unknown one, and nobody is
+// invited. A refused attempt is not counted, so raising the setting to 4 lets exactly one more
+// attempt through.
 test('rate limit: the fourth invite attempt in an hour is 429, existing email or unknown', async () => {
   const owner = await createUser()
   const team = await createTeam(owner)
@@ -190,7 +190,7 @@ test('rate limit: the fourth invite attempt in an hour is 429, existing email or
   expect((await invite(owner, team.id, 'nobody-4@example.test')).status).toBe(429)
 })
 
-// D3: join-code and invite attempts share one limit per user, in both directions, so
+// Join-code and invite attempts share one limit per user, in both directions, so
 // nobody gets twice the guesses by mixing them.
 test('rate limit: join attempts count toward the invite limit and invite attempts toward the join limit', async () => {
   const [joiner, inviter, invitee] = [await createUser(), await createUser(), await createUser()]
@@ -252,7 +252,7 @@ test('log: each invite attempt writes one event with its outcome and domain, nev
   expect(await eventsOf(invitee, 'invite')).toHaveLength(0)
 
   // Every invite event of the run, from every test: `sign-in` events do hold the email
-  // as typed (Task 4, lockout), so the check is on invite events.
+  // (the lockout counts by it), so the check is on invite events.
   const allInvites = await (await asAdmin()).collection('security_events').getFullList({ filter: "type = 'invite'" })
   const everything = JSON.stringify(allInvites)
   for (const email of [invitee.email, invitee.email.toUpperCase(), unknown, 'no-at-sign']) {

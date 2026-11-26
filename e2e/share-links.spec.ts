@@ -1,8 +1,7 @@
-// Protects design 5 and 8b and plan 2026-11-20-sharing D8 and D9: a view link shows a project
-// and its media to a person without an account, a live link follows the project while a
-// snapshot only moves when it is republished, a revoked link stops at once, a comment link
-// asks for a sign-in and returns to the project, and an edit link lets a non-member work in
-// that one project until the link is revoked.
+// Protects design 5 and 8b: a view link shows a project and its media to a person without an account, a live link
+// follows the project while a snapshot only moves when it is republished, a revoked link stops at once, a comment link
+// asks for a sign-in and returns to the project, and an edit link lets a non-member work in that one project until the
+// link is revoked.
 import { expect, test, type Browser, type Page } from '@playwright/test'
 import { uniqueEmail, adminPB } from './helpers/admin'
 import { card, cards, ownerWithProject } from './helpers/editor'
@@ -64,7 +63,7 @@ test('a view link shows the project and its media without an account', async ({ 
   await expect(guest.locator('input, textarea')).toHaveCount(0)
 })
 
-// Protects D9: a live view shows a node made later once the tab is visible again, without a
+// Protects: a live view shows a node made later once the tab is visible again, without a
 // reload; a snapshot does not, until the owner republishes it and the page is reloaded.
 test('a live link follows the project and a snapshot only when republished', async ({ page, browser }) => {
   const { projectId } = await ownerWithStory(page)
@@ -94,8 +93,7 @@ test('a live link follows the project and a snapshot only when republished', asy
   await expect(cards(snapGuest)).toHaveCount(3)
 })
 
-// Protects Review Focus 1: revoking asks in the row (never a browser dialog), then the link
-// shows only the bad-link sentence.
+// Protects: revoking asks in the row (never a browser dialog), then the link shows only the bad-link sentence.
 test('a revoked link stops working at once', async ({ page, browser }) => {
   await ownerWithStory(page)
   page.on('dialog', () => {
@@ -121,7 +119,7 @@ test('a revoked link stops working at once', async ({ page, browser }) => {
   await expect(cards(guest)).toHaveCount(0)
 })
 
-// Protects security.md 3 and D8: a comment link asks for a sign-in; after signing in the same
+// Protects security.md 3: a comment link asks for a sign-in; after signing in the same
 // address shows the project.
 test('a comment link asks for a sign-in and returns to the project', async ({ page, browser }) => {
   await ownerWithStory(page)
@@ -137,7 +135,7 @@ test('a comment link asks for a sign-in and returns to the project', async ({ pa
   await expect(cards(guest)).toHaveCount(2)
 })
 
-// Protects D2 and D8: a verified person who is not on the team opens an edit link, works in
+// Protects: a verified person who is not on the team opens an edit link, works in
 // that one project, the owner sees the change live, and the person's Teams page lists it under
 // Shared with me with no team or trash controls.
 test('an edit link lets a non-member edit that one project', async ({ page, browser }) => {
@@ -164,7 +162,7 @@ test('an edit link lets a non-member edit that one project', async ({ page, brow
   await expect(holder.getByRole('button', { name: 'Export project file' })).toHaveCount(0)
 })
 
-// Protects Review Focus 1: when the owner revokes an edit link while the holder has the editor
+// Protects: when the owner revokes an edit link while the holder has the editor
 // open, the holder's next change is refused and reported, nothing reaches the owner, and the
 // project leaves Shared with me.
 test("revoking an edit link stops an open editor's saves", async ({ page, browser }) => {

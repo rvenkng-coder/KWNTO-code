@@ -1,7 +1,7 @@
 import { spawnSync } from 'node:child_process'
 import { afterAll, beforeAll, expect, test } from 'vitest'
 
-// The real `web` one-shot service of compose.prod.yaml (plan 6 D1), run once as on the VM: no override, so the
+// The real `web` one-shot service of compose.prod.yaml, run once as on the VM: no override, so the
 // production command (npm ci, build, copy into the volume) is what is tested. A project name of its own, so only
 // its own volume and network are touched. Slow: it installs the dependencies inside the container.
 
@@ -16,8 +16,8 @@ function cleanup(): void {
 beforeAll(cleanup)
 afterAll(cleanup)
 
-// Protects D1: on a real VM the web service must finish successfully (no git in the image, so no install scripts)
-// and leave the built app in the volume, or pocketbase, caddy and tailscale never start.
+// Protects the first start: on a real VM the web service must finish successfully (no git in the image, so no install
+// scripts) and leave the built app in the volume, or pocketbase, caddy and tailscale never start.
 test('the web service builds the app into its volume and exits 0', () => {
   const run = spawnSync('docker', [...COMPOSE, 'run', '--rm', 'web'], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
   expect(run.status, `${run.stdout}\n${run.stderr}`).toBe(0)

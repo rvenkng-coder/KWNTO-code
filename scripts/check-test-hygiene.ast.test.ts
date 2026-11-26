@@ -9,7 +9,7 @@ const el = 'const el = <code>src/*.ts</code>'
 const base = lines(el, '// P', one, '// P', two, '/* end */')
 
 describe('the reviewer inputs: JSX text with /* after a word', () => {
-  // Protects Review Focus 1: swapping a test for another is reported even when JSX text looks like a comment opener.
+  // Protects: swapping a test for another is reported even when JSX text looks like a comment opener.
   test('swapping a test is reported', () => {
     const head = lines(el, '// P', one, '// P', "test('three', () => { expect(2).toBe(2) })", '/* end */')
     const problems = compareWithBase('a.test.tsx', base, head)
@@ -17,7 +17,7 @@ describe('the reviewer inputs: JSX text with /* after a word', () => {
     expect(problems[0].detail).toMatch(/two/)
   })
 
-  // Protects Review Focus 1: deleting a test and leaving a commented-out copy is a lost test and a lost assertion.
+  // Protects: deleting a test and leaving a commented-out copy is a lost test and a lost assertion.
   test('deleting a test and leaving a commented-out copy is reported', () => {
     const head = lines(el, '// P', one, `// ${two}`, '/* end */')
     expect(rules(compareWithBase('a.test.tsx', base, head))).toEqual(
@@ -25,7 +25,7 @@ describe('the reviewer inputs: JSX text with /* after a word', () => {
     )
   })
 
-  // Protects Review Focus 1: a new header-less test is reported wherever it sits in an expression.
+  // Protects: a new header-less test is reported wherever it sits in an expression.
   test('a header-less new test is reported in a conditional, export default, comma and parenthesised form', () => {
     for (const code of [
       "cond ? test('new', () => {}) : null",
@@ -40,7 +40,7 @@ describe('the reviewer inputs: JSX text with /* after a word', () => {
 })
 
 describe('other ways to fool a counter', () => {
-  // Protects Review Focus 1: the deleted test's title appearing as a string elsewhere does not hide the removal.
+  // Protects: the deleted test's title appearing as a string elsewhere does not hide the removal.
   test('a deleted test whose title still appears as a string is reported', () => {
     const head = lines('// P', one, "const note = 'two'")
     const problems = compareWithBase('a.test.ts', lines('// P', one, '// P', two), head)
@@ -48,13 +48,13 @@ describe('other ways to fool a counter', () => {
     expect(problems.map((p) => p.detail).join('\n')).toMatch(/two/)
   })
 
-  // Protects Review Focus 1: an expect( mention added in a string does not offset a real expect( that was removed.
+  // Protects: an expect( mention added in a string does not offset a real expect( that was removed.
   test('an expect( mention added in a string while a real expect is removed is reported', () => {
     const head = lines(one, "test('two', () => {})", "const s = 'expect('")
     expect(rules(compareWithBase('a.test.ts', lines(one, two), head))).toEqual(['lost-assertion'])
   })
 
-  // Protects Review Focus 1: a regex ending in */ on the line above is not a comment, so it is not a header.
+  // Protects: a regex ending in */ on the line above is not a comment, so it is not a header.
   test('a regex ending in */ above a test is not a header', () => {
     expect(rules(checkSource('a.test.ts', lines('const re = /a*/', "test('new', () => {})"), null))).toContain('header')
   })

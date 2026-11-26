@@ -6,7 +6,7 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-// Protects D13: the door maps a stored record to the screen's Comment, an author who left
+// Protects: the door maps a stored record to the screen's Comment, an author who left
 // (empty `author`) has no id, and a list is asked for oldest first.
 test('the door maps records and lists oldest first', async () => {
   expect(

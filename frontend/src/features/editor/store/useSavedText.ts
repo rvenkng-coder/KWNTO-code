@@ -3,7 +3,7 @@ import type { ContentKind, EditableFields } from '../../../backend'
 import { edits } from './edits'
 import { pendingEdits } from './pendingEdits'
 
-// A text field of one record while the person types in it (plan Task 11): the text shown is
+// A text field of one record while the person types in it: the text shown is
 // local; a save of only that field is scheduled through `pendingEdits` (800 ms after the last
 // keystroke, or at once on flush). A teammate's value is taken only while the field is not
 // being edited, so it never replaces what the person is typing.

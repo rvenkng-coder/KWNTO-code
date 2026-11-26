@@ -1,7 +1,7 @@
 // Makes sure an account has its three per-user rows (design 7c, ERD).
 // CommonJS so hooks can load it with require(`${__hooks}/lib/user-records.js`).
 // Called when an account is created (users-defaults.pb.js) and again at sign-in
-// (Task 4), so an account whose rows are missing is repaired instead of breaking.
+// (users-signin.pb.js), so an account whose rows are missing is repaired instead of breaking.
 
 // What a new row holds besides its user. user_limits is empty on purpose: no quota
 // override means the system default applies.
@@ -37,7 +37,7 @@ function ensureUserRecords(app, userId) {
   }
 }
 
-// Changed in Task 4: sign-in now calls ensureUserRecords, and two sign-ins of the same
+// Sign-in calls ensureUserRecords, and two sign-ins of the same
 // account at once can both see a row missing and both create it. The second create then
 // fails on the unique index on `user`. That is fine, the row exists, so the error is
 // swallowed; it is rethrown only if the row is still missing (a real failure).

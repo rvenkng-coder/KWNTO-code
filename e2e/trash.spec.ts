@@ -1,6 +1,5 @@
-// Protects: design 6.8 and Plan 7 Task 1: trashed nodes, chapters and projects are listed with
-// the days left and come back by Restore; a node of a trashed chapter comes back with its
-// chapter; only the owner sees and restores trashed projects.
+// Protects: design 6.8: trashed nodes, chapters and projects are listed with the days left and come back by Restore; a
+// node of a trashed chapter comes back with its chapter; only the owner sees and restores trashed projects.
 import { expect, test, type Page } from '@playwright/test'
 import { uniqueEmail } from './helpers/admin'
 import { addNodeAt, card, ownerWithProject, readyCanvas, waitForSave } from './helpers/editor'

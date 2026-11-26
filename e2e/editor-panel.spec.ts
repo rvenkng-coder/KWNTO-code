@@ -1,6 +1,5 @@
-// Protects: the properties panel (editor core plan, Task 11; design 6.2 and 9c): title, script
-// lines with characters and order, Enter and Backspace in a line, character suggestions, cues,
-// connection labels, and text typed just before moving on is saved (Review Focus 3).
+// Protects: the properties panel (design 6.2 and 9c): title, script lines with characters and order, Enter and
+// Backspace in a line, character suggestions, cues, connection labels, and text typed just before moving on is saved.
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { addNodeAt, card, connectNodes, ownerWithProject, readyCanvas, waitForSave } from './helpers/editor'
 
@@ -90,7 +89,8 @@ test('Enter adds a line and Backspace removes an empty one', async ({ page }) =>
   await expect(lineText(page, 0)).toHaveValue('Hello.')
 })
 
-// Protects: Review Focus 3: text typed and left at once (another node, another chapter) is saved by moving on, not by the 800 ms timer (stopped here).
+// Protects: text typed and left at once (another node, another chapter) is saved by moving on, not by the 800 ms timer
+// (stopped here).
 test('text typed just before moving on is saved', async ({ page }) => {
   const a = await oneNode(page)
   const b = await addNodeAt(page, 320, 60)
@@ -100,8 +100,8 @@ test('text typed just before moving on is saved', async ({ page }) => {
   await readyCanvas(page, 2)
   await card(page, a).click()
   await addLine(page)
-  // The page's clock stops here, so the 800 ms save timer can never fire: a save that is sent can only have been sent by
-  // moving on. (This used to be a 500 ms limit on the request, which measured how busy the machine was, not the app.)
+  // The page's clock stops here, so the 800 ms save timer can never fire: a save that is sent can only have been sent
+  // by moving on. (A time limit on the request would measure how busy the machine is, not the app.)
   await page.clock.install()
   await page.clock.pauseAt(Date.now() + 1000)
   const lineSaved = waitForSave(page, 'script_lines', 'PATCH')

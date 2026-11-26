@@ -82,7 +82,7 @@ async function pidsOnceWritten(pidFile: string): Promise<number[]> {
 }
 
 describe('stopping a command that ignores SIGTERM', () => {
-  // Protects fix round 1: at the deadline SIGTERM is followed by SIGKILL, and the result comes only when the group is gone.
+  // Protects: at the deadline SIGTERM is followed by SIGKILL, and the result comes only when the group is gone.
   test(
     'at the deadline a child ignoring SIGTERM is killed after the grace period, before the result',
     { timeout: 20_000 },
@@ -103,7 +103,7 @@ describe('stopping a command that ignores SIGTERM', () => {
     },
   )
 
-  // Protects fix round 1 (signal path): stopAll escalates to SIGKILL and resolves only when every group is gone.
+  // Protects: on the signal path, stopAll escalates to SIGKILL and resolves only when every group is gone.
   test('stopAll kills a group that ignores SIGTERM and waits for it', { timeout: 20_000 }, async () => {
     const dir = mkdtempSync(join(tmpdir(), 'run command-'))
     try {

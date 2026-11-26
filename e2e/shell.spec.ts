@@ -1,10 +1,10 @@
-// Protects: the app shell (Task 1) — the sign-in screen fits a phone, and a reload
-// keeps the place the person was in (hash route, decision D2).
+// Protects: the app shell — the sign-in screen fits a phone, and a reload keeps the place the person was in (hash
+// route).
 import { test, expect } from '@playwright/test'
 import { uniqueEmail } from './helpers/admin'
 import { signUpVerifyAndSignIn, createTeam, openTeam } from './helpers/ui'
 
-// Protects: C9, nothing is cut off at 390 px (the email field was, in Plan 2).
+// Protects: nothing is cut off at 390 px, the email field included.
 test('sign-in fits a 390 px wide screen', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/')
@@ -18,7 +18,7 @@ test('sign-in fits a 390 px wide screen', async ({ page }) => {
   expect(overflow).toBeLessThanOrEqual(0)
 })
 
-// Protects: C10, the open team is part of the address, so a reload shows it again.
+// Protects: the open team is part of the address, so a reload shows it again.
 test('a reload keeps the open team', async ({ page }) => {
   await page.goto('/')
   await signUpVerifyAndSignIn(page, uniqueEmail(), 'Reloader')
@@ -30,7 +30,7 @@ test('a reload keeps the open team', async ({ page }) => {
   await expect(page.getByTestId('member-list')).toContainText('Reloader')
 })
 
-// Protects: C11, the theme is saved to the account: it survives a reload and follows the
+// Protects: the theme is saved to the account: it survives a reload and follows the
 // person into a new browser context (a different device). A new account starts dark.
 test('the chosen theme follows the account', async ({ page, browser }) => {
   const email = uniqueEmail()

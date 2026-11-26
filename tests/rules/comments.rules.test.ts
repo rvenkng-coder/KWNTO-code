@@ -5,9 +5,9 @@ import { asAdmin, asAnonymous, asUser, createUser, type TestUser } from './helpe
 import { createLink, joinShare, revokeLink } from './helpers/share.ts'
 import { addMember } from './helpers/teams.ts'
 
-// Rules of `comments` (design 5; plan 2026-11-20-sharing Task 5, D8 and D13): team members
-// and holders of comment and edit links read and write; the server copies the author's name;
-// nobody edits a comment; the author or the team owner deletes it.
+// Rules of `comments` (design 5): team members and holders of comment and edit links read and
+// write; the server copies the author's name; nobody edits a comment; the author or the team owner
+// deletes it.
 
 async function failure(promise: Promise<unknown>): Promise<number> {
   try {
@@ -50,7 +50,7 @@ async function seen(user: TestUser | null, projectId: string): Promise<number> {
   return (await (await asUser(user)).collection('comments').getFullList()).filter((c) => c.project === projectId).length
 }
 
-// Protects D8: the team and comment and edit link holders read a project's comments; an
+// Protects who reads comments: the team and comment and edit link holders read a project's comments; an
 // outsider, a signed-out caller, a view-link visitor and a holder of a revoked link do not.
 test('comments are read by the team and by comment and edit link holders', async () => {
   const ctx = await memberProject()
@@ -67,7 +67,7 @@ test('comments are read by the team and by comment and edit link holders', async
   expect(await seen(commenter.user, ctx.projectId)).toBe(0)
 })
 
-// Protects D13 and security.md 5: only allowed people comment, as themselves, on a live node
+// Protects security.md 5: only allowed people comment, as themselves, on a live node
 // of the project; the name is the server's; text goes in as typed (including SQL-looking text).
 test('only allowed people comment, as themselves, on a live node', async () => {
   const ctx = await memberProject()
@@ -131,7 +131,7 @@ test('authors delete their own comments and the owner deletes any', async () => 
   expect(await countOf(ctx.projectId)).toBe(0)
 })
 
-// Protects D11 and D13: a teammate's comment reaches an open subscription, and the
+// Protects live updates and the purge: a teammate's comment reaches an open subscription, and the
 // purge of a node takes its comments with it.
 test('comments arrive live and leave with their node', async () => {
   const ctx = await memberProject()

@@ -47,12 +47,12 @@ afterEach(() => {
 })
 
 describe('checkTaskFile', () => {
-  // Protects the Done-when rule: a task with tier, Interfaces and a valid Test plan is accepted.
+  // Protects: a task with tier, Interfaces and a valid Test plan is accepted.
   test('a task with tier, Interfaces and a valid Test plan passes', () => {
     expect(checkTaskFile('t.md', VALID_TASK)).toEqual([])
   })
 
-  // Protects the Done-when rule: each of the three gates is reported on its own, with the file path first.
+  // Protects: each of the three gates is reported on its own, with the file path first.
   test('missing tier, missing Interfaces and missing Test plan are each reported', () => {
     const problems = checkTaskFile('t.md', '# Task\n')
     expect(problems).toHaveLength(3)
@@ -120,7 +120,7 @@ describe('checkTaskFile', () => {
     expect(checkTaskFile('t.md', after)).toEqual([])
   })
 
-  // Protects Review Focus 4: problems inside the block reach the caller with the file path.
+  // Protects: problems inside the block reach the caller with the file path.
   test('Test plan problems are reported with the file path', () => {
     const problems = checkTaskFile('t.md', VALID_TASK.replace('### Flow', '### Flows'))
     expect(problems.length).toBeGreaterThan(0)

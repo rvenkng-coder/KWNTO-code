@@ -133,7 +133,7 @@ describe('runCheckTask', () => {
     expect(report).toContain('killed: time budget used')
   })
 
-  // Protects fix round 1: the deadline backstop and the command's own kill race; whichever wins, no process of
+  // Protects: the deadline backstop and the command's own kill race; whichever wins, no process of
   // the step (child or grandchild) may still be alive when the run returns (a break could still be applied).
   test(
     'a real command still running at the deadline is gone, with its children, when the run returns',
@@ -172,7 +172,7 @@ describe('runCheckTask', () => {
     },
   )
 
-  // Protects Review Focus 3: the runner prints a step's lines as given and adds nothing from the plan's cases.
+  // Protects: no probe input leaks, as the runner prints a step's lines as given and adds nothing from the plan.
   test('the report lists failing row ids and kinds and never a probe input', async () => {
     const probes = fake('probes', { ok: false, lines: ['FAIL C1 (boundary)', 'probes: 0 of 1 passed'] })
     const { report } = await runCheckTask(context(), [probes], clock(0))

@@ -46,7 +46,7 @@ describe('run-probes command', () => {
     expect(code).toBe(0)
   })
 
-  // Protects Review Focus 3: the output names the failing row and kind and nothing from the probe's input.
+  // Protects: the output names the failing row and kind and nothing from the probe's input.
   test('a failing probe prints FAIL <row> (<kind>) and exits 1', { timeout: 60_000 }, () => {
     const cwd = fixture({ [`${FOLDER}/a.probe.test.ts`]: PASSING + LEAKY })
     const { code, out } = run(cwd, FOLDER)
@@ -56,7 +56,7 @@ describe('run-probes command', () => {
     expect(code).toBe(1)
   })
 
-  // Protects Review Focus 3: the assertion, the thrown message and a console.log of the secret never appear.
+  // Protects: the assertion, the thrown message and a console.log of the secret never appear.
   test("the output does not contain the probe's input value", { timeout: 60_000 }, () => {
     const cwd = fixture({ [`${FOLDER}/a.probe.test.ts`]: LEAKY })
     const { out } = run(cwd, FOLDER)
@@ -103,7 +103,7 @@ describe('run-probes command', () => {
     expect(code).toBe(1)
   })
 
-  // Protects Review Focus: a folder is not a substring filter; a failing sibling (t2) is never run for t.
+  // Protects: a folder is not a substring filter; a failing sibling (t2) is never run for t.
   test('probes of a sibling folder whose name starts the same are not run', { timeout: 60_000 }, () => {
     const cwd = fixture({ [`${FOLDER}/a.probe.test.ts`]: PASSING, [`${FOLDER}2/b.probe.test.ts`]: LEAKY })
     const { code, out } = run(cwd, FOLDER)

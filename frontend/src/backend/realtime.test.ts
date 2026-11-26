@@ -29,7 +29,8 @@ function fakePb(isConnected = false) {
   return { pb: pb as unknown as PocketBase, connect, closed, listeners: () => connectCallbacks.size }
 }
 
-// Protects: finding E / D6: a reconnect is reported, the first connect is not, nothing is reported after close, and close removes the listener.
+// Protects: events missed while disconnected are not replayed (decision 0002), so the editor must hear of a reconnect
+// and load again: the first connect is not one, nothing is reported after close, and close removes the listener.
 test('a reconnect is reported but the first connect is not', async () => {
   const { pb, connect, closed, listeners } = fakePb()
   let reconnects = 0
@@ -55,7 +56,8 @@ test('a reconnect is reported but the first connect is not', async () => {
   expect(reconnects).toBe(2)
 })
 
-// Protects: finding E: when the socket is already connected before this subscription, the first PB_CONNECT seen is already a reconnect.
+// Protects: when the socket is already connected before this subscription, the first PB_CONNECT seen is already a
+// reconnect.
 test('a connect seen on an already open connection is a reconnect', async () => {
   const { pb, connect } = fakePb(true)
   let reconnects = 0
@@ -71,16 +73,16 @@ test('a connect seen on an already open connection is a reconnect', async () => 
   expect(reconnects).toBe(1)
 })
 
-// Protects: Plan 3's behaviour: without onReconnect no PB_CONNECT subscription is opened.
+// Protects: without onReconnect no PB_CONNECT subscription is opened.
 test('no reconnect callback, no connect subscription', async () => {
   const { pb, listeners } = fakePb()
   await subscribeProject(pb, 'p1', () => {})
   expect(listeners()).toBe(0)
 })
 
-// Protects plan 7 D15: listeners hear `true` on every connect and `false` when the stream drops
-// while the project's subscriptions are open; a drop with nothing subscribed is ignored; several
-// listeners are allowed; and nothing arrives after the subscription is closed or a listener left.
+// Protects the offline status following the live stream: listeners hear `true` on every connect and `false` when the
+// stream drops while the project's subscriptions are open; a drop with nothing subscribed is ignored; several listeners
+// are allowed; and nothing arrives after the subscription is closed or a listener left.
 test('connection listeners hear connects and drops only while subscribed', async () => {
   const { pb, connect, closed } = fakePb()
   const realtime = createRealtime(pb)
@@ -108,9 +110,9 @@ test('connection listeners hear connects and drops only while subscribed', async
   expect(heard).toHaveLength(5)
 })
 
-// Protects review finding M4 of plan 2026-11-20-sharing: the stream probe is built from the client's
-// own base URL (a backend on another origin is probed, not the page's host), answers true on the
-// server's connect event, and false on an error or when nothing answers within two seconds.
+// Protects the stream probe: it is built from the client's own base URL (a backend on another origin is probed, not the
+// page's host), answers true on the server's connect event, and false on an error or when nothing answers within two
+// seconds.
 test('the stream probe uses the client address and answers on connect, error or timeout', async () => {
   const opened: Array<{ url: string; fire(type: string): void; closed: boolean }> = []
   class FakeSource {

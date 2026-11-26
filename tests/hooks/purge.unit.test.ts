@@ -27,8 +27,9 @@ function backlog(ids: string[], size = 2) {
   }
 }
 
-// Protects review finding L4: the purge deletes everything it can, a record that cannot be deleted is reported and skipped so
-// the ones behind it are still purged, and the loop ends instead of retrying the same record every night.
+// Protects a complete purge: the purge deletes everything it can, a record that cannot be deleted is reported and
+// skipped so the ones behind it are still purged, and the loop ends instead of retrying the same record every
+// night.
 test('one record that cannot be deleted does not stop the purge', () => {
   const b = backlog(['a', 'bad', 'c', 'd', 'e'])
   const errors: string[] = []
@@ -45,7 +46,7 @@ test('one record that cannot be deleted does not stop the purge', () => {
   expect(errors).toEqual(['bad: Error: cascade failed'])
 })
 
-// Protects review finding L4: nothing to purge is a clean no-op, and an everything-fails backlog still ends.
+// Protects a complete purge: nothing to purge is a clean no-op, and an everything-fails backlog still ends.
 test('an empty backlog deletes nothing and a backlog that always fails still ends', () => {
   expect(
     purgeInBatches(
@@ -68,7 +69,7 @@ test('an empty backlog deletes nothing and a backlog that always fails still end
   expect(seen.sort()).toEqual(['x', 'y', 'z'])
 })
 
-// Protects review finding L4: the skipped ids become bound parameters of the filter, never text pasted into it.
+// Protects against injection: the skipped ids become bound parameters of the filter, never text pasted into it.
 test('skipped ids are added to the filter as bound parameters', () => {
   const params: Record<string, string> = {}
   expect(withoutSkipped("deleted_at != ''", ["a'b", 'c'], params)).toBe(

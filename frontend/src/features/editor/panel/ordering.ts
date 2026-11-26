@@ -1,6 +1,6 @@
 import type { Ordered, Placement } from '../model/sortOrder'
 
-// Lines and cues are ordered by `sortOrder` (plan D4). A placement from `insertAt` or `placeAt`
+// Lines and cues are ordered by `sortOrder`. A placement from `insertAt` or `placeAt`
 // becomes the sort orders to write: one record, or after a renumber only the records whose
 // order changed (a record not in the list yet, the one being inserted, is always written).
 

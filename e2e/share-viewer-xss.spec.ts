@@ -6,7 +6,7 @@ import { makeLink, projectIdOf, seedStory } from './helpers/share'
 const TITLE = '<img src=x onerror="window.__xss=1">'
 const TEXT = '<script>window.__xss=1</script><b>bold</b>'
 
-// Protects security.md 5 (XSS) and Review Focus 5 for the read-only viewer: a node title, a script line,
+// Protects security.md 5 (XSS) for the read-only viewer: a node title, a script line,
 // a character name and a choice label with HTML show as typed text on a share link's page; no script
 // runs and no element is made from them.
 test('titles, lines and choices with HTML show as text in the read-only viewer', async ({ page, browser }) => {

@@ -116,7 +116,7 @@ test('invite unknown email rejects; invite real user resolves; accept', async ()
   expect(invites.length).toBe(1)
   const team2 = await b2.teams.acceptInvite(invites[0].id)
   expect(team2.isOwner).toBe(false)
-  // Answered invites stay in the table as history but are no longer offered (final review, I4)
+  // Answered invites stay in the table as history but are no longer offered
   expect(await b2.teams.invites()).toHaveLength(0)
 })
 

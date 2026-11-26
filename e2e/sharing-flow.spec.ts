@@ -1,8 +1,7 @@
-// Protects plan 2026-11-20-sharing Task 8 (case C1, the Flow): the whole plan walked once, end to end,
-// in Chromium and Firefox. An owner, a member, an outsider and a visitor without an account share one
-// project: export and import, the four kinds of link, comments, presence, revoking every link, and the
-// trash. Each step uses the screens a person uses; only the seed story (two chapters, a cross-chapter
-// choice, an image) is made through the admin API.
+// Protects the sharing features walked once, end to end, in Chromium and Firefox. An owner, a member, an outsider and a
+// visitor without an account share one project: export and import, the four kinds of link, comments, presence, revoking
+// every link, and the trash. Each step uses the screens a person uses; only the seed story (two chapters, a
+// cross-chapter choice, an image) is made through the admin API.
 import { expect, test, type Page } from '@playwright/test'
 import { adminPB, uniqueEmail } from './helpers/admin'
 import { card, cards, readyCanvas, waitForSave } from './helpers/editor'
@@ -37,7 +36,7 @@ async function revokeFirst(page: Page, alreadyRevoked: number): Promise<void> {
   await expect(rows.filter({ hasText: 'Revoked' })).toHaveCount(alreadyRevoked + 1)
 }
 
-// Protects: Task 8 case C2 (the Flow), see the file header; one test so the people and their links carry through every step.
+// Protects: the walk in the file header; one test so the people and their links carry through every step.
 test('the sharing plan end to end: export, links, comments, presence, revoke and trash', async ({
   browser,
 }, testInfo) => {

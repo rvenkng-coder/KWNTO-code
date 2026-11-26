@@ -7,7 +7,7 @@ const { productionSettings } = require('../../backend/pb_hooks/lib/production-se
   productionSettings: (env: Record<string, string | undefined>) => unknown
 }
 
-// Protects D7 and D8: the rate limits and trusted proxy are written only in production, and only
+// Protects security.md 3: the rate limits and trusted proxy are written only in production, and only
 // with an https public URL, or the dev and test backends rate-limit and mail links are wrong.
 test('production settings are only produced for KWNTO_PRODUCTION=1 with an https URL', () => {
   expect(productionSettings({})).toBeNull()

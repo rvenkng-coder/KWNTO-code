@@ -1,4 +1,4 @@
-// Decides whether one account is locked out from one IP (design 7c, decision D2).
+// Decides whether one account is locked out from one IP (design 7c).
 // CommonJS so hooks can load it with require(`${__hooks}/lib/lockout.js`).
 // Pure: the hook (users-signin.pb.js) chooses which failures belong to the pair and
 // passes their times, so this can be unit tested without PocketBase.

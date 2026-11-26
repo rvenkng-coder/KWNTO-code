@@ -10,7 +10,8 @@ const PERMISSIONS: { value: SharePermission; label: string }[] = [
 ]
 
 // Share links for one project (design 5): make one, copy it, republish a snapshot, revoke.
-// A snapshot can only be a view link (plan D7), so Snapshot is offered with Can view alone.
+// A snapshot is a frozen copy, so commenting on or editing it makes no sense and the server refuses it: Snapshot is
+// offered with Can view alone.
 function useLinks(projectId: string) {
   const [links, setLinks] = useState<ShareLink[]>([])
   const [message, setMessage] = useState('')

@@ -1,8 +1,8 @@
-// The address rule for node links (plan 2026-11-21-node-links, D4). Pure, so it is unit tested.
+// The address rule for node links. Pure, so it is unit tested.
 // PocketBase's JS runtime has no URL class, so the rule is a regular expression. Only http and https
 // addresses with a host are accepted; a user name in front of the host, spaces, and every other scheme
-// are refused. The client has a copy in frontend/src/features/editor/links/linkCheck.ts; a rules test
-// keeps the two in step.
+// are refused. The client has a copy in frontend/src/features/editor/links/linkCheck.ts, so it need not
+// call the server just to check an address; a rules test keeps the two in step.
 const MAX_LENGTH = 2000
 const WEB_ADDRESS = /^(https?):\/\/([^\s/?#@\\]+)([/?#]\S*)?$/i
 

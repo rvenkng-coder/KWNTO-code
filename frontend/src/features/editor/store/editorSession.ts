@@ -7,8 +7,8 @@ import type { EditorSyncPort } from './editorSync'
 import type { EditorDoor, EditorStore } from './editorStore'
 
 // Opening and closing a project: load and subscribe together, drop whatever finishes late. Waiting
-// edits are laid over everything that arrives from the server (offline sync plan Task 4, D6), and
-// the project is loaded again after every reconnect.
+// edits are laid over everything that arrives from the server, so they stay on screen, and the
+// project is loaded again after every reconnect because events missed meanwhile are not replayed.
 
 export const OPEN_FAILED = 'This project does not exist or you are not a member of its team.'
 
@@ -119,7 +119,7 @@ class Session {
     if (entries.length > 0) this.set((st) => (st.status === 'ready' ? { content: overlay(st.content, entries) } : {}))
   }
 
-  // D6: offline closes the live subscriptions; coming back opens them again and reloads.
+  // Offline closes the live subscriptions; coming back opens them again and reloads.
   // Started by the first `open`, so building the store touches no browser API.
   private watchConnection(): void {
     if (this.watching) return

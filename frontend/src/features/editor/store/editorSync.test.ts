@@ -97,7 +97,7 @@ const open = async (s: Awaited<ReturnType<typeof setup>>) => {
   await settle()
 }
 
-// Protects: design 6.7 / D1: an edit is stored with the version and values it started from, and shows at once.
+// Protects: design 6.7: an edit is stored with the version and values it started from, and shows at once.
 test('an edit is stored with the version and value it started from', async () => {
   const s = await setup([content({ nodes: [n1()] })])
   await open(s)
@@ -112,7 +112,7 @@ test('an edit is stored with the version and value it started from', async () =>
   expect(s.store.getState().content.nodes.n1?.version).toBe(5)
 })
 
-// Protects: decision 0002 finding E: edits waiting from an earlier session show over a freshly loaded project, then save.
+// Protects: edits waiting from an earlier session show over a freshly loaded project, then save.
 test('waiting edits are shown over a freshly loaded project', async () => {
   const s = await setup(
     [content({ nodes: [n1({ color: 'red' })] })],
@@ -135,7 +135,7 @@ test('waiting edits are shown over a freshly loaded project', async () => {
   expect(s.store.getState().content.nodes.n1).toMatchObject({ color: 'blue', version: 5 })
 })
 
-// Protects: review focus 3: a live event from a teammate does not hide my waiting edit.
+// Protects: a live event from a teammate does not hide my waiting edit.
 test("a teammate's live change does not hide my waiting edit", async () => {
   const s = await setup([content({ nodes: [n1()] })])
   await open(s)
@@ -145,7 +145,8 @@ test("a teammate's live change does not hide my waiting edit", async () => {
   expect(s.store.getState().content.nodes.n1).toMatchObject({ title: 'Theirs', color: 'blue' })
 })
 
-// Protects: D6: a reconnect loads the project again and lays the waiting edits over it.
+// Protects: events missed while disconnected are not replayed, so a reconnect loads the project again and lays the
+// waiting edits over it.
 test('a reconnect reloads the project and keeps waiting edits', async () => {
   const s = await setup([
     content({ nodes: [n1()] }),
@@ -161,7 +162,8 @@ test('a reconnect reloads the project and keeps waiting edits', async () => {
   expect(s.store.getState().content.nodes.n1).toMatchObject({ title: 'Theirs', color: 'blue' })
 })
 
-// Protects: D8: an entry refused after a reload has no local copy to undo from, so the server's copy is shown and the entry is listed as failed.
+// Protects: an entry refused after a reload has no local copy to undo from, so the server's copy is shown and the entry
+// is listed as failed.
 test("a refused edit from before a reload shows the server's copy", async () => {
   const s = await setup(
     [content({ nodes: [n1({ title: 'Server', version: 6 })] })],
@@ -186,7 +188,8 @@ test("a refused edit from before a reload shows the server's copy", async () => 
   expect(s.engine.snapshot().failed.map((f) => f.message)).toEqual(['Not allowed.'])
 })
 
-// Protects: finding E: waiting edits the engine only learned about after the project loaded (the outbox was still being read) are laid over it then.
+// Protects: waiting edits the engine only learned about after the project loaded (the outbox was still being read) are
+// laid over it then.
 test('waiting edits that become known after the load are laid over the project', async () => {
   const s = await setup(
     [content({ nodes: [n1({ color: 'red' })] })],
@@ -210,7 +213,7 @@ test('waiting edits that become known after the load are laid over the project',
   expect(s.store.getState().content.nodes.n1?.color).toBe('blue')
 })
 
-// Protects: D6 / never regress: a reload that was read before my save landed never puts an older copy over the newer one on screen.
+// Protects: a reload that was read before my save landed never puts an older copy over the newer one on screen.
 test('a reload never replaces a record with an older copy', async () => {
   const s = await setup([content({ nodes: [n1()] }), content({ nodes: [n1()] })])
   await open(s)
@@ -224,7 +227,8 @@ test('a reload never replaces a record with an older copy', async () => {
   expect(s.store.getState().content.nodes.n1).toMatchObject({ title: 'B', version: 5 })
 })
 
-// Protects: D6: my own create that the server saved while the reload was under way (after the reload's snapshot was read) is not dropped from the screen.
+// Protects: my own create that the server saved while the reload was under way (after the reload's snapshot was read)
+// is not dropped from the screen.
 test('a record I created while a reload was under way stays on screen', async () => {
   const s = await setup([content({ nodes: [n1()] }), content({ nodes: [n1()] })])
   await open(s)
@@ -251,7 +255,8 @@ test('a record I removed while a reload was under way stays removed', async () =
   expect(s.store.getState().content.lines.L).toBeUndefined()
 })
 
-// Protects: finding E: after the connection comes back the live subscription is open before the project is loaded, so a teammate's save cannot fall between the two.
+// Protects: after the connection comes back the live subscription is open before the project is loaded, so a teammate's
+// save cannot fall between the two.
 test('after coming back online the subscription is open before the project is loaded', async () => {
   const s = await setup([content({ nodes: [n1()] }), content({ nodes: [n1()] })])
   await open(s)
@@ -267,7 +272,8 @@ test('after coming back online the subscription is open before the project is lo
   expect(s.fake.loads).toHaveLength(2)
 })
 
-// Protects: finding E: a waiting edit that the server accepts while the project is still opening is not lost from the screen when the (older) load arrives.
+// Protects: a waiting edit that the server accepts while the project is still opening is not lost from the screen when
+// the (older) load arrives.
 test('a save that lands while the project is opening shows once the load arrives', async () => {
   const s = await setup(
     [content({ nodes: [n1()] })],
@@ -293,7 +299,8 @@ test('a save that lands while the project is opening shows once the load arrives
   expect(s.store.getState().content.nodes.n1).toMatchObject({ title: 'Mine', version: 5 })
 })
 
-// Protects: D11: an edit that a later remove cancelled does not stay pending: its promise resolves and the saving counter returns to 0, so undo is not stuck waiting for it.
+// Protects: an edit that a later remove cancelled does not stay pending: its promise resolves and the saving counter
+// returns to 0, so undo is not stuck waiting for it.
 test('a remove that cancels a waiting create leaves nothing pending', async () => {
   const s = await setup([content({ nodes: [n1()] })])
   await open(s)

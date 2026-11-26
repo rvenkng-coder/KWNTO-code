@@ -4,7 +4,7 @@ import { node } from '../model/fixtures'
 import { settle, sharedParts, tab } from './fakes'
 import type { SyncEngine } from './syncEngine'
 
-// What a tab that does not send shows and can do (offline sync plan, whole-branch review I4): the offline state and the conflict of the tab that sends.
+// What a tab that does not send shows and can do: the offline state and the conflict of the tab that sends.
 type Add = Parameters<SyncEngine['add']>[0]
 const upd = (id: string, title: string): Add => ({
   projectId: 'p1',
@@ -28,7 +28,8 @@ async function twoTabs() {
   return { shared, a, b }
 }
 
-// Protects: D3: a tab that does not send shows `Offline` when the tab that sends cannot reach the server, and marks its own edits offline, so they can raise the conflict dialog instead of silently overwriting a teammate.
+// Protects: a tab that does not send shows `Offline` when the tab that sends cannot reach the server, and marks its own
+// edits offline, so they can raise the conflict dialog instead of silently overwriting a teammate.
 test('a tab that does not send follows the server being unreachable', async () => {
   const { shared, a, b } = await twoTabs()
   shared.door.on('update', () => {
@@ -42,7 +43,8 @@ test('a tab that does not send follows the server being unreachable', async () =
   expect((await shared.storage.list('u1')).find((e) => e.id === 'n2')?.offline).toBe(true)
 })
 
-// Protects: D12: the conflict dialog can be answered from any tab: a tab that does not send sees the conflict of the one that sends, and its answer reaches it.
+// Protects: the conflict dialog can be answered from any tab: a tab that does not send sees the conflict of the one
+// that sends, and its answer reaches it.
 test('a conflict is shown and answered in a tab that does not send', async () => {
   const { shared, a, b } = await twoTabs()
   let first = true

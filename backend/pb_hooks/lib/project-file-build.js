@@ -1,5 +1,5 @@
-// Builds the project file from a project's records (plan 7 D5). CommonJS, loaded through
-// lib/project-file.js.
+// Builds the project file from a project's records (docs/developer/project-file.md). CommonJS,
+// loaded through lib/project-file.js.
 
 const { checkLinkUrl } = require("./link-check.js")
 

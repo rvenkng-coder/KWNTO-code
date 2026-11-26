@@ -9,15 +9,15 @@
 // - a successful join answers the team's id and name only;
 // - the code is never written to the security log (anyone reading it could join).
 // A join code has about 40 bits, so it is guessable in principle; the per-user limit
-// (`team_attempts_per_hour`, shared with invites, decision D3) keeps guessing slow.
+// (`team_attempts_per_hour`, shared with invites) keeps guessing slow.
 
 routerAdd(
   "POST",
   "/api/kwnto/teams/join",
   (e) => {
     // Hook handlers run in isolated scopes, so helpers are loaded inside the handler.
-    // The attempt counting moved to lib/team-attempts.js in Task 8, unchanged, so the
-    // invite route counts the shared limit (D3) exactly the same way.
+    // The attempt counting is in lib/team-attempts.js, so the invite route counts the
+    // shared limit exactly the same way.
     const { teamAttemptLimitReached } = require(`${__hooks}/lib/team-attempts.js`)
     const { logEvent } = require(`${__hooks}/lib/security-log.js`)
 
@@ -82,7 +82,7 @@ routerAdd(
     // one at a time, so two simultaneous joins by one user cannot both insert. If an
     // insert still fails, the unique index on (team, user) may have refused a duplicate
     // made some other way; that is a success if the row now exists.
-    // The row is saved as a normal record, so the teams hook fills `user_name` (D6).
+    // The row is saved as a normal record, so the teams hook fills `user_name`.
     function addMember(app, teamId, userId) {
       try {
         app.runInTransaction((txApp) => {

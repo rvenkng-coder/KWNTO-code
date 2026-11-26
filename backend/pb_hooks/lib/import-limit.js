@@ -1,8 +1,8 @@
-// The per-user limit on project imports (whole-branch review finding M2 of plan
-// 2026-11-20-sharing; docs/security.md "Bad imports"). One import can hold the database's only
-// write connection for several seconds, so a person may start only IMPORTS_PER_HOUR of them
-// an hour. Every accepted attempt is written to the security log as `import`; a refusal by
-// this limit is not, so hammering the route does not extend the wait (as with join codes).
+// The per-user limit on project imports (docs/security.md "Bad imports"). One import can hold
+// the database's only write connection for several seconds, so a person may start only
+// IMPORTS_PER_HOUR of them an hour. Every accepted attempt is written to the security log
+// as `import`; a refusal by this limit is not, so hammering the route does not extend the
+// wait (as with join codes).
 // CommonJS so hooks can load it with require(`${__hooks}/lib/import-limit.js`).
 
 const HOUR_MS = 60 * 60 * 1000

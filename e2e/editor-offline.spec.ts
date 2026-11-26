@@ -1,5 +1,5 @@
-// Protects: offline sync in the browser (offline sync plan Task 4, design 6.7, decision 0002
-// finding E): the outbox keeps entries across a reload, edits made offline wait and are saved
+// Protects: offline sync in the browser (design 6.7; events missed while disconnected are not
+// replayed, decision 0002): the outbox keeps entries across a reload, edits made offline wait and are saved
 // when the connection returns, a teammate's changes show after a reconnect, a refused change is
 // shown and not lost, signing out and undo say what is waiting.
 import { expect, test, type Page } from '@playwright/test'
@@ -95,7 +95,7 @@ test('edits made offline are saved when the connection returns', async ({ page, 
   await expect(panel(page).getByTestId('line-row')).toHaveCount(1)
 })
 
-// Protects: review focus 1: text typed just before closing an offline tab reaches IndexedDB and is sent from the next page.
+// Protects: text typed just before closing an offline tab reaches IndexedDB and is sent from the next page.
 test('text typed just before closing an offline tab is not lost', async ({ page, context }) => {
   const [id] = (await projectWithNodes(page, 1)) as [string]
   await card(page, id).click()
@@ -113,7 +113,7 @@ test('text typed just before closing an offline tab is not lost', async ({ page,
   await expect.poll(async () => (await adminRecord('nodes', id)).title).toBe('Typed in a hurry')
 })
 
-// Protects: review focus 3: after reconnecting, a teammate's changes made meanwhile appear and my waiting edits still show on top.
+// Protects: after reconnecting, a teammate's changes made meanwhile appear and my waiting edits still show on top.
 test("after reconnecting a teammate's changes show and mine are kept", async ({ browser }) => {
   const { a, b, ctxA, ids } = await ownerAndMember(browser, 2)
   const [n1, n2] = ids as [string, string]
@@ -137,7 +137,8 @@ test("after reconnecting a teammate's changes show and mine are kept", async ({ 
   await expect(syncStatus(a)).toHaveCount(0)
 })
 
-// Protects: review focus 5: a refused change is shown with the server's message and rolled back, the next change still saves, and Dismiss clears the list.
+// Protects: a refused change is shown with the server's message and rolled back, the next change still saves, and
+// Dismiss clears the list.
 test('a refused change goes to the failed list and later changes still save', async ({ page }) => {
   const [a, b] = (await projectWithNodes(page, 2)) as [string, string]
   let refused = false
@@ -167,7 +168,8 @@ test('a refused change goes to the failed list and later changes still save', as
   expect((await adminRecord('nodes', a)).title).toBe('New node')
 })
 
-// Protects: D13: signing out with waiting changes asks in the page (no browser pop-up), and Stay signed in keeps the session.
+// Protects: signing out with waiting changes asks in the page (no browser pop-up), and Stay signed in keeps the
+// session.
 test('signing out with waiting changes asks first', async ({ page, context }) => {
   const [id] = (await projectWithNodes(page, 1)) as [string]
   page.on('dialog', () => {
@@ -186,7 +188,8 @@ test('signing out with waiting changes asks first', async ({ page, context }) =>
   await expect(page.getByTestId('session-user')).toBeVisible()
 })
 
-// Protects: D11: undo is paused while offline changes wait, and works once they are saved.
+// Protects: undo waits for every write in flight, which offline would never end, so it is paused while offline changes
+// wait, and works once they are saved.
 test('undo works again once offline changes are saved', async ({ page, context }) => {
   const [id] = (await projectWithNodes(page, 1)) as [string]
   await goOffline(context, page)
@@ -205,7 +208,8 @@ test('undo works again once offline changes are saved', async ({ page, context }
   await expect(card(page, id)).toContainText('New node')
 })
 
-// Protects: D4, D12: a node renamed offline that a teammate renamed meanwhile asks the person, shows both titles, and keeps the choice.
+// Protects: a node renamed offline that a teammate renamed meanwhile asks the person, shows both titles, and keeps the
+// choice.
 test('a title changed by both sides asks which to keep', async ({ browser }) => {
   const { a, b, ctxA, ids } = await ownerAndMember(browser, 1)
   const [n1] = ids as [string]
@@ -242,7 +246,8 @@ test('a stopped backend keeps the edit waiting and saves it when the server retu
   expect((await adminRecord('nodes', id)).title).toBe('While down')
 })
 
-// Protects: design 6.7, review focus 3: a script line added offline survives the reconnect on the screen that made it, next to a teammate's recolour of the node.
+// Protects: design 6.7: a script line added offline survives the reconnect on the screen that made it, next to a
+// teammate's recolour of the node.
 test("a line added offline stays on screen after reconnecting next to a teammate's recolour", async ({ browser }) => {
   const { a, b, ids } = await ownerAndMember(browser, 1)
   const [n1] = ids as [string]

@@ -20,8 +20,8 @@ export const useTeams = create<TeamState>((set, get) => ({
   list: async () => {
     try {
       const teams = await backend.teams.list()
-      // Leave `error` alone: a list that lands late must not wipe an action's error
-      // (Plan 3 Task 4). Each action clears it when it starts.
+      // Leave `error` alone: a list that lands late must not wipe an action's error.
+      // Each action clears it when it starts.
       set({ teams })
     } catch (err: unknown) {
       set({ error: errorMessage(err, 'Failed to load teams') })

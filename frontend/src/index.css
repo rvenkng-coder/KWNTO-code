@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Theme tokens (decision D1, design 6.6). Components use these through Tailwind
+/* Theme tokens (design 6.6). Components use these through Tailwind
    utilities (bg-panel, text-muted, ...) and never write a colour of their own.
    Light: white panels with a soft shadow. Dark: flat solid panels, thin borders,
    no shadow. No blur and no transparency on panels. */
@@ -128,7 +128,7 @@
   }
 }
 
-/* React Flow on the theme tokens (editor core plan Task 10). React Flow reads each
+/* React Flow on the theme tokens. React Flow reads each
    --xy-* variable before its own default, so both themes follow the tokens above. */
 .kwnto-canvas {
   --xy-background-color: var(--color-bg);
@@ -158,7 +158,7 @@
 .kwnto-canvas .react-flow__handle-left { left: -8px; }
 .kwnto-canvas .react-flow__handle-right { right: -8px; }
 
-/* Player Mode (plan 2026-11-26-player-mode, D9): the node on screen slides in from the right, from the left
+/* Player Mode: the node on screen slides in from the right, from the left
    (Back) or fades in (first screen and Restart). Nothing moves for people who ask for reduced motion. */
 @keyframes player-slide-forward { from { opacity: 0; transform: translateX(2rem); } to { opacity: 1; transform: none; } }
 @keyframes player-slide-back { from { opacity: 0; transform: translateX(-2rem); } to { opacity: 1; transform: none; } }

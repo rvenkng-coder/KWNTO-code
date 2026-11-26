@@ -1,12 +1,12 @@
 import { expect, test } from 'vitest'
 import { failedText, fieldLabel, nextDelay, statusText } from './outboxText'
 
-// Protects: design 6.7 / decision D7: the retry delay doubles from one second and never exceeds thirty.
+// Protects: the retry delay doubles from one second and never exceeds thirty.
 test('backoff doubles from one second and stops at thirty', () => {
   expect([0, 1, 2, 3, 5, 6, 7, 50].map(nextDelay)).toEqual([1000, 1000, 2000, 4000, 16000, 30000, 30000, 30000])
 })
 
-// Protects: router "Exact copy": the status and failed words count changes and pluralise correctly.
+// Protects: the status and failed words count changes and pluralise correctly.
 test('the status words count changes', () => {
   expect(statusText(false, 0)).toBe('Offline')
   expect(statusText(false, 1)).toBe('Offline, 1 change waiting')
@@ -17,7 +17,7 @@ test('the status words count changes', () => {
   expect(failedText(4)).toBe('4 changes could not be saved')
 })
 
-// Protects: the conflict dialog and failed list name fields in the person's words (D4: x and y are one "Position").
+// Protects: the conflict dialog and failed list name fields in the person's words (x and y are one "Position").
 test('each field has a readable label', () => {
   expect(fieldLabel('nodes', 'x')).toBe('Position')
   expect(fieldLabel('nodes', 'y')).toBe('Position')

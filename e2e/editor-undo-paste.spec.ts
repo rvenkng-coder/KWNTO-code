@@ -1,7 +1,6 @@
-// Protects: undo/redo, copy/paste and shortcuts (editor core plan, Task 12; design 6.1, D5, D11,
-// D12): undo and redo of a rename and a new node, undoing a trash brings the node back with its
-// connections, a group drag is one step, paste copies across chapters, and undo never
-// overwrites a teammate's later change (Review Focus 4).
+// Protects: undo/redo, copy/paste and shortcuts (design 6.1): undo and redo of a rename and a new node, undoing a trash
+// brings the node back with its connections, a group drag is one step, paste copies across chapters, and undo never
+// overwrites a teammate's later change.
 import { expect, test, type Page } from '@playwright/test'
 import { uniqueEmail } from './helpers/admin'
 import {
@@ -41,7 +40,7 @@ async function press(
   await saved
 }
 
-// Protects: D12: Ctrl+Z undoes a rename and Ctrl+Shift+Z redoes it; undoing a new node trashes it.
+// Protects: Ctrl+Z undoes a rename and Ctrl+Shift+Z redoes it; undoing a new node trashes it.
 test('undo and redo a rename and a new node', async ({ page }) => {
   await ownerWithProject(page, 'Story')
   await readyCanvas(page, 0)
@@ -56,7 +55,7 @@ test('undo and redo a rename and a new node', async ({ page }) => {
   await expect(cards(page)).toHaveCount(1)
 })
 
-// Protects: Review Focus 5: undoing a trash brings the node back with its connections and its Start badge.
+// Protects: undoing a trash brings the node back with its connections and its Start badge.
 test('undoing a trash brings the node back with its connections', async ({ page }) => {
   await ownerWithProject(page, 'Story')
   await readyCanvas(page, 0)
@@ -104,7 +103,8 @@ async function dragCard(page: Page, id: string, dx: number): Promise<void> {
   await page.mouse.up()
 }
 
-// Protects: D5 and D11: a drag of several nodes undoes in one step; paste copies nodes, lines and edges into another chapter, 40 px further each time.
+// Protects: a drag of several nodes undoes in one step; paste copies nodes, lines and edges into another chapter, 40 px
+// further each time.
 test('a group drag undoes in one step and paste copies across chapters', async ({ page }) => {
   await ownerWithProject(page, 'Story')
   await readyCanvas(page, 0)
@@ -143,7 +143,7 @@ test('a group drag undoes in one step and paste copies across chapters', async (
   await expect(page.locator('.react-flow__edge')).toHaveCount(2)
 })
 
-// Protects: Review Focus 4: undo after a teammate changed the same field is refused with a message, and both keep the teammate's title.
+// Protects: undo after a teammate changed the same field is refused with a message, and both keep the teammate's title.
 test('undo is refused after a teammate changed the same field', async ({ page, browser }) => {
   await ownerWithProject(page, 'Story')
   await readyCanvas(page, 0)

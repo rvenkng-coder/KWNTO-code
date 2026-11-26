@@ -1,7 +1,6 @@
 import type { PlayNode, Story } from './story'
 
-// The path a player has taken (plan 2026-11-26-player-mode, Task 1). A session is never changed in
-// place: every move returns a new one.
+// The path a player has taken. A session is never changed in place: every move returns a new one.
 
 export interface Step {
   nodeId: string

@@ -42,7 +42,8 @@ const newUpd = (
   }) as NewEntry
 
 describe('planAdd', () => {
-  // Protects: D5: an edit joins the last waiting edit of the same record, never one being sent or one behind another record's edit.
+  // Protects: an edit joins the last waiting edit of the same record, never one being sent or one behind another
+  // record's edit.
   test('an edit joins the last waiting edit of the same record only', () => {
     const queue = [upd(1, 'n1', { title: 'B' }, { title: 'A' })]
     const plan = planAdd(queue, newUpd('n1', { title: 'C', color: 'red' }, { title: 'B', color: 'slate' }), null)
@@ -76,7 +77,7 @@ describe('planAdd', () => {
   const lineUpd = (seq: number): OutboxEntry => upd(seq, 'L', { text: 'x' }, { text: 'L' }, { kind: 'script_lines' })
   const remove: NewEntry = { ...base, op: 'remove', kind: 'script_lines', id: 'L', record: line('L') }
 
-  // Protects: D5 / never discard: a remove cancels waiting work on that record but never a request already on the wire.
+  // Protects: a remove cancels waiting work on that record but never a request already on the wire.
   test('removing a record cancels its waiting edits but never one being sent', () => {
     const both = planAdd([create(1), lineUpd(2)], remove, null)
     expect(both.drop.sort()).toEqual([1, 2])
@@ -88,7 +89,7 @@ describe('planAdd', () => {
 })
 
 describe('overlay', () => {
-  // Protects: decision 0002 finding E: waiting edits are laid over fresh server data, not under it.
+  // Protects: waiting edits are laid over fresh server data, not under it.
   test('waiting edits are laid over fresh server data', () => {
     const server = fromContent(
       content({
@@ -119,7 +120,7 @@ describe('classifyConflict', () => {
     over: Partial<OutboxEntry> = {},
   ) => upd(1, 'n1', changes, baseValues, { offline: true, ...over })
 
-  // Protects: D4: only a change by someone else to the same attribute is a conflict.
+  // Protects: only a change by someone else to the same attribute is a conflict.
   test('only a change by someone else to the same attribute is a conflict', () => {
     const e = offlineUpd({ title: 'B' }, { title: 'A' })
     expect(classifyConflict(e, node('n1', { title: 'C' }))).toEqual({ type: 'fields', fields: ['title'] })
@@ -133,7 +134,7 @@ describe('classifyConflict', () => {
     expect(classifyConflict({ ...e, offline: false }, node('n1', { title: 'C' }))).toEqual({ type: 'none' })
   })
 
-  // Protects: D4: a record removed while someone else edited it is a conflict; a create never is.
+  // Protects: a record removed while someone else edited it is a conflict; a create never is.
   test('a removed record edited by someone else is a conflict', () => {
     const rm: OutboxEntry = {
       ...base,

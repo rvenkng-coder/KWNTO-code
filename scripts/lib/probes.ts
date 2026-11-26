@@ -9,7 +9,7 @@ export interface ProbeSummary {
   loadErrors: number
 }
 
-// "[C3] second-bad-item: two items" -> { row: "C3", kind: "second-bad-item" }. The characters allowed in
+// "[R3] second-bad-item: two items" -> { row: "R3", kind: "second-bad-item" }. The characters allowed in
 // row and kind are the only ones that can ever be printed from a title.
 const TITLE = /^\[([A-Za-z0-9][A-Za-z0-9._-]*)\] ([a-z0-9]+(?:-[a-z0-9]+)*): /
 

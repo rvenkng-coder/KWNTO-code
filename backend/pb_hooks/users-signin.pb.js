@@ -1,6 +1,6 @@
 /// <reference path="../pb_data/types.d.ts" />
 // Sign-in protection (design 7c, docs/security.md section 3): the system lockdown, the
-// lockout after too many failed sign-ins of one account from one IP (decision D2), and
+// lockout after too many failed sign-ins of one account from one IP, and
 // the account block. Only the `users` collection: the admin (`_superusers`) is never
 // locked out, blocked or refused by a lockdown, so the dashboard keeps working.
 //
@@ -68,7 +68,7 @@ onRecordAuthWithPasswordRequest((e) => {
   logEvent(e.app, "sign-in", e.record.id, ip, { identity: identity })
 
   // The failure times (ms) of one account and IP pair inside the lockout window and after
-  // the pair's last successful sign-in (decision D2: a success resets the count).
+  // the pair's last successful sign-in (a success resets the count).
   function pairFailureTimesMs(app, pair, windowStartMs) {
     const pairFilter = "ip = {:ip} && detail.identity = {:identity}"
     const lastSignIn = app.findRecordsByFilter(
@@ -108,7 +108,7 @@ onRecordAuthWithPasswordRequest((e) => {
 onRecordAuthRequest((e) => {
   const { ensureUserRecords } = require(`${__hooks}/lib/user-records.js`)
 
-  // Repair first (Task 2), so an account whose rows went missing still has a status to
+  // Repair first, so an account whose rows went missing still has a status to
   // check. A row that is still missing refuses the sign-in: never assume "not blocked".
   ensureUserRecords(e.app, e.record.id)
   const status = e.app.findRecordsByFilter("user_status", "user = {:user}", "", 1, 0, { user: e.record.id })

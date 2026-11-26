@@ -12,7 +12,7 @@ const make = (id: string, nodeId: string, created: string, authorId: string | nu
   created,
 })
 
-// Protects D13: a comment that arrives twice (the author's own save and its live echo) is
+// Protects: a comment that arrives twice (the author's own save and its live echo) is
 // listed once, a delete removes it, a node's comments come oldest first (ties by id), the
 // badge text follows the count, and only the author or the team owner may delete.
 test('comments are listed once, in order, and deleted only by author or owner', () => {
@@ -38,7 +38,7 @@ test('comments are listed once, in order, and deleted only by author or owner', 
   expect(canDelete(make('x', 'n1', '', null), 'u1', false)).toBe(false)
 })
 
-// Protects review finding L10: the 2000 limit counts characters like the server, so an emoji is one, not two.
+// Protects: the 2000 limit counts characters like the server, so an emoji is one, not two.
 test('commentLength counts characters, not UTF-16 units', () => {
   expect(commentLength('abc')).toBe(3)
   expect(commentLength('😀'.repeat(1500))).toBe(1500)

@@ -13,8 +13,10 @@ import {
   restore,
 } from './helpers/backup.ts'
 
-// Backups and the restore (plan 6 D10, D11; security.md 7 and 9 control 8). One backup-test stack on a fresh
-// named volume with the backups in a temporary host folder; the same ports as the edge stack (8094, 8095).
+// Backups and the restore (security.md 7 and 9 control 8). Backups are plain zips in a host folder, and the restore
+// is an offline script (stop PocketBase, empty the data volume, unzip, start), so it also works when the app will not
+// start. One backup-test stack on a fresh named volume with the backups in a temporary host folder; the same ports as
+// the edge stack (8094, 8095).
 
 // The 67-byte PNG is copied from tests/rules/helpers/media.ts on purpose: the container layer does not import from the rules layer.
 const PNG_1PX = new Uint8Array(
@@ -83,7 +85,7 @@ async function readJson(token: string, path: string): Promise<Response> {
   return raw(path, { headers: { Authorization: token } })
 }
 
-// Protects Review Focus 4: a restore brings back the database, the media files and the admin account.
+// Protects security.md 7: a restore brings back the database, the media files and the admin account.
 test('a restore brings back data, media files and the admin account', async () => {
   const user = await verifiedUser()
   const team = await createJson(user.token, '/api/collections/teams/records', { name: 'Restore team', owner: user.id })
@@ -170,7 +172,7 @@ test('a restore brings back data, media files and the admin account', async () =
   expect(await home.text()).toContain('<div id="root">')
 }, 300_000)
 
-// Protects D11: a wrong path or a non-zip is refused before anything is touched.
+// Protects the data: a wrong path or a non-zip is refused before anything is touched.
 test('restore refuses a missing or broken backup before touching data', async () => {
   const missing = restore(dir, ['--yes', '/nope.zip'])
   expect(missing.status).toBe(2)
@@ -201,7 +203,7 @@ test('restore refuses a missing or broken backup before touching data', async ()
   expect(await adminSignIn(OLD_PASSWORD)).toBe(200)
 })
 
-// Protects D11: without --yes nothing changes unless the admin types RESTORE.
+// Protects the data: without --yes nothing changes unless the admin types RESTORE.
 test('restore asks before replacing all data', async () => {
   const zip = manualZips()[0]
   const file = join(dir, zip)

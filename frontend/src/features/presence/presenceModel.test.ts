@@ -10,7 +10,7 @@ const row = (id: string, userId: string, userName: string, nodeId = 'n1', field 
   field,
 })
 
-// Protects D14: a row counts while THIS browser last received it less than the timeout ago
+// Protects: a row counts while THIS browser last received it less than the timeout ago
 // (its own clock, so clock skew between machines cannot matter); a row never received counts
 // for nothing; the viewer's own row is dropped; names are listed sorted, by node or by field;
 // the label follows the number of people.

@@ -69,7 +69,7 @@ export function createProjects(pb: PocketBase) {
       })
     },
 
-    /** The server hook adds the project's settings and its first chapter (plan D6). */
+    /** The server hook adds the project's settings and its first chapter. */
     async create(teamId: string, name: string): Promise<Project> {
       return wrapped(async () => fromRecord('projects', await pb.collection('projects').create({ team: teamId, name })))
     },

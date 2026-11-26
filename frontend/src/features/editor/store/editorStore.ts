@@ -14,7 +14,7 @@ import { createEdits } from './editorEdits'
 import { createSession } from './editorSession'
 import { appSync, directSync, type EditorSyncPort } from './editorSync'
 
-// The editor's one store (plan Task 8). Screens read and change content only through it.
+// The editor's one store. Screens read and change content only through it.
 // An edit is applied at once, then written to the outbox, which sends it; a refusal puts it back.
 // `editorSession.ts` opens and closes a project; `editorEdits.ts` holds the edits.
 
@@ -26,7 +26,7 @@ export interface EditorStore {
   /** Door calls in flight (create, update, remove); a screen warns before unload while > 0. */
   saving: number
   content: ContentState
-  /** Whether something was copied or cut in this tab (F4); Paste is disabled until then. */
+  /** Whether something was copied or cut in this tab; Paste is disabled until then. */
   hasClip: boolean
   open(projectId: string): Promise<void>
   close(): Promise<void>

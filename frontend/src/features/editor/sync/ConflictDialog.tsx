@@ -2,7 +2,10 @@ import { useEditor } from '../store/editorStore'
 import { conflictHeading, conflictRows } from './syncText'
 import { syncLifecycle, useSync } from './syncStore'
 
-/** An edit made offline met someone else's change to the same thing: keep mine or keep theirs. Modal; the queue waits (D12). */
+/**
+ * An edit made offline met someone else's change to the same thing: keep mine or keep theirs. Modal: the queue waits
+ * for the answer, so no later edit of that record is sent on a wrong base.
+ */
 export function ConflictDialog() {
   const conflict = useSync((s) => s?.conflict ?? null)
   const nodes = useEditor((s) => s.content.nodes)

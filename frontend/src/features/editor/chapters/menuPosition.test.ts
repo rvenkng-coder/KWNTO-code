@@ -10,7 +10,7 @@ describe('menuPosition', () => {
     expect(menuPosition({ left: 100, top: 20, width: 20, height: 20 }, menu, viewport)).toEqual({ left: 100, top: 40 })
   })
 
-  // Protects: a menu opened near the right edge of the window is pulled back inside it (Review Focus 1).
+  // Protects: a menu opened near the right edge of the window is pulled back inside it.
   test('keeps the menu inside the right edge', () => {
     expect(menuPosition({ left: 1250, top: 20, width: 20, height: 20 }, menu, viewport)).toEqual({
       left: 1112,
@@ -18,7 +18,7 @@ describe('menuPosition', () => {
     })
   })
 
-  // Protects: a menu with no room below flips above its button instead of leaving the window (Review Focus 1).
+  // Protects: a menu with no room below flips above its button instead of leaving the window.
   test('opens above the anchor when there is no room below', () => {
     expect(menuPosition({ left: 100, top: 680, width: 20, height: 20 }, menu, viewport)).toEqual({
       left: 100,

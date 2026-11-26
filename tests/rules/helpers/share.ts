@@ -1,7 +1,7 @@
 import { PB_URL, asAdmin, asUser, rawSend, type TestUser } from './pb.ts'
 import { send, tokenOf, type Reply } from './invites.ts'
 
-// Helpers for the share link tests (plan 2026-11-20-sharing Task 3).
+// Helpers for the share link tests.
 
 // A link made through the member's own session (the create rule and the create hook apply).
 export async function createLink(

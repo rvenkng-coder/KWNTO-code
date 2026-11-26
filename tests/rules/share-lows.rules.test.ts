@@ -7,8 +7,8 @@ import { createLink, joinShare, revokeLink, shareMedia } from './helpers/share.t
 // Media made here must not outlive the file: other rule files count the whole table.
 afterEach(deleteAllMedia)
 
-// Whole-branch review findings L1, L2 and L3 of plan 2026-11-20-sharing: who may still touch a
-// project after a link is revoked or its content is trashed.
+// Protects access that ends: who may still touch a project after a link is revoked or its content
+// is trashed.
 
 async function trash(
   user: Parameters<typeof guardedUpdate>[0],
@@ -20,7 +20,7 @@ async function trash(
   return (await guardedUpdate(user, collection, id, { deleted_at: deletedAt, version })).status
 }
 
-// Protects L1: a holder whose edit link was revoked can no longer refresh or move their presence row.
+// Protects revocation: a holder whose edit link was revoked can no longer refresh or move their presence row.
 test('a revoked edit link holder cannot keep updating their presence row', async () => {
   const ctx = await memberProject()
   const nodeId = await createNode(ctx.member, ctx.projectId, ctx.chapterId, { title: 'a' })
@@ -39,7 +39,8 @@ test('a revoked edit link holder cannot keep updating their presence row', async
   await expect(pb.collection('presence').update(row.id, { node: other })).rejects.toMatchObject({ status: 404 })
 })
 
-// Protects L2: a live link hides the media of a trashed node or chapter, as the file does, and a snapshot keeps what it listed.
+// Protects trashed content: a live link hides the media of a trashed node or chapter, as the file does, and a snapshot
+// keeps what it listed.
 test('a live link does not serve media of a trashed node or chapter', async () => {
   const { member, owner, projectId, chapterId } = await memberProject()
   const nodeId = await createNode(member, projectId, chapterId, { title: 'pic' })
@@ -62,7 +63,8 @@ test('a live link does not serve media of a trashed node or chapter', async () =
   expect((await shareMedia(live.token, mediaId)).status).toBe(404)
 })
 
-// Protects L3: the server refuses to restore a node while its chapter is in the trash (the panel says so too), and allows it after.
+// Protects restore order: the server refuses to restore a node while its chapter is in the trash (the panel says so
+// too), and allows it after.
 test('a node of a trashed chapter cannot be restored before its chapter', async () => {
   const { member, owner, projectId, chapterId } = await memberProject()
   const nodeId = await createNode(member, projectId, chapterId, { title: 'inside' })

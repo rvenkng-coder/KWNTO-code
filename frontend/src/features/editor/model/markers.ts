@@ -1,6 +1,6 @@
 import { isLiveNode, liveConnections, liveNodes, type ContentState } from './state'
 
-// Start, end and unreachable markers (design 6.1, plan decisions D7 and D8), over all chapters.
+// Start, end and unreachable markers (design 6.1), over all chapters.
 
 export interface NodeMarker {
   isStart: boolean

@@ -1,4 +1,4 @@
-// Protects: the preferences door (C8) sends only changed keys, maps the server row back
+// Protects: the preferences door sends only changed keys, maps the server row back
 // and reports a failed call as a BackendError. File header; each test has its own note.
 import { expect, test, vi } from 'vitest'
 import type PocketBase from 'pocketbase'
@@ -26,7 +26,7 @@ function fakePb(
   return { pb, getFirstListItem, update, filter }
 }
 
-// Protects: C8, saving the theme never overwrites the minimap choice made in another tab.
+// Protects: saving the theme never overwrites the minimap choice made in another tab.
 test('set sends only the changed preference', async () => {
   const { pb, update } = fakePb()
   const result = await createPreferences(pb).set({ minimapVisible: false })

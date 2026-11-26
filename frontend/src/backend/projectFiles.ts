@@ -2,7 +2,7 @@ import type PocketBase from 'pocketbase'
 import { createBackendError, toBackendError } from './errors.ts'
 
 export const MAX_IMPORT_BYTES = 5242880
-// The router's copy for an import that is too large; the server answers the same text.
+// Shown for an import that is too large; the server answers the same text.
 export const IMPORT_TOO_LARGE = 'This file is larger than the 5 MB import limit.'
 
 /** Export and import of a project as a JSON file (design 10). The server builds and checks the file. */

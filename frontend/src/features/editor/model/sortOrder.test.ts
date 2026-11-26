@@ -19,7 +19,7 @@ test('sortOrderBetween returns null when there is no room', () => {
   expect(sortOrderBetween(Number.NaN, 1)).toBeNull()
 })
 
-// Protects: inserting 60 times in the same gap keeps the order (the review-focus case).
+// Protects: inserting 60 times in the same gap keeps the order, also across the renumber when floats run out of room.
 test('repeated inserts in one gap keep the order', () => {
   let items: Ordered[] = list(['a', 1], ['b', 2])
   const expected = ['a', 'b']

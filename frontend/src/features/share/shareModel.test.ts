@@ -21,9 +21,9 @@ const FILE: ProjectFile = {
   media: [],
 }
 
-// Protects plan D8 and D9: a link is copied as one address, the viewer is built from the
-// file's own ids and shows nothing as trashed, a live view refreshes only when it is visible
-// and 30 s old (exactly 30 s counts), and each kind of link has its own label.
+// Protects: a link is copied as one address, the viewer is built from the file's own ids and shows nothing as trashed,
+// a live view refreshes only when it is visible and 30 s old (exactly 30 s counts), and each kind of link has its own
+// label.
 test("links, refreshes and the viewer's content follow the link's kind", () => {
   expect(shareUrl('https://a', 'T')).toBe('https://a/#/s/T')
 

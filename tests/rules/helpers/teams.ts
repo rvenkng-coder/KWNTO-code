@@ -1,8 +1,8 @@
 import { expect } from 'vitest'
 import { asAdmin, type TestUser } from './pb.ts'
 
-// Team helpers for the team rule tests. Joining (Task 7) and invites (Task 8) do not
-// exist yet, so a plain member is added by the admin, who bypasses the create rule.
+// Team helpers for the team rule tests. A plain member is added by the admin, who bypasses
+// the create rule, so a test needs no join code or invite.
 
 export async function addMember(teamId: string, user: TestUser): Promise<string> {
   const row = await (await asAdmin()).collection('team_members').create({ team: teamId, user: user.id, role: 'member' })

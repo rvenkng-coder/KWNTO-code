@@ -13,7 +13,7 @@ describe('media rules and collection', () => {
     }
   })
 
-  // Protects: verified member uploads an image and the server names it (C1)
+  // Protects: verified member uploads an image and the server names it
   test('a member uploads an image and the server names it', async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -29,7 +29,7 @@ describe('media rules and collection', () => {
     expect(data.file).not.toContain('Photo')
   })
 
-  // Protects: only a verified member uploads, as themself, into their own project (C2)
+  // Protects: only a verified member uploads, as themself, into their own project
   test('only a verified member uploads, as themself, into their own project', async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -89,7 +89,7 @@ describe('media rules and collection', () => {
     expect(list).toHaveLength(0)
   })
 
-  // Protects: only the team can read a media row or its file (C3)
+  // Protects: only the team can read a media row or its file
   test('only the team can read a media row or its file', async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -129,7 +129,7 @@ describe('media rules and collection', () => {
     expect(bytes).toEqual(PNG_1PX)
   })
 
-  // Protects: media is never edited; only the team lead deletes it (C4)
+  // Protects: media is never edited; only the team lead deletes it
   test('media is never edited and only the lead deletes it', async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -161,7 +161,7 @@ describe('media rules and collection', () => {
     expect(fileRes.status).not.toBe(200)
   })
 
-  // Protects: a member removes media, only the lead restores it, and nobody else can (C12)
+  // Protects: a member removes media, only the lead restores it, and nobody else can
   test('a member removes media and only the lead restores it', async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -195,7 +195,7 @@ describe('media rules and collection', () => {
     expect(restored.removed_at).toBe('')
   })
 
-  // Protects: a member's upload counts against the lead's quota, not their own (C13)
+  // Protects: a member's upload counts against the lead's quota, not their own
   test("a member's upload counts against the lead's quota", async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -238,7 +238,7 @@ describe('media rules and collection', () => {
     expect(r4.status).toBe(200)
   })
 
-  // Protects: deleting the uploader's account keeps the file with the lead (C14)
+  // Protects: deleting the uploader's account keeps the file with the lead
   test("deleting the uploader's account keeps the file", async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -253,7 +253,7 @@ describe('media rules and collection', () => {
     expect(kept.size_bytes).toBe(67)
   })
 
-  // Protects: a lead with no limits row gets the default quota, and the admin can restore media (C15)
+  // Protects: a lead with no limits row gets the default quota, and the admin can restore media
   test('a lead with no limits row gets the default quota and the admin can restore', async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -274,7 +274,7 @@ describe('media rules and collection', () => {
     expect(restored.removed_at).toBe('')
   })
 
-  // Protects: deleting a team removes its media (C11)
+  // Protects: deleting a team removes its media
   test('deleting a team removes its media', async () => {
     const { owner, teamId, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -290,7 +290,7 @@ describe('media rules and collection', () => {
     await expect(admin.collection('media').getOne(record.id)).rejects.toThrow()
   })
 
-  // Protects: stored files are served so they cannot run as a page (C6)
+  // Protects: stored files are served so they cannot run as a page
   test('stored files are served so they cannot run as a page', async () => {
     const { owner, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)
@@ -331,7 +331,7 @@ describe('media rules and collection', () => {
     }
   })
 
-  // Protects: the storage route shows the lead's usage to the team and nobody else (C10)
+  // Protects: the storage route shows the lead's usage to the team and nobody else
   test("the storage route shows the lead's usage to the team and nobody else", async () => {
     const { owner, member, projectId, chapterId } = await memberProject()
     const nodeId = await createNode(owner, projectId, chapterId)

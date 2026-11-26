@@ -66,6 +66,42 @@ An edit made while the engine is offline resolves as soon as it is STORED in the
 
 `createEditorStore(door, sync?)`: `sync` is an `EditorSyncPort`. The app's store uses `appSync()` (the engine of whoever is signed in, from `sync/syncStore.ts`, built on first use so importing the store touches no browser API); tests use `directSync(door)` (an engine on a memory outbox, always online) or `portOf(engine, register)` on an engine they built. The status line, failed list and dialog read `useSync(selector)`.
 
+### Sync engine states
+
+The engine (`sync/syncEngine.ts`, one per tab) sends one entry at a time. Read this beside the class: each arrow names the method that causes the move.
+
+```mermaid
+stateDiagram-v2
+  state "Not the sending tab" as Follower
+  state "Idle" as Idle
+  state "Sending" as Sending
+  state "Backing off" as Backoff
+  state "Waiting for a conflict answer" as Conflict
+
+  [*] --> Follower: start()
+  Follower --> Idle: holdLock(), this tab got the lock
+  Idle --> Sending: wake() then sendNext() and take()
+  Sending --> Idle: settle(), saved or refused
+  Sending --> Backoff: settle(), unreachable, backOff()
+  Sending --> Conflict: settle(), conflict
+  Backoff --> Idle: timer, retryOrClear()
+  Backoff --> Idle: retryNow() or setOnline(true)
+  Conflict --> Idle: resolve(choice)
+  Idle --> [*]: stop()
+```
+
+While the browser reports no network, `sendNext()` does nothing, whatever the state. A tab that is not sending still stores its own edits (`add()`) and passes a conflict answer to the sending tab (`resolve()`).
+
+| Flag | True when |
+|---|---|
+| `netOnline` | The browser reports a network (`setOnline`) |
+| `serverDown` | The last send could not reach the server; cleared by an answer or when nothing is left to send |
+| `owner` | This tab holds the lock and is the one that sends |
+| `started` | `start()` has run; it runs once |
+| `stopped` | `stop()` has run; nothing more is sent |
+| `checkSession` | The sign-in must be checked before the next send (at the start and after a reconnect) |
+| `again` | `wake()` was called while the send loop was running, so it goes round once more |
+
 ## Text fields: the save path
 
 Text in the properties panel (`panel/`) does not go to the store on every keystroke. `useSavedText(kind, id, field, value)` keeps the text locally and schedules a save of that one field through `pendingEdits` (`store/pendingEdits.ts`), keyed `${kind}:${id}:${field}`:

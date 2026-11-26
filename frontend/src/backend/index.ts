@@ -14,62 +14,50 @@ export { MAX_SAVE_TRIES, TOO_BUSY } from './guarded'
 export { EDIT_CONFLICT, EditConflict } from './errors'
 
 let _backend: Backend | undefined
+// Made on first use, so importing this module (as tests do) opens no connection.
+const lazy = (): Backend => (_backend ??= createBackend())
 
 export const backend: Backend = {
   get auth() {
-    if (!_backend) _backend = createBackend()
-    return _backend.auth
+    return lazy().auth
   },
   get teams() {
-    if (!_backend) _backend = createBackend()
-    return _backend.teams
+    return lazy().teams
   },
   get preferences() {
-    if (!_backend) _backend = createBackend()
-    return _backend.preferences
+    return lazy().preferences
   },
   get projects() {
-    if (!_backend) _backend = createBackend()
-    return _backend.projects
+    return lazy().projects
   },
   get content() {
-    if (!_backend) _backend = createBackend()
-    return _backend.content
+    return lazy().content
   },
   get media() {
-    if (!_backend) _backend = createBackend()
-    return _backend.media
+    return lazy().media
   },
   get appSettings() {
-    if (!_backend) _backend = createBackend()
-    return _backend.appSettings
+    return lazy().appSettings
   },
   get projectFiles() {
-    if (!_backend) _backend = createBackend()
-    return _backend.projectFiles
+    return lazy().projectFiles
   },
   get shares() {
-    if (!_backend) _backend = createBackend()
-    return _backend.shares
+    return lazy().shares
   },
   get comments() {
-    if (!_backend) _backend = createBackend()
-    return _backend.comments
+    return lazy().comments
   },
   get presence() {
-    if (!_backend) _backend = createBackend()
-    return _backend.presence
+    return lazy().presence
   },
   get realtime() {
-    if (!_backend) _backend = createBackend()
-    return _backend.realtime
+    return lazy().realtime
   },
   get links() {
-    if (!_backend) _backend = createBackend()
-    return _backend.links
+    return lazy().links
   },
   async health() {
-    if (!_backend) _backend = createBackend()
-    return _backend.health()
+    return lazy().health()
   },
 }

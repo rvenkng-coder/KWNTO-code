@@ -8,7 +8,7 @@ The rules in this table apply to `frontend/src/**/*.{ts,tsx}`. The config is `es
 
 | Rule | What it catches | What to do |
 |---|---|---|
-| `max-lines` (300) | A file over 300 lines, not counting blank lines and comments | Split it by feature or responsibility |
+| `max-lines` (300; test files 500) | A file over the limit, not counting blank lines and comments | Split it by feature or responsibility |
 | `no-restricted-imports` | `import ... from 'pocketbase'` anywhere except `frontend/src/backend/`, `tests/rules/` and `e2e/` | Call the backend through a function in `frontend/src/backend/` |
 | `@typescript-eslint/no-explicit-any` | The `any` type | Use a real type or `unknown`. If `any` is truly needed: `// eslint-disable-next-line @typescript-eslint/no-explicit-any -- <reason>` |
 | `no-restricted-syntax` | The React prop `dangerouslySetInnerHTML` | Render text as text (security.md section 5) |

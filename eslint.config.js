@@ -42,6 +42,11 @@ export default defineConfig([
     },
   },
   {
+    // A test file lists many cases of one module; splitting it would scatter them (developer decision 2026-11-26).
+    files: ['frontend/src/**/*.test.{ts,tsx}'],
+    rules: { 'max-lines': ['error', { max: 500, skipBlankLines: true, skipComments: true }] },
+  },
+  {
     // PocketBase hooks: CommonJS run by PocketBase's own engine, so no typecheck covers them.
     files: ['backend/pb_hooks/**/*.js'],
     extends: [js.configs.recommended],

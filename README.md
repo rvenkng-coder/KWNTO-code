@@ -2,7 +2,7 @@
 
 A branching-narrative scriptwriting tool for game developers. Build interactive stories with a visual canvas, version-controlled chapters, and real-time collaboration.
 
-**Status:** In development. Internal tool.
+**Status:** Functional and Deployed.
 
 ## Quick Start
 
